@@ -823,6 +823,20 @@ void svgame_tell_health (object_t *obj, int health)
 }
 
 
+void svgame_tell_armour (object_t *obj, int armour)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!object_is_client (obj))
+	return;
+
+    size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
+			  object_id (obj), 'A', armour);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
 void svgame_tell_ammo (object_t *obj, int ammo)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];

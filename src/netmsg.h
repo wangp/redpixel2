@@ -216,7 +216,10 @@ enum {
     /* Tell clients about their status.
 
        Args: long client_id, byte prop, long value.
-       where prop is 'h' for health, 'a' for ammo
+       where prop is
+		'h' for health,
+		'a' for ammo,
+		'A' for armour
      */
 
     MSG_SC_GAMEINFO_CLIENT_STATUS = 's',

@@ -10,23 +10,33 @@ local Item = Respawning_Item
 -- Enhancements
 ----------------------------------------------------------------------
 
+local Armour_Item = function (t)
+    return Item (t, {
+	collide_hook = function (self, player)
+	    return player:receive_armour (t.give_armour)
+	end
+    })
+end
 
-Item {
+Armour_Item {
     name = "basic-armour-brown", 
     icon = "/basic/powerup/armour/brown",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 10
 }
 
-Item {
+Armour_Item {
     name = "basic-armour-purple", 
     icon = "/basic/powerup/armour/purple",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 20
 }
 
-Item {
+Armour_Item {
     name = "basic-armour-blue", 
     icon = "/basic/powerup/armour/blue",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 30
 }
 
 Item {
@@ -83,11 +93,7 @@ Item {
 local Health_Item = function (t)
     return Item (t, {
 	collide_hook = function (self, player)
-	    local h = player.health
-	    player:receive_health (t.give_health)
-	    if player.health == h then
-		return false
-	    end
+	    return player:receive_health (t.give_health)
 	end
     })
 end

@@ -548,6 +548,13 @@ generate_server {
 }
 
 generate_server {
+    cname	= "svgame_tell_armour",
+    lname	= "_internal_tell_armour",
+    args	= {{ Object, "obj" },
+		   { Int, "armour" }}
+}
+
+generate_server {
     cname	= "svgame_tell_ammo",
     lname	= "_internal_tell_ammo",
     args	= {{ Object, "obj" },

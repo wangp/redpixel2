@@ -23,6 +23,7 @@ void svgame_spawn_blast (float x, float y, float radius, int damage, int owner);
 void svgame_call_method_on_clients (struct object *obj, const char *method, const char *arg);
 int svgame_object_would_collide_with_objects (struct object *obj);
 int svgame_tell_health (struct object *obj, int health); /* internal */
+int svgame_tell_armour (struct object *obj, int armour); /* internal */
 int svgame_tell_ammo (struct object *obj, int ammo); /* internal */
 void svgame_set_score (int client_id, const char *score);
 void svgame_play_sound_on_clients (struct object *obj, const char *sound);

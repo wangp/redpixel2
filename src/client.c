@@ -67,8 +67,11 @@ static BITMAP *crosshair;
 static map_t *map;
 static object_t *local_object;
 static object_t *tracked_object;
-static int health;		/* for displaying only */
-static int ammo;		/* the real values are on server */
+static struct {	/* for displaying only; the real values are on server */
+    int health;
+    int armour;
+    int ammo;
+} display_values;
 
 /* network stuff */
 static int pinging;
@@ -519,10 +522,13 @@ SC_GAMEINFO_HANDLER (sc_client_status)
     if (id == client_id) {	/* XXX a waste to broadcast this */
 	switch (type) {
 	    case 'h':
-		health = val;
+		display_values.health = val;
+		break;
+	    case 'A':
+		display_values.armour = val;
 		break;
 	    case 'a':
-		ammo = val;
+		display_values.ammo = val;
 		break;
 	    default:
 		error ("unknown type in gameinfo client status packet (client)\n");
@@ -949,11 +955,14 @@ static void draw_status (BITMAP *bmp)
 
     text_mode (-1);
     textprintf_right_trans_magic (
+	bmp, f, bmp->w/3 - 80, bmp->h - text_height (f) - 2, col,
+	"%d", display_values.health);
+    textprintf_right_trans_magic (
 	bmp, f, bmp->w/3 - 40, bmp->h - text_height (f) - 2, col,
-	"%d", health);
+	"%d", display_values.armour);
     textprintf_right_trans_magic (
 	bmp, f, bmp->w/3 - 2, bmp->h - text_height (f) - 2, col,
-	"%d", ammo);
+	"%d", display_values.ammo);
 }
 
 

@@ -177,9 +177,12 @@ local player_nonproxy_init = function (self)
 	end
     end
 
-    -- health stuff
+    -- health (and armour) stuff
     self.health = 100
     _internal_tell_health (self, self.health)
+
+    self.armour = 0
+    _internal_tell_armour (self, self.armour)
 
     function self:receive_damage (damage, attacker)
 	spawn_blood_on_clients (self.x + cx, self.y + cy, 100, 2)
@@ -187,8 +190,16 @@ local player_nonproxy_init = function (self)
 	    spawn_blod_on_clients (self.x, self.y, damage/5)
 	end
 
-	self.health = self.health - damage
+	local dmg = damage/2	-- armour absorbs half damage
+	self.armour = self.armour - dmg
+	if self.armour < 0 then
+	    dmg = dmg + -self.armour
+	    self.armour = 0
+	end
+	self.health = self.health - dmg
+
 	_internal_tell_health (self, self.health)
+	_internal_tell_armour (self, self.armour)
 
 	if self.health <= 0 then
 
@@ -226,8 +237,25 @@ local player_nonproxy_init = function (self)
     end
 
     function self:receive_health (amount)
-	self.health = min (100, self.health + amount)
-	_internal_tell_health (self, self.health)
+	local h = min (100, self.health + amount)
+	if h ~= self.health then
+	    self.health = h
+	    _internal_tell_health (self, self.health)
+	    return true
+	else
+	    return false
+	end
+    end
+
+    function self:receive_armour (amount)
+	local a = min (50, self.armour + amount)
+	if a ~= self.armour then
+	    self.armour = a
+	    _internal_tell_armour (self, self.armour)
+	    return true
+	else
+	    return false
+	end
     end
 
     -- update hook (fire delay and blood trails)
