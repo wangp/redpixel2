@@ -27,7 +27,7 @@ struct ed_select_list {
 typedef ed_select_list_t list_t;
 
 
-list_t *ed_select_list_create ()
+list_t *ed_select_list_create (void)
 {
     return alloc (sizeof (list_t));
 }
@@ -146,7 +146,8 @@ static void sel_scroll_until_selected_in_view (struct sel *s)
 }
 
 
-static void draw_magic_max_stretch (BITMAP *dest, BITMAP *src, int x, int y, int w, int h)
+static void draw_magic_max_stretch (BITMAP *dest, BITMAP *src,
+				    int x, int y, int w, int h)
 {
     BITMAP *tmp;
     float ww, hh;
@@ -182,7 +183,9 @@ static void sel_draw (struct sel *s, BITMAP *bmp, int x, int y, int w, int h)
     if (!s->list)
 	return;
 
-    for (i = s->top, xx = x, yy = y; (i < s->list->num) && (yy + s->icon_h - 1 < y + h); i++) {
+    for (i = s->top, xx = x, yy = y;
+	 (i < s->list->num) && (yy + s->icon_h - 1 < y + h);
+	 i++) {
 	p = s->list->item + i;
 
 	draw_magic_max_stretch (bmp, p->bmp, xx, yy, s->icon_w, s->icon_h);
@@ -212,7 +215,8 @@ static int sel_select (ug_widget_t *widget, int mx, int my)
 
     for (v = 0, i = p->top; v < p->rows; v++)
 	for (u = 0; (u < p->cols) && (i < p->list->num); u++, i++)
-	    if (in_rect (mx, my, (u * p->icon_w), (v * p->icon_h), p->icon_w, p->icon_h)) {
+	    if (in_rect (mx, my, (u * p->icon_w), (v * p->icon_h),
+			 p->icon_w, p->icon_h)) {
 		if (p->selected == i)
 		    return 0;
 		

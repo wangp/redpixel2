@@ -3,7 +3,7 @@
 
 
 void menu_install (int x, int y, int w, int h);
-void menu_uninstall ();
+void menu_uninstall (void);
 
 
 #endif

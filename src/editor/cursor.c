@@ -16,7 +16,7 @@ static BITMAP *dynamic_cursor;
 static BITMAP *dot_cursor;
 
 
-static void destroy_dynamic_cursor ()
+static void destroy_dynamic_cursor (void)
 {
     if (dynamic_cursor) {
 	destroy_bitmap (dynamic_cursor);
@@ -25,7 +25,7 @@ static void destroy_dynamic_cursor ()
 }
 
 
-int cursor_init ()
+int cursor_init (void)
 {
     dot_cursor = create_bitmap (1, 1);
     putpixel (dot_cursor, 0, 0, HIGHLIGHT);
@@ -34,7 +34,7 @@ int cursor_init ()
 }
 
 
-void cursor_shutdown ()
+void cursor_shutdown (void)
 {
     destroy_dynamic_cursor ();
     destroy_bitmap (dot_cursor);
@@ -72,14 +72,14 @@ void cursor_set_magic_bitmap (BITMAP *bmp, int hotx, int hoty)
 }
 
 
-void cursor_set_dot ()
+void cursor_set_dot (void)
 {
     change (dot_cursor, 0, 0);
     destroy_dynamic_cursor ();
 }
 
 
-void cursor_set_default ()
+void cursor_set_default (void)
 {
     change (0, 0, 0);
     destroy_dynamic_cursor ();

@@ -38,7 +38,7 @@ static int prompt_filename (const char *msg, char *path, const char *ext,
 
     /* XXX -- this is a hack so that the gui_mouse.d* do not register
      * changes the next time gui_mouse_update() is called */
-    { void gui_mouse_update (); gui_mouse_update (); }
+    { void gui_mouse_update (void); gui_mouse_update (); }
 
     scare_mouse ();
     blit (bmp, screen, 0, 0, 0, 0, bmp->w, bmp->h);
@@ -49,7 +49,7 @@ static int prompt_filename (const char *msg, char *path, const char *ext,
 }
 
 
-static void new ()
+static void new (void)
 {
     if (prompt ("Erase current map?", "&Yes", "&No", 'y', 'n')) {
 	map_destroy (editor_map);
@@ -62,7 +62,7 @@ static void new ()
 }
 
 
-static void load ()
+static void load (void)
 {
     char filename[1024] = "";
     map_t *m;
@@ -85,7 +85,7 @@ static void load ()
 }
 
 
-static void save ()
+static void save (void)
 {
     char filename[1024] = "";
 
@@ -95,7 +95,7 @@ static void save ()
 }
 
 
-static void quit ()
+static void quit (void)
 {
     if (prompt ("Are you sure you want to quit?", "&Yes", "&No", 'y', 'n'))
 	gui_quit ();
@@ -104,7 +104,7 @@ static void quit ()
 
 static void file_menu_slot (ug_widget_t *p, ug_signal_t signal, void *data)
 {
-    void (*proc) () = data;
+    void (*proc) (void) = data;
     if (proc)
 	proc ();
 }
@@ -148,7 +148,7 @@ void menu_install (int x, int y, int w, int h)
 }
 
 
-void menu_uninstall ()
+void menu_uninstall (void)
 {
     gui_accel_destroy (accel_quit);
     gui_accel_destroy (accel_save);

@@ -70,7 +70,7 @@ static void callback (const char *prefix, int id)
     list_add (file_list, f);
 }
 
-static int make_file_list ()
+static int make_file_list (void)
 {
     list_init (file_list);
     tiles_enumerate (callback);
@@ -83,7 +83,7 @@ static void do_free_file (struct file *f)
     free (f);
 }
 
-static void free_file_list ()
+static void free_file_list (void)
 {
     list_free (file_list, do_free_file);
 }
@@ -91,13 +91,13 @@ static void free_file_list ()
 
 /* Save / restore selectbar state.  */
  
-static void save_current ()
+static void save_current (void)
 {
     current->top = selectbar_top ();
     current->selected = selectbar_selected ();
 }
 
-static void restore_current ()
+static void restore_current (void)
 {
     selectbar_set_top (current->top);
     selectbar_set_selected (current->selected);
@@ -114,7 +114,7 @@ static void change_set (struct file *p)
 
 /* Selectbar callbacks.  */
  
-static void left_proc ()
+static void left_proc (void)
 {
     struct file *prev = current->prev;
     if (prev == (struct file *) &file_list)
@@ -123,7 +123,7 @@ static void left_proc ()
 	change_set (prev);
 }
 
-static void right_proc ()
+static void right_proc (void)
 {    
     struct file *next = current->next;
     if (next == (struct file *) &file_list)
@@ -135,7 +135,7 @@ static void right_proc ()
 
 /* Mode manager callbacks.  */
 
-static void enter_mode ()
+static void enter_mode (void)
 {
     editarea_layer_activate ("tiles");
     selectbar_set_list (current->list);
@@ -144,7 +144,7 @@ static void enter_mode ()
     restore_current ();
 }
 
-static void leave_mode ()
+static void leave_mode (void)
 {
     save_current ();
     selectbar_set_change_set_proc (0, 0);
@@ -248,7 +248,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 /* Module init / shutdown.  */
 
-int mode_tiles_init ()
+int mode_tiles_init (void)
 {
     if (make_file_list () < 0)
 	return -1;
@@ -259,7 +259,7 @@ int mode_tiles_init ()
     return 0;
 }
 
-void mode_tiles_shutdown ()
+void mode_tiles_shutdown (void)
 {
     free_file_list ();
 }

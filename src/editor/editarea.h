@@ -28,8 +28,8 @@ extern int editarea_grid_y;
 
 
 void editarea_install (int x, int y, int w, int h);
-void editarea_uninstall ();
-void editarea_reset_offset ();
+void editarea_uninstall (void);
+void editarea_reset_offset (void);
 
 void editarea_layer_register (const char *name,
 			      void (*draw) (struct BITMAP *, int offx, int offy),

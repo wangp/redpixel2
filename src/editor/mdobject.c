@@ -80,7 +80,7 @@ static void callback (objtype_t *objtype)
     ed_select_list_add_item (p->list, objtype_name (objtype), bmp);
 }
 
-static int make_type_list ()
+static int make_type_list (void)
 {
     list_init (type_list);
     objtypes_enumerate (callback);
@@ -94,7 +94,7 @@ static void do_free_type (struct type *p)
     free (p);
 }
 
-static void free_type_list ()
+static void free_type_list (void)
 {
     list_free (type_list, do_free_type);
 }
@@ -105,7 +105,7 @@ static void free_type_list ()
 static int cursor_offset_x;
 static int cursor_offset_y;
 
-static void cursor_set_selected ()
+static void cursor_set_selected (void)
 {
     BITMAP *bmp;
 
@@ -133,7 +133,7 @@ static ug_dialog_t *actions_dlg;
 static int action = ACTION_ADD;
 static int snap_to_grid = 0;
 
-static void set_cursor_for_action ()
+static void set_cursor_for_action (void)
 {
     switch (action) {
 	case ACTION_ADD:
@@ -204,7 +204,7 @@ static ug_dialog_layout_t actions_layout[] =
     { UG_DIALOG_LAYOUT_END }
 };
 
-static void create_actions_box ()
+static void create_actions_box (void)
 {
     actions_win = gui_window_create (150, 50, 50, 80, 0);
     gui_window_hide (actions_win);
@@ -213,23 +213,23 @@ static void create_actions_box ()
     actions_dlg = ug_dialog_create (actions_win, actions_layout, 0);
 }
 
-static void destroy_actions_box ()
+static void destroy_actions_box (void)
 {
     ug_dialog_destroy (actions_dlg);
     gui_window_destroy (actions_win);
 }
 
-static void show_actions_box ()
+static void show_actions_box (void)
 {
     gui_window_show (actions_win);
 }
 
-static void hide_actions_box ()
+static void hide_actions_box (void)
 {
     gui_window_hide (actions_win);
 }
 
-static void toggle_actions_box ()
+static void toggle_actions_box (void)
 {
     if (gui_window_hidden (actions_win))
 	show_actions_box ();
@@ -237,7 +237,7 @@ static void toggle_actions_box ()
 	hide_actions_box ();
 }
 
-static int actions_box_hidden ()
+static int actions_box_hidden (void)
 {
     return gui_window_hidden (actions_win);
 }
@@ -245,13 +245,13 @@ static int actions_box_hidden ()
 
 /* Save / restore selectbar state.  */
  
-static void save_current ()
+static void save_current (void)
 {
     current->top = selectbar_top ();
     current->selected = selectbar_selected ();
 }
 
-static void restore_current ()
+static void restore_current (void)
 {
     selectbar_set_top (current->top);
     selectbar_set_selected (current->selected);
@@ -269,7 +269,7 @@ static void change_set (struct type *p)
 
 /* Selectbar callbacks.  */
  
-static void left_proc ()
+static void left_proc (void)
 {
     struct type *prev = current->prev;
     if (prev == (struct type *) &type_list)
@@ -278,7 +278,7 @@ static void left_proc ()
 	change_set (prev);
 }
 
-static void right_proc ()
+static void right_proc (void)
 {    
     struct type *next = current->next;
     if (next == (struct type *) &type_list)
@@ -292,7 +292,7 @@ static void right_proc ()
 
 static int actions_box_was_hidden;
 
-static void enter_mode ()
+static void enter_mode (void)
 {
     editarea_layer_activate ("objects");
     selectbar_set_list (current->list);
@@ -305,7 +305,7 @@ static void enter_mode ()
 	show_actions_box ();
 }
 
-static void leave_mode ()
+static void leave_mode (void)
 {
     actions_box_was_hidden = actions_box_hidden ();
     hide_actions_box ();
@@ -512,7 +512,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 /* Module init / shutdown.  */
 
-int mode_objects_init ()
+int mode_objects_init (void)
 {
     if (make_type_list () < 0)
 	return -1;
@@ -526,7 +526,7 @@ int mode_objects_init ()
     return 0;
 }
 
-void mode_objects_shutdown ()
+void mode_objects_shutdown (void)
 {
     destroy_actions_box ();
     free_type_list ();

@@ -3,7 +3,7 @@
 
 
 void modebar_install (int x, int y, int w, int h);
-void modebar_uninstall ();
+void modebar_uninstall (void);
 
 
 #endif
