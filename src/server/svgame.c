@@ -869,6 +869,9 @@ static void handle_new_svclient_feeds (void)
 	    map_link_object (map, obj);
 	    object_run_init_func (obj);
 
+	    object_set_string (obj, "name", c->name);
+	    object_add_creation_field (obj, "name");
+
 	    {
 		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
 		size_t size = make_object_creation_packet (obj, buf+1);
