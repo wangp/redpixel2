@@ -20,7 +20,7 @@ LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
 ifndef DEBUG
-CFLAGS += -O3 -fomit-frame-pointer -funroll-loops -ffast-math -march=i686
+CFLAGS += -O3 -fomit-frame-pointer -funroll-loops -ffast-math -mcpu=i686
 else
 CFLAGS += -O3 -g
 endif
