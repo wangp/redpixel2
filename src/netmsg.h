@@ -191,7 +191,8 @@ enum {
        This is followed by extra fields for the proxy object.
        Each field is of the following format:
 
-       For a float: 'f', string name, float value
+       For a float:  'f', string name, float value
+       For a string: 's', string name, string value
 
        The packet is terminated with a null character.
      */

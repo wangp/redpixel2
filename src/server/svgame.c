@@ -78,8 +78,12 @@ static object_t *spawn_player (objid_t id)
     map_link_object (map, obj);
     object_run_init_func (obj);
 
-    if ((c = svclients_find_by_id (id)))
+    if ((c = svclients_find_by_id (id))) {
+	object_set_string (obj, "name", c->name);
+	object_add_creation_field (obj, "name");
+	
 	c->last_sent_aim_angle = 0;
+    } 
     
     return obj;
 }
@@ -300,11 +304,23 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 			     object_collision_tag (obj));
 
     /* creation fields */
-    /* XXX this only supports fields of type float right now */
     list = object_creation_fields (obj);
-    list_for_each (f, list)
-	p += packet_encode (p, "csf", 'f', f->name,
-			    object_get_number (obj, f->name));
+    list_for_each (f, list) {
+	int type = object_get_var_type (obj, f->name);
+	
+	switch (type) {
+	    case LUA_TNUMBER:
+		p += packet_encode (p, "csf", 'f', f->name,
+				    object_get_number (obj, f->name));
+		break;
+	    case LUA_TSTRING:
+		p += packet_encode (p, "css", 's', f->name,
+				    object_get_string (obj, f->name));
+		break;
+	    default:
+		error ("error: unsupported type for creation field (server)\n");
+	}
+    }
 
     p += packet_encode (p, "c", 0); /* terminator */
 
