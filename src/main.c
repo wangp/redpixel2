@@ -66,6 +66,14 @@ static void setup_allegro (int w, int h, int d, int stretch_method)
     if (install_mouse () < 0)
         error ("Error initialising mouse.\n");
 
+#ifdef TARGET_WINDOWS
+    /* Hack: The default DirectX mixer driver used by Allegro/Windows works
+     * very badly with our background music thread (stutters and clicks and
+     * pops), so we force the software mixer.
+     */
+    set_config_id ("sound", "digi_card", DIGI_DIRECTAMX (0));
+#endif
+
     install_sound (DIGI_AUTODETECT, MIDI_NONE, 0);
 
     set_window_title ("Red Pixel II");
