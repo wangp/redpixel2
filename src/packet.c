@@ -94,7 +94,7 @@ int packet_encode_v (unsigned char *buf, const char *fmt, va_list ap)
 	    short len;
 		
 	    str = va_arg (ap, const char *);
-	    len = strlen (str);
+	    len = (str) ? strlen (str) : 0; /* let NULL == 0-length string */
 	    put_short (buf, len); buf += 2;
 	    memcpy (buf, str, len); buf += len;
 	    break;
