@@ -679,7 +679,7 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
 
 /* Spawn some blood (Lua binding). */
 
-int game_server_spawn_blood (float x, float y, long nparticles, float spread)
+void game_server_spawn_blood (float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
@@ -687,13 +687,12 @@ int game_server_spawn_blood (float x, float y, long nparticles, float spread)
     size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
-    return 0;
 }
 
 
 /* Spawn some blods (Lua binding). */
 
-int game_server_spawn_blod (float x, float y, long nparticles)
+void game_server_spawn_blod (float x, float y, long nparticles)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
@@ -701,7 +700,21 @@ int game_server_spawn_blod (float x, float y, long nparticles)
     size = packet_encode (buf, "cffl", MSG_SC_GAMEINFO_BLOD_CREATE,
 			  x, y, nparticles);
     add_to_gameinfo_packet_queue (buf, size);
-    return 0;
+}
+
+
+/* Call method on client (Lua binding). */
+/* XXX we only allow a single string arg at the moment
+   XXX add more as they are required, somehow */
+
+void game_server_call_method_on_clients (object_t *obj, const char *method, const char *arg)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    int size;
+
+    size = packet_encode (buf, "clss", MSG_SC_GAMEINFO_OBJECT_CALL,
+			  object_id (obj), method, arg);
+    add_to_gameinfo_packet_queue (buf, size);
 }
 
 
@@ -1106,7 +1119,7 @@ static void server_handle_client_controls ()
 	 * Fire.
 	 */
 	if (c->controls & CONTROL_FIRE)
-	    object_call (obj, "_internal_fire_hook");
+	    object_call (obj, "_internal_fire_hook", 0);
     }
 }
 

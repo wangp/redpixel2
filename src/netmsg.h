@@ -213,6 +213,14 @@ enum {
     MSG_SC_GAMEINFO_OBJECT_HIDDEN = 'h',
     
 
+    /* Tell clients to call an object method.
+
+       Args: long object_id, long len, byte method[], long len2, byte arg[].
+     */
+
+    MSG_SC_GAMEINFO_OBJECT_CALL = 'C',
+
+
     /* Tell clients about a client's new aim angle.  Note: these
        angles are only approximate.
 

@@ -394,8 +394,7 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
-		   { Float, "spread" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Float, "spread" }}
 }
 
 generate {
@@ -403,8 +402,15 @@ generate {
     lname	= "spawn_blod",
     args	= {{ Float, "x" },
 		   { Float, "y" },
-		   { Int, "nparticles" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Int, "nparticles" }}
+}
+
+generate {
+    cname	= "game_server_call_method_on_clients",
+    lname	= "call_method_on_clients",
+    args	= {{ Object, "obj" },
+		   { String, "method" },
+		   { String, "arg" }}	-- XXX this should be optional
 }
 
 print (reg)

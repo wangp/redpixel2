@@ -351,6 +351,23 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		break;
 	    }
 
+	    case MSG_SC_GAMEINFO_OBJECT_CALL:
+	    {
+		long id;
+		long method_len;
+		char method[NETWORK_MAX_PACKET_SIZE];
+		long arg_len;
+		char arg[NETWORK_MAX_PACKET_SIZE];
+		object_t *obj;
+		
+		buf += packet_decode (buf, "lss", &id, &method_len, method, &arg_len, arg);
+		if ((obj = map_find_object (map, id))) {
+		    lua_pushstring (lua_state, arg);
+		    object_call (obj, method, 1);
+		}
+		break;
+	    }
+
 	    case MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE:
 	    {
 		long id;
