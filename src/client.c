@@ -190,6 +190,7 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
     for (i = 0; i < delta_ticks; i++) {
 	particles_update (map_particles (map), map);
 	map_explosions_update (map);
+	map_blasts_update (map);
     }
 }
 
@@ -536,6 +537,20 @@ SC_GAMEINFO_HANDLER (sc_explosion_create)
 }
 
 
+SC_GAMEINFO_HANDLER (sc_blast_create)
+{
+    float x;
+    float y;
+    float rad;
+    long damage;
+    
+    buf += packet_decode (buf, "fffl", &x, &y, &rad, &damage);
+    map_blast_create (map, x, y, rad, damage, 1);
+
+    return buf;
+}
+
+
 static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 {
     const void *end = buf + size;
@@ -584,6 +599,10 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 
 	    case MSG_SC_GAMEINFO_EXPLOSION_CREATE:
 		buf = sc_explosion_create (buf);
+		break;
+
+	    case MSG_SC_GAMEINFO_BLAST_CREATE:
+		buf = sc_blast_create (buf);
 		break;
 
 	    default:

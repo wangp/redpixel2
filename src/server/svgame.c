@@ -610,6 +610,8 @@ static void perform_physics (void)
     object_list = map_object_list (map);
     list_for_each (obj, object_list)
 	object_do_physics (obj, map); /* XXX find better name */
+
+    map_blasts_update (map);
 }
 
 
@@ -730,6 +732,19 @@ void svgame_spawn_explosion (const char *name, float x, float y)
     size = packet_encode (buf, "csff", MSG_SC_GAMEINFO_EXPLOSION_CREATE,
 			  name, x, y);
     add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+void svgame_spawn_blast (float x, float y, float radius, int damage)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    size = packet_encode (buf, "cfffl", MSG_SC_GAMEINFO_BLAST_CREATE,
+			  x, y, radius, damage);
+    add_to_gameinfo_packet_queue (buf, size);
+
+    map_blast_create (map, x, y, radius, damage, 0);
 }
 
 

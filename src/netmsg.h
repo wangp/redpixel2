@@ -263,7 +263,15 @@ enum {
        Args: string name, float x, float y, long nparticles.
      */
 
-    MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e'
+    MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e',
+
+
+    /* Tell clients to create a blast.
+
+       Args: float x, float y, float max_radius, long damage.
+     */
+
+    MSG_SC_GAMEINFO_BLAST_CREATE = 'b'
 };
 
 

@@ -8,6 +8,7 @@
 #include <string.h>
 #include "alloc.h"
 #include "bitmask.h"
+#include "blast.h"
 #include "explo.h"
 #include "list.h"
 #include "map.h"
@@ -25,6 +26,7 @@ struct map {
     list_head_t starts;
     particles_t *particles;
     list_head_t explosions;
+    list_head_t blasts;
 };
 
 
@@ -42,6 +44,7 @@ map_t *map_create (int is_client)
 	map->particles = particles_create ();
 
     list_init (map->explosions);
+    list_init (map->blasts);
 
     return map;
 }
@@ -65,6 +68,7 @@ void map_destroy (map_t *map)
     particles_destroy (map->particles);
 
     list_free (map->explosions, explosion_destroy);
+    list_free (map->blasts, blast_destroy);
     
     free (map);
 }
@@ -114,7 +118,12 @@ int map_resize (map_t *map, int width, int height)
 }
 
 
-/* Tiles.  */
+
+/*
+ *----------------------------------------------------------------------
+ *	Tiles
+ *----------------------------------------------------------------------
+ */
 
 
 int map_tile (map_t *map, int x, int y)
@@ -158,7 +167,12 @@ bitmask_t *map_tile_mask (map_t *map)
 }
 
 
-/* Objects.  */
+
+/*
+ *----------------------------------------------------------------------
+ *	Objects
+ *----------------------------------------------------------------------
+ */
 
 
 void map_link_object (map_t *map, object_t *p)
@@ -211,7 +225,12 @@ list_head_t *map_object_list (map_t *map)
 }
 
 
-/* Lights.  */
+
+/*
+ *----------------------------------------------------------------------
+ *	Lights
+ *----------------------------------------------------------------------
+ */
 
 
 struct light {
@@ -274,7 +293,12 @@ list_head_t *map_light_list (map_t *map)
 }
 
 
-/* Starts.  */
+
+/*
+ *----------------------------------------------------------------------
+ *	Starts
+ *----------------------------------------------------------------------
+ */
 
 
 struct start {
@@ -330,7 +354,11 @@ list_head_t *map_start_list (map_t *map)
 
 
 
-/* Particles.  */
+/*
+ *----------------------------------------------------------------------
+ *	Particles
+ *----------------------------------------------------------------------
+ */
 
 
 particles_t *map_particles (map_t *map)
@@ -340,7 +368,11 @@ particles_t *map_particles (map_t *map)
 
 
 
-/* Explosions.  */
+/*
+ *----------------------------------------------------------------------
+ *	Explosions
+ *----------------------------------------------------------------------
+ */
 
 
 void map_explosion_create (map_t *map, const char *name, int x, int y)
@@ -382,4 +414,44 @@ void map_explosions_draw_lights (map_t *map, BITMAP *dest,
 
     list_for_each (e, &map->explosions)
 	explosion_draw_lights (dest, e, offset_x, offset_y);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Blasts
+ *----------------------------------------------------------------------
+ */
+
+
+void map_blast_create (map_t *map, float x, float y, float radius,
+		       int damage, int visual_only)
+{
+    blast_t *b;
+    b = blast_create (x, y, radius, damage, visual_only);
+    list_add (map->blasts, b);
+}
+
+
+void map_blasts_update (map_t *map)
+{
+    blast_t *b, *next;
+
+    for (b = map->blasts.next; list_neq (b, &map->blasts); b = next) {
+	next = list_next (b);
+	if (blast_update (b, &map->objects) < 0) {
+	    list_remove (b);
+	    blast_destroy (b);
+	}
+    }
+}
+
+
+void map_blasts_draw (map_t *map, BITMAP *dest, int offset_x, int offset_y)
+{
+    blast_t *b;
+
+    list_for_each (b, &map->blasts)
+	blast_draw (dest, b, offset_x, offset_y);
 }

@@ -90,6 +90,7 @@ MODULES_GAME :=					\
 	bitmask					\
 	bitmaskg				\
 	bitmaskr				\
+	blast					\
 	blod					\
 	camera					\
 	client					\

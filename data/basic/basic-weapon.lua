@@ -63,6 +63,27 @@ local Standard_Projectile = function (t)
 end
 
 
+-- Declare a new projectile type.  This handles exploding projectiles.
+local Explosive_Projectile = function (t)
+    return Objtype (t, {
+	nonproxy_init = function (self)
+	    local hook = function (self, obj)
+		if t.explosion then
+		    spawn_explosion (t.explosion, self.x, self.y)
+		end
+		if t.sparks then
+		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		end
+		spawn_blast (self.x, self.y, t.radius, t.damage)
+		self:destroy ()
+	    end
+	    self.collide_hook = hook
+	    self.tile_collide_hook = hook
+	end
+    })
+end
+
+
 ----------------------------------------------------------------------
 --  Blaster
 ----------------------------------------------------------------------
@@ -225,6 +246,23 @@ Standard_Projectile {
 --  Rocket weapons
 ----------------------------------------------------------------------
 
+Weapon_With_Firer {
+    name = "basic-rpg",
+    ammo_type = "basic-rocket",
+    projectile = "basic-rocket-projectile",
+    projectile_speed = 10,
+    fire_delay_secs = 0.6,
+    arm_anim = {
+	"/basic/weapon/rpg/2arm000",
+	"/basic/weapon/rpg/2arm001",
+	"/basic/weapon/rpg/2arm002",
+	"/basic/weapon/rpg/2arm003",
+	"/basic/weapon/rpg/2arm004",
+	"/basic/weapon/rpg/2arm005";
+	cx = 13, cy = 3, tics = 3
+    }
+}
+
 Standard_Pickup {
     name = "basic-rpg",
     icon = "/basic/weapon/rpg/pickup",
@@ -242,11 +280,16 @@ Standard_Pickup {
     respawn_secs = 10,
 }
 
-Standard_Projectile {
+Explosive_Projectile {
     name = "basic-rocket-projectile",
     alias = "~rp",
     icon = "/basic/weapon/rpg/projectile",
-    damage = 10
+    radius = 50,
+    damage = 80,
+    explosion = "basic-simple42",
+    proxy_init = function (self)
+	self:rotate_layer (0, radian_to_bangle (self.angle))
+    end
 }
 
 
