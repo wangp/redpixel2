@@ -680,7 +680,7 @@ local Corpse = function (t)
 	if self.frame > t.frames then
 	    self.frame = t.frames
 	    if self.drop_backpack then
-		-- drop the backpack after a little whil
+		-- drop the backpack after a little while
 		self:set_update_hook (
 		    1000/3,
 		    function (self)
@@ -726,11 +726,17 @@ local Corpse = function (t)
 		self:set_mask (mask_bottom, t.mask, t.cx, t.cy)
 	    end
 	    self:set_masks_centre (t.cx, t.cy)
-	    self:set_collision_flags ("t")
+	    self:set_collision_flags ("tn")
 	    self.mass = 0.005
 	    self.frame = 0
 	    self:add_creation_field ("frame")
 	    self:set_update_hook (t.speed, nonproxy_update)
+
+	    function self:collide_hook (other)
+		-- assume we are getting shot, and spew a bit of blood
+		spawn_blood_on_clients (self.x, self.y+5, 4, 1.5)
+		return false
+	    end
 	end,
 	
 	proxy_init = function (self)
