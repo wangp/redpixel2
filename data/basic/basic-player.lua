@@ -823,6 +823,7 @@ Objtype {
     nonproxy_init = function (self)
 	self.mass = 0.01
 	self:set_collision_flags ("pt")
+	self:set_mask (mask_bottom, "/basic/player/backpack-mask", 6, 8)
 	function self:collide_hook (player)
 	    -- give goodies
 	    if self.ammo then
