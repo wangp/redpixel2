@@ -74,14 +74,14 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d,
     }
 }
 
-static void callback (const char *prefix, int id)
+static void callback (const char *prefix, store_file_t handle)
 {
     struct file *f;
 
     f = alloc (sizeof *f);
 
     f->list = ed_select_list_create ();
-    _add_to_list (f->list, store_file (id), prefix);
+    _add_to_list (f->list, store_get_file (handle), prefix);
 
     list_add (file_list, f);
 }
@@ -232,7 +232,7 @@ static int event_layer (int event, struct editarea_event *d)
 		if (p)
 		    old = p;
 		else {
-		    old = map_light_create (editor_map, x, y, store_index (selectbar_selected_name ()) - 1);
+		    old = map_light_create (editor_map, x, y, store_get_index (selectbar_selected_name ()) - 1);
 		    return 1;
 		}
 	    }
@@ -269,7 +269,7 @@ int mode_lights_init (void)
     modemgr_register (&light_mode);
     editarea_layer_register ("lights", draw_layer, event_layer, DEPTH_LIGHTS);
 
-    if (!(icon = store_dat ("/editor/light-icon")))
+    if (!(icon = store_get_dat ("/editor/light-icon")))
 	return -1;
     
     return 0;

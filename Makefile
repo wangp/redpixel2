@@ -35,7 +35,6 @@ OBJDIR := $(PLAT_OBJDIR)
 #----------------------------------------------------------------------
 
 MODULES_STORE :=				\
-	hash					\
 	store
 
 MODULES_MAGIC :=				\

@@ -68,7 +68,7 @@ static void callback (objtype_t *objtype)
     if (!objtype_type (objtype))
 	return;
 
-    bmp = store_dat (objtype_icon (objtype));
+    bmp = store_get_dat (objtype_icon (objtype));
     if (!bmp) return;
     
     p = find_type (objtype_type (objtype));
@@ -109,7 +109,7 @@ static void cursor_set_selected (void)
 {
     BITMAP *bmp;
 
-    bmp = store_dat (objtype_icon (objtypes_lookup (selectbar_selected_name ())));
+    bmp = store_get_dat (objtype_icon (objtypes_lookup (selectbar_selected_name ())));
     if (bmp) {
 	cursor_set_magic_bitmap (bmp, 0, 0);
 	cursor_offset_x = bmp->w/3/2;
@@ -140,16 +140,16 @@ static void set_cursor_for_action (void)
 	    cursor_set_selected ();
 	    break;
 	case ACTION_DEL:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/delete"), 7, 7);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/delete"), 7, 7);
 	    break;
 	case ACTION_RAISE:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/raise"), 3, 0);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/raise"), 3, 0);
 	    break;
 	case ACTION_LOWER:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/lower"), 3, 15);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/lower"), 3, 15);
 	    break;
 	case ACTION_EDIT:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/edit"), 0, 6);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/edit"), 0, 6);
 	    break;
     }
 }
@@ -417,7 +417,7 @@ static int event_layer (int event, struct editarea_event *d)
 			else if (p) {
 			    move = p;
 			    if (snap_to_grid) {
-				BITMAP *icon = store_dat (objtype_icon (object_type (p)));
+				BITMAP *icon = store_get_dat (objtype_icon (object_type (p)));
 				move_offx = -icon->w/3/2;
 				move_offy = -icon->h/2;
 			    }

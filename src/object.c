@@ -213,7 +213,7 @@ object_t *object_create_ex (const char *type_name, objid_t id)
     list_init (obj->creation_fields);
 
     list_init (obj->layers);
-    icon = store_dat (objtype_icon (obj->type));
+    icon = store_get_dat (objtype_icon (obj->type));
     object_add_layer (obj, objtype_icon (obj->type), 
 		      icon->w/3/2, icon->h/2);
 
@@ -618,7 +618,7 @@ static int set_layer (objlayer_t *layer, int id, const char *key,
 {
     BITMAP *bmp;
 
-    bmp = store_dat (key);
+    bmp = store_get_dat (key);
     if (!bmp)
 	return -1;
 
@@ -757,7 +757,7 @@ static int set_light (objlight_t *light, int id, const char *key,
 {
     BITMAP *bmp;
 
-    bmp = store_dat (key);
+    bmp = store_get_dat (key);
     if (!bmp)
 	return -1;
 
@@ -873,7 +873,7 @@ int object_set_mask (object_t *obj, int mask_num, const char *key,
 {
     bitmask_t *mask;
     
-    mask = store_dat (key);
+    mask = store_get_dat (key);
     if ((!mask) || (mask_num < 0) || (mask_num >= OBJECT_MASK_MAX))
 	return -1;
 

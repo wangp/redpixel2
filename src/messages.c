@@ -46,7 +46,7 @@ static const char *ucs16_to_utf8 (const ucs16_t *text)
 
 int messages_init (void)
 {
-    if (!(fnt = store_dat ("/basic/font/mini")))
+    if (!(fnt = store_get_dat ("/basic/font/mini")))
 	return -1;
     
     text_colour = makecol24 (0xaf, 0xdf, 0xaf);

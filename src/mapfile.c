@@ -65,7 +65,7 @@ int map_save (map_t *map, const char *filename)
 		t = map_tile (map, x, y);
 
 		if (t) {
-		    if (pack_fputs_nl (store_key (t), f) == EOF)
+		    if (pack_fputs_nl (store_get_key (t), f) == EOF)
 			goto error;
 		}
 		else {
@@ -91,7 +91,7 @@ int map_save (map_t *map, const char *filename)
 	    list_for_each (p, map_light_list (map))
 		if ((pack_iputl (map_light_x (p), f) == EOF)
 		    || (pack_iputl (map_light_y (p), f) == EOF)
-		    || (pack_fputs_nl (store_key (map_light_lightmap (p)), f) == EOF))
+		    || (pack_fputs_nl (store_get_key (map_light_lightmap (p)), f) == EOF))
 		    goto error;
 	}
     }
@@ -167,7 +167,7 @@ static int read_tiles (map_t *map, PACKFILE *f)
 	    if (ustrcmp (tmp, "()") == 0)
 		t = 0;
 	    else {
-		t = store_index (tmp);
+		t = store_get_index (tmp);
 		if (!t) warning = 1;
 	    }
 	    
@@ -200,7 +200,7 @@ static int read_lights (map_t *map, PACKFILE *f)
 
 	if (!pack_fgets (tmp, sizeof tmp, f))
 	    goto error;
-	idx = store_index (tmp);
+	idx = store_get_index (tmp);
 	if (idx == 0)
 	    warning = 1;
 	else

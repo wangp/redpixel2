@@ -19,7 +19,7 @@ struct file_list {
     file_list_t *next;
     file_list_t *prev;
     char *prefix;
-    int id;
+    store_file_t handle;
 };
 
 
@@ -37,15 +37,15 @@ int tiles_init (void)
 int tiles_load (const char *filename, const char *prefix)
 {
     file_list_t *f;
-    int id;
+    store_file_t handle;
     
-    id = store_load_ex (filename, prefix, load_extended_datafile);
-    if (id < 0)
+    handle = store_load_ex (filename, prefix, load_extended_datafile);
+    if (!handle)
 	return -1;
 
     f = alloc (sizeof *f);
     f->prefix = ustrdup (prefix);
-    f->id = id;
+    f->handle = handle;
     list_add (tiles_list, f);
     return 0;
 }
@@ -56,18 +56,18 @@ void tiles_shutdown (void)
 
     list_for_each (f, &tiles_list) {
 	free (f->prefix);
-	store_unload (f->id);
+	store_unload (f->handle);
     }
 
     list_free (tiles_list, free);
 }
 
-void tiles_enumerate (void (*proc) (const char *prefix, int id))
+void tiles_enumerate (void (*proc) (const char *prefix, store_file_t handle))
 {
     file_list_t *f;
 
     list_for_each (f, &tiles_list)
-	proc (f->prefix, f->id);
+	proc (f->prefix, f->handle);
 }
 
 
@@ -87,15 +87,15 @@ int lights_init (void)
 int lights_load (const char *filename, const char *prefix)
 {
     file_list_t *f;
-    int id;
+    store_file_t handle;
     
-    id = store_load_ex (filename, prefix, load_extended_datafile);
-    if (id < 0)
+    handle = store_load_ex (filename, prefix, load_extended_datafile);
+    if (!handle)
 	return -1;
 
     f = alloc (sizeof *f);
     f->prefix = ustrdup (prefix);
-    f->id = id;
+    f->handle = handle;
     list_add (lights_list, f);
     return 0;
 }
@@ -106,16 +106,16 @@ void lights_shutdown (void)
 
     list_for_each (f, &lights_list) {
 	free (f->prefix);
-	store_unload (f->id);
+	store_unload (f->handle);
     }
 
     list_free (lights_list, free);
 }
 
-void lights_enumerate (void (*proc) (const char *prefix, int id))
+void lights_enumerate (void (*proc) (const char *prefix, store_file_t handle))
 {
     file_list_t *f;
 
     list_for_each (f, &lights_list)
-	proc (f->prefix, f->id);
+	proc (f->prefix, f->handle);
 }

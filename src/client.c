@@ -672,7 +672,7 @@ void client_send_text_message (const char *text)
 /* (lua binding) */
 void client_play_sound (object_t *obj, const char *sample)
 {
-    SAMPLE *spl = store_dat (sample);
+    SAMPLE *spl = store_get_dat (sample);
     
     if (spl)
 	sound_play_once (spl, object_x (obj), object_y (obj));
@@ -742,7 +742,7 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 
 static void draw_status (BITMAP *bmp)
 {
-    FONT *f = store_dat ("/basic/font/ugly");
+    FONT *f = store_get_dat ("/basic/font/ugly");
 
     textprintf_right (bmp, f, bmp->w - 40, bmp->h - text_height (f) - 2, -1, "%d", health);
     textprintf_right (bmp, f, bmp->w - 2, bmp->h - text_height (f) - 2, -1, "%d", ammo);
@@ -776,7 +776,7 @@ static void update_screen (void)
 	
 	aim_angle = atan2 (mouse_y - y, mouse_x - x);
 
- 	pivot_trans_magic_sprite (bmp, store_dat ("/basic/player/torch"),
+ 	pivot_trans_magic_sprite (bmp, store_get_dat ("/basic/player/torch"),
  				  x, y, 0, 115/2,
  				  fatan2 (mouse_y - y, mouse_x - x));
     }
@@ -1236,7 +1236,7 @@ int client_init (const char *name, int net_driver, const char *addr)
 	}
     }
 
-    crosshair = store_dat ("/basic/crosshair/000");
+    crosshair = store_get_dat ("/basic/crosshair/000");
 
     map = NULL;
     local_object = NULL;

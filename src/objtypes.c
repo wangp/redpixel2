@@ -90,7 +90,7 @@ int objtypes_register (const char *type, const char *name,
     BITMAP *icon_bmp;
     char buf[512];
 
-    icon_bmp = store_dat (icon);
+    icon_bmp = store_get_dat (icon);
     if (!icon_bmp) {
 	uszprintf (buf, sizeof buf, "Bad icon %s\n", icon);
 	error (buf);

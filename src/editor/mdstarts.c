@@ -149,7 +149,7 @@ int mode_starts_init (void)
     modemgr_register (&start_mode);
     editarea_layer_register ("starts", draw_layer, event_layer, DEPTH_STARTS);
 
-    if (!(icon = store_dat ("/editor/start/000")))
+    if (!(icon = store_get_dat ("/editor/start/000")))
 	return -1;
 
     list = ed_select_list_create ();
