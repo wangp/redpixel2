@@ -58,7 +58,7 @@ function _internal_object_init_hook (self)
     if not self.is_proxy then
 
 	-- nonproxy methods
-	self.destroy = object_destroy
+	self.set_stale = object_set_stale
 	self.hide = object_hide
 	self.show = object_show
 	self.set_collision_flags = object_set_collision_flags
@@ -94,7 +94,7 @@ function _internal_object_init_hook (self)
     else
 
 	-- nonproxy methods
-	self.destroy = dummy
+	self.set_stale = dummy
 	self.hide = dummy
 	self.show = dummy
 	self.set_collision_flags = dummy
@@ -174,7 +174,7 @@ Objtype {
 		if self.item then
 		    self.item:show ()
 		end
-		self:destroy ()
+		self:set_stale ()
 	    end
 	)
     end,

@@ -191,7 +191,7 @@ local player_nonproxy_init = function (self)
 	    end
 
 	    -- destroy the object
-	    self:destroy ()
+	    self:set_stale ()
 
 	else
 
@@ -539,7 +539,7 @@ Objtype {
 	self:set_collision_flags ("pt")
 	function self:collide_hook (player)
 	    -- give goodies
-	    self:destroy ()
+	    self:set_stale ()
 	end
     end
 }

@@ -103,7 +103,7 @@ local BarrelChunks = function (t)
 	nonproxy_init = function (self)
 	    self.mass = 0.001
 	    self:set_collision_flags ("t")
-	    self:set_update_hook (1000 + random (3000), object_destroy)
+	    self:set_update_hook (1000 + random (3000), object_set_stale)
 	end,
 	proxy_init = function (self)
 	    self:replace_layer (0, t.images[random (getn (t.images))], 2, 2)
