@@ -28,14 +28,14 @@ Armour_Item {
 Armour_Item {
     name = "basic-armour-purple", 
     icon = "/basic/powerup/armour/purple",
-    respawn_secs = 10,
+    respawn_secs = 25,
     give_armour = 20
 }
 
 Armour_Item {
     name = "basic-armour-blue", 
     icon = "/basic/powerup/armour/blue",
-    respawn_secs = 10,
+    respawn_secs = 40,
     give_armour = 30
 }
 
@@ -91,7 +91,7 @@ local lightamp_anim = {
 Item {
     name = "basic-lightamp", 
     icon = "/basic/powerup/lightamp/000", 
-    respawn_secs = 10,
+    respawn_secs = 30,
     collide_hook = function (self, player)
 	call_method_on_clients (player, "get_lightamp_hook")
     end,
@@ -128,34 +128,34 @@ end
 Health_Item {
     name = "basic-burger",
     icon = "/basic/powerup/burger",
-    respawn_secs = 10,
-    give_health = 10
+    respawn_secs = 15,
+    give_health = 20
 }
 
 Health_Item {
     name = "basic-chocolate", 
     icon = "/basic/powerup/chocolate",
     respawn_secs = 10,
-    give_health = 5
+    give_health = 10
 }
 
 Health_Item {
     name = "basic-joltcola", 
     icon = "/basic/powerup/joltcola",
     respawn_secs = 10,
-    give_health = 20
+    give_health = 15
 }
 
 Health_Item {
     name = "basic-medikit", 
     icon = "/basic/powerup/medikit",
-    respawn_secs = 10,
-    give_health = 50
+    respawn_secs = 45,
+    give_health = 40
 }
 
 Health_Item {
     name = "basic-pizza", 
     icon = "/basic/powerup/pizza",
-    respawn_secs = 10,
-    give_health = 30
+    respawn_secs = 20,
+    give_health = 25
 }

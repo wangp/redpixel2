@@ -171,7 +171,7 @@ Weapon {
     fire = function (player)
 	local proj = spawn_projectile ("basic-arrow-projectile", player, 12, 
 				   ((math.random(10) - 5) / 10) * (math.pi/48))
-	player:set_fire_delay (0.3)
+	player:set_fire_delay (0.28)
 	player:deduct_ammo ("basic-arrow")
 	return proj
     end,
@@ -193,14 +193,14 @@ Standard_Pickup {
     weapon_to_give = "basic-bow",
     ammo_to_give = "basic-arrow",
     ammo_amount = 10,
-    respawn_secs = 10
+    respawn_secs = 15
 }
 
 Standard_Pickup {
     name = "basic-arrow",
     icon = "/basic/weapon/ammo/arrow", 
     ammo_to_give = "basic-arrow",
-    ammo_amount = 10,
+    ammo_amount = 15,
     respawn_secs = 10
 }
 
@@ -236,7 +236,7 @@ Weapon_With_Firer {
     ammo_type = "basic-bullet",
     projectile = "basic-ak-projectile",
     projectile_speed = 12,
-    fire_delay_secs = 0.12,
+    fire_delay_secs = 0.1,
     arm_anim = {
 	"/basic/weapon/ak/2arm000",
 	"/basic/weapon/ak/2arm001",
@@ -293,8 +293,8 @@ Standard_Pickup {
     icon = "/basic/weapon/minigun/pickup",
     weapon_to_give = "basic-minigun",
     ammo_to_give = "basic-bullet",
-    ammo_amount = 10,
-    respawn_secs = 10
+    ammo_amount = 15,
+    respawn_secs = 20
 }
 
 Standard_Projectile {
@@ -333,8 +333,8 @@ Standard_Pickup {
     icon = "/basic/weapon/rpg/pickup",
     weapon_to_give = "basic-rpg",
     ammo_to_give = "basic-rocket",
-    ammo_amount = 1,
-    respawn_secs = 10
+    ammo_amount = 2,
+    respawn_secs = 20
 }
 
 Standard_Pickup {
@@ -350,7 +350,7 @@ Explosive_Projectile {
     alias = "~rp",
     icon = "/basic/weapon/rpg/projectile",
     radius = 75,
-    damage = 80,
+    damage = 70,
     dot_mask = true,
     explosion = "basic-explo42",
     smoke_trails = "basic-rocket-smoke",
@@ -384,7 +384,7 @@ Weapon {
 	    spawn_projectile ("basic-shotgun-projectile", player, 10, spread),
 	    spawn_projectile ("basic-shotgun-projectile", player, 10, 2 * spread)
 	}
-	player:set_fire_delay (0.4)
+	player:set_fire_delay (0.35)
 	player:deduct_ammo ("basic-shell")
 	return proj
     end,
@@ -411,7 +411,7 @@ Standard_Pickup {
     name = "basic-shell",
     icon = "/basic/weapon/ammo/shell",
     ammo_to_give = "basic-shell",
-    ammo_amount = 10,
+    ammo_amount = 20,
     respawn_secs = 10,
 }
 
@@ -452,7 +452,7 @@ Standard_Pickup {
     weapon_to_give = "basic-rifle",
     ammo_to_give = "basic-slug",
     ammo_amount = 5,
-    respawn_secs = 10
+    respawn_secs = 20
 }
 
 Objtype {
@@ -485,7 +485,7 @@ Standard_Pickup {
     name = "basic-vulcan-ammo",
     icon = "/basic/weapon/ammo/vulcan",
     ammo_to_give = "basic-vulcan-ammo",
-    ammo_amount = 20,
+    ammo_amount = 30,
     respawn_secs = 10
 }
 
@@ -511,8 +511,8 @@ Standard_Pickup {
     icon = "/basic/weapon/vulcan/pickup",
     weapon_to_give = "basic-vulcan",
     ammo_to_give = "basic-vulcan-ammo",
-    ammo_amount = 10,
-    respawn_secs = 10
+    ammo_amount = 15,
+    respawn_secs = 15
 }
 
 Standard_Projectile {
@@ -532,7 +532,7 @@ Respawning_Item {
     category = "weapon",
     name = "basic-mine",
     icon = "/basic/weapon/mine/pickup",
-    respawn_secs = 60,
+    respawn_secs = 45,
     collide_hook = function (self, player)
 	player:receive_mines (1)
 	play_sound_on_clients (self, "/basic/weapon/generic-pickup-sound")
