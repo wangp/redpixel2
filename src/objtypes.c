@@ -5,39 +5,37 @@
 
 
 #include <allegro.h>
-#include <lua.h>
 #include "alloc.h"
+#include "mylua.h"
 #include "objtypes.h"
 
 
-typedef object_type_t type_t;
-
-
 static int num;
-static type_t **types;
+static objtype_t **types;
 
 
-static type_t *create (const char *name, int table, const char *type, const char *icon)
+static objtype_t *create (const char *type, const char *name,
+			  const char *icon, lref_t init_func)
 {
-    type_t *p, **tmp;
+    objtype_t *p, **tmp;
 
-    p = alloc (sizeof *p);
-    if (!p) return 0;
+    if (!(p = alloc (sizeof *p)))
+	return 0;
 
-    tmp = realloc (types, sizeof (type_t *) * (num + 1));
+    tmp = realloc (types, sizeof (objtype_t *) * (num + 1));
     if (!tmp) {
 	free (p);
 	return 0;
     }
-    
-    p->name  = ustrdup (name);
-    p->table = table;
-    p->type  = ustrdup (type);
-    p->icon  = ustrdup (icon);
-    
+
+    p->type = ustrdup (type);
+    p->name = ustrdup (name);
+    p->icon = ustrdup (icon);
+    p->init_func = init_func;
+
     types = tmp;
     types[num++] = p;
-    
+
     return p;
 }
 
@@ -47,10 +45,10 @@ static void destroy_all ()
     int i;
 
     for (i = 0; i < num; i++) {
-	free (types[i]->name);
-	lua_unref (types[i]->table);
-	free (types[i]->type);
+	unref (lua_state, types[i]->init_func);
 	free (types[i]->icon);
+	free (types[i]->name);
+	free (types[i]->type);
 	free (types[i]);
     }
 
@@ -58,32 +56,27 @@ static void destroy_all ()
 }
 
 
-void object_types_init ()
+void objtypes_init ()
 {
     types = 0;
     num = 0;
 }
 
 
-void object_types_shutdown ()
+void objtypes_shutdown ()
 {
     destroy_all ();
 }
 
 
-void object_types_register (const char *name, lua_Object table,
-			    const char *type, const char *icon)
+void objtypes_register (const char *type, const char *name,
+			const char *icon, lref_t init_func)
 {
-    int ref;
-
-    lua_pushobject (table);
-    ref = lua_ref (1);
-
-    create (name, ref, type, icon);
+    create (type, name, icon, init_func);
 }
 
 
-object_type_t *object_types_lookup (const char *name)
+objtype_t *objtypes_lookup (const char *name)
 {
     int i;
 
@@ -95,7 +88,7 @@ object_type_t *object_types_lookup (const char *name)
 }
 
 
-void object_types_enumerate (void (*proc) (object_type_t *type))
+void objtypes_enumerate (void (*proc) (objtype_t *type))
 {
     int i;
 

@@ -1,0 +1,178 @@
+<HTML>
+<HEAD>
+<TITLE>Allegro Mailing List Search Results</TITLE>
+</HEAD>
+<BODY>
+<A NAME="00000"></A>
+<H1><font face="Arial">Allegro Mailing List Search Results</font></H1>
+<A NAME="INDEX"></A>
+Use <A HREF="http://www.canvaslink.com/allegro/search.htm">[SRCH]</A> to jump back to the SEARCH form.<br>
+Use <A HREF="#INDEX">[IDX]</A> to jump to the SUBJECT INDEX.<BR>
+Use <A HREF="#00000">[PREV]</A> to jump to the previous message.<BR>
+Use <A HREF="#00001">[NEXT]</A> to jump to the next message.<BR>
+<br>Searching for token(s) : <br>'<strong>tile</strong>' :  777 hits <br>
+'<strong>engine</strong>' :  1009 hits <br>
+'<strong>gravity</strong>' :  74 hits <br>
+<STRONG>'tile'</STRONG> AND <STRONG>'engine'</STRONG> AND <STRONG>'gravity'</STRONG> : 1 hits.<br>
+<hr>
+<TABLE> <TR ALIGN=LEFT> <TH> HIT </TH><TH> Subject </TH><TH> From </TH><TH> Date </TH></TR>
+<TR ALIGN=LEFT><TH>1.</TH><TH><A HREF="#00001"> Re: [AL] Many things ;)</A></TH>
+<TH><A HREF="mailto:wn@talula.demon.co.uk">Shawn Hargreaves ...</A><br>
+</TH><TH>Fri, 23 Jan 1998</TH></TR></TABLE><hr><A NAME="00001"> <A HREF="#00000">[PREV]</A><A HREF="#00002">[NEXT] </A> <A HREF="#INDEX">[IDX] </A> 
+<A HREF="http://www.canvaslink.com/allegro/search.htm">[SRCH]</A>
+From: <A HREF="mailto:Shawn@talula.demon.co.uk">Shawn Hargreaves </A><br>
+<br><STRONG><B>Subject: Re: [AL] Many things ;)<br>
+</B></STRONG>
+Date: Fri, 23 Jan 1998 22:35:18 +0000<br>
+<hr>
+<pre>mlcrowd@mail.enol.com writes:
+&gt;  2.  Is blit() the fastest Allegro function for displaying a bitmap to the 
+&gt;  screen?  See, I'm not sure which function is fastest for opaque 
+&gt;  tiles, transparent tiles, and sprites.  Any help would be greatly 
+&gt;  appreciated!
+
+For solid tiles, I think that blit() will be best. For masked images,
+compiled sprites are usually the fastest, followed by RLE sprites and
+then normal bitmaps.
+
+Johan_Jonsson replied:
+&gt;blit() is quite fast, but it does some extensive error-checking that
+&gt;slows it down a bit... An optimised version of blit() could be to strip
+&gt;the parts which you wont need...
+
+Have you tried profiling this? I think you will find that the checks
+done at the start of the blit() routine take a really neglible amount of
+time, so they are not significant when you are copying anything bigger
+than about a 2x2 area :-) You can always bypass this by calling the raw
+blitter routines directly from the vtable structure, but I would be
+surprised if you could even notice the performance difference...
+
+&gt;  3.  How much of a slowdown is there between 8-bit modes and higher 
+&gt;  (i.e. 15-, 16-, and 24-bit modes)?  
+
+That depends on which functions you are using. Things that are limited
+by bus bandwidth will slow down in exact proportion to the number of
+bytes being copied (a factor of 2 for hicolor modes, 3 for 24 bits, and
+4 for 32 bits). But anything that is limited by expensive cpu
+calculations will go at pretty much the same speed in any depth, except
+perhaps for the 24 bit modes which can take a big performance hit due to
+the odd pixel alignments.
+
+Do some profiling with the test.exe, and you can see the details for
+yourself.
+
+&gt;  4.  Is most tile-based lighting done in high-color modes?  I assume 
+&gt;  that is is (somewhat) possible in 8-bit modes, but I'm not sure 
+&gt;  exactly how it would be done.
+
+Actually it can be quite a bit faster in 256 color modes, because all
+the work can be done by a lookup table (256 colors * 256 light levels
+only needs a 64k table). Truecolor lighting requires more computations
+to blend the pixel colors, so it is much slower, although also a great
+deal more flexible.
+
+Look at the ex24.c for an example of how to use the Allegro lighting
+routines. At the moment you can only really do lighting on a per-tile
+basis, which can look ok but does cause some discontinuities along the
+tile joins. The next version (whenever that is, I'm not sure how long it
+will be before I have anything worth releasing :-) will add a
+draw_gouraud_sprite() function, letting you smooth the light values
+across a tile, but this will of course be slower than the current 
+per-sprite lighting functions.
+
+&gt;  6.  What are some different methods for holding tile attributes?  
+&gt;  I'm already using a method that I came up with, but I was just 
+&gt;  wondering how other people are doing it.
+
+That really depends on how complex your game engine is, and what sort of
+things you will need the tiles to do. If it was me, I would be inclined
+to have an integer storing a set of bit flags for standard attributes
+that the main game engine would understand, plus a void pointer that
+could be used for any extra tile-specific information. Then each tile
+object would be able to point this at a custom structure if it needed to
+store anything more than the basic flags. But use whatever works best
+for you: there is no single "right" way to do something like this...
+
+&gt;  8.  In Mario 3 (for the NES), when you step on certain types of 
+&gt;  tiles (the "doughnuts"), the tile drops out from underneath your 
+&gt;  feet.  I kind of understand how to do this; replace the tile with 
+&gt;  whatever background tile there is, and then create a "doughnut" 
+&gt;  object at that location, and then send it plummeting downward.  My 
+&gt;  question is this: what if you want the player to be able to be 
+&gt;  standing on the platform while it's falling (and be able to jump off 
+&gt;  of it)?
+
+I think that as soon as you introduce the concepts of moving and
+destructable platforms, it is time to abandon the simplistic 
+one-tile-per-grid-square approach in favour of something more flexible.
+An array of rectangular tiles is very easy to edit and display, but
+unless you are very careful it can end up making your gameplay far too
+rigid. It is no coincidence that the word "square" is often used as a
+description for things that are reliable, predictable, and boring :-)
+
+My inclination would be to integrate the background tiles into your
+generic object handling system. I presume you already have some such
+setup for your sprites, where each one has a position (pixel based,
+rather than restricted to grid boundaries) and some handler functions
+for things like animating and drawing it? There is no reason why you
+can't just treat the background tile as objects which don't do anything
+and happen to be positioned exactly on the grid junctions, and you would
+gain a tremendous amount of flexibility from this. I would suggest
+something like:
+
+Store the objects in a linked list, one for each grid square. Store the
+entire map as a 2d array of linked lists, containing the objects that
+are over each square (obviously the objects might be part way between
+two tiles, in which case you would just put them into the list for the
+closest whole square). Each linked list would be sorted from back to
+front, so drawing the map is a simple matter of iterating through each
+list in turn and drawing all the objects that it contains. It would be
+very easy to read a tile map into this format (creating an object for
+each tile in the map, and maybe also adding things like destructable
+items, enemy sprites, etc, to the lists at the same time). It is a
+simple system to keep up to date (after moving each object, check if it
+is now over a different tile, and if so transfer it into a new linked
+list). This format can also help to optimise the collision code, because
+an object can obviously only collide with others that are near it, so
+you will only need to check the object lists for the tiles immediately
+around the one in question, rather than looping through all the sprites
+in the game for every test.
+
+The big benefit, though, is that this kind of system is 100% dynamic.
+Because there is no distinction between objects and tiles, you can add
+tiles, destroy tiles, or move tiles at any point, just like any of the
+other objects in your game. The tiles don't have to be on even grid
+locations, so sliding or flying platforms are easy to implement. You can
+make things that drop away as you land on them, or build up platforms
+out of thin air whenever you like. And not only can your tiles do
+anything that other sprites are capable of, the sprites would be able to
+do the things normally associated with tiles as well! For example you
+would only have to set the 'solid' flag for one of the enemy sprites,
+and it would become possible to stand on top of them just like a solid
+platform!
+
+You will obviously need some special code to handle the situation where
+one object is 'standing' on another. This could be implemented as a
+pointer in the object structure, to specify which other object it is on
+top of. This would be set by the collision code whenever it detected
+that you were on top of something solid, and the object update routine
+would then take care of moving the object in sync with whatever it was
+on top of, so it would rise or move sideways in sync with the platform
+(falling is no problem, because simple gravity will take care of that if
+the ground falls out from underneath you :-)
+
+&gt;  10.   In regards to character manipulation in platform games, do 
+&gt;  most of you move the player by pixels?
+
+I think that would be very limiting when it came to writing some nice
+jumping physics (which is after all the main part of what makes a
+platform game fun to play). I would use a fixed point coordinate system,
+or maybe floating point if you are targetting a pentium machine.
+
+
+--
+Shawn Hargreaves - shawn@talula.demon.co.uk - http://www.talula.demon.co.uk/
+"Pigs use it for a tambourine" - Frank Zappa</pre>
+
+</BODY>
+</HTML>

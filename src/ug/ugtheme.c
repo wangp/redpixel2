@@ -13,7 +13,7 @@
 extern struct ug_theme ug_theme_thepaw;
 extern struct ug_theme ug_theme_motif;
 
-static struct ug_theme *theme = &ug_theme_thepaw;
+static struct ug_theme *theme = &ug_theme_motif;
 
 
 int ug_theme_init ()

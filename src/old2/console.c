@@ -13,12 +13,14 @@
 #include <lua.h>
 #include "alloc.h"
 #include "console.h"
+#include "luahelp.h"
 #include "luastack.h"
 #include "magic4x4.h"
+#include "scripts.h"
 
 
-static void __export__alert (lua_State *state);
-static void __export__print ();
+static int __export__alert (LS);
+static int __export__print (LS);
 
 
 static BITMAP *background;
@@ -88,7 +90,10 @@ static void clear_line (char *s)
 
 int console_init ()
 {
-    BITMAP *tmp = load_bitmap ("data/console.bmp", 0); /* XXX: path */
+    lua_State *L = lua_state;
+    BITMAP *tmp;
+
+    tmp = load_bitmap ("data/console.bmp", 0); /* XXX: path */
     if (tmp) {
 	background = get_magic_bitmap_format (tmp, 0);
 	if (background)
@@ -102,8 +107,8 @@ int console_init ()
     con_history_lines = ((SCREEN_H / 2) / text_height (font)) - 1;   /* XXX */
     con_history = alloc (sizeof (char *) * con_history_lines);
 
-    lua_set_alert (lua_state, __export__alert);
-    lua_register ("print", __export__print);
+    lua_set_alert (L, __export__alert);
+    lua_register (L, "print", __export__print);
 
     return 0;
 }
@@ -168,38 +173,30 @@ void console_draw (BITMAP *buf)
 }
 
 
-static void execute (const char *str)
+static void execute (LS, const char *str)
 {
-    lua_Object obj;
-
-    lua_beginblock ();
-
-    obj = lua_rawgetglobal (str);
+    lua_getglobal (L, str);
+    /* Global str now on top of stack.  */
     
     /* Call if it is a function.  */
-    if (lua_isfunction (obj)) {
-	lua_callfunction (obj);
-	goto end;
-    }
+    if (lua_isfunction (L, -1))
+	lua_call (L, 0, 0);
 
     /* Print value if it is a variable.  */
-    if (!lua_isnil (obj)) {
-	lua_pushobject (obj);
-	lua_call ("print");
-	goto end;
+    else if (!lua_isnil (L, -1)) {
+	lua_getglobal (L, "print");
+	lua_settop (L, -2);
+	lua_call (L, 1, 0);
     }
 
     /* Else evaluate as is.  */
-    lua_dostring (con_line);
-
-  end:
-
-    lua_endblock ();
+    else lua_dostring (L, con_line);
 }
 
 
 void console_update ()
 {
+    lua_State *L = lua_state;
     int k;
 
     if (!keypressed ())
@@ -222,7 +219,7 @@ void console_update ()
 	case KEY_ENTER: {
 	    char tmp[1024];
 	    add_history (uconvert_ascii (con_line, tmp));
-	    execute (con_line);
+	    execute (L, con_line);
 	    clear_line (con_line);
 	    break;
 	}
@@ -247,10 +244,10 @@ void console_update ()
 
 /* We override the _ALERT function, so that the output appears in the
  * console history and not stdout.  */
-static void __export__alert (lua_State *state)
+static int __export__alert (LS)
 {
-    add_history (lua_getstring (lua_getparam (1)));
-    /* (ignore state, as we use single state Lua) */
+    add_history (lua_tostring (L, 1));
+    return 0;
 }
 
 
@@ -262,24 +259,23 @@ static void __export__alert (lua_State *state)
  * model but changing `fputs' to put the strings at a proper place
  * (a console window or a log file, for instance).
  */
-static void __export__print ()
-{
-#define MAXPRINT	40
-  lua_Object args[MAXPRINT];
-  lua_Object obj;
-  int n = 0;
+static int __export__print (LS) {
+  int n = lua_gettop(L);  /* number of arguments */
   int i;
-  while ((obj = lua_getparam(n+1)) != LUA_NOOBJECT) {
-    luaL_arg_check(n < MAXPRINT, n+1, "too many arguments");
-    args[n++] = obj;
+  lua_getglobal(L, "tostring");
+  for (i=1; i<=n; i++) {
+    const char *s;
+    lua_pushvalue(L, -1);  /* function to be called */
+    lua_pushvalue(L, i);   /* value to print */
+    lua_rawcall(L, 1, 1);
+    s = lua_tostring(L, -1);  /* get result */
+    if (s == NULL)
+      lua_error(L, "`tostring' must return a string to `print'");
+/*      if (i>1) fputs("\t", stdout); */
+/*      fputs(s, stdout); */
+    add_history(s);
+    lua_pop(L, 1);  /* pop result */
   }
-  for (i=0; i<n; i++) {
-    lua_pushobject(args[i]);
-    if (lua_call("tostring"))
-      lua_error("error in `tostring' called by `print'");
-    obj = lua_getresult(1);
-    if (!lua_isstring(obj))
-      lua_error("`tostring' must return a string to `print'");
-    add_history(lua_getstring(obj));
-  }
+/*    fputs("\n", stdout); */
+  return 0;
 }

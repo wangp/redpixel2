@@ -18,24 +18,24 @@
 #include "vtree.h"
 
 
-/*
- *	Lists of tiles, divided into files (packs)
- */
+/* Lists of tiles, divided into files (packs).  */
 
 struct file {
+    struct file *next;
+    struct file *prev;
     ed_select_list_t *list;
     int top, selected;
-    struct file *prev, *next;
 };
 
-static struct file file_list;
+static struct list_head file_list;
 static struct file *current;
 
 
 /* This function was adapted from the Store sources. */
-static void add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix)
+static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix)
 {
-    char *name, path[1024];
+    const char *name;
+    char path[1024];
     int i;
 
     for (i = 0; d[i].type != DAT_END; i++) {
@@ -49,13 +49,12 @@ static void add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix
 	
 	if (d[i].type == DAT_FILE) {
 	    ustrncat (path, "/", sizeof path);
-	    add_to_list (list, d[i].dat, path);
+	    _add_to_list (list, d[i].dat, path);
 	}
 	else if (d[i].type == DAT_BITMAP)
 	    ed_select_list_add_item (list, path, d[i].dat);
     }
 }
-
 
 static void callback (const char *filename, int id)
 {
@@ -65,41 +64,31 @@ static void callback (const char *filename, int id)
     if (!f) return;
 
     f->list = ed_select_list_create ();
-    add_to_list (f->list, store_file (id), VTREE_TILES);
+    _add_to_list (f->list, store_file (id), VTREE_TILES);
     
-    f->next = file_list.next;
-    if (f->next)
-	f->next->prev = f;
-    f->prev = 0;    
-    file_list.next = f;
+    add_to_list (file_list, f);
 }
-
 
 static int make_file_list ()
 {
-    file_list.next = 0;
+    init_list (file_list);
     tiles_enumerate (callback);
-    return (file_list.next) ? 0 : -1;
+    return (list_empty (file_list)) ? -1 : 0;
 }
 
+static void do_free_file (struct file *f)
+{
+    ed_select_list_destroy (f->list);
+    free (f);
+}
 
 static void free_file_list ()
 {
-    struct file *f, *next;
-
-    for (f = file_list.next; f; f = next) {
-	next = f->next;
-	
-	ed_select_list_destroy (f->list);
-	free (f);
-    }
+    free_list (file_list, do_free_file);
 }
 
 
-
-/*
- *	Save / restore selectbar state
- */
+/* Save / restore selectbar state.  */
  
 static void save_current ()
 {
@@ -122,31 +111,28 @@ static void change_set (struct file *p)
 }
 
 
-
-/*
- *	Selectbar callbacks
- */
+/* Selectbar callbacks.  */
  
 static void left_proc ()
 {
-    struct file *p;
-    p = current->prev;
-    if (!p) for (p = file_list.next; p->next; p = p->next) ;
-    change_set (p);
+    struct file *prev = current->prev;
+    if (prev == (struct file *) &file_list)
+	change_set (prev->prev);
+    else
+	change_set (prev);
 }
 
 static void right_proc ()
 {    
-    struct file *p = current->next;
-    if (!p) p = file_list.next;
-    change_set (p);
+    struct file *next = current->next;
+    if (next == (struct file *) &file_list)
+	change_set (next->next);
+    else
+	change_set (next);
 }
 
 
-
-/*
- *	Mode manager callbacks
- */
+/* Mode manager callbacks.  */
 
 static void enter_mode ()
 {
@@ -172,9 +158,7 @@ static struct editmode tile_mode = {
 
 
 
-/*
- *	Editarea callbacks
- */
+/* Editarea callbacks.  */
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
@@ -211,7 +195,7 @@ static void do_tile_pickup (int x, int y)
     key = store_key (map->tile[y][x]);
     if (!key) return;
     
-    for (f = file_list.next; f; f = f->next) {
+    foreach (f, file_list) {
 	int t = ed_select_list_item_index (f->list, key);
 	if (t >= 0) {
 	    change_set (f);
@@ -261,10 +245,7 @@ static int event_layer (int event, struct editarea_event *d)
 }
 
 
-
-/*
- *	Module init / shutdown
- */
+/* Module init / shutdown.  */
 
 int mode_tiles_init ()
 {

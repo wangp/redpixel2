@@ -10,62 +10,52 @@
 #include "depths.h"
 #include "editarea.h"
 #include "edselect.h"
+#include "list.h"
 #include "map.h"
 #include "modemgr.h"
 #include "modes.h"
 #include "selbar.h"
-#include "scripts.h"
 #include "store.h"
 #include "objtypes.h"
 #include "path.h"
 #include "rect.h"
 
 
-/*
- *	Lists of objects, divided into types
- */
+/* Lists of objects, divided into types.  */
 
 struct type {
+    struct type *next;
+    struct type *prev;
     char *name;
     ed_select_list_t *list;
     int top, selected;
-    struct type *prev, *next;
 };
 
-static struct type type_list;
+static struct list_head type_list;
 static struct type *current;
 
 
 static struct type *create_type (const char *name)
 {
     struct type *p = alloc (sizeof *p);
-    if (!p)
-	return 0;
+    if (!p) return 0;
 
     p->name = ustrdup (name);
     p->list = ed_select_list_create ();
 
-    p->next = type_list.next;
-    if (p->next)
-	p->next->prev = p;
-    p->prev = 0;    
-    type_list.next = p;
-
+    add_to_list (type_list, p);
     return p;
 }
 
 static struct type *find_type (const char *name)
 {
     struct type *p;
-
-    for (p = type_list.next; p; p = p->next)
-	if (!ustrcmp (name, p->name))
-	    return p;
-
+    foreach (p, type_list)
+	if (!ustrcmp (name, p->name)) return p;
     return 0;
 }
 
-static void callback (object_type_t *objtype)
+static void callback (objtype_t *objtype)
 {
     BITMAP *bmp;
     struct type *p;
@@ -84,37 +74,32 @@ static void callback (object_type_t *objtype)
 
 static int make_type_list ()
 {
-    type_list.next = 0;
-    object_types_enumerate (callback);
-    return (type_list.next) ? 0 : -1;
+    init_list (type_list);
+    objtypes_enumerate (callback);
+    return (list_empty (type_list)) ? -1 : 0;
+}
+
+static void do_free_type (struct type *p)
+{
+    ed_select_list_destroy (p->list);
+    free (p->name);
+    free (p);
 }
 
 static void free_type_list ()
 {
-    struct type *p, *next;
-
-    for (p = type_list.next; p; p = next) {
-	next = p->next;
-	
-	ed_select_list_destroy (p->list);
-	free (p->name);
-	free (p);
-    }
+    free_list (type_list, do_free_type);
 }
-
 
 
 static void cursor_set_selected ()
 {
-    BITMAP *bmp = store_dat (object_types_lookup (selectbar_selected_name ())->icon);
+    BITMAP *bmp = store_dat (objtypes_lookup (selectbar_selected_name ())->icon);
     if (bmp) cursor_set_magic_bitmap (bmp, 0, 0);
 }
 
 
-
-/*
- *	Save / restore selectbar state
- */
+/* Save / restore selectbar state.  */
  
 static void save_current ()
 {
@@ -138,31 +123,28 @@ static void change_set (struct type *p)
 }
 
 
-
-/*
- *	Selectbar callbacks
- */
+/* Selectbar callbacks.  */
  
 static void left_proc ()
 {
-    struct type *p;
-    p = current->prev;
-    if (!p) for (p = type_list.next; p->next; p = p->next) ;
-    change_set (p);
+    struct type *prev = current->prev;
+    if (prev == (struct type *) &type_list)
+	change_set (prev->prev);
+    else
+	change_set (prev);
 }
 
 static void right_proc ()
 {    
-    struct type *p = current->next;
-    if (!p) p = type_list.next;
-    change_set (p);
+    struct type *next = current->next;
+    if (next == (struct type *) &type_list)
+	change_set (next->next);
+    else
+	change_set (next);
 }
 
 
-
-/*
- *	Mode manager callbacks
- */
+/* Mode manager callbacks.  */
 
 static void enter_mode ()
 {
@@ -191,10 +173,7 @@ static struct editmode object_mode = {
 };
 
 
-
-/*
- *	Editarea callbacks
- */
+/* Editarea callbacks.  */
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
@@ -203,17 +182,17 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offx *= 16;
     offy *= 16;
 
-    for (p = map->objects.next; p; p = p->next)
+    foreach (p, map->objects)
 	draw_sprite (bmp, store_dat (p->type->icon),
 		     (p->x - offx) * 3, (p->y - offy));
 }
 
 static object_t *find_object (int x, int y)
 {
-    object_t *p, *last;
+    object_t *p, *last = 0;
     BITMAP *b;
     
-    for (p = map->objects.next, last = 0; p; p = p->next) {
+    foreach (p, map->objects) {
 	b = store_dat (p->type->icon);
 
 	if (in_rect (x, y, p->x, p->y, b->w / 3, b->h))
@@ -230,7 +209,7 @@ static void do_object_pickup (object_t *p)
 
     key = p->type->icon;
 
-    for (type = type_list.next; type; type = type->next) {
+    foreach (type, type_list) {
 	int i = ed_select_list_item_index (type->list, key);
 	if (i >= 0) {
 	    change_set (type);
@@ -265,7 +244,7 @@ static int event_layer (int event, struct editarea_event *d)
 		move = 0;
 	    }
 	    else if (!p) {
-		p = object_create (selectbar_selected_name (), OBJECT_ROLE_AUTHORITY);
+		p = object_create (selectbar_selected_name ());
 		p->x = x;
 		p->y = y;
 		map_link_object (map, p);
@@ -278,7 +257,7 @@ static int event_layer (int event, struct editarea_event *d)
 	else if (d->mouse.b == 1) {
 	    p = find_object (x, y);
 	    if (p) {
-		map_unlink_object (map, p);
+		map_unlink_object (p);
 		object_destroy (p);
 		return 1;
 	    }
@@ -303,9 +282,7 @@ static int event_layer (int event, struct editarea_event *d)
 }
 
 
-/*
- *	Module init / shutdown
- */
+/* Module init / shutdown.  */
 
 int mode_objects_init ()
 {

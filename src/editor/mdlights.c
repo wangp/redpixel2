@@ -24,26 +24,24 @@ static int full_brightness = 1;
 static BITMAP *icon;
 
 
-
-/*
- *	Lists of lights, divided into files
- */
+/* Lists of lights, divided into files.  */
 
 struct file {
+    struct file *next;
+    struct file *prev;
     ed_select_list_t *list;
     int top, selected;
-    struct file *prev, *next;
 };
 
-static struct file file_list;
+static struct list_head file_list;
 static struct file *current;
 
 
-
 /* This function was adapted from the Store sources. */
-static void add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix)
+static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix)
 {
-    char *name, path[1024];
+    const char *name;
+    char path[1024];
     int i;
 
     for (i = 0; d[i].type != DAT_END; i++) {
@@ -57,60 +55,49 @@ static void add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix
 	
 	if (d[i].type == DAT_FILE) {
 	    ustrncat (path, "/", sizeof path);
-	    add_to_list (list, d[i].dat, path);
+	    _add_to_list (list, d[i].dat, path);
 	}
 	else if (d[i].type == DAT_BITMAP) {
-	    char *name = get_datafile_property (&d[i], DAT_NAME);
+	    const char *name = get_datafile_property (&d[i], DAT_NAME);
 	    if ((name) && ustrstr (name, "-icon"))
 		ed_select_list_add_item (list, path, d[i].dat);
 	}
     }
 }
 
-
 static void callback (const char *filename, int id)
 {
     struct file *f;
 
-    f = alloc (sizeof *f);
-    if (!f) return;
+    if (!(f = alloc (sizeof *f)))
+	return;
 
     f->list = ed_select_list_create ();
-    add_to_list (f->list, store_file (id), VTREE_LIGHTS);
+    _add_to_list (f->list, store_file (id), VTREE_LIGHTS);
 
-    f->next = file_list.next;
-    if (f->next)
-	f->next->prev = f;
-    f->prev = 0;    
-    file_list.next = f;
+    add_to_list (file_list, f);
 }
-
 
 static int make_file_list ()
 {
-    file_list.next = 0;
+    init_list (file_list);
     lights_enumerate (callback);
-    return (file_list.next) ? 0 : -1;
+    return (list_empty (file_list)) ? -1 : 0;
 }
 
+static void do_free_file (struct file *f)
+{
+    ed_select_list_destroy (f->list);
+    free (f);
+}
 
 static void free_file_list ()
 {
-    struct file *f, *next;
-
-    for (f = file_list.next; f; f = next) {
-	next = f->next;
-
-	ed_select_list_destroy (f->list);
-	free (f);
-    }
+    free_list (file_list, do_free_file);
 }
 
 
-
-/*
- *	Save / restore selectbar state
- */
+/* Save / restore selectbar state.  */
  
 static void save_current ()
 {
@@ -133,31 +120,28 @@ static void change_set (struct file *p)
 }
 
 
-
-/*
- *	Selectbar callbacks
- */
+/* Selectbar callbacks.  */
  
 static void left_proc ()
 {
-    struct file *p;
-    p = current->prev;
-    if (!p) for (p = file_list.next; p->next; p = p->next) ;
-    change_set (p);
+    struct file *prev = current->prev;
+    if (prev == (struct file *) &file_list)
+	change_set (prev->prev);
+    else
+	change_set (prev);
 }
 
 static void right_proc ()
 {    
-    struct file *p = current->next;
-    if (!p) p = file_list.next;
-    change_set (p);
+    struct file *next = current->next;
+    if (next == (struct file *) &file_list)
+	change_set (next->next);
+    else
+	change_set (next);
 }
 
 
-
-/*
- *	Mode manager callbacks
- */
+/* Mode manager callbacks.  */
 
 static void enter_mode ()
 {
@@ -182,10 +166,7 @@ static struct editmode light_mode = {
 };
 
 
-
-/*
- *	Editarea callbacks
- */
+/* Editarea callbacks.  */
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
@@ -194,16 +175,16 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
 
     offx *= 16;
     offy *= 16;
-    
-    for (p = map->lights.next; p; p = p->next)
+
+    foreach (p, map->lights)
 	draw_trans_sprite (bmp, icon, 
 			   ((p->x - offx) - (icon->w / 6)) * 3,
-			    (p->y - offy) - (icon->h / 2));
+			   ((p->y - offy) - (icon->h / 2)));
 
     if (full_brightness)
 	set_magic_bitmap_brightness (bmp, 0xf, 0xf, 0xf);
     else {
-        for (p = map->lights.next; p; p = p->next) {
+	foreach (p, map->lights) {
 	    b = store[p->lightmap]->dat;
 	    draw_trans_sprite(bmp, b,
 			      ((p->x - offx) - (b->w / 6)) * 3,
@@ -216,7 +197,7 @@ static light_t *find_light (int x, int y)
 {
     light_t *p, *last = 0;
     
-    for (p = map->lights.next; p; p = p->next)
+    foreach (p, map->lights)
 	if (in_rect (x, y,
 		     p->x - icon->w / 3 / 2,
 		     p->y - icon->h / 2,
@@ -248,7 +229,7 @@ static int event_layer (int event, struct editarea_event *d)
 	else if (d->mouse.b == 1) {
 	    p = find_light (x, y);
 	    if (p) {
-		map_light_destroy (map, p);
+		map_light_destroy (p);
 		return 1;
 	    }
 	}
@@ -270,10 +251,7 @@ static int event_layer (int event, struct editarea_event *d)
 }
 
 
-
-/*
- *	Module init / shutdown
- */
+/* Module init / shutdown.  */
 
 int mode_lights_init ()
 {

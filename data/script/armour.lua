@@ -1,8 +1,6 @@
 -- armour.lua
 
-function __module__init ()
-    store_load ("object/armour.dat", "/armour/")
-    object_type_register ("armour-brown",  nil, "item", "/armour/armour-brown")
-    object_type_register ("armour-purple", nil, "item", "/armour/armour-purple")
-    object_type_register ("armour-blue",   nil, "item", "/armour/armour-blue")
-end
+store_load ("object/armour.dat", "/armour/")
+objtype_register ("item", "armour-brown", "/armour/armour-brown")
+objtype_register ("item", "armour-purple", "/armour/armour-purple")
+objtype_register ("item", "armour-blue", "/armour/armour-blue")

@@ -8,6 +8,7 @@
 #include "gui.h"
 #include "alloc.h"
 #include "editarea.h"
+#include "list.h"
 #include "magic4x4.h"
 #include "modes.h"
 
@@ -19,41 +20,20 @@ static int grid = 1, gridx = 16, gridy = 16;
 
 
 struct layer {
+    struct layer *next;
+    struct layer *prev;
+
     char *name;
     void (*draw) (BITMAP *, int, int);
     int (*event) (int, struct editarea_event *);
     int depth;
 
     int show;
-    struct layer *next;
 };
 
 
-static struct layer layers, *active;
-
-
-static void link_layer (struct layer *q)
-{
-    struct layer *p;
-
-    for (p = &layers; p; p = p->next) 
-	if (!p->next || (p->next && p->next->depth > q->depth)) {
-	    q->next = p->next;
-	    p->next = q;
-	    return;
-	}
-}
-
-static void unlink_and_free_all_layers ()
-{
-    struct layer *p, *next;
-
-    for (p = layers.next; p; p = next) {
-	next = p->next;
-	free (p->name);
-	free (p);
-    }
-}
+static struct list_head layers;
+static struct layer *active;
 
 
 /*----------------------------------------------------------------------*/
@@ -71,9 +51,8 @@ static void dot_grid (BITMAP *bmp, int offx, int offy, int gx, int gy, int col)
 static void draw_layers (BITMAP *bmp)
 {
     struct layer *p;
-
-    for (p = layers.next; p; p = p->next)
-	if (p->draw && p->show)
+    foreach (p, layers) 
+	if ((p->draw) && (p->show))
 	    p->draw (bmp, offsetx, offsety);
 }
 
@@ -210,14 +189,21 @@ void editarea_install (int x, int y, int w, int h)
 
     editarea_reset_offset ();
 
-    layers.next = 0;
+    init_list (layers);
     active = 0;
+}
+
+
+static void free_layer (struct layer *p)
+{
+    free (p->name);
+    free (p);
 }
 
 
 void editarea_uninstall ()
 {
-    unlink_and_free_all_layers ();
+    free_list (layers, free_layer);
     destroy_bitmap (magic);
     gui_window_destroy (window);
 }
@@ -227,6 +213,18 @@ void editarea_reset_offset ()
 {
     offsetx = offsety = 0;
     gui_window_dirty (window);
+}
+
+
+static void link_layer (struct layer *layer)
+{
+    struct layer *p;
+
+    foreach (p, layers)
+        if ((p->next == (struct layer *) &layers) ||
+	    (p->next->depth > layer->depth)) break;
+
+    add_at_pos (p, layer);
 }
 
 
@@ -252,8 +250,7 @@ void editarea_layer_register (const char *name, void (*draw) (BITMAP *, int offx
 void editarea_layer_show (const char *name, int show)
 {
     struct layer *p;
-
-    for (p = layers.next; p; p = p->next)
+    foreach (p, layers) 
 	if (!ustrcmp (p->name, name)) {
 	    p->show = show;
 	    break;
@@ -264,8 +261,7 @@ void editarea_layer_show (const char *name, int show)
 void editarea_layer_activate (const char *name)
 {
     struct layer *p;
-
-    for (p = layers.next; p; p = p->next)
+    foreach (p, layers)
 	if (!ustrcmp (name, p->name)) {
 	    active = p;
 	    break;

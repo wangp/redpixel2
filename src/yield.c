@@ -17,5 +17,9 @@ void yield ()
 
     sleep (0);
 
+#else
+    
+    yield_timeslice ();
+
 #endif
 }

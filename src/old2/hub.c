@@ -5,16 +5,19 @@
 
 
 #include <allegro.h>
+#include <lua.h>
 #include "console.h"
 #include "editor.h"
 #include "gameloop.h"
 #include "gamenet.h"
 #include "hub.h"
 #include "lobby.h"
+#include "luahelp.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "mapfile.h"
 #include "net.h"
+#include "scripts.h"
 #include "vars.h"
 #include "yield.h"
 
@@ -34,16 +37,16 @@ static int quit;
 
 
 /* Start a game server.  */
-static void __export__start_server ()
+static int __export__start_server ()
 {
     if (server || client) {
 	con ("Server or client already running");
-	return;
+	return 0;
     }
 
     if (mode != MODE_NONE) {
 	con ("Quit whatever you are doing first.");
-	return;
+	return 0;
     }
 
     if (net_server_init (gamenet_server_process_message) < 0)
@@ -55,11 +58,13 @@ static void __export__start_server ()
 	lobby_init ();		/* XXX: check error */
 	mode = MODE_LOBBY;	    
     }
+
+    return 0;
 }
 
 
 /* Stop game server.  */
-static void __export__stop_server ()
+static int __export__stop_server ()
 {
     if (server) {
 	net_server_ask_quit ();
@@ -67,38 +72,38 @@ static void __export__stop_server ()
     }
     else
     	con ("Server not running");
+    return 0;
 }
 
 
 /* Check the number of clients connected to the server.  */
-static void __export__num_clients ()
+static int __export__num_clients ()
 {
     if (!server)
 	con ("Server not started");
     else
 	con ("%d clients connected", net_server_num_clients);
+    return 0;
 }
 
 
 /* Select a new map on server.  */
-static void __export__map ()
+static int __export__map (LS)
     /* (map) : (none) */
 {
-    lua_Object obj;
     const char *filename;
 
     if (!server) {
 	con ("You must be server to select a map");
-	return;
+	return 0;
     }
 
-    obj = lua_getparam (1);
-    if (!lua_isstring (obj)) {
+    if (!lua_isstring (L, 1)) {
 	con ("Requires a map filename");
-	return;
+	return 0;
     }
     else
-	filename = lua_getstring (obj);
+	filename = lua_tostring (L, 1);
 
     if (map) 
 	map_destroy (map);
@@ -106,15 +111,16 @@ static void __export__map ()
     map = map_load (filename, 1);
     if (!map) {
 	con ("Error loading map");
-	return;
+	return 0;
     }
 
-    ustrncpy (map_filename, filename, sizeof map_filename);    
+    ustrncpy (map_filename, filename, sizeof map_filename);
+    return 0;
 }
 
 
 /* Issue start game signal on server.  */
-static void __export__start_game ()
+static int __export__start_game ()
 {
     if (!server)
 	con ("You must be server to start a game");
@@ -126,37 +132,36 @@ static void __export__start_game ()
 	lobby_shutdown ();
 	mode = MODE_GAME_START;
     }
+    return 0;
 }
 
 
 /* Connect as client to a game server.  */
-static void __export__connect ()
+static int __export__connect (LS)
     /* (server) : (none) */
 {
-    lua_Object obj;
     int drv;
     const char *target;
     
     if (client) {
 	con ("Client already started");
-	return;
+	return 0;
     }
 
-    obj = lua_getglobal ("drv");
-    if (!lua_isnumber (obj)) {
+    lua_getglobal (L, "drv");
+    if (!lua_isnumber (L, -1)) {
 	con ("Select driver type with `drv' variable");
-	return;
+	return 0;
     }
     else
-	drv = lua_getnumber (obj);
+	drv = lua_tonumber (L, -1);
 
-    obj = lua_getparam (1);
-    if (!lua_isstring (obj)) {
+    if (!lua_isstring (L, 1)) {
 	con ("Requires server address");
-	return;
+	return 0;
     }
     else
-	target = lua_getstring (obj);
+	target = lua_tostring (L, 1);
 
     if (net_client_init (drv, target, gamenet_client_process_message) < 0)
 	con ("Error initialising connection");
@@ -164,11 +169,13 @@ static void __export__connect ()
 	con ("Connecting");
 	client = 1;
     }
+
+    return 0;
 }
 
 
 /* Disconnect from game server.  */
-static void __export__disconnect ()
+static int __export__disconnect (LS)
 {
     if (client) {
 	net_client_disconnect ();
@@ -176,24 +183,23 @@ static void __export__disconnect ()
     }
     else
 	con ("Not connected");
+    return 0;
 }
 
 
 /* Start editor.  */
-static void __export__editor ()
+static int __export__editor (LS)
 {
-    if (mode != MODE_NONE) {
+    if (mode != MODE_NONE)
 	con ("You are already doing something else");
-	return;
-    }
-	
-    if (editor () < 0)
+    else if (editor () < 0)
 	con ("Error starting editor");
+    return 0;
 }
 
 
 /* Print out current mode.  */
-static void __export__mode ()
+static int __export__mode (LS)
 {
     switch (mode) {
 	case MODE_NONE: con ("None"); break;
@@ -201,32 +207,36 @@ static void __export__mode ()
 	case MODE_GAME_LOOP: con ("Game loop"); break;
 	default: con ("Unknown"); break;
     }
+    return 0;
 }
 
 
 /* Print out some help.  */
-static void __export__help ()
+static int __export__help ()
 {
     con ("(not yet)");
+    return 0;
 }
 
 
 /* Quit.  */
-static void __export__quit ()
+static int __export__quit (LS)
 {
     if (client)
-	__export__disconnect ();
+	__export__disconnect (L);
     if (server)
-	__export__stop_server ();
+	__export__stop_server (L);
 
     quit = 1;
     con ("Quitting");
+
+    return 0;
 }
 
 
-static void export_functions ()
+static void export_functions (LS)
 {
-#define e(func)	(lua_register (#func, __export__##func))
+#define e(func)	(lua_register (L, #func, __export__##func))
 
     e (start_server);
     e (stop_server);
@@ -247,7 +257,7 @@ static void export_functions ()
 
 void hub ()
 {
-    while (!quit || (quit && (server || client))) {
+    while ((!quit) || ((quit) && (server || client))) {
 	if (server)
 	    if (net_server_poll () < 0) {
 		net_server_shutdown ();
@@ -346,7 +356,7 @@ int hub_init ()
 
     if (console_init () < 0)
 	return -1;
-    export_functions ();
+    export_functions (lua_state);
 
     net_main_init ();
 

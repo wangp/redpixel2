@@ -1,4 +1,4 @@
-ALLEGRO = $(HOME)/allegro-3.9.32x
+ALLEGRO = $(HOME)/allegro
 CFLAGS = -Wall -g -I$(ALLEGRO)/tools
 LOADLIBES = $(ALLEGRO)/lib/unix/libaldat.a `allegro-config --libs` -llua
 

@@ -47,6 +47,7 @@ static void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 }
 
 
+#if 0
 static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
 {
     object_t *p;
@@ -81,11 +82,12 @@ static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
 		break;
 	}
 }
+#endif
 
 
 void render (BITMAP *bmp, map_t *map, camera_t *cam)
 {
     render_tiles (bmp, map, cam->x, cam->y);
-    render_objects (bmp, map, cam->x, cam->y);
+/*      render_objects (bmp, map, cam->x, cam->y); */
     render_lights (bmp, map, cam->x, cam->y);
 }

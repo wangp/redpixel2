@@ -1,0 +1,1170 @@
+<html>
+
+<head>
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<title>Unreal Networking Architecture</title>
+<style>
+<!--
+@import URL(UnrealTech.css);
+@import URL(http://unreal.epicgames.com/UnrealTech.css);
+-->
+</style>
+</head>
+
+<body>
+
+<h1>Unreal Networking Architecture</h1>
+
+<address>
+  Tim Sweeney<br>
+  Epic MegaGames, Inc.<br>
+  http://www.epicgames.com/ 
+</address>
+
+<p>Audience: Advanced UnrealScript Programmers, C++ Programmers.<br>
+Last Updated: <!--webbot bot="Timestamp" startspan S-Type="REGENERATED"
+S-Format="%m/%d/%y" -->07/21/99<!--webbot bot="Timestamp" i-checksum="13978" endspan --></p>
+
+<p>Note: References to Unreal's C++ code are only relevant to Unreal licensees who have
+access to the Unreal source.</p>
+
+<h3>History</h3>
+
+<p>Multiplayer gaming is about shared reality: that all of the players feel they are in
+the same world, seeing from differing viewpoints the same events transpiring within that
+world.&nbsp; As multiplayer gaming has evolved from the little 2-player modem games that
+characterized Doom, into the large, persistent, more free-form interactions of games like
+Quake 2, Unreal, and Ultima Online, the technologies behind the shared reality have
+evolved tremendously.</p>
+
+<p>In the beginning, there were peer-to-peer games like Doom and Duke Nukem. In these
+games, each machine in the game was an equal.&nbsp; Each exactly synchronized its input
+and timing with the others, and each machine carried out the same exact game logic on
+exactly the same inputs. In conjunction with completely deterministic (i.e. fixed-rate,
+non-random) game logic, all players in the machine perceived the same reality.&nbsp; The
+advantage of this approach was simplicity.&nbsp; The disadvantages were: 
+
+<ul>
+  <li>Lack of persistence. All of the players had to start the game together, and new players
+    couldn't come and go as they pleased.</li>
+  <li>Lack of player scalability: Because of the lock-step nature of the networking
+    architecture, the coordination overhead and chance of network-induced failure increases
+    linearly with the number of players. </li>
+  <li>Lack of frame rate scalability. All of the players had to run at the same internal frame
+    rate, making it difficult to support a wide variety of machine speeds.</li>
+</ul>
+
+<p>Next came the monolithic client-server architecture, pioneered by Quake, and later used
+by Ultima Online.&nbsp; Here, one machine was designated &quot;server&quot;, and was
+responsible for making all of the gameplay decisions.&nbsp; The other machines were
+&quot;clients&quot;, and they were regarded as dumb rendering terminals, which sent their
+keystrokes to the server, and received a list of objects to render.&nbsp; This advancement
+enabled large-scale Internet gaming, as game servers started springing up all over the
+Internet.&nbsp; The client-server architecture was later extended by QuakeWorld and Quake
+2, which moved additional <em>simulation</em> and <em>prediction</em> logic to the client
+side, in order to increase visible detail while lowering bandwidth usage. Here, the client
+receives not only a list of objects to render, but also information about their
+trajectories, so the client can make rudimentary predictions about object motion. In
+addition, a lock-step prediction protocol was introduced in order to eliminate perceived
+latency in client movement.&nbsp; Still, there were some disadvantages to this approach: 
+
+<ul>
+  <li>Lack of open-endedness: When users and licensees create new types of objects (weapons,
+    player controls, etc), glue logic must be authored to specify the simulation and
+    prediction aspects of those new objects.</li>
+  <li>Difficulties of the prediction model: In this model, the network code and the game code
+    are separate modules, yet each must both be fully aware of the implementation of the
+    other, in order to keep the game state reasonably synchronized. A strong coupling between
+    (ideally) separate modules is undesirable because it makes extensibility difficult.</li>
+</ul>
+
+<p>Unreal introduces into multiplayer gaming a new approach termed the generalized
+client-server model.&nbsp; In this model, the server is still authoritative over the
+evolution of the game state.&nbsp; However, the client actually maintains an accurate
+subset of the game state locally, and can predict the game flow by executing the same game
+code as the server, on approximately the same data, thus minimizing the amount of data
+that must be exchanged between the two machines.&nbsp; Further, the &quot;game state&quot;
+is self-described by an extensible, object-oriented scripting language which fully
+decouples the game logic from the network code.&nbsp; The network code is generalized in
+such a way that it can coordinate <em>any</em> game which can be described by the
+language.&nbsp; This achieves a goal of object-orientation which increases extensibility,
+the concept that the behavior of an object should be fully described by that object,
+without introducing dependencies on other pieces of code which are hard-wired to know
+about the internal implementation of that object.</p>
+
+<h3>Basic Concepts</h3>
+
+<h4>Goal</h4>
+
+<p>The goal here is to define Unreal's networking architecture in a fairly rigorous
+manner, because there is a fair amount of complexity involved that is easy to misinterpret
+if not defined exactly.</p>
+
+<h4>Basic Terminology</h4>
+
+<p>We define our basic terminology precisely: 
+
+<ul>
+  <li>A <strong>variable</strong> is an association between a fixed name and a modifiable
+    value.&nbsp; Examples of variables include integers such as X=123, floating point numbers
+    such as Y=3.14, strings such as Team=&quot;Rangers&quot;, and vectors such as
+    V=(1.5,2.5,-0.5).</li>
+  <li>An <strong>object</strong> is a self-contained data structure consisting of a fixed set
+    of <strong>variables</strong>.</li>
+  <li>An <strong>actor</strong> is an object capable of independently moving around in a <strong>level</strong>
+    and interacting with other actors in that <strong>level</strong>.</li>
+  <li>A <strong>level</strong> is an object which contains a set of <strong>actors</strong>.</li>
+  <li>A <strong>tick</strong> is an operation that updates the entire <strong>game state</strong>
+    given that a variable amount of time called DeltaTime has passed.</li>
+  <li>The <strong>game state</strong> of a <strong>level</strong> refers to the complete set
+    of all <strong>actors</strong> that exist in that <strong>level</strong> and the current
+    values of all of their <strong>variables</strong> at a time when a <strong>tick</strong>
+    operation is not currently in progress.</li>
+  <li>A client is a running instance of <strong>Unreal.exe</strong> which maintains an
+    approximate subset of the <strong>game state</strong> suitable for approximately
+    simulating the events that occur in the world, and for rendering an approximate view of
+    the world for a player.</li>
+  <li>A <strong>server</strong> is a running instance of Unreal.exe which is responsible for <strong>ticking</strong>
+    a single <strong>level</strong> and communicating the <strong>game state</strong>
+    authoritatively to all of the <strong>clients</strong>.</li>
+</ul>
+
+<h4>The Update Loop</h4>
+
+<p>All of the above concepts are well-understood with the possible exception of the <strong>tick</strong>
+and <strong>game state</strong>.&nbsp; So, these will be described in more detail. First
+of all, here is a simple description of Unreal's update loop: 
+
+<ol>
+  <li>If I am a <strong>server</strong>, communicate the current <strong>game state</strong>
+    to all of my <strong>clients</strong>.</li>
+  <li>If I am a <strong>client</strong>, send my requested movement to the server, receive new
+    <strong>game state</strong> information from the server, render my current approximate
+    view of the world to the screen.</li>
+  <li>Perform a <strong>tick</strong> operation to update the <strong>game state</strong>,
+    given that a variable amount of time DeltaTime has passed since the previous <strong>tick</strong>.</li>
+</ol>
+
+<p>A <strong>tick</strong> operation involves updating all of the <strong>actors</strong>
+in the level, carrying out their physics, informing them of interesting game events that
+have occurred, and executing any necessary script code.&nbsp; Unlike many past games such
+as Doom and Quake, all of the physics and update code in Unreal is designed to handle a
+variable amount of time passing.&nbsp; For example, Doom's movement physics looks like
+&quot;Position += PositionIncrment&quot; while Unreal's looks like &quot;Position +=
+Velocity * DeltaTime&quot;. This enables greater frame rate scalability.</p>
+
+<p>While a <strong>tick</strong> operation is in progress, the <strong>game state</strong>
+is being continually modified by the code which executes.&nbsp; The <strong>game state</strong>
+can change in exactly three ways: 
+
+<ul>
+  <li>A <strong>variable</strong> in an <strong>actor</strong> can be modified.</li>
+  <li>An <strong>actor</strong> can be created.</li>
+  <li>An <strong>actor</strong> can be destroyed.</li>
+</ul>
+
+<h4>The Server Is <em>The Man</em></h4>
+
+<p>From the above, the server's <strong>game state</strong> is completely and concisely
+defined by the set of all <strong>variables</strong> of all <strong>actors</strong> within
+a <strong>level</strong>.&nbsp; Because the <strong>server</strong> is authoritative about
+the gameplay flow, the server's <strong>game state</strong> can always be regarded as the
+one true <strong>game state</strong>.&nbsp; The version of the <strong>game state</strong>
+on <strong>client</strong> machines should always be regarded as an approximation subject
+to many different kinds of deviations from the server's <strong>game state</strong>.
+&nbsp; Actors that exist on the <strong>client</strong> machine should be considered <strong>proxies</strong>
+because they are a temporary, approximate representation of an object rather than the
+object itself.</p>
+
+<h4>Bandwidth Limitation</h4>
+
+<p>If network bandwidth were unlimited, the network code would be very simple: at the end
+of each <strong>tick</strong>, the server could just send each <strong>client</strong> the
+complete and exact <strong>game state</strong> so that the client always renders the exact
+view of the game as is occurring on the server.&nbsp; However, the Internet reality is
+that 28.8K modems have only perhaps 1% of the bandwidth necessary to communicate complete
+and exact updates.&nbsp; While consumers' Internet connections will become faster in the
+future, bandwidth is growing at a rate far lower than Moore's law which defines the rate
+of improvement in games and graphics. Therefore, there is <em>not now and never will be</em>
+sufficient bandwidth for complete game-state updates.</p>
+
+<p>So, the main goal of the network code is to enable the <strong>server</strong> to
+communicate a <em>reasonable approximation</em> of the <strong>game state</strong> to the <strong>clients</strong>
+so that the <strong>clients</strong> can render an interactive view of the world which is
+as close to shared reality as is reasonable given bandwidth limitations.</p>
+
+<h4>Replication</h4>
+
+<p>Unreal views the general problem of &quot;coordinating a reasonable approximation of a
+shared reality between the server and clients&quot; as a problem of
+&quot;replication&quot;.&nbsp; That is, a problem of determining a set of data and
+commands that flow between the client and server in order to achieve that approximate
+shared reality.</p>
+
+<h3>The Relevant Set of Actors</h3>
+
+<h4>Definition</h4>
+
+<p>An Unreal level can be huge, and at any time a player can only see a small fraction of
+the actors in that level.&nbsp; Most of the other actors in the level aren't visible,
+aren't audible, and have no significant effect on the player.&nbsp; The set of actors that
+a <strong>server</strong> deems are visible to or capable of affecting a <strong>client</strong>
+are deemed the <strong>relevant set </strong>of actors&nbsp; for that client.&nbsp; A
+significant bandwidth optimization in Unreal's network code is that the server only tells
+clients about actors in that client's <strong>relevant set</strong>.</p>
+
+<p>Unreal applies the following rules in determining the relevant set of actors for a
+player. 
+
+<ol>
+  <li>The actor belongs to the ZoneInfo class, then it is relevant.</li>
+  <li>If the actor has static=true or bNoDelete=true, then it is relevant.</li>
+  <li>If the actor is owned by the player (Owner==Player), then it is relevant.</li>
+  <li>If the actor is a Weapon and is owned by a visible actor, then it is relevant.</li>
+  <li>If the actor is hidden (bHidden=true) and it doesn't collide (bBlockPlayers=false) and
+    it doesn't have an ambient sound (AmbientSound==None) then the actor is not relevant.</li>
+  <li>If the actor is visible according to a line-of-sight check between the actor's Location
+    and the player's Location, then it is relevant.</li>
+  <li>If the actor was visible less than 2 to 10 seconds ago (the exact number varies because
+    of some performance optimizations), then it is relevant.</li>
+</ol>
+
+<p>These rules are designed to give a good approximation of the set of actors which really
+can affect a player.&nbsp; Of course, it is imperfect: the line-of-sight check can
+sometimes give a false negative with large actors (though we use some heuristics to help
+it out), it doesn't account for sound occlusion of ambient sounds, and so on. However, the
+approximation is such that its error is overwhelmed by the error inherent in a network
+environment with such latency and packet loss characteristics as the Internet.</p>
+
+<h4>Changing the definition of the relevant set in C++</h4>
+
+<p>The set of relevant actors for a client is determined by the C++ function
+ULevel::GetRelevantActors.&nbsp; This way, licensees who want to implement different
+gameplay rules are free to modify our definition of the <strong>relevant set</strong> by
+modifying ULevel::GetRelevantActors or (better yet) subclassing ULevel, and overriding the
+function.</p>
+
+<h4>Actor Prioritization</h4>
+
+<p>In deathmatch games on modem-based Internet connections, there is almost never enough
+bandwidth available for the server to tell each client everything it desires to know about
+the game state, Unreal uses a load-balancing technique that prioritizes all actors, and
+gives each one a &quot;fair share&quot; of the bandwidth based on &quot;how
+important&quot; it is to gameplay.</p>
+
+<p>Each actor has a floating point variable called NetPriority.&nbsp; The higher the
+number, the more bandwidth that actor receives relative to others.&nbsp; An actor with a
+priority of 2.0 will be updated exactly twice as frequently as an actor with priority 1.0.
+&nbsp; The only thing that matters with priorities is their ratio; so obviously you can't
+improve Unreal's network performance by increasing all of the priorities.&nbsp; Some of
+the values of NetPriority we have assigned in our performance-tuning are: 
+
+<ul>
+  <li>Bots: 8.0</li>
+  <li>Movers: 7.0</li>
+  <li>Projectiles: 6.0</li>
+  <li>Pawns: 4.0</li>
+  <li>Decorative creatures (such as fish): 2.0</li>
+  <li>Decorations: 0.5</li>
+</ul>
+
+<h3>Overview of Replication</h3>
+
+<h4>Three Types of Replication</h4>
+
+<p>The network code is based on three primitive, low-level replication operations for
+communicating information about the <strong>game state</strong> between the the <strong>server</strong>
+and <strong>clients</strong>: 
+
+<ul>
+  <li><strong>Actor replication</strong>.&nbsp; The server identifies the set of &quot;<strong>relevant</strong>&quot;
+    actors for each client (actors which are either visible to the client or are likely to
+    somehow affect the client's view or movement instantaneously), and tells the client to
+    create and maintain a &quot;replicated&quot; copy of that actor.&nbsp; While the server
+    always has the authoritative version of that actor, at any time many clients might have
+    approximate, replicated versions of that actor.</li>
+</ul>
+
+<ul>
+  <li><strong>Variable replication</strong>. Actor variables that describe aspects of the game
+    state which are important to clients can be &quot;replicated&quot;.&nbsp; That is,
+    whenever the value of the variable changes on the server side, the server sends the client
+    the updated value.</li>
+</ul>
+
+<ul>
+  <li><strong>Function call replication</strong>. A function that is called on the server in a
+    network game can be routed to the remote client rather than executed locally.
+    Alternatively, a function called on the client side may be routed to the server, rather
+    than called locally.</li>
+</ul>
+
+<p>To give a concrete example, consider the case where you are a client in a network game.
+&nbsp; You see two opponents running toward you, shooting at you, and you hear their
+shots.&nbsp; Since all of the <strong>game state</strong> is being maintained on the
+server rather than on your machine, why can you see and hear those things happening? 
+
+<ul>
+  <li>You can see the opponents because the server has recognized that the opponents are
+    &quot;<strong>relevant</strong>&quot; to you (i.e. they are visible) and the server is
+    currently <strong>replicating</strong> those <strong>actors</strong> to you.&nbsp; Thus,
+    you (the client) have a local copy of those two player actors who are running after you.</li>
+</ul>
+
+<ul>
+  <li>You can see that the opponents are running toward you because the server is replicating
+    their Location <strong>variable</strong> to you.&nbsp; You can see them animating because
+    the server is replicating their animation <strong>variables</strong> to you.&nbsp; In
+    other words, the server is continually feeding you new values of their Location and
+    animation parameters, at the rate of several times per second. </li>
+</ul>
+
+<ul>
+  <li>You can hear their gunshots because the server is <strong>replicating</strong> the
+    ClientHearSound <strong>function</strong> to you.&nbsp; The ClientHearSound function is
+    called for a PlayerPawn whenever that PlayerPawn hears a sound.</li>
+</ul>
+
+<p>So, by this point, the low-level mechanisms by which Unreal multiplayer games operate
+should be clear.&nbsp; The server is updating the <strong>game state</strong> and making
+all of the big game decisions.&nbsp; The server is replicating some actors to clients.
+&nbsp; The server is replicating some variables to clients.&nbsp; And, the server is
+replicating some function calls to clients.</p>
+
+<p>It should also be clear that not all actors need to be replicated.&nbsp; For example,
+if an actor is halfway across the level and way out of your sight, you don't need to waste
+bandwidth sending updates about it.&nbsp; Also, all variables don't need to be updated.
+&nbsp; For example, the variables that the server uses to make AI decisions don't need to
+be sent to clients; the clients only need to know about their display variables, animation
+variables, and physics variables.&nbsp; Also, most functions executed on the server
+shouldn't be replicated. Only the function calls that result in the client seeing or
+hearing something need to be replicated.&nbsp; So, in all, the server contains a huge
+amount of data, and only a small fraction of it matters to the client--the ones which
+affect things the player sees, hears, or feels.</p>
+
+<p>Thus, the logical question is, &quot;How does the Unreal engine know what actors,
+variables, and function calls need to replicated?&quot;</p>
+
+<p>The answer is, the programmer who writes a script for an actor is responsible for
+determining what variables and functions, in that script, need to be replicated. &nbsp;
+And, he is responsible for writing a little piece of code called a &quot;replication
+statement&quot;, in that script, to tell the Unreal engine what needs to be replicated
+under what conditions.&nbsp; For a real-world example, consider some of the things defined
+in the Actor class. 
+
+<ul>
+  <li>The Location variable (a vector) contains the actor's location.&nbsp; The server is
+    responsible for maintaining the location, so the server needs to send that to clients.
+    &nbsp; So the replication condition basically says &quot;Replicate this if I am the
+    server&quot;.</li>
+</ul>
+
+<ul>
+  <li>The Mesh variable (an object reference) references the mesh that should be rendered for
+    the actor.&nbsp; The server needs to send that to clients, but it only needs to be sent if
+    the actor is being rendered as a mesh, i.e. if the actor's DrawType is DT_Mesh. So the
+    replication condition basically says &quot;Replicate this if I am the server and the
+    DrawType is DT_Mesh&quot;.</li>
+</ul>
+
+<ul>
+  <li>In the PlayerPawn class, there are a bunch of boolean variables that define keypresses
+    and button presses, such as bFire and bJump.&nbsp; These are generated on the client side
+    (where the input happens), and the server needs to know about them.&nbsp; So the
+    replication condition basically says &quot;Replicate this if I am a client&quot;.</li>
+</ul>
+
+<ul>
+  <li>In the PlayerPawn class, there is a ClientHearSound function that tells the player that
+    she hears a sound.&nbsp; It's called on the server but, of course the sound needs be heard
+    by the actual person playing the game, who is on the client side.&nbsp; So the replication
+    condition for this function might be &quot;Replicate this if I am the server&quot;.</li>
+</ul>
+
+<p>From the above examples, several things should be apparent.&nbsp; First of all, every
+variable and function that might be replicated needs to have a &quot;replication
+condition&quot; attached to it, that is, an expression which evaluates to True of False,
+depending on whether the thing needs to be replicated.&nbsp; Second, these replication
+conditions need to be two-way: the server needs to be able to replicate variables and
+functions to the client, <em>and</em> the client needs to be able to replicate them to the
+server.&nbsp; Third, these &quot;replication conditions&quot; can be complex, such as
+&quot;Replicate this if I'm the server and my DrawType is DT_Mesh&quot;.</p>
+
+<p>Therefore, we need a general-purpose way of expressing (complex) conditions under which
+variables and functions should be replicated.&nbsp; What is the best way to express these
+conditions?&nbsp; We looked at all of the options, and concluded that UnrealScript--which
+is already a very powerful language for authoring classes, variables, and code--would be a
+perfect tool for writing replication conditions.</p>
+
+<h3>The UnrealScript Replication Statement</h3>
+
+<p>In UnrealScript, every class can have one <strong>replication statement</strong>.
+&nbsp; The replication statement contains one or more <strong>replication definitions</strong>.
+&nbsp; Each <strong>replication definition</strong> consist of a <strong>replication
+condition</strong> (a statement that evaluates to True or False), and a list of one or
+more functions and variables to which the condition applies.</p>
+
+<p>The replication statement in a class may only refer to variables defined in that class,
+and functions defined first in that class (that is, it cannot apply to functions defined
+in a superclass but overridden in that class).&nbsp; This way, if the Actor class contains
+a variable DrawType, then you know where to look for its replication condition: it can
+only reside there in the Actor class.</p>
+
+<p>It's valid for a class to not contain a replication statement; this simply means that
+the class doesn't define any new variables or functions that need to be replicated. &nbsp;
+In fact, most classes do not need replication statements because most of the
+&quot;interesting&quot; variables that affect display are defined in the Actor class, and
+are only modified by subclasses.&nbsp; In Unreal, we have about 500 classes, and only
+about 10 of them need replication statements.</p>
+
+<p>If you define a new variable or function in a class, but you don't list it in a <strong>replication
+definition</strong>, that means that your variable or function is <em>absolutely never
+replicated</em>.&nbsp; This is the norm; most variables and functions don't need to be
+replicated.</p>
+
+<p>Here is an example of the UnrealScript syntax for the <strong>replication statement</strong>.
+This is taken from the Pawn class:</p>
+
+<pre>replication
+{
+	// Variables the server should send to the client.
+	reliable if( Role==ROLE_Authority )
+		Weapon;
+	reliable if( Role==ROLE_Authority &amp;&amp; bNetOwner )
+		 PlayerName, Team, TeamName, bIsPlayer, CarriedDecoration, SelectedItem,
+		 GroundSpeed, WaterSpeed, AirSpeed, AccelRate, JumpZ, MaxStepHeight,
+		 bBehindView;
+	unreliable if( Role==ROLE_Authority &amp;&amp; bNetOwner &amp;&amp; bIsPlayer &amp;&amp; bNetInitial )
+		ViewRotation;
+	unreliable if( Role==ROLE_Authority &amp;&amp; bNetOwner )
+		Health, MoveTarget, Score;
+
+	// Functions the server calls on the client side.
+	reliable if( Role==ROLE_Authority &amp;&amp; RemoteRole==ROLE_AutonomousProxy )
+		ClientDying, ClientReStart, ClientGameEnded, ClientSetRotation;
+	unreliable if( Role==ROLE_Authority )
+		ClientHearSound, ClientMessage;
+	reliable if( Role&lt;ROLE_Authority )
+		NextItem, SwitchToBestWeapon, bExtra0, bExtra1, bExtra2, bExtra3;
+
+	// Input sent from the client to the server.
+	unreliable if( Role&lt;ROLE_AutonomousProxy )
+		bZoom, bRun, bLook, bDuck, bSnapLevel, bStrafe;
+	unreliable always if( Role&lt;=ROLE_AutonomousProxy )
+		bFire, bAltFire;
+}</pre>
+
+<p>The key things you see here are: 
+
+<ul>
+  <li>The replication statement is enclosed by &quot;replication {}&quot;.</li>
+  <li>Each replication definition begins with &quot;reliable if (condition)&quot; or
+    &quot;unreliable if (condition)&quot;.</li>
+</ul>
+
+<h4>Reliable vs. Unreliable</h4>
+
+<p>Functions replicated with the &quot;unreliable&quot; keyword are not guaranteed to
+reach the other party and, if they do reach the other party, they may be received
+out-of-order.&nbsp; The only things which can prevent an unreliable function from being
+received are network packet-loss, and bandwidth saturation.&nbsp; So, you need to
+understand the odds, which we will grossly approximate here.&nbsp; The results vary wildly
+among different types of network, so we can make no guarantees: 
+
+<ul>
+  <li>In a LAN game, we guesstimate that unreliable data is received successfully
+    approximately 99% of the time.&nbsp; However, in the course of a game, hundreds of
+    thousands of things are replicated, so you can be sure that some unreliable data will be
+    lost.&nbsp; Therefore, even if you're aiming for LAN performance only, your code needs to
+    handle your unreliably replicated variables gracefully in the case that they are lost over
+    the wire.</li>
+</ul>
+
+<ul>
+  <li>In a typical low quality 28.8K ISP connection, unreliable data is generally received
+    90%-95% of the time.&nbsp; In other words, it is very frequently lost.</li>
+</ul>
+
+<p>To get a better feeling for the tradeoffs between reliable and unreliable functions,
+check out the replication statements in the Unreal scripts, and gauge their importance vs.
+the reliability decision we made.</p>
+
+<h4>Variables are always reliable</h4>
+
+<p>The &quot;reliable&quot; and &quot;unreliable&quot; keywords are ignored for variables.
+&nbsp; Variables are always guaranteed to reach the other party eventually, even under
+packet-loss and bandwidth saturation conditions.&nbsp; Changes in such variables are not
+guaranteed to reach the other party in the same order in which they were sent.</p>
+
+<h4>Summary</h4>
+
+<p>Here, we have documented the syntax of the replication statement thoroughly, without
+saying much about the meaning of the expressions like &quot;Role==ROLE_Authority&quot; and
+&quot;bNetOwner&quot;.&nbsp; This is covered in the next section.</p>
+
+<h3>Replication Conditions</h3>
+
+<p>Here is a simple example of a replication condition within a class's script:</p>
+
+<pre>replication
+{
+	reliable if( Role==ROLE_Authority )
+		Weapon;
+}</pre>
+
+<p>This replication condition, translated into English, is &quot;If the value of this
+actor's Role variable is equal to ROLE_Authority, then this actor's Weapon variable should
+be reliably replicated to all clients for whom this actor is relevant&quot;.</p>
+
+<p>A replication condition may be any expression that evaluates to a value of True or
+False (that is, a boolean expression). So, any expression you can write in UnrealScript
+will do--including comparing variables, calling functions, and combining conditions using
+the boolean !, &amp;&amp;, ||, and ^^ operators.</p>
+
+<p>An actor's Role variable generally describes how much control the local machine has
+over the actor.&nbsp; ROLE_Authority means &quot;this machine is the server, so it is
+completely authoritative over the proxy actor&quot;.&nbsp; ROLE_SimulatedProxy means
+&quot;this machine is a client, and it should simulate (predict) the physics of the
+actor&quot;. ROLE_DumbProxy means &quot;this machine is a client and it should not do any
+simulation on this proxy actor&quot;. Role is described in more detail in a later section,
+but the quick summary is this: 
+
+<ul>
+  <li>if ( Role==ROLE_Authority ): means &quot;If I am the server, I should replicate this to
+    clients&quot;.</li>
+  <li>if( Role&lt;ROLE_Authority ): means &quot;If I am a client, I should replicate this to
+    the server.</li>
+</ul>
+
+<p>The following variables are very often used in replication statements because of their
+high utility: 
+
+<ul>
+  <li>bIsPlayer: Whether this actor is a player.&nbsp; Is True for players, false for all
+    other actors.</li>
+  <li>bNetOwner: Whether this actor is owned by the client for whom the replication condition
+    is being evaluated.&nbsp; For example, say Fred is holding a DispersionPistol, and Bob
+    isn't holding any weapon. When the DispersionPistol is being replicated to Fred, its
+    bNetOwner variable will be True (because Fred owns the weapon). When it is being
+    replicated to Bob, its bNetOwner variable will be False (because Bob does not own the
+    weapon).</li>
+  <li>bNetInitial: Valid only on the server side, i.e. if Role==ROLE_Authority. &nbsp;
+    Indicates whether this actor is being replicated to the client for the first time. &nbsp;
+    This is useful for clients with Role==ROLE_SimulatedProxy, because it enables the server
+    to sent their location and velocity just once, with the client subsequently predicting it.</li>
+</ul>
+
+<p>Replication condition guidelines: 
+
+<ul>
+  <li>Since variables are typically replicated <em>one-way</em> (either from the client to the
+    server, or from the server to the client, but never both), all replication conditions
+    generally start with a comparison of Role or RemoteRole, i.e. if( Role==ROLE_Authority )
+    or if( RemoteRole&lt;ROLE_SimulatedProxy ).&nbsp; If a replication condition doesn't
+    contain a comparison of Role or RemoteRole, there is probably something wrong with it.</li>
+  <li>Replication conditions are evaluated very, very frequently on the server during network
+    play. Keep them as simple as possible, but no simpler.</li>
+  <li>While replication conditions are allowed to call functions, try to avoid that because it
+    could be a big slowdown.</li>
+  <li>Replication conditions shouldn't have any side-effects, because the network code may
+    choose to call them at any time including times when you don't expect.&nbsp; For example
+    if you do something like if( Counter++ &gt; 10 )..., good luck trying to figure out what
+    the hell is going to happen..</li>
+</ul>
+
+<h3>Variable Replication</h3>
+
+<h4>Update mechanism</h4>
+
+<p>After every <strong>tick</strong>, the client and the server check out all actors in
+their <strong>relevant set</strong>. All of their replicated variables are examined to see
+if they have changed since the previous update, and the variables' replication conditions
+are evaluated to see if the variables need to be sent.&nbsp; As long as there is bandwidth
+available in the connection, those variables are sent across the network to the other
+machine.</p>
+
+<p>Thus, the client receives updates of the &quot;important&quot; events that are
+happening in the world, which are visible or audible to that client.&nbsp; The key points
+to remember about variable replication are: 
+
+<ul>
+  <li>Variable replication occurs only after a <strong>tick</strong> completes. &nbsp;
+    Therefore, if in the duration of a <strong>tick</strong>, a variable changes to a new
+    value, and then it changes back to its original value, then that variable will not be
+    replicated.&nbsp; Thus, clients only hear about the state of the server's actor's
+    variables after its tick completes; the state of the variables during the tick is
+    invisible to the client.</li>
+  <li>Variables are only replicated when they change, relative to their previously known
+    value.</li>
+  <li>Variables for an actor are only replicated to a client when they are in the client's <strong>relevant
+    set</strong>. Thus, the client does not have accurate variables for actors that are not in
+    his relevant set.</li>
+  <li>UnrealScript has no concept of global variables; so they only variables that can be
+    replicated are instance variables belonging to an actor.</li>
+</ul>
+
+<h4>Variable type notes</h4>
+
+<ul>
+  <li>Vectors and Rotators: To improve bandwidth efficiency, Unreal quantizes the values of
+    vectors and rotators.&nbsp; The X,Y,Z components of vectors are converted to 16-bit signed
+    integers before being sent, thus any fractional values or values out of the range
+    -32768..32767 are lost.&nbsp; The Pitch,Yaw,Roll components of vectors are converted to
+    bytes, of the form (Pitch&gt;&gt;8)&amp;255.&nbsp; So, you need to be careful with vectors
+    and rotators. If you absolutely must have full precision, then use int or float variables
+    for the individual components; all other data types are sent with their complete
+    precision.</li>
+  <li>General structs are replicated by sending all of their components.&nbsp; A struct is
+    sent as an &quot;all or nothing&quot; type of thing.</li>
+  <li>Arrays of variables can be replicated, but only of the size of the array (in bytes) is
+    less than 448 bytes.</li>
+  <li>Arrays are replicated efficiently; if a single element of a large array changes, only
+    that element is sent.</li>
+</ul>
+
+<h3>Function Call Replication</h3>
+
+<h4>Remote Routing Mechanism</h4>
+
+<p>When an UnrealScript <strong>function</strong> is called during a network game, and
+that function has a <strong>replication condition</strong>, the condition is evaluated and
+execution progresses as follows: 
+
+<ul>
+  <li>If the function's replication condition evaluates to <strong>True</strong>, the function
+    call is sent to the machine on the other side of the network connection for execution.
+    &nbsp; In other words, the function's name, and all of its parameters, are crammed
+    together into a packet of data, and transmitted to the other machine for later execution.
+    &nbsp; When this occurs, the function returns immediately and execution continues on.
+    &nbsp; If the function were declared to return a value, then its return value is set to
+    zero (or the equivalent of zero in some other type, i.e. 0,0,0 for vectors, None for
+    objects, etc). Any out parameters are left unaffected. In other words, UnrealScript never
+    sits around <em>waiting for a replicated function call to complete</em>, so it can never <em>deadlock</em>.
+    &nbsp; Rather, replicated function calls are sent off for the remote machine to execute,
+    and the local code continues executing.</li>
+</ul>
+
+<ul>
+  <li>If the <strong>replication condition</strong> evaluates to False, the function is
+    executed normally on the local machine.</li>
+</ul>
+
+<p>Unlike replicated variables, a function call on an actor can only be replicated to the
+player who owns that actor.&nbsp; So, replicated functions are only useful in subclasses
+of PlayerPawn (i.e. players, who own themselves) and subclasses of Inventory (i.e. weapons
+and pickup items, who are owned by the player who is currently carrying them). That is to
+say, a function call can only be replicated to one actor (the player who owns it); they
+cannot be multicast.</p>
+
+<p>Unlike replicated variables, replicated function calls are sent to the remote machine
+immediately when they are called, and they are always replicated regardless of bandwidth.
+&nbsp; Thus, it is possible to flood the available bandwidth if you make too many
+replicated function calls.&nbsp; Replicated functions suck away <em>however much bandwidth
+is available</em>, and then whatever bandwidth is left over is used for replicating
+variables.&nbsp; Therefore, if you flood the connection with replicated functions, you can
+starve the variables, which visually results in not seeing other actors update, or seeing
+them update in an extremely choppy motion.</p>
+
+<p>In UnrealScript, there are no global functions, so there is no concept of
+&quot;replicated global functions&quot;. A function is always called <em>in the context of</em>
+a particular actor.</p>
+
+<h4>Replicated Function Calls vs. Replicated Variables</h4>
+
+<ul>
+  <li>Too many replicated functions can flood the available bandwidth (because the are always
+    replicated, regardless of available bandwidth), whereas replicated variables automatically
+    are throttled and parceled out according to bandwidth available.</li>
+</ul>
+
+<ul>
+  <li>Function calls are replicated only during UnrealScript execution when they are actually
+    called, whereas variables are replicated only at the end of the current tick when no
+    script code is executing.</li>
+</ul>
+
+<ul>
+  <li>Function calls on an actor are only replicated to the client who owns that actor,
+    whereas an actor's variables are replicated to all clients for whom that actor is
+    relevant.</li>
+</ul>
+
+<h4>Quantization Gotchas</h4>
+
+<p>To improve bandwidth efficiency, Unreal quantizes the values of vectors and rotators.
+&nbsp; The X,Y,Z components of vectors are converted to 16-bit signed integers before
+being sent, thus any fractional values or values out of the range -32768..32767 are lost.
+&nbsp; The Pitch,Yaw,Roll components of vectors are converted to bytes, of the form
+(Pitch&gt;&gt;8)&amp;255.&nbsp; If you need complete accuracy on rotators and vectors,
+send them as individual float or int components.</p>
+
+<h3>Actor Roles</h3>
+
+<p>The Actor class defines the ENetRole enumeration and two variables, Role and
+RemoteRole, as follows:</p>
+
+<pre>// Net variables.
+enum ENetRole
+{
+    ROLE_None,            // Means the actor is not relevant in network play.
+    ROLE_DumbProxy,       // A dumb proxy.
+    ROLE_SimulatedProxy,  // A simulated proxy.
+    ROLE_AutonomousProxy, // An autonomous proxy.
+    ROLE_Authority,       // The one authoritative version of the actor.
+};
+var ENetRole Role;
+var(Networking) ENetRole RemoteRole;</pre>
+
+<p>The Role and RemoteRole variables describes how much control the local and remote
+machines, respectively, have over the actor: 
+
+<ul>
+  <li><strong>Role==ROLE_DumbProxy</strong> means the actor is a temporary, approximate proxy
+    which should not simulate any physics at all.&nbsp; On the client, dumb proxies just sit
+    around and are only moved or updated when the server replicates a new location, rotation,
+    or animation information.<ul>
+      <li>This situation is only seen in network clients, never for network servers or
+        single-player games.</li>
+    </ul>
+  </li>
+  <li><strong>Role==ROLE_SimulatedProxy</strong> means the actor is a temporary, approximate
+    proxy which should simulate physics and animation.&nbsp; On the client, simulated proxies
+    carry out their basic physics (linear or gravitationally-influenced movement and
+    collision), but they don't make any high-level movement decisions.&nbsp; They just <em>go</em>.<ul>
+      <li>This situation is only seen in network clients, never for network servers or
+        single-player games.</li>
+    </ul>
+  </li>
+  <li><strong>Role==ROLE_AutonomousProxy</strong> means the actor is the local player. &nbsp;
+    Autonomous proxies have special logic built in for client-side prediction (rather than
+    simulation) of movement.<ul>
+      <li>This situation is only seen in network clients, never for network servers or
+        single-player games.</li>
+    </ul>
+  </li>
+  <li><strong>Role==ROLE_Authority</strong> means this machine has absolute, authoritative
+    control over the actor.<ul>
+      <li>This is the case for all actors in single-player games.</li>
+      <li>This is the case for all actors on a server.</li>
+      <li>On a client, this is the case for actors that were locally spawned by the client, such
+        as gratuitous special effects which are done client-side in order to reduce bandwidth
+        usage.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>On the server side, all actors have Role==ROLE_Authority, and RemoteRole set to one of
+the proxy types.&nbsp; On the client side, the Role and RemoteRole are always the exactly
+reversed relative to the server's value.&nbsp; This is as expected from the meaning of
+Role and RemoteRole.</p>
+
+<p>Most of the meaning of the ENetRole values is defined by the <strong>replication
+statements</strong> in the UnrealScript classes such as Actor and PlayerPawn.&nbsp; Here
+are several examples of how the replication statements define the meanings of the various
+role values: 
+
+<ul>
+  <li>The Actor.AmbientSound variable is sent from the server to clients because of this <strong>replication
+    definition</strong> in the Actor class: reliable if( Role==ROLE_Authority ) AmbientSound;</li>
+  <li>The Actor.AnimSequence variable is sent from the server to clients, but only for actors
+    rendered as meshes, because of this replication definition in the Actor class: unreliable
+    if( DrawType==DT_Mesh &amp;&amp; (RemoteRole&lt;=ROLE_SimulatedProxy) ) AnimSequence;</li>
+  <li>The client replicates his Fire and AltFire function calls to the server because of this
+    replication definition in the PlayerPawn class:&nbsp; unreliable if(
+    Role&lt;ROLE_Authority ) Fire, AltFire;</li>
+  <li>The server sends clients the Velocity of all simulated proxies when they are initially
+    spawned and all moving brushes because of this replication definition in the Actor class:
+    unreliable if( (RemoteRole==ROLE_SimulatedProxy &amp;&amp; (bNetInitial ||
+    bSimulatedPawn)) || bIsMover ) Velocity;</li>
+</ul>
+
+<p>By studying the <strong>replication statements</strong> in all of the UnrealScript
+classes, you can understand the inner workings of all of the roles.&nbsp; There is really
+very little &quot;behind-the-scenes magic&quot; going on with respect to replication: At a
+low C++ level, the engine provides a basic mechanism for replicating actors, function
+calls, and variables.&nbsp; At the high UnrealScript level, the meanings of the various
+network roles are defined by specifying what variables and functions should be replicated
+based on the various roles.&nbsp; So, the meaning of the roles is almost self-defining in
+UnrealScript, with the exception of a small amount of behind-the-scenes C++ logic which
+conditionally updates physics and animation for simulated proxies.</p>
+
+<h4>What Exactly Is Happening Behind The Scenes</h4>
+
+<p>The answer is for licensees to do a &quot;Find in Files&quot; in Visual C++ for all
+occurrences of &quot;ROLE_&quot; in the C++ and UnrealScript files.&nbsp; While
+documentation provides a general understanding of how network roles are interpreted, the
+exact impact of roles on all aspects of the code can only be completely described by the
+source code.</p>
+
+<h3>Simulated Functions</h3>
+
+<p>On the client side, many actors exist in the form of &quot;proxies&quot;, meaning
+approximate copies of actors created by the server, and sent to the client to provide a
+visually and aurally reasonable approximation of what the client sees during gameplay.</p>
+
+<p>On the client, these proxy actors are often moving around using client-side physics and
+affecting the environment, so at any time their functions can potentially be called. For
+example, a simulated proxy TarydiumShard projectile might run into a dumb proxy Tree
+actor.&nbsp; When actors collide, the engine attempts to call their Touch functions to
+notify them of the collision.&nbsp; Depending on context, the client desires to execute
+some of these functions calls, but ignore others.&nbsp; For example, a Skaarj's Bump
+function should not be called on the client side, because his Bump function attempts to
+carry out gameplay logic, and gameplay logic should only occur on the server. So, the
+Skaarj's Bump function should not be called.&nbsp; However, a TarydiumShard projectile's
+Bump function should be called, because it stops the physics and spawns a client-side
+special effect actor.</p>
+
+<p>UnrealScript functions can optionally be declared with the &quot;<strong>simulated</strong>&quot;
+keyword to give programmers fine-grained control over which functions should be executed
+on proxy actors.&nbsp; For proxy actors (that is, actors with Role&lt;ROLE_Authority),
+only functions declared with the &quot;<strong>simulated</strong>&quot; keyword are
+called. All other functions are skipped.</p>
+
+<p>Here is an example of a typical simulated function:</p>
+
+<pre>simulated function HitWall( vector HitNormal, actor Wall )
+{
+        SetPhysics(PHYS_None);        
+        MakeNoise(0.3);    
+        PlaySound(ImpactSound);
+        PlayAnim('Hit');
+}
+</pre>
+
+<p>So, &quot;<strong>Simulated</strong>&quot; means &quot;this function should always be
+executed for proxy actors&quot;.</p>
+
+<h3>Player Prediction</h3>
+
+<h4>Overview</h4>
+
+<p>If a pure client-server model were used in Unreal, player movement would be very laggy.
+&nbsp; On a connection with 300 msec ping, when you push the forward key, you wouldn't see
+yourself move for 300 msec. When you pushed the mouse left, you wouldn't see yourself turn
+for 300 msec.&nbsp; This would be really frustrating.</p>
+
+<p>To eliminate client-movement lag, Unreal uses a prediction scheme similar to that
+pioneered by QuakeWorld.&nbsp; It must be mentioned that the player prediction scheme is
+implemented entirely in UnrealScript.&nbsp; It is a high-level feature implemented in the
+PlayerPawn class, rather than a feature of the network code: Unreal's client movement
+prediction is layered entirely on the general-purpose replication features of the network
+code.</p>
+
+<h4>Inner Workings</h4>
+
+<p>You can see exactly how Unreal's player prediction works by examining the PlayerPawn
+script. Since the code is somewhat complex, its workings are briefly described here.</p>
+
+<p>The approach can best be described as a lock-step predictor/corrector algorithm. &nbsp;
+The client takes his input (joystick, mouse, keyboard) and physical forces (gravity,
+buoyancy, zone velocity) into account and describes his movement as a 3D <em>acceleration</em>
+vector.&nbsp; The client sends this acceleration along with various input related
+information and his current timestamp (the current value of Level.TimeSeconds on the
+client side) to the server in a replicated ServerMove function call:</p>
+
+<pre>function ServerMove
+(
+    float TimeStamp,
+    float AccelX,
+    float AccelY,
+    float AccelZ, 
+    float LocX,
+    float LocY,
+    float LocZ,
+    byte MoveFlags, 
+    eDodgeDir DodgeMove, 
+    rotator Rot, 
+    int ViewPitch, 
+    int ViewYaw
+);</pre>
+
+<p>Then the client calls his MoveAutonomous to perform this same identical movement
+locally, and he stores this movement in a linked list of remembered movements using the
+SavedMove class.&nbsp; As you can see, if the client never heard anything back from the
+server, the client would be able to move around with zero lag just as in a single-player
+game.</p>
+
+<p>When the server receives a ServerMove function call (replicated across the network),
+the server carries out the exact same movement on the server immediately.&nbsp; It deduces
+the movement's DeltaTime from the current ServerMove's TimeStamp and the previous one's.
+&nbsp; In this way, the server is carrying out the same basic movement logic as the
+client.&nbsp; However, the server might see things slightly different than the client.
+&nbsp; For example, if there's a monster running around, the client might have thought it
+was in a different position than the server (because the client is only in rough
+approximate sync with the server). Thus, the client and the server might disagree about
+how far the client actually moved as a result of the ServerMove call.&nbsp; At any rate,
+the server is authoritative, and he is completely responsible for determining the client's
+position.&nbsp; Once the server has processed the client's ServerMove call, it calls the
+client's ClientAdjustPosition function which is replicated across the network to the
+client:</p>
+
+<pre>function ClientAdjustPosition
+(
+	float TimeStamp,
+	name newState,
+	EPhysics newPhysics,
+        float NewLocX,
+	float NewLocY,
+	float NewLocZ,
+	float NewVelX,
+	float NewVelY,
+	float NewVelZ
+);</pre>
+
+<p>Now, when the client receives a ClientAdjustPosition call, he must respect the server's
+authority over his position. So, the client sets his exact location and velocity to that
+specified by the ClientAdjustPosition call.&nbsp; However, the position the server
+specifies in ClientAdjustPosition reflects the <em>client's actual position at some time
+in the past</em>.&nbsp; But, the client wants to predict where he is supposed to be <em>at
+the present moment</em>.&nbsp; So, now the client goes through all of the SavedMove's in
+his linked list. All moves earlier than the ClientAdjustPosition call's TimeStamp are
+discarded. All moves that occurred after TimeStamp are then re-run by looping through them
+and calling MoveAutonomous for each one.</p>
+
+<p>This way, at any point in time, the client is always predicting ahead of what the
+server has told him by an amount of time equal to half his ping time. And, his local
+movement is not at all lagged.</p>
+
+<h4>Advantages</h4>
+
+<p>This approach is purely predictive, and it gives one the best of both worlds: In all
+cases, the server remains completely authoritative. Nearly all the time, the client
+movement simulation exactly mirrors the client movement carried out by the server, so the
+client's position is seldom corrected. Only in the rare case, such as a player getting hit
+by a rocket, or bumping into an enemy, will the client's location need to be corrected.</p>
+
+<h3>The GameInfo class</h3>
+
+<p>The UnrealScript GameInfo class implements the game rules.&nbsp; A server (both
+dedicated and single-player) has one GameInfo subclass, accessible in UnrealScript as
+Level.Game.&nbsp; For each game type in Unreal, there is a special GameInfo subclass.
+&nbsp; For example, some existing classes are DeathmatchGame, SinglePlayer, TeamGame.</p>
+
+<p>A client in a network game does not have a GameInfo. That is, Level.Game==None on the
+client side. Clients should not be expected to have a GameInfo because the server
+implements all of the gameplay rules, and the generality of the code calls for the client
+not knowing what the game rules are.</p>
+
+<p>GameInfo implements a broad set of functionality, such as recognizing players coming
+and going, assigning credit for kills, determining whether weapons should respawn, and so
+on.&nbsp; Here, we will only look at the GameInfo functions which are directly related to
+network programming.</p>
+
+<h4>InitGame</h4>
+
+<pre>event InitGame( string[120] Options, out string[80] Error );</pre>
+
+<p>Called when the server (either in network play or single-player) is first started up.
+&nbsp; This gives the server the opportunity to parse the startup URL options.&nbsp; For
+example, if the server was started with &quot;Unreal.exe
+MyLevel.unr?game=unreali.teamgame&quot;, the Options string is
+&quot;?game=unreali.teamgame&quot;. If Error is set to a non-empty string, the game fails
+with a critical error.</p>
+
+<h4>PreLogin</h4>
+
+<pre>event PreLogin( string[120] Options, out string[80] Error );</pre>
+
+<p>Called immediately before a network client is logged in.&nbsp; This gives the server an
+opportunity to reject the player.&nbsp; This is where the server should validate the
+player's password (if any), enforce the player limit, and so on.</p>
+
+<h4>Login</h4>
+
+<pre>event playerpawn Login( string[32] Portal, string[120] Options, out string[80] Error, class&lt;playerpawn&gt; SpawnClass );</pre>
+
+<p>The Login function is always called after a call to PreLogin which does not return an
+error string.&nbsp; It is responsible for spawning the player, using the parameters in the
+Options string.&nbsp; If successful, it should return the PlayerPawn actor it spawned.</p>
+
+<p>If the Login function returns None indicating that the login failed, then it should set
+Error to a string describing the error. Failing a Login should be used only as a last
+resort. If you are going to fail a login, it is more efficient to fail it in PreLogin
+rather than Login.</p>
+
+<h3>Bandwidth Performance Tips</h3>
+
+<h4>Optimization goal</h4>
+
+<p>The goal here is to maximize the amount of visibly important detail that is sent with a
+given bandwidth limit.&nbsp; With the bandwidth limit determined at runtime, your goal in
+writing scripts for actors that are used in multiplayer games is to keep bandwidth use to
+a minimum.&nbsp; The techniques we use in our scripts include: 
+
+<ul>
+  <li>Use ROLE_SimulatedProxy and simulated movement whenever possible.&nbsp; For example,
+    nearly all of the Unreal projectiles use ROLE_SimulatedProxy.&nbsp; The one exception is
+    the Razorjack alt-fire blades, which the player can steer during gameplay, thus the server
+    must continually update the position to clients.</li>
+  <li>For quick special effects, spawn the special effects actors purely on the client side.
+    For example, many of our projectiles use a simulated HitWall function to spawn their
+    effects on the client-side. Since these special effects are just decorative rather than
+    affecting gameplay, there is no drawback to doing them completely on the client side.</li>
+  <li>Fine tune the default NetPriority for each class.&nbsp; Projectiles and players need to
+    have high priorities, purely decorative effects can have lower priorities.&nbsp; The
+    defaults that Unreal provides are good first-pass guesses, but you can always gain some
+    improvement by fine-tuning them.</li>
+  <li>When an actor is first replicated to a client, all of its variables are initialized to
+    their <em>class default values</em>.&nbsp; Subsequently, only variables that differ from
+    their most recent known values are replicated.&nbsp; Thus, you should design your classes
+    so that as many variables as possible are automatically set to their class defaults.
+    &nbsp; For example, if an actor always should have a LightBrightness value of 123, there
+    are two ways you can make that happen: (1) set the class default's value of
+    LightBrightness to 123, or (2) in the actor's BeginPlay function, initialize
+    LightBrightness to 123. The first approach is more efficient, because the LightBrightness
+    value will never need to be replicated. With the second approach, the LightBrightness
+    needs to be replicated each time an actor first becomes relevant to the client.</li>
+</ul>
+
+<h4>Traffic Monitoring</h4>
+
+<p>To monitor network traffic, licensees can compile the engine with:</p>
+
+<pre>#define DO_SLOW_GUARD 1</pre>
+
+<p>This enables network statistic gathering. Then, comment out the line
+Suppress[#]=DevNetTraffic in Unreal.ini.&nbsp; Then, a complete summary of network data
+received by the machine will be written to the log. In other words, do this on the client
+side to see the data sent by the server. Do it on the server side to see the data sent by
+the client.&nbsp; The data is written to the log in a very verbose format, giving
+timestamps for all packets, along with a summary of all replicated actors, variables, and
+function calls.</p>
+
+<h3>Network Driver Implementation</h3>
+
+<h4>Plug-in Network Drivers</h4>
+
+<p>Unreal's network support is generalized through a plug-in interface based on the C++
+UNetDriver class.&nbsp; The Unreal engine deals with all networking issues through the
+UNetDriver class, and dynamically loads the appropriate network driver specified in
+Unreal.ini, which defaults to:</p>
+
+<pre>[Engine.Engine]
+NetworkDevice=IpDrv.TcpNetDriver</pre>
+
+<p>Unreal's current Internet support is the UDP network driver, named TcpNetDriver. &nbsp;
+However, it is quite possible to support new kinds of networks by creating new subclasses
+of UNetDriver, and using the TcpNetDriver source as a guideline for how to implement the
+new functions. In fact, the Maverick Software team has created an AppleTalk driver for the
+Mac version of Unreal using this interface.</p>
+
+<p>The network driver is responsible for opening connections, closing connections, sending
+data, and receiving unreliable data.&nbsp; However, the contents of the data is defined by
+the Unreal Wire Protocol, and is completely opaque to the network driver itself. &nbsp;
+Thus, UNetDriver has no idea what information it's communicating, it just sends and
+receives it blindly.&nbsp; Its characteristics are as follows: 
+
+<ul>
+  <li>Connection-oriented. UNetDriver is responsible for maintaining a list of connections
+    defined by UNetConnection subclasses. When UNetDriver is layered on top of a
+    connectionless protocol (such as UDP), it must contain its own internal logic for
+    maintaining connections, handling their timeouts, etc.</li>
+</ul>
+
+<ul>
+  <li>UNetDriver is packet-oriented, rather than stream-oriented.&nbsp; All data sent and
+    received through UNetDriver exists in discrete packets of size 0...MAX_PACKET_SIZE.</li>
+</ul>
+
+<ul>
+  <li>Packets are sent unreliably.&nbsp; All reliable sending and receiving of packets is
+    performed at a higher level which is invisible to UNetDriver.&nbsp; A packet sent from one
+    machine to another might not arrive, might arrive once, or might arrive multiple times.
+    Additionally, packets might arrive out of order or with significant delay.</li>
+</ul>
+
+<ul>
+  <li>Packets are never corrupted.&nbsp; When a packet is received, it is guaranteed that the
+    size and contents received are identical to the size and contents that were sent.</li>
+</ul>
+
+<h4>Internet Driver</h4>
+
+<p>Unreal's Internet support is based on UDP, the standard Internet protocol for
+unreliable, connectionless communication.&nbsp; All Unreal gameplay coordination between a
+client and server goes through one constant, unchanging pairing of UDP addresses (where
+the client and server each have a 32-bit Internet address and a 16-bit port number).
+&nbsp; The default port number can be seen in Unreal.ini.&nbsp; </p>
+
+<p>Thus, Unreal's UDP packets are extremely easy to proxy, and they can be proxied
+transparently without the proxy having to know anything about their contents.</p>
+
+<h3>Unreal Wire Protocol</h3>
+
+<p>The Unreal Wire Protocol defines the contents of packets as a stream of bits. &nbsp;
+The protocol deals with a variety of concepts, such as replicating variables and
+functions, creating actors, destroying actors, transmitting files, and exchanging packets
+reliably and unreliably (both types are used in various circumstances).</p>
+
+<p>The protocol will undergo some major changes in the coming months to improve efficiency
+and reliability, so it would not be useful to document it here and now.</p>
+
+<p>It must be mentioned that the protocol is closely tied to the Unreal package file
+format described in the <a href="Packages.htm">Package Documentation</a> so it will be
+quite difficult to parse and do anything useful with.</p>
+
+<h3>UnrealScript: UdpLink, TcpLink</h3>
+
+<p>Unreal's TcpLink and UdpLink scripts enable you to write, in UnrealScript, code for
+actors which are able to communicate with external programs.&nbsp; These are the optimal
+way of extending Unreal with cool new networking features.&nbsp; For example, some of the
+cool things one could do are: 
+
+<ul>
+  <li>Write &quot;event gateways&quot; which forward events (such as players pressing buttons,
+    walking into zones, etc) to other servers.</li>
+  <li>Write server-side programs to interface the server to master servers, statistic
+    trackers, and so on.</li>
+  <li>Write server-side programs to maintain persistent player statistics or inventory. For
+    example, you could write a Java/C++ database style &quot;player account manager&quot;
+    program that keeps track of player names, passwords, and their inventory for players.
+    &nbsp; Then, you can write an UnrealScript class to interface to the account manager by
+    TCP or UDP and validate players that are trying to log in.&nbsp; See GameInfo.Login,
+    TcpLink, and UdpLink for ideas.</li>
+  <li>Write client-side chat programs.</li>
+</ul>
+
+<h3>The Present and The Future</h3>
+
+<p>The words one might use to describe Unreal's networking architecture are
+&quot;powerful&quot;, &quot;general&quot;, &quot;complex&quot; and &quot;hard to
+master&quot;.&nbsp; The architecture went through a tremendous amount of evolution during
+the game's development, to arrive at the current solution which is a balance between
+power, simplicity, and the pragmatic need to solve certain problems.</p>
+
+<p>The ideal networking architecture, from an ease-of-programming standpoint, is the pure
+client-server model, where the client truly acts as a dumb rendering terminal, and
+receives a display list from the server.&nbsp; However, as discussed previously, the
+analysis of the rate of bandwidth improvement versus hardware improvement indicates that
+we live in a world where the pure client-server model will be impractical for the
+foreseeable future.</p>
+
+<p>Thus, the ability to provide rich client-side simulation of physics and script
+execution in general is tantamount in any next-generation networking engine.&nbsp; In
+Unreal we have defined a generalized networking model based on the generalized replication
+of objects, object variables, and object function calls.&nbsp; This model provides rich
+simulation capabilities without being hardcoded to any particular simulation model.</p>
+
+<p>I'm pretty sure that this broad networking architecture for Unreal is the right one.
+&nbsp; Some of the research areas I investigated while determining the current direction
+include database replication, Unix RPC, the CORBA distributed object model, and Java RPC.
+&nbsp; My general conclusion is that, though there are some cool ideas out there, nobody
+else is really pushing the limitations of Internet technology as much as game developers.
+&nbsp; The same can probably be said about other research areas, such as real-time 3D.</p>
+
+<p>As for the future, there are a lot of areas where this model can be extended and
+improved.&nbsp; The addition of multicast replicated functions would increase the amount
+of simulation that can be done without variable replication.&nbsp;&nbsp; An extended peer
+proxy model could enable the creation of a server backbone enabling the realistic
+real-time flow of NPC objects between servers.&nbsp; The replicated object model could be
+extended to other areas of the engine, such as the user-interface and chat system.&nbsp;
+There is a tremendous amount of promise for this architecture to be applied to much
+richer, more persistent game environments such as the worlds of Ultima Online, while
+retaining the distributed, user-modifiable nature of the system.&nbsp; In the coming
+years, networking will be an extremely interesting area of game development.</p>
+
+<p>-Tim Sweeney</p>
+
+<h3>End</h3>
+</body>
+</html>

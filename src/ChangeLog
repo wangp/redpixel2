@@ -1,3 +1,34 @@
+2000-11-26  Peter Wang  <tjaden@psynet.net>
+
+	* Object editing in map editor works again.
+
+2000-11-25  Peter Wang  <tjaden@psynet.net>
+
+	* objtypes.c: Renamed object_type_t to objtype_t and changed
+	tableref to init_func.
+
+	* Stripped out a lot of objects stuff.
+	
+	* mylua.[ch]: New module to contain a personalised Lua API
+	(missing lua_ prefix mostly).
+
+	* Moved loadhelp.c stuff into loaddata.c.
+
+	* Made many linked lists use the list.h interface.
+
+2000-11-23  Peter Wang  <tjaden@psynet.net>
+
+	* Siphoned off enough of the Lua using parts to make the program
+	compile and link again (only map editor functional).
+
+	* Converted some of the game engine to Lua 4.0.  Got really bored.
+	I was going to throw out most of that code anyway...
+
+	* luahelp.c: New module to include Lua related helper functions.
+	(lua_checkargs): Simpler argument checking mechanism.
+
+	* Updated rpxutil.c for Lua 4.0 and Allegro const-correctness.
+
 2000-07-06  Peter Wang  <tjaden@psynet.net>
 
 	* hub.c: Now uses the console to initiate games and connections.

@@ -1,18 +1,13 @@
 -- shotgun.lua
 
-local item_shotgun = {
-    player_touched = function (self, player)
-	object_destroy (self)
+local init_shotgun = function (self)
+    self.player_touched = function (self)
+-- 	object_destroy (self)
     end
-}
-
-local item_shell = {
-}
-
-function __module__init ()
-    local prefix = "/weapon/shotgun/"
-
-    store_load ("object/shotgun.dat", prefix)
-    object_type_register ("shotgun",       %item_shotgun, "item", prefix .. "pickup")
-    object_type_register ("shotgun-shell", %item_shell,   "item", prefix .. "ammo")
 end
+
+-- Module init.
+
+store_load ("object/shotgun.dat", "/weapon/shotgun/")
+objtype_register ("item", "shotgun", "/weapon/shotgun/pickup", init_shotgun)
+objtype_register ("item", "shotgun-shell", "/weapon/shotgun/ammo")

@@ -239,7 +239,7 @@ static int read_objects (map_t *map, PACKFILE *f, int loadobjects)
 	/* If we are the client, skip object creation as the server
 	 * will send replicate them to us anyway.  */
 	if (loadobjects) {
-	    p = object_create (tmp, OBJECT_ROLE_AUTHORITY);
+	    p = object_create (tmp);
 	    if (!p)
 		goto error;
 	    else {

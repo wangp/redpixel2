@@ -1,7 +1,5 @@
 -- barrel.lua
 
-function __module__init ()
-    store_load ("object/barrel.dat", "/barrel/")
-    object_type_register ("barrel-grey", nil, "objtile", "/barrel/barrel-grey")
-    object_type_register ("barrel-red",  nil, "objtile", "/barrel/barrel-red")
-end
+store_load ("object/barrel.dat", "/barrel/")
+objtype_register ("objtile", "barrel-grey", "/barrel/barrel-grey")
+objtype_register ("objtile", "barrel-red", "/barrel/barrel-red")

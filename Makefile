@@ -4,8 +4,9 @@
 
 SRCDIRS = src src/net src/store src/magic src/gui src/ug src/editor 
 
+CC = gcc
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
-LOADLIBES = `allegro-config --libs` -llua -lnet
+LOADLIBES = `allegro-config --libs` -llua -llualib -lnet
 
 PROGRAM = program
 OBJDIR = obj/linux
@@ -62,33 +63,32 @@ MODULES_NET =					\
 
 MODULES_GAME =					\
 	alloc					\
-	bdobject				\
-	bdstore					\
 	bindings				\
 	bitmask					\
-	console					\
 	extdata					\
 	fps					\
 	gameinit				\
-	gameloop				\
-	gamenet					\
-	hub					\
 	loaddata				\
-	loadhelp				\
-	lobby					\
-	luastack				\
 	main					\
 	map					\
 	mapfile					\
+	mylua					\
 	object					\
-	objanim					\
-	objlayer				\
 	objtypes				\
 	path					\
 	render					\
-	scripts					\
-	vars					\
 	yield
+
+#MODULES_GAME =					\
+#	bdobject				\
+#	bdstore					\
+#	console					\
+#	gameloop				\
+#	hub					\
+#	luahelp					\
+#	luastack				\
+#	object					\
+#	scripts					\
 
 MODULES = 					\
 	$(MODULES_STORE) 			\

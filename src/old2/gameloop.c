@@ -124,6 +124,7 @@ static void do_move_object_smart (object_t *p)
 	    else {
 /************************************************************************/
 
+#if 0
 		{
 		    lua_Object self;
 	    
@@ -141,7 +142,8 @@ static void do_move_object_smart (object_t *p)
 
 		    lua_endblock ();
 		}
- 
+#endif
+
 /************************************************************************/		
 
 		p->yv = dy = 0;
@@ -192,6 +194,8 @@ static void purge_object_list ()
 static void do_logic ()
 {
 /****************************************************/
+#if 0
+
     if (server) {
 	lua_Object self;
 	int num;
@@ -239,6 +243,8 @@ static void do_logic ()
 	    lua_endblock ();
 	}
     }
+
+#endif
 /****************************************************/
 
     move_objects_smart ();

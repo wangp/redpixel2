@@ -1,49 +1,19 @@
 obj/linux/alloc.o: src/alloc.c src/alloc.h
-obj/linux/bdcmd.o: src/bdcmd.c src/gameloop.h
-obj/linux/bdobject.o: src/bdobject.c src/bindings.h src/gamenet.h src/map.h \
- src/bitmask.h src/object.h src/objtypes.h src/store/store.h
-obj/linux/bdstore.o: src/bdstore.c src/bindings.h src/extdata.h src/path.h \
- src/store/store.h
 obj/linux/bindings.o: src/bindings.c src/bindings.h
 obj/linux/bitmask.o: src/bitmask.c src/bitmask.h
-obj/linux/conscmd.o: src/conscmd.c
-obj/linux/console.o: src/console.c src/alloc.h src/console.h src/luastack.h
 obj/linux/extdata.o: src/extdata.c src/bitmask.h src/extdata.h \
  src/magic/magic4x4.h
 obj/linux/fps.o: src/fps.c src/fps.h
-obj/linux/gameinit.o: src/gameinit.c src/gameinit.h src/loaddata.h \
- src/magic/magic4x4.h src/objtypes.h src/path.h src/scripts.h \
- src/store/store.h
-obj/linux/gameloop.o: src/gameloop.c src/console.h src/fps.h src/gameloop.h \
- src/gamenet.h src/net/net.h src/magic/magic4x4.h src/map.h \
- src/bitmask.h src/object.h src/objtypes.h src/render.h src/yield.h \
- src/vars.h
-obj/linux/gamenet.o: src/gamenet.c src/gameloop.h src/gamenet.h src/map.h \
- src/bitmask.h src/object.h src/objtypes.h src/net/net.h src/yield.h
-obj/linux/hub.o: src/hub.c src/console.h src/gameloop.h src/hub.h
-obj/linux/loaddata.o: src/loaddata.c src/alloc.h src/loadhelp.h src/vtree.h
-obj/linux/loadhelp.o: src/loadhelp.c src/alloc.h src/extdata.h src/loadhelp.h \
- src/path.h src/store/store.h
-obj/linux/luastack.o: src/luastack.c
-obj/linux/main.o: src/main.c src/gameinit.h src/hub.h
+obj/linux/loaddata.o: src/loaddata.c src/alloc.h src/vtree.h
 obj/linux/map.o: src/map.c src/alloc.h src/map.h src/bitmask.h src/object.h \
  src/objtypes.h src/store/store.h
 obj/linux/mapfile.o: src/mapfile.c src/map.h src/bitmask.h src/object.h \
  src/objtypes.h src/mapfile.h src/store/store.h
-obj/linux/objanim.o: src/objanim.c src/alloc.h src/object.h src/bitmask.h \
- src/objtypes.h
-obj/linux/object.o: src/object.c src/alloc.h src/bitmask.h src/object.h \
- src/objtypes.h src/store/store.h
-obj/linux/objlayer.o: src/objlayer.c src/alloc.h src/object.h src/bitmask.h \
- src/objtypes.h
 obj/linux/objtypes.o: src/objtypes.c src/alloc.h src/objtypes.h
 obj/linux/path.o: src/path.c src/path.h
 obj/linux/render.o: src/render.c src/magic/magic4x4.h src/magic/magicrot.h \
  src/map.h src/bitmask.h src/object.h src/objtypes.h src/store/store.h \
  src/render.h
-obj/linux/scripts.o: src/scripts.c src/alloc.h src/bindings.h src/luastack.h \
- src/path.h src/scripts.h
-obj/linux/vars.o: src/vars.c src/vars.h
 obj/linux/yield.o: src/yield.c src/yield.h
 obj/linux/netclnt.o: src/net/netclnt.c src/net/net.h src/net/netinter.h
 obj/linux/netmain.o: src/net/netmain.c src/net/net.h src/net/netinter.h
@@ -94,8 +64,7 @@ obj/linux/mdobject.o: src/editor/mdobject.c src/alloc.h src/editor/cursor.h \
  src/editor/depths.h src/editor/editarea.h src/editor/edselect.h \
  src/ug/ug.h src/gui/gui.h src/map.h src/bitmask.h src/object.h \
  src/objtypes.h src/editor/modemgr.h src/editor/modes.h \
- src/editor/selbar.h src/scripts.h src/store/store.h src/path.h \
- src/editor/rect.h
+ src/editor/selbar.h src/store/store.h src/path.h src/editor/rect.h
 obj/linux/mdstarts.o: src/editor/mdstarts.c src/editor/depths.h \
  src/editor/editarea.h src/editor/edselect.h src/ug/ug.h src/gui/gui.h \
  src/magic/magic4x4.h src/map.h src/bitmask.h src/object.h \

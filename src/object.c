@@ -5,9 +5,9 @@
 
 
 #include <stdlib.h>
-#include <lua.h>
 #include "alloc.h"
 #include "bitmask.h"
+#include "mylua.h"
 #include "object.h"
 #include "store.h"
 
@@ -15,116 +15,52 @@
 static bitmask_t *bitmask_create_from_magic_bitmap (BITMAP *bmp);
 
 
-static unsigned int id;
+static unsigned int next_id;
 
 
-static void set_role (object_t *p, int role)
+object_t *object_create (const char *type_name)
 {
-    lua_beginblock ();
-
-    lua_pushobject (lua_getref (p->self));
-    lua_pushstring ("role");
- 
-    p->role = role;
-    if (role == OBJECT_ROLE_PROXY)
-	lua_pushstring ("dumb");
-    else if (role == OBJECT_ROLE_AUTHORITY)
-	lua_pushstring ("authority");
-    else
-	lua_pushnil ();
-
-    lua_rawsettable ();
-
-    lua_endblock ();
-}
-
-
-object_t *object_create (const char *type_name, int role)
-{
-    object_t *p;
-    object_type_t *type;
-    lua_Object table, self, init;
+    lua_State *L = lua_state;
+    objtype_t *type;
+    object_t *obj;
     
-    type = object_types_lookup (type_name);
-    if (!type) return 0;
+    if (!(type = objtypes_lookup (type_name)))
+	return NULL;
 
-    p = alloc (sizeof (object_t));
+    if (!(obj = alloc (sizeof (object_t))))
+	return NULL;
+
+    obj->type = type;
+    obj->id = next_id++;
+
+    /* C object references Lua table.  */
+    newtable (L);
+    obj->table = ref (L, 1);
+
+    /* Lua table references C object.  */
+    getref (L, obj->table);
+    pushstring (L, "object");
+    pushuserdata (L, obj);
+    settable (L, -3);
+    pop (L, 1);
+
+    /* Call object init function if any.  */
+    if (obj->type->init_func != LUA_NOREF) {
+	getref (L, obj->type->init_func);
+	getref (L, obj->table);
+	call (L, 1, 0);
+	pop (L, 1);
+    }
     
-    if (p) {
-	p->type = type;
-	p->id = id++;
-	set_role (p, role);
-
-	lua_beginblock ();
-
-	self = lua_createtable ();
-	lua_pushobject (self);
-	p->self = lua_ref (1);
-
-	lua_pushobject (lua_getref (p->self));
-	lua_pushstring ("_parent");
-	lua_pushuserdata (p);
-	lua_rawsettable ();
-
-	p->render = OBJECT_RENDER_MODE_BITMAP;
-	p->bitmap = store_dat (p->type->icon);
-	p->mask = bitmask_create_from_magic_bitmap (p->bitmap);
-		/* XXX: memory wastage and leak */
-
-	/* call object init (self, type-name) */
-	table = lua_getref (p->type->table);
-	if (lua_istable (table)) {
-	    lua_pushobject (table);
-	    lua_pushstring ("init");
-	    init = lua_gettable ();
-
-	    if (lua_isfunction (init)) {
-		lua_pushobject (self);
-		lua_pushstring (p->type->name);
-		lua_callfunction (init);
-	    }
-	}
-
-	lua_endblock ();
-    }
-	
-    return p;
+    return obj;
 }
 
 
-void object_destroy (object_t *p)
+void object_destroy (object_t *obj)
 {
-    object_free_render_data (p);
-    lua_unref (p->self);
-    free (p);
+    unref (lua_state, obj->table);
+    free (obj);
 }
-
-
-void object_set_render_mode (object_t *p, int mode, void *data)
-{
-    object_free_render_data (p);
-
-    p->render = mode;
-    switch (mode) {
-	case OBJECT_RENDER_MODE_BITMAP: p->bitmap = data; break;
-	case OBJECT_RENDER_MODE_IMAGE: p->image = data; break;
-	case OBJECT_RENDER_MODE_ANIM: p->anim = data; break;
-    }
-}
-
-
-void object_free_render_data (object_t *p)
-{
-    if (p->bitmap)
-	p->bitmap = 0;
-
-    if (p->image)
-	object_image_destroy (p->image), p->image = 0;
-
-    if (p->anim)
-	object_anim_destroy (p->anim), p->anim = 0;
-}
-
 
 
 static bitmask_t *bitmask_create_from_magic_bitmap (BITMAP *bmp)
@@ -132,15 +68,14 @@ static bitmask_t *bitmask_create_from_magic_bitmap (BITMAP *bmp)
     bitmask_t *mask;
     int x, y;
 
-    mask = bitmask_create (bmp->w / 3, bmp->h);
+    if (!(mask = bitmask_create (bmp->w / 3, bmp->h)))
+	return NULL;
 
-    if (mask)
-	for (y = 0; y < bmp->h; y++)
-	    for (x = 0; x < bmp->w / 3; x++)
-		bitmask_set_point (mask, x, y,
-				   (bmp->line[y][x * 3    ] ||
-				    bmp->line[y][x * 3 + 1] ||
-				    bmp->line[y][x * 3 + 2]));
-
+    for (y = 0; y < bmp->h; y++)
+	for (x = 0; x < bmp->w / 3; x++)
+	    bitmask_set_point (mask, x, y,
+			       (bmp->line[y][x * 3    ] ||
+				bmp->line[y][x * 3 + 1] ||
+				bmp->line[y][x * 3 + 2]));
     return mask;
 }

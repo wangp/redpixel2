@@ -124,7 +124,8 @@ static void table_shutdown ()
 
 static void table_add (DATAFILE *d, const char *prefix)
 {
-    char *name, path[1024];
+    const char *name;
+    char path[1024];
     int i, n;
 
     for (i = 0; d[i].type != DAT_END; i++) {

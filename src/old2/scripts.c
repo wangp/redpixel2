@@ -10,6 +10,7 @@
 #include <luadebug.h>
 #include "alloc.h"
 #include "bindings.h"
+#include "luahelp.h"
 #include "luastack.h"
 #include "path.h"
 #include "scripts.h"
@@ -27,37 +28,37 @@ struct list {
 static struct list list;
 
 
+static lua_State *lua_state;
+
+
 static void list_start ()
 {
     list.next = 0;
 }
 
 
-static void list_add_func (lua_Object func)
+static void list_add_func (int ref)
 {
     struct list *p = alloc (sizeof *p);
-    
-    if (p) {
-	lua_pushobject (func);
-	p->func = lua_ref (1);
 
+    if (p) {
+	p->func = ref;
 	p->next = list.next;
 	list.next = p;
     }
 }
 
 
-static void list_run_and_end ()
+static void list_run_and_end (LS)
 {
     struct list *p, *next;
 
     for (p = list.next; p; p = next) {
 	next = p->next;
 
-	lua_beginblock (); 
-	lua_callfunction (lua_getref (p->func));
-	lua_unref (p->func);
-	lua_endblock ();
+	lua_getref (L, p->func);
+	lua_call (L, 0, 0);
+	lua_unref (L, p->func);
 
 	free (p);
     }
@@ -66,8 +67,7 @@ static void list_run_and_end ()
 
 void scripts_init ()
 {
-    lua_open ();
-    lua_setdebug (lua_state, 1);
+    lua_state = lua_open (0);
     lua_enablestacktraceback (lua_state);
 
     bindings_init ();
@@ -78,35 +78,29 @@ void scripts_init ()
 
 void scripts_shutdown ()
 {
-    list_run_and_end ();
+    list_run_and_end (lua_state);
     bindings_shutdown ();
-    lua_close ();
+    lua_close (lua_state);
 }
 
 
 static void do_file (const char *filename, int attrib, int param)
 {
-    lua_Object func;
+    lua_State *L = lua_state;
 
-    lua_beginblock ();
+    lua_pushnil (L);
+    lua_setglobal (L, INIT);
 
-    do {
-	lua_pushnil ();
-	lua_setglobal (INIT);
+    if (lua_dofile (L, filename))
+	return;
 
-	if (lua_dofile ((char *) filename) != 0)
-	    break;
-
-	func = lua_getglobal (INIT);
-	if (lua_isfunction (func))
-	    lua_callfunction (func);
+    lua_getglobal (L, INIT);
+    if (lua_isfunction (L, -1))
+	lua_call (L, 0, 0);
     
-	func = lua_getglobal (SHUTDOWN);
-	if (lua_isfunction (func))
-	    list_add_func (func);
-    } while (0);
-
-    lua_endblock ();
+    lua_getglobal (L, SHUTDOWN);
+    if (lua_isfunction (L, -1))
+	list_add_func (lua_ref (L, 1));
 }
 
 

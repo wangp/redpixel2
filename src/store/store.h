@@ -13,7 +13,8 @@ int store_init (int size);
 void store_shutdown (void);
 
 int store_load (const char *filename, const char *prefix);
-int store_load_ex (const char *filename, const char *prefix, DATAFILE *(*loader) (const char *));
+int store_load_ex (const char *filename, const char *prefix,
+		   DATAFILE *(*loader) (const char *));
 void store_unload (int id);
 
 int store_index (const char *key);

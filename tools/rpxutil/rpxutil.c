@@ -25,7 +25,7 @@ static int err = 0;
 
 
 /* callback for outputting messages */
-void datedit_msg(char *fmt, ...)
+void datedit_msg(const char *fmt, ...)
 {
    va_list args;
    char buf[1024];
@@ -40,7 +40,7 @@ void datedit_msg(char *fmt, ...)
 
 
 /* callback for starting a 2-part message output */
-void datedit_startmsg(char *fmt, ...)
+void datedit_startmsg(const char *fmt, ...)
 {
    va_list args;
    char buf[1024];
@@ -56,7 +56,7 @@ void datedit_startmsg(char *fmt, ...)
 
 
 /* callback for ending a 2-part message output */
-void datedit_endmsg(char *fmt, ...)
+void datedit_endmsg(const char *fmt, ...)
 {
    va_list args;
    char buf[1024];
@@ -71,7 +71,7 @@ void datedit_endmsg(char *fmt, ...)
 
 
 /* callback for printing errors */
-void datedit_error(char *fmt, ...)
+void datedit_error(const char *fmt, ...)
 {
    va_list args;
    char buf[1024];
@@ -88,7 +88,7 @@ void datedit_error(char *fmt, ...)
 
 
 /* callback for asking questions */
-int datedit_ask(char *fmt, ...)
+int datedit_ask(const char *fmt, ...)
 {
    va_list args;
    char buf[1024];
@@ -172,79 +172,85 @@ int datedit_ask(char *fmt, ...)
  * Begin export functions
  *--------------------------------*/
 
-#define pop_string(x)	(lua_getstring (lua_getparam (x)))
-#define pop_userdata(x)	(lua_getuserdata (lua_getparam (x)))
-#define pop_number(x)	(lua_getnumber (lua_getparam (x)))
+#define pop_string(L, x)	(lua_tostring (L, x))
+#define pop_userdata(L, x)	(lua_touserdata (L, x))
+#define pop_number(L, x)	(lua_tonumber (L, x))
 
 
 
 static DATAFILE *new_datafile (void)
 {
-   DATAFILE *dat = malloc (sizeof (DATAFILE));
-
-   dat->dat = NULL;
-   dat->type = DAT_END;
-   dat->size = 0;
-   dat->prop = NULL;
-
-   return dat;
+    DATAFILE *dat = malloc (sizeof (DATAFILE));
+    
+    dat->dat = NULL;
+    dat->type = DAT_END;
+    dat->size = 0;
+    dat->prop = NULL;
+    
+    return dat;
 }
     
-static void _new_datafile (void)
+static int _new_datafile (lua_State *L)
     /* (no input) : (dat) */
 {
-   lua_pushuserdata (new_datafile ());
+    lua_pushuserdata (L, new_datafile ());
+    return 1;
 }
 
 
 
-static void _save_datafile (void)
+static int _save_datafile (lua_State *L)
     /* (filename, dat, compression) : (no output) */
 {
-    char *filename  = pop_string (1);
-    DATAFILE *dat   = pop_userdata (2);
-    int compression = pop_number (3);
+    const char *filename  = pop_string (L, 1);
+    DATAFILE *dat   = pop_userdata (L, 2);
+    int compression = pop_number (L, 3);
 
     datedit_sort_datafile (dat);
     datedit_save_datafile (dat, filename, 0, compression, 1, 1, 0, NULL);
+
+    return 0;
 }
 
 
 
-static void _unload_datafile (void)
+static int _unload_datafile (lua_State *L)
     /* (dat) : (no output) */
 {
-    unload_datafile (pop_userdata (1));
+    unload_datafile (pop_userdata (L, 1));
+    return 0;
 }
 
 
 
-static void _add_to_datafile_bitmap (void)
+static int _add_to_datafile_bitmap (lua_State *L)
     /* (dat, name, bmp) : (dat) */
 {
-    DATAFILE *dat = pop_userdata (1);
-    char *name	  = pop_string (2);
-    BITMAP *bmp   = pop_userdata (3);
+    DATAFILE *dat    = pop_userdata (L, 1);
+    const char *name = pop_string (L, 2);
+    BITMAP *bmp      = pop_userdata (L, 3);
 
     dat = datedit_insert (dat, NULL, name, DAT_BITMAP, bmp, 0);
 
-    lua_pushuserdata (dat);
+    lua_pushuserdata (L, dat);
+    return 1;
 }
 
 
 
-static void _add_to_datafile_magic_bitmap (void)
+static int _add_to_datafile_magic_bitmap (lua_State *L)
     /* (dat, name, magic-bmp) : (dat) */
 {
-    DATAFILE *dat = pop_userdata (1);
-    char *name	  = pop_string (2);
-    BITMAP *bmp   = pop_userdata (3);
+    DATAFILE *dat    = pop_userdata (L, 1);
+    const char *name = pop_string (L, 2);
+    BITMAP *bmp      = pop_userdata (L, 3);
     DATAFILE *new;
 
     dat = datedit_insert (dat, &new, name, DAT_BITMAP, bmp, 0);
     datedit_set_property (new, DAT_ID ('M','A','G','K'), "Magical lightbulb");
 
-    lua_pushuserdata (dat);
+    lua_pushuserdata (L, dat);
+    return 1;
 }
 
 
@@ -263,15 +269,15 @@ static int empty (BITMAP *b)
     return 1;
 }
 
-static void _add_to_datafile_grab_from_grid (void)
+static int _add_to_datafile_grab_from_grid (lua_State *L)
     /* (dat, prefix, filename, depth, gridx, gridy) : (dat) */
 {
-    DATAFILE *dat  = pop_userdata (1);
-    char *name	   = pop_string   (2);
-    char *filename = pop_string   (3);
-    int depth      = pop_number   (4);
-    int gridx      = pop_number   (5);
-    int gridy      = pop_number   (6);
+    DATAFILE *dat	 = pop_userdata (L, 1);
+    const char *name 	 = pop_string   (L, 2);
+    const char *filename = pop_string   (L, 3);
+    int depth		 = pop_number   (L, 4);
+    int gridx      	 = pop_number   (L, 5);
+    int gridy      	 = pop_number   (L, 6);
 
     BITMAP *bmp;
     PALETTE pal;
@@ -312,7 +318,8 @@ static void _add_to_datafile_grab_from_grid (void)
 
   end:
 
-    lua_pushuserdata (dat);
+    lua_pushuserdata (L, dat);
+    return 1;
 }
 
 
@@ -353,90 +360,92 @@ static BITMAP *combine (BITMAP *col, BITMAP *light)
 
 static BITMAP *create_simple_coloured_lightmap (int radius, int hue, float brightness, float pinpoint)
 {
-   BITMAP *bmp, *light;
-   BITMAP *magic;
-   int i;
-   float dist;
-   int r, g, b, l;
+    BITMAP *bmp, *light;
+    BITMAP *magic;
+    int i;
+    float dist;
+    int r, g, b, l;
    
-   bmp = create_bitmap_ex (16, radius * 2, radius * 2);
-   light = create_bitmap_ex (16, radius * 2, radius * 2);
-   clear (bmp);
-   clear (light);
+    bmp = create_bitmap_ex (16, radius * 2, radius * 2);
+    light = create_bitmap_ex (16, radius * 2, radius * 2);
+    clear (bmp);
+    clear (light);
 
-   for (i = radius - 1; i > 0; i--) {
-       dist = MID (pinpoint, (float)i / (float)radius, 1.0);
+    for (i = radius - 1; i > 0; i--) {
+	dist = MID (pinpoint, (float)i / (float)radius, 1.0);
        
-       hsv_to_rgb (hue,		/* hue */
-		   dist,	/* saturation: how much tinting */
-		   1,		/* value: brightness */
-		   &r, &g, &b);
+	hsv_to_rgb (hue,	/* hue */
+		    dist,	/* saturation: how much tinting */
+		    1,		/* value: brightness */
+		    &r, &g, &b);
 
-       circlefill (bmp, radius, radius, i, makecol16 (r, g, b));
+	circlefill (bmp, radius, radius, i, makecol16 (r, g, b));
 
-       l = MIN (255, (1 - dist) * brightness);
-       circlefill (light, radius, radius, i, makecol16 (l, l, l));
-   }
+	l = MIN (255, (1 - dist) * brightness);
+	circlefill (light, radius, radius, i, makecol16 (l, l, l));
+    }
 
-   magic = combine (bmp, light);
+    magic = combine (bmp, light);
 
-   destroy_bitmap (light);
-   destroy_bitmap (bmp);
+    destroy_bitmap (light);
+    destroy_bitmap (bmp);
 
-   return magic;
+    return magic;
 }
 
-static BITMAP *create_simple_mono_lightmap (int radius, float brightness, float pinpoint)
+static BITMAP *create_simple_mono_lightmap (int radius, float brightness,
+					    float pinpoint)
 {
-   BITMAP *light;
-   BITMAP *magic;
-   int i, l, x, y;
-   float dist;
+    BITMAP *light;
+    BITMAP *magic;
+    int i, l, x, y;
+    float dist;
    
-   light = create_bitmap_ex (16, radius * 2, radius * 2);
-   clear (light);
+    light = create_bitmap_ex (16, radius * 2, radius * 2);
+    clear (light);
 
-   for (i = radius - 1; i > 0; i--) {
-       dist = MID (pinpoint, (float)i / (float)radius, 1.0);
+    for (i = radius - 1; i > 0; i--) {
+	dist = MID (pinpoint, (float)i / (float)radius, 1.0);
        
-       l = MIN (255, (1 - dist) * brightness);
-       circlefill (light, radius, radius, i, makecol16 (l, l, l));
-   }
+	l = MIN (255, (1 - dist) * brightness);
+	circlefill (light, radius, radius, i, makecol16 (l, l, l));
+    }
 
-   magic = create_bitmap_ex (8, light->w * 3, light->h);
+    magic = create_bitmap_ex (8, light->w * 3, light->h);
 
-   for (y = 0; y < light->h; y++)
-       for (x = 0; x < light->w; x++) {
-	   magic->line[y][x*3  ] = getr_depth (16, getpixel (light, x, y)) & 0xf0;
-	   magic->line[y][x*3+1] = getr_depth (16, getpixel (light, x, y)) & 0xf0;
-	   magic->line[y][x*3+2] = getr_depth (16, getpixel (light, x, y)) & 0xf0;
-       }
+    for (y = 0; y < light->h; y++)
+	for (x = 0; x < light->w; x++) {
+	    magic->line[y][x*3  ] = getr_depth (16, getpixel (light, x, y)) & 0xf0;
+	    magic->line[y][x*3+1] = getr_depth (16, getpixel (light, x, y)) & 0xf0;
+	    magic->line[y][x*3+2] = getr_depth (16, getpixel (light, x, y)) & 0xf0;
+	}
 
-   destroy_bitmap (light);
+    destroy_bitmap (light);
 
-   return magic;
+    return magic;
 }
 
-static void _create_simple_lightmap (void)
+static int _create_simple_lightmap (lua_State *L)
     /* (radius, hue, brightness, pinpoint) : (bmp) */
 {
-    int radius       = pop_number (1);
-    int hue 	     = pop_number (2);
-    float brightness = pop_number (3);
-    float pinpoint   = pop_number (4);
+    int radius       = pop_number (L, 1);
+    int hue 	     = pop_number (L, 2);
+    float brightness = pop_number (L, 3);
+    float pinpoint   = pop_number (L, 4);
 
-    lua_pushuserdata ((hue > 0)
-		      ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
-		      : (create_simple_mono_lightmap (radius, brightness, pinpoint)));
+    lua_pushuserdata (L, ((hue > 0)
+			  ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
+			  : (create_simple_mono_lightmap (radius, brightness, pinpoint))));
+    return 1;
 }
 
 
 
-static void _create_lightmap_icon (void)
+static int _create_lightmap_icon (lua_State *L)
     /* (radius, hue) : (bmp) */
 {
-    int radius = pop_number (1);
-    int hue = pop_number (2);
+    int radius = pop_number (L, 1);
+    int hue = pop_number (L, 2);
     BITMAP *bmp;
     int r, g, b;
 
@@ -453,22 +462,24 @@ static void _create_lightmap_icon (void)
     textprintf_centre (bmp, font, bmp->w / 2, bmp->h / 2,
 		       makecol16 (0, 0, 0), "%d", radius);
 
-    lua_pushuserdata (bmp);
+    lua_pushuserdata (L, bmp);
+    return 1;
 }
 
 
 
-static void _destroy_bitmap (void)
+static int _destroy_bitmap (lua_State *L)
     /* (bmp) : (no output) */
 {
-    destroy_bitmap (pop_userdata (1));
+    destroy_bitmap (pop_userdata (L, 1));
+    return 0;
 }
 
 
 
-static void export_functions ()
+static void export_functions (lua_State *L)
 {
-#define e(x)	lua_register (#x, _##x)
+#define e(x)	lua_register (L, #x, _##x)
 
     e (new_datafile);
     e (save_datafile);
@@ -491,6 +502,8 @@ static void export_functions ()
 
 int main (int argc, char *argv[])
 {
+    lua_State *L;
+
     if (argc != 2) {
 	fprintf (stderr, "usage: %s script.lua\n", argv[0]);
 	return 1;
@@ -504,9 +517,9 @@ int main (int argc, char *argv[])
     register_png_file_type ();
 #endif
 
-    lua_open ();
-    export_functions ();
-    lua_dofile (argv[1]);
+    L = lua_open (0);
+    export_functions (L);
+    lua_dofile (L, argv[1]);
 
     return 0;
 }

@@ -22,10 +22,7 @@ static ed_select_list_t *list;
 static int top, selected;
 
 
-
-/*
- *	Save / restore selectbar state
- */
+/* Save / restore selectbar state.  */
  
 static void save_list ()
 {
@@ -40,10 +37,7 @@ static void restore_list ()
 }
 
 
-
-/*
- *	Mode manager callbacks
- */
+/* Mode manager callbacks.  */
 
 static void enter_mode ()
 {
@@ -66,10 +60,7 @@ static struct editmode start_mode = {
 };
 
 
-
-/*
- *	Editarea callbacks
- */
+/* Editarea callbacks.  */
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
@@ -78,7 +69,7 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offx *= 16;
     offy *= 16;
     
-    for (p = map->starts.next; p; p = p->next)
+    foreach (p, map->starts)
 	draw_trans_sprite (bmp, icon, 
 			   ((p->x - offx) - (icon->w / 6)) * 3,
 			   ((p->y - offy) - (icon->h / 2)));
@@ -88,7 +79,7 @@ static start_t *find_start (int x, int y)
 {
     start_t *p, *last = 0;
     
-    for (p = map->starts.next; p; p = p->next)
+    foreach (p, map->starts)
 	if (in_rect (x, y,
 		     p->x - icon->w / 3 / 2,
 		     p->y - icon->h / 2,
@@ -117,9 +108,8 @@ static int event_layer (int event, struct editarea_event *d)
 	    }
 	}
 	else if (d->mouse.b == 1) {
-	    p = find_start (x, y);
-	    if (p) {
-		map_start_destroy (map, p);
+	    if ((p = find_start (x, y))) {
+		map_start_destroy (p);
 		return 1;
 	    }
 	}
@@ -141,10 +131,7 @@ static int event_layer (int event, struct editarea_event *d)
 }
 
 
-
-/*
- *	Module init / shutdown
- */
+/* Module init / shutdown.  */
 
 int mode_starts_init ()
 {

@@ -6,8 +6,8 @@
 
 #include <stdio.h>
 #include <allegro.h>
+#include "editor.h"		/* XXX temp? */
 #include "gameinit.h"
-#include "hub.h"
 
 
 static int setup_video (int w, int h, int d)
@@ -44,12 +44,12 @@ static void setup_allegro (int w, int h, int d)
 	exit (1);
     }
         
+    set_window_title ("Red Pixel II");
+
     if (setup_video (w, h, d) < 0) {
         allegro_message ("Error setting video mode.\n");
 	exit (1);
     }
-
-/*      set_window_title ("Red Pixel II"); */
 }
 
 
@@ -88,9 +88,9 @@ int main (int argc, char *argv[])
     setup_allegro (w, h, d);
 
     game_init ();
-    hub_init ();
-    hub ();
-    hub_shutdown ();
+
+    editor ();
+    
     game_shutdown ();
 
     return 0;

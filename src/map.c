@@ -5,7 +5,6 @@
 
 
 #include <stdlib.h>
-#include <lua.h>
 #include "alloc.h"
 #include "map.h"
 #include "objtypes.h"
@@ -21,7 +20,15 @@ char map_filename[1024];
     
 map_t *map_create (void)
 {
-    return alloc (sizeof (map_t));
+    map_t *map;
+
+    if ((map = alloc (sizeof *map))) {
+	init_list (map->lights);
+	init_list (map->objects);
+	init_list (map->starts);
+    }
+    
+    return map;
 }
 
 
@@ -36,18 +43,9 @@ void map_destroy (map_t *map)
     if (map->tile_mask)
 	bitmask_destroy (map->tile_mask);
 
-    while (map->lights.next)
-	map_light_destroy (map, map->lights.next);
-
-    while (map->objects.next) {
-	object_t *p = map->objects.next;
-	map_unlink_object (map, p);
-	object_destroy (p);
-    }
-
-    while (map->starts.next)
-	map_start_destroy (map, map->starts.next);
-
+    free_list (map->lights, map_light_destroy);
+    free_list (map->objects, object_destroy);
+    free_list (map->starts, map_start_destroy);
     free (map);
 }
 
@@ -110,105 +108,63 @@ void map_generate_tile_mask (map_t *map)
 
 void map_link_object (map_t *map, object_t *p)
 {
-    object_t *q;
-
-    for (q = &map->objects; q->next; q = q->next)
-	;
-    p->next = 0;
-    p->prev = (q != &map->objects) ? q :  0;
-    q->next = p;
+    append_to_list (map->objects, p);
 }
 
 
-void map_unlink_object (map_t *map, object_t *p)
+void map_unlink_object (object_t *p)
 {
-    if (map->objects.next == p)
-	map->objects.next = p->next;
-    if (p->prev) p->prev->next = p->next;
-    if (p->next) p->next->prev = p->prev;
-
-    p->prev = p->next = 0;
+    del_from_list (p);
+    p->next = p->prev = 0;
 }
 
 
 object_t *map_find_object (map_t *map, int id)
 {
     object_t *p;
-
-    for (p = map->objects.next; p; p = p->next)
-	if (p->id == id)
-	    break;
-
-    return p;
+    foreach (p, map->objects) if (p->id == id) return p;
+    return 0;
 }
 
 
 light_t *map_light_create (map_t *map, int x, int y, int lightmap)
 {
-    light_t *p, *q;
+    light_t *p;
 
-    p = alloc (sizeof *p);
-
-    if (p) {
+    if ((p = alloc (sizeof *p))) {
 	p->x = x;
 	p->y = y;
 	p->lightmap = lightmap;
-	
-	for (q = &map->lights; q->next; q = q->next)
-	    ;
-	
-	p->next = 0;
-	q->next = p;
+	append_to_list (map->lights, p);
     }
-
+    
     return p;
 }
 
 
-void map_light_destroy (map_t *map, light_t *light)
+void map_light_destroy (light_t *light)
 {
-    light_t *p;
-
-    for (p = &map->lights; p->next; p = p->next)
-	if (p->next == light) {
-	    p->next = light->next;
-	    break;
-	}
-
+    del_from_list (light);
     free (light);
 }
 
 
 start_t *map_start_create (map_t *map, int x, int y)
 {
-    start_t *p, *q;
+    start_t *p;
 
-    p = alloc (sizeof *p);
-
-    if (p) {
+    if ((p = alloc (sizeof *p))) {
 	p->x = x;
 	p->y = y;
-	
-	for (q = &map->starts; q->next; q = q->next)
-	    ;
-	
-	p->next = 0;
-	q->next = p;
+	append_to_list (map->starts, p);
     }
 
     return p;
 }
 
 
-void map_start_destroy (map_t *map, start_t *start)
+void map_start_destroy (start_t *start)
 {
-    start_t *p;
-
-    for (p = &map->starts; p->next; p = p->next)
-	if (p->next == start) {
-	    p->next = start->next;
-	    break;
-	}
-
+    del_from_list (start);
     free (start);
 }

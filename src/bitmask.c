@@ -14,7 +14,7 @@
 typedef unsigned long u32_t;
 
 #define u32_bytes	(sizeof (u32_t))
-#define u32_bits	(u32_bytes * 8) 	/* Assume byte == 8 bits. */
+#define u32_bits	(u32_bytes * 8)
 
 
 struct bitmask {

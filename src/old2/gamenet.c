@@ -152,6 +152,7 @@ void gamenet_server_send_game_state ()
 	int i;
 
 	for (i = 0; i < net_server_num_clients; i++) {
+#if 0
 	    object_t *o = object_create ("player", OBJECT_ROLE_AUTHORITY);
 	    o->x = 8 * 16;	/* XXX */
 	    o->y = 0 * 16;
@@ -169,6 +170,7 @@ void gamenet_server_send_game_state ()
 
 	    local_player = o;	/* on server, for testing: XXX */
 	    printf ("GAME SERVER %s, %d\n", local_player->type->name, o->id);
+#endif
 	}
     }
 }
@@ -232,14 +234,14 @@ static void handle_replicate_object_create (const unsigned char *packet)
 	return;
     }
 
-    p = skip_int (p);
-    obj = object_create (read_str (p), OBJECT_ROLE_PROXY);   p = skip_str (p);
-    obj->x  = read_float (p);	p = skip_float (p);
-    obj->y  = read_float (p);	p = skip_float (p);
-    obj->xv = read_float (p);	p = skip_float (p);
-    obj->yv = read_float (p);
+/*      p = skip_int (p); */
+/*      obj = object_create (read_str (p), OBJECT_ROLE_PROXY);   p = skip_str (p); */
+/*      obj->x  = read_float (p);	p = skip_float (p); */
+/*      obj->y  = read_float (p);	p = skip_float (p); */
+/*      obj->xv = read_float (p);	p = skip_float (p); */
+/*      obj->yv = read_float (p); */
     
-    map_link_object (map, obj);
+/*      map_link_object (map, obj); */
 }
 
 
@@ -276,12 +278,12 @@ static void handle_replicate_variable_change (const unsigned char *packet)
 
 static void handle_set_local_player (const unsigned char *packet)
 {
-    unsigned long id;
+/*      unsigned long id; */
 
-    id = read_int (packet);
-    if (!server)
-	local_player = map_find_object (map, id);
-    printf ("client has local player %s, %d\n", local_player->type->name, id);
+/*      id = read_int (packet); */
+/*      if (!server) */
+/*  	local_player = map_find_object (map, id); */
+/*      printf ("client has local player %s, %d\n", local_player->type->name, id); */
 }
 
 
