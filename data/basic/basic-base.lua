@@ -31,34 +31,34 @@ function _internal_object_init_hook (self)
 	self.set_masks_centre = object_set_masks_centre
 	self.remove_mask = object_remove_mask
 	self.remove_all_masks = object_remove_all_masks
-	self.receive_damage = %dummy
+	self.receive_damage = dummy
 
 	-- proxy methods
-	self.add_layer = %dummy
-	self.replace_layer = %dummy
-	self.move_layer = %dummy
-	self.rotate_layer = %dummy
-	self.remove_layer = %dummy
-	self.remove_all_layers = %dummy
-	self.add_light = %dummy
-	self.replace_light = %dummy
-	self.move_light = %dummy
-	self.remove_light = %dummy
-	self.remove_all_lights = %dummy
+	self.add_layer = dummy
+	self.replace_layer = dummy
+	self.move_layer = dummy
+	self.rotate_layer = dummy
+	self.remove_layer = dummy
+	self.remove_all_layers = dummy
+	self.add_light = dummy
+	self.replace_light = dummy
+	self.move_light = dummy
+	self.remove_light = dummy
+	self.remove_all_lights = dummy
 
     else
 
 	-- nonproxy methods
-	self.destroy = %dummy
-	self.hide = %dummy
-	self.show = %dummy
-	self.set_collision_flags = %dummy
-	self.add_creation_field = %dummy
-	self.set_mask = %dummy
-	self.set_masks_centre = %dummy
-	self.remove_mask = %dummy
-	self.remove_all_masks = %dummy
-	self.receive_damage = %dummy
+	self.destroy = dummy
+	self.hide = dummy
+	self.show = dummy
+	self.set_collision_flags = dummy
+	self.add_creation_field = dummy
+	self.set_mask = dummy
+	self.set_masks_centre = dummy
+	self.remove_mask = dummy
+	self.remove_all_masks = dummy
+	self.receive_damage = dummy
 
 	-- proxy methods
 	self.add_layer = object_add_layer
@@ -84,9 +84,9 @@ function Objtype (t)
     objtype_register (t.category, t.name, t.icon,
 	function (self)
 	    if self.is_proxy then
-		if %t.proxy_init then %t.proxy_init (self) end
+		if t.proxy_init then t.proxy_init (self) end
 	    else
-		if %t.nonproxy_init then %t.nonproxy_init (self) end
+		if t.nonproxy_init then t.nonproxy_init (self) end
 	    end
 	end)
 end
