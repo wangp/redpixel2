@@ -8,7 +8,7 @@ store_load ("basic/basic-player.dat", "/basic/player/")
 ----------------------------------------------------------------------
 
 
-local xv_decay, yv_decay = 0.75, 0.5
+local xv_decay, yv_decay = 0.7, 0.45
 
 -- centre of the player sprites
 local cx, cy = 5, 5
@@ -35,22 +35,23 @@ local player_nonproxy_init = function (self)
     self:set_mask (mask_right, "/basic/player/mask/right", cx, cy)
 
     -- weapon stuff
-    self.current_weapon = weapons["basic-blaster"] -- XXX temp
+    self.have_weapon = {}
     function self:receive_weapon (weapon_name)
-	if not weapons[weapon_name] then
+	if weapons[weapon_name] then
 	    self.have_weapon[weapon_name] = 1
-	    if not self.current_weapon then
-		self.current_weapon = weapon[weapon_name]
-	    end
+--	    if not self.current_weapon then
+		self.current_weapon = weapons[weapon_name]
+--	    end
 	end
     end
+    self:receive_weapon ("basic-blaster")
 
     -- firing stuff
     self.fire_delay = 0
     function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
 	    local w = self.current_weapon
-	    if w and w.can_fire (self) then
+	    if w and (not w.can_fire or w.can_fire (self)) then
 		w.fire (self)
 	    end
 	end
@@ -70,9 +71,16 @@ local player_nonproxy_init = function (self)
     self.health = 100
     function self:receive_damage (damage)
 	spawn_blood (self.x + cx, self.y + cy, 100, 2)
+	spawn_blod (self.x, self.y, 10)
 	self.health = self.health - damage
 	if self.health <= 0 then
-	    spawn_object ("basic-player-death-fountain", self.x, self.y)
+	    local corpse = spawn_object ("basic-player-death-fountain",
+					 self.x, self.y)
+	    if corpse then
+		-- this makes the client track the corpse
+		corpse._internal_stalk_me = self.id
+		corpse:add_creation_field ("_internal_stalk_me")
+	    end
 	    self:destroy ()
 	end
     end
@@ -173,7 +181,6 @@ local death_fountain_update_hook = function (self)
 end
 
 Objtype {
-    category = "player",
     name = "basic-player-death-fountain",
     icon = "/basic/player/death-fountain/000",
 

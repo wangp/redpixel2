@@ -12,20 +12,23 @@
 #define HIGHLIGHT	(makecol (0xf0, 0xa0, 0xa0))
 
 
-static BITMAP *cursor;
+static BITMAP *dynamic_cursor;
+static BITMAP *dot_cursor;
 
 
-static void destroy_cursor ()
+static void destroy_dynamic_cursor ()
 {
-    if (cursor) {
-	destroy_bitmap (cursor);
-	cursor = 0;
+    if (dynamic_cursor) {
+	destroy_bitmap (dynamic_cursor);
+	dynamic_cursor = 0;
     }
 }
 
 
 int cursor_init ()
 {
+    dot_cursor = create_bitmap (1, 1);
+    putpixel (dot_cursor, 0, 0, HIGHLIGHT);
     cursor_set_default ();
     return 0;
 }
@@ -33,7 +36,8 @@ int cursor_init ()
 
 void cursor_shutdown ()
 {
-    destroy_cursor ();
+    destroy_dynamic_cursor ();
+    destroy_bitmap (dot_cursor);
 }
 
 
@@ -64,28 +68,20 @@ void cursor_set_magic_bitmap (BITMAP *bmp, int hotx, int hoty)
 
     change (tmp, hotx, hoty);
 
-    destroy_cursor ();
-    cursor = tmp;
+    destroy_dynamic_cursor ();
+    dynamic_cursor = tmp;
 }
 
 
 void cursor_set_dot ()
 {
-    BITMAP *tmp = create_bitmap (1, 1);
-    if (!tmp) return;
-
-    putpixel (tmp, 0, 0, HIGHLIGHT);
-    change (tmp, 0, 0);
-
-    destroy_cursor ();
-    cursor = tmp;
+    change (dot_cursor, 0, 0);
+    destroy_dynamic_cursor ();
 }
 
 
 void cursor_set_default ()
 {
-    if (cursor) {
-	change (0, 0, 0);
-	destroy_cursor ();
-    }
+    change (0, 0, 0);
+    destroy_dynamic_cursor ();
 }

@@ -1,4 +1,89 @@
+2002-01-19  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* objgen.lua: Exposed object's id value.  This was done for corpse
+	tracking after death, but I'm not too sure it should be done like
+	this generally.
+
+	* gamesrv.h, gamesrv.c, bindgen.lua: Made spawn_object,
+	spawn_projectile return the objects they create.
+
+	* gameclt.c, basic/basic-player.lua:
+	Added tracking corpses after death.
+
+	* basic/basic-weapon.lua:
+	The start of some new weapons: shotguns and sniper rifles.
+
+	* bindgen.lua, gamesrv.h, gamesrv.c:
+	Added a delta_angle parameter to game_server_spawn_projectile().
+
+	* object.c: Fixed collision detection so that _both_ objects'
+	conditions for collision detection have to be passed before
+	checking is done.
+
+	* editor/mdobject.c, bindgen.lua:
+	Allow objects without a category which don't show up in the editor.
+	* blod.c: Made blod types not show up in map editor.
+	* basic/basic-player.lua: Made test corpse not show up in editor.
+
+	* objtypes.h, objtypes.c, basic/basic-base.lua:
+	Return error code if registering an object type failed.
+
+	* object.c:
+	Slow down player if ramped movement used (walking up stairs, etc.)
+
+	* blod.c: Added remaining blods and gave them variable masses and
+	timeouts.
+
+	* gamesrv.c: Link players at top of object list so that they
+	appear above objects that were present at map load time (ladders,
+	barrels, etc.)
+
+	* gamesrv.c: Made jumping from standing on top of ladder position
+	to be as high as jump from normal tile.
+
+	* basic/basic-player.lua: Decreased player xv_decay, yv_decay to
+	slow down movement a little.
+
+	* store/README, store/CHANGES, store/hash.c, store/store.c:
+	Reverted to the libc string functions and only support
+	ASCII/UTF-8 (faster).
+
+	* basic/basic-player.lua, bindgen.lua, gameclt.c, gameinit.c,
+	* gamesrv.c, gamesrv.h, netmsg.h, blod.c, blod.h:
+	Added blods.
+
+	* object.c, object.h: Added client-processed objects.
+
 2002-01-18  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* blood.c: Fixed a bug where it would try to allocate zero new
+	particles.
+
+	* editor/mdobject.c: Added snap to grid.
+
+	* gamesrv.c:
+	Got rid of a bad optimisation which broke down the mechanism which
+	stopped players falling into ladders.
+
+	* editor/mdobject.c:
+	Added different cursors for different object editting actions.
+
+	* editor/cursor.c:
+	Created dot cursor bitmap at module initialisation instead of
+	creating it everytime it was set to improve efficiency.
+
+	* gui/guiwmdef.c, gui/gui.c:
+	Added display switching in callback to force redrawing the screen.
+
+	* editor/cursor.c:
+	Created dot cursor bitmap at module initialisation instead of
+	creating it every time it was set to improve efficiency.
+
+	* editor/mdobject.c:
+	Added different cursors for different object editting actions.
+
+	* object.c:
+	Use rawget, rawset instead of gettable, settable in places.
 
 	* object.c, objgen.lua:
 	Removed player-only `jump' and `_ramp' variables from object

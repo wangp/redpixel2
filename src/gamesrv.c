@@ -133,7 +133,7 @@ struct client {
 #define client_clear_cantimeout(c)  ((c)->flags &=~ CLIENT_FLAG_CANTIMEOUT)
 
 static list_head_t clients;
-static int clients_next_id;
+static int clients_next_id = 1;
 
 static client_t *client_create (NET_CONN *conn)
 {
@@ -630,47 +630,50 @@ static void server_poll_interface ()
 
 /* Spawn an object (Lua binding). */
 
-int game_server_spawn_object (const char *typename, float x, float y)
+object_t *game_server_spawn_object (const char *typename, float x, float y)
 {
     object_t *obj;
 
     if (!(obj = object_create (typename)))
-	return -1;
+	return NULL;
 
     object_set_xy (obj, x, y);
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);
-    return 0;
+    return obj;
 }
 
 
 /* Spawn a projectile (Lua binding). */
 
-int game_server_spawn_projectile (const char *typename, object_t *owner, float speed)
+object_t *game_server_spawn_projectile (const char *typename, object_t *owner, float speed, float delta_angle)
 {
     client_t *c;
     object_t *obj;
+    float angle;
     float xv, yv;
 
     if (!(c = clients_find_by_id (object_id (owner))))
-	return -1;
+	return NULL;
 
     if (!(obj = object_create (typename)))
-	return -1;
+	return NULL;
 
-    xv = speed * cos (c->aim_angle);
-    yv = speed * sin (c->aim_angle);
+    angle = c->aim_angle + delta_angle;
+    
+    xv = speed * cos (angle);
+    yv = speed * sin (angle);
 
     object_set_xy (obj, object_x (owner), object_y (owner));
     object_set_xvyv (obj, xv, yv);
     object_set_collision_tag (obj, object_collision_tag (owner));
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
-    object_set_number (obj, "angle", c->aim_angle);
+    object_set_number (obj, "angle", angle);
     object_add_creation_field (obj, "angle");
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);
-    return 0;
+    return obj;
 }
 
 
@@ -683,6 +686,20 @@ int game_server_spawn_blood (float x, float y, long nparticles, float spread)
     
     size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
+    add_to_gameinfo_packet_queue (buf, size);
+    return 0;
+}
+
+
+/* Spawn some blods (Lua binding). */
+
+int game_server_spawn_blod (float x, float y, long nparticles)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    int size;
+    
+    size = packet_encode (buf, "cffl", MSG_SC_GAMEINFO_BLOD_CREATE,
+			  x, y, nparticles);
     add_to_gameinfo_packet_queue (buf, size);
     return 0;
 }
@@ -719,7 +736,7 @@ static object_t *server_spawn_player (objid_t id)
     object_set_xy (obj, map_start_x (start), map_start_y (start));
     object_set_collision_tag (obj, id); /* XXX temp */
     object_run_init_func (obj);
-    map_link_object_bottom (map, obj);
+    map_link_object (map, obj);
 
     if ((c = clients_find_by_id (id)))
 	c->last_sent_aim_angle = 0;
@@ -1048,6 +1065,10 @@ static void server_handle_client_controls ()
 		    object_set_ya (obj, -8);
 		    object_set_jump (obj, 4);
 		}
+		else if (object_standing_on_ladder (obj)) {
+		    object_set_ya (obj, -4);
+		    object_set_jump (obj, 2);
+		}
 		else if (object_in_ladder (obj)) {
 		    object_set_ya (obj, -4);
 		    object_set_jump (obj, 0);
@@ -1075,9 +1096,7 @@ static void server_handle_client_controls ()
 
 	    default:
 		object_set_jump (obj, 0);
-		/* test against old_controls to save a lua table lookup */		    
-		if (c->old_controls & CONTROL_DOWN)
-		    object_set_number (obj, "_internal_down_ladder", 0);
+		object_set_number (obj, "_internal_down_ladder", 0);
 		break;
 	}
 
@@ -1238,7 +1257,7 @@ static void server_handle_wantfeeds ()
 	    object_set_xy (obj, map_start_x (start), map_start_y (start));
 	    object_set_collision_tag (obj, c->id); /* XXX temp */
 	    object_run_init_func (obj);
-	    map_link_object_bottom (map, obj);
+	    map_link_object (map, obj);
 
 	    {
 		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };

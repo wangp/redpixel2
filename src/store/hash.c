@@ -6,6 +6,8 @@
  * 	functions, and fixed hash_enumerate)
  * ... and again in April 2001 (changed the hashing function, made
  *	shorter, and added scmp)
+ * ... and again in January 2002 (removed use of Unicode string
+ *	functions and scmp)
  */
 
 
@@ -25,18 +27,6 @@ static unsigned long hash(const unsigned char *str)
     while ((c = *str++)) 
 	hash = (hash * 17) ^ c;
     return hash;
-}
-
-
-
-/* scmp:
- *  We can get a little more speed in string comparisons by comparing
- *  the first character before calling a comparison function.  Returns
- *  zero if the strings are equal, non-zero otherwise (no ordering).
- */
-static inline int scmp(const char *s1, const char *s2)
-{
-    return (*s1 != *s2) || (ustrcmp(s1, s2));
 }
 
 
@@ -79,7 +69,7 @@ void *hash_insert(const char *key, void *data, struct hash_table *table)
      * replace the old data.
      */
     for (ptr = table->table[val]; NULL != ptr; ptr = ptr->next)
-	if (0 == scmp(key, ptr->key)) {
+	if (0 == strcmp(key, ptr->key)) {
 	    void *old_data = ptr->data;
 	    ptr->data = data;
 	    return old_data;
@@ -95,7 +85,7 @@ void *hash_insert(const char *key, void *data, struct hash_table *table)
     ptr = malloc(sizeof(struct bucket));
     if (NULL == ptr)
 	return NULL;
-    ptr->key = ustrdup(key);
+    ptr->key = strdup(key);
     ptr->data = data;
     ptr->next = table->table[val];
     table->table[val] = ptr;
@@ -114,7 +104,7 @@ void *hash_lookup(const char *key, struct hash_table *table)
     struct bucket *ptr;
     
     for (ptr = table->table[val]; NULL != ptr; ptr = ptr->next) 
-	if (0 == scmp(key, ptr->key))
+	if (0 == strcmp(key, ptr->key))
 	    return ptr->data;
 
     return NULL;
@@ -133,7 +123,7 @@ void *hash_del(const char *key, struct hash_table *table)
     struct bucket *ptr, *last = NULL;
     
     for (ptr = table->table[val]; NULL != ptr; ptr = ptr->next) {
-	if (0 == scmp(key, ptr->key)) {
+	if (0 == strcmp(key, ptr->key)) {
 	    if (NULL != last)
 		last->next = ptr->next;
 	    else

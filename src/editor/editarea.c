@@ -17,7 +17,9 @@
 static gui_window_t *window;
 static BITMAP *magic;
 static int offsetx, offsety;
-static int grid = 1, gridx = 16, gridy = 16;
+static int grid = 1;
+int editarea_grid_x = 16;
+int editarea_grid_y = 16;
 
 
 struct layer {
@@ -64,7 +66,7 @@ static void draw (void *p, BITMAP *bmp)
     blit_magic_format (magic, bmp, bmp->w, bmp->h);
 
     if (grid)
-	dot_grid (bmp, 0, 0, gridx, gridy, makecol (0x40, 0x60, 0x40));
+	dot_grid (bmp, 0, 0, editarea_grid_x, editarea_grid_y, makecol (0x40, 0x60, 0x40));
     rect (bmp, 0, 0, bmp->w - 1, bmp->h - 1, makecol (0x40, 0x40, 0x40));
 }
 

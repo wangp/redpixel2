@@ -8,6 +8,9 @@ $(OBJDIR)/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
 $(OBJDIR)/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
  src/list.h
+$(OBJDIR)/blod.o: src/blod.c src/blod.h src/map.h src/mylua.h \
+ lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
+ src/object.h src/objtypes.h
 $(OBJDIR)/blood.o: src/blood.c src/alloc.h src/bitmask.h src/blood.h src/map.h
 $(OBJDIR)/camera.o: src/camera.c src/alloc.h src/camera.h \
  src/fastsqrt/fastsqrt.h src/object.h src/mylua.h \
@@ -16,17 +19,18 @@ $(OBJDIR)/error.o: src/error.c src/error.h
 $(OBJDIR)/extdata.o: src/extdata.c src/bitmask.h src/bitmaskg.h src/extdata.h \
  src/magic/magic4x4.h
 $(OBJDIR)/fps.o: src/fps.c src/fps.h
-$(OBJDIR)/gameclt.o: src/gameclt.c src/blood.h src/camera.h src/error.h \
- src/fps.h src/gameclt.h src/list.h src/magic/magic4x4.h src/map.h \
- src/mapfile.h src/messages.h src/netmsg.h src/object.h src/mylua.h \
- lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
- src/packet.h src/render.h src/store/store.h src/sync.h src/timeout.h \
- src/timeval.h
-$(OBJDIR)/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h src/extdata.h \
- src/fastsqrt/fastsqrt.h src/gameinit.h src/jpgalleg/jpgalleg.h \
- src/loaddata.h src/magic/magic4x4.h src/mylua.h \
- lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
- src/object.h src/objtypes.h src/path.h src/store/store.h
+$(OBJDIR)/gameclt.o: src/gameclt.c src/blod.h src/blood.h src/camera.h \
+ src/error.h src/fps.h src/gameclt.h src/list.h src/magic/magic4x4.h \
+ src/map.h src/mapfile.h src/messages.h src/netmsg.h src/object.h \
+ src/mylua.h lua-4.1-work3/include/lua.h \
+ lua-4.1-work3/include/lauxlib.h src/packet.h src/render.h \
+ src/store/store.h src/sync.h src/timeout.h src/timeval.h
+$(OBJDIR)/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h src/blod.h \
+ src/extdata.h src/fastsqrt/fastsqrt.h src/gameinit.h \
+ src/jpgalleg/jpgalleg.h src/loaddata.h src/magic/magic4x4.h \
+ src/mylua.h lua-4.1-work3/include/lua.h \
+ lua-4.1-work3/include/lauxlib.h src/object.h src/objtypes.h \
+ src/path.h src/store/store.h
 $(OBJDIR)/gamesrv.o: src/gamesrv.c src/alloc.h src/error.h src/gamesrv.h \
  src/list.h src/map.h src/mapfile.h src/netmsg.h src/object.h \
  src/mylua.h lua-4.1-work3/include/lua.h \

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.18.15.42.38;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.41;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Reverted to the libc string functions and only support ASCII/UTF-8.
 @
 text
 @/* store.c
@@ -26,6 +31,8 @@ text
  */
 
 
+#include <stdlib.h>
+#include <string.h>
 #include <allegro.h>
 #include "hash.h"
 #include "store.h"
@@ -53,7 +60,7 @@ static int list_add (DATAFILE *dat, AL_CONST char *prefix)
 
     if (f) {
 	f->id = file_id++;
-	f->prefix = ustrdup (prefix);
+	f->prefix = strdup (prefix);
 	f->dat = dat;
 	f->next = 0;
 
@@ -100,13 +107,13 @@ static void list_shutdown ()
 
 /*----------------------------------------------------------------------*/
 
-static int index;
+static int idx;
 DATAFILE **store;
 
 static void data_init ()
 {
     store = 0;
-    index = 1;
+    idx = 1;
 }
 
 static void data_shutdown ()
@@ -116,10 +123,10 @@ static void data_shutdown ()
 
 static int data_append (DATAFILE *item)
 {
-    void *p = realloc (store, (index + 1) * sizeof (DATAFILE *));
+    void *p = realloc (store, (idx + 1) * sizeof (DATAFILE *));
 
     if (p) {
-	int n = index++;
+	int n = idx++;
 	store = p;
 	store[n] = item;
 	return n;
@@ -152,19 +159,19 @@ static void table_add (DATAFILE *d, AL_CONST char *prefix)
 
     for (i = 0; d[i].type != DAT_END; i++) {
 	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!ustrcmp (name, empty_string)
-	    || !ustrcmp (name, "GrabberInfo"))
+	if (!strcmp (name, empty_string)
+	    || !strcmp (name, "GrabberInfo"))
 	    continue;
 
-	ustrzcpy (path, sizeof path, prefix);
-	ustrzcat (path, sizeof path, name);
+	strncpy (path, prefix, sizeof path); path[(sizeof path) - 1] = '\0';
+	strncat (path, name, sizeof path - strlen (path) - 1);
 
 	n = data_append (&d[i]);
 	if (n)
 	    hash_insert (path, (void *) n, &table);
     	
 	if (d[i].type == DAT_FILE) {
-	    ustrzcat (path, sizeof path, "/");
+	    strncat (path, "/", sizeof path - strlen (path) - 1);
 	    table_add (d[i].dat, path);
 	}
     }
@@ -275,4 +282,39 @@ DATAFILE *store_file (int id)
     struct file *f = list_find (id, 0);
     return (f) ? (f->dat) : 0;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d7 2
+d36 1
+a36 1
+	f->prefix = ustrdup (prefix);
+d83 1
+a83 1
+static int index;
+d89 1
+a89 1
+    index = 1;
+d99 1
+a99 1
+    void *p = realloc (store, (index + 1) * sizeof (DATAFILE *));
+d102 1
+a102 1
+	int n = index++;
+d135 2
+a136 2
+	if (!ustrcmp (name, empty_string)
+	    || !ustrcmp (name, "GrabberInfo"))
+d139 2
+a140 2
+	ustrzcpy (path, sizeof path, prefix);
+	ustrzcat (path, sizeof path, name);
+d147 1
+a147 1
+	    ustrzcat (path, sizeof path, "/");
 @

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.18.11.09.49;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.08;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Expose grid x, y values.
 @
 text
 @#ifndef __included_editarea_h
@@ -45,6 +50,10 @@ struct editarea_event {
 };
 
 
+extern int editarea_grid_x;
+extern int editarea_grid_y;
+
+
 void editarea_install (int x, int y, int w, int h);
 void editarea_uninstall ();
 void editarea_reset_offset ();
@@ -58,4 +67,13 @@ void editarea_layer_activate (const char *name);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d26 4
 @

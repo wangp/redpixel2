@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.18.15.43.59;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.41;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Reverted to the libc string functions and only support ASCII/UTF-8.
 @
 text
 @
@@ -36,7 +41,8 @@ Introduction
     and use them as a single unit.  This one unit is like one huge
     datafile.
 
-    Store aims to be Unicode-aware, but I don't think it's there yet.
+    Store does not work with encodings other than ASCII and UTF-8 (for
+    speed reasons).  Use only one encoding for all your strings.
 
 
 Compiling
@@ -133,4 +139,15 @@ Contact
 
     Email:	tjaden@@users.sourceforge.net
     WWW: 	http://www.alphalink.com.au/~tjaden/
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d17 2
+a18 1
+    Store aims to be Unicode-aware, but I don't think it's there yet.
 @

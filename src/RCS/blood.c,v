@@ -1,9 +1,19 @@
-head	1.4;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.01.18.14.28.06;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.01.18.12.44.52;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.15.14.07.14;	author tjaden;	state Exp;
@@ -30,10 +40,10 @@ desc
 @@
 
 
-1.4
+1.6
 log
-@Changed colour of blood particles to less red and closer to colours in
-death fountain anim.  Also cleaned up the file a bit.
+@Precautionary fix in case some wise guy passes zero or a negative
+number for nparticles to blood_particles_spawn.
 @
 text
 @/* blood.c
@@ -172,7 +182,7 @@ void blood_particles_spawn (blood_particles_t *blood, float x, float y, long npa
     double theta;
     int r, g, b;
 	
-    while (nparticles--) {
+    while (nparticles > 0) {
 	/* if out of free particles allocate some more or abort */
 	if ((!blood->free_particles) &&
 	    (alloc_free_particles (blood, nparticles) < 0))
@@ -200,6 +210,8 @@ void blood_particles_spawn (blood_particles_t *blood, float x, float y, long npa
 	/* put it into live particles list */
 	p->next = blood->live_particles;
 	blood->live_particles = p;
+
+	nparticles--;
     }
 }
 
@@ -220,6 +232,30 @@ void blood_particles_draw (BITMAP *bmp, blood_particles_t *blood, int offset_x, 
     bmp->cl = old_cl;
     bmp->cr = old_cr;
 }
+@
+
+
+1.5
+log
+@Fixed a bug where it would try to allocate zero new particles.
+@
+text
+@d137 1
+a137 1
+    while (nparticles) {
+@
+
+
+1.4
+log
+@Changed colour of blood particles to less red and closer to colours in
+death fountain anim.  Also cleaned up the file a bit.
+@
+text
+@d137 1
+a137 1
+    while (nparticles--) {
+d165 2
 @
 
 

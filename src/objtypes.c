@@ -40,7 +40,7 @@ static objtype_t *create (const char *type, const char *name,
 	return 0;
     }
 
-    p->type = ustrdup (type);
+    p->type = type ? ustrdup (type) : 0;
     p->name = ustrdup (name);
     p->icon = ustrdup (icon);
     p->init_func = init_func;
@@ -83,11 +83,12 @@ void objtypes_shutdown ()
 }
 
 
-void objtypes_register (const char *type, const char *name,
+int objtypes_register (const char *type, const char *name,
 			const char *icon, lua_ref_t init_func)
 {
-    create (type, name, icon, init_func,
-	    bitmask_create_from_magic_bitmap (store_dat (icon)));
+    return (create (type, name, icon, init_func,
+		    bitmask_create_from_magic_bitmap (store_dat (icon)))
+	    ? 0 : -1);
 }
 
 

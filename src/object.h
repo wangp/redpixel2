@@ -6,17 +6,22 @@
 
 struct BITMAP;
 struct map;
-struct lua_State;
 struct list_head;
 
 
 typedef struct object object_t;
 
 /* Unique id number.  All machines playing the same game have the same
- * id numbers for objects.  Numbers less than OBJID_PLAYER_MAX are
- * reserved for use by objects controlled by clients. */
+ * id numbers for objects.  */
 typedef unsigned long objid_t;
 
+/* Zero is reserved for objects which the server doesn't care about
+ * and only exist on game clients (e.g. blods).  Before thinking about
+ * using these, read the warnings in gameclt.c.  */
+#define OBJID_CLIENT_PROCESSED	0
+
+/* Numbers less than OBJID_PLAYER_MAX are reserved for use by objects
+ * controlled by clients.  */
 #define OBJID_PLAYER_MAX	1024
 
 
@@ -33,6 +38,7 @@ void object_destroy (object_t *);
 struct objtype *object_type (object_t *);
 objid_t object_id (object_t *);
 int object_is_client (object_t *);
+int object_is_client_processed (object_t *);
 int object_stale (object_t *);
 void object_set_stale (object_t *);
 int object_hidden (object_t *);
@@ -147,11 +153,11 @@ int object_standing_on_ladder (object_t *);
 void object_do_physics (object_t *, struct map *);
 
 
-void object_set_auth_info (object_t *obj, unsigned long time,
+void object_set_auth_info (object_t *, unsigned long time,
 			   float x, float y,
 			   float xv, float yv,
 			   float xa, float ya);
-void object_do_simulation (object_t *obj, unsigned long curr_time);
+void object_do_simulation (object_t *, unsigned long curr_time);
 
 
 /* Lua table operations.  */

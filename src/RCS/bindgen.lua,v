@@ -1,9 +1,29 @@
-head	1.11;
+head	1.15;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.15
+date	2002.01.19.12.37.35;	author tjaden;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2002.01.19.08.21.55;	author tjaden;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2002.01.19.01.38.10;	author tjaden;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2002.01.18.14.31.17;	author tjaden;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2002.01.17.14.28.12;	author tjaden;	state Exp;
@@ -65,10 +85,9 @@ desc
 @@
 
 
-1.11
+1.15
 log
-@Prefixed internal functions/variables that are somehow accessible from
-Lua with "_internal".
+@Made spawn_object, spawn_projectile return the objects they create.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -243,12 +262,14 @@ generate {
 generate {
     lname	= "objtype_register",
     cname	= "objtypes_register",
-    check	= "sss[fN-]",
-    args	= {{ String, "type" },
+    check	= "[sN]ss[fN-]",
+    args	= {{ String, "type", nil,
+	             "$ = lua_isnil(L, $#) ? 0 : lua_tostring(L, $#);" },
     		   { String, "name" },
 		   { String, "icon" },
 		   { Method, "func", nil, 
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }}
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }},
+    ret		= { Int, "ret", "$ < 0" }
 }
 
 generate {
@@ -442,16 +463,21 @@ generate {
     args	= {{ String, "typename" },
 		   { Float, "x" },
 		   { Float, "y" }},
-    ret		= { Int, "ret", "$ < 0" }
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
 }
 
 generate {
     cname	= "game_server_spawn_projectile",
     lname	= "spawn_projectile",
+    check	= "sun[nN-]",
     args	= {{ String, "typename" },
 		   { Object, "owner" },
-		   { Float, "speed" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Float, "speed" },
+		   { Float, "delta_angle", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0. : lua_tonumber(L, $#));" }},
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
 }
 
 generate {
@@ -464,10 +490,70 @@ generate {
     ret		= { Int, "ret", "$ < 0" }
 }
 
+generate {
+    cname	= "game_server_spawn_blod",
+    lname	= "spawn_blod",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
 print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.14
+log
+@Added a delta_angle parameter to game_server_spawn_projectile().
+@
+text
+@d374 2
+a375 1
+    ret		= { Int, "ret", "$ < 0" }
+d387 2
+a388 1
+    ret		= { Int, "ret", "$ < 0" }
+@
+
+
+1.13
+log
+@Allow objects without a category which don't show up in the editor.
+@
+text
+@d380 1
+d383 3
+a385 1
+		   { Float, "speed" }},
+@
+
+
+1.12
+log
+@Added blods.
+@
+text
+@d173 3
+a175 2
+    check	= "sss[fN-]",
+    args	= {{ String, "type" },
+d179 2
+a180 1
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }}
+@
+
+
+1.11
+log
+@Prefixed internal functions/variables that are somehow accessible from
+Lua with "_internal".
+@
+text
+@d394 9
 @
 
 

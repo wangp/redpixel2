@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.18.08.47.51;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.15.23.59.58;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Wasn't loading objects because I changed the parameters of map_load.
+@Small hack for gui_mouse after exiting file_select_ex().
 @
 text
 @/* menu.c
@@ -62,6 +67,10 @@ static int prompt_filename (const char *msg, char *path, const char *ext,
     gui_fg_color = makecol (0xc0, 0xd0, 0xc0);
     gui_bg_color = makecol (0, 0, 0);
     ret = file_select_ex (msg, path, ext, path_size, 0, 0);
+
+    /* XXX -- this is a hack so that the gui_mouse.d* do not register
+     * changes the next time gui_mouse_update() is called */
+    { void gui_mouse_update (); gui_mouse_update (); }
 
     scare_mouse ();
     blit (bmp, screen, 0, 0, 0, 0, bmp->w, bmp->h);
@@ -179,6 +188,15 @@ void menu_uninstall ()
     ug_dialog_destroy (dialog);
     gui_window_destroy (window);
 }
+@
+
+
+1.2
+log
+@Wasn't loading objects because I changed the parameters of map_load.
+@
+text
+@d39 4
 @
 
 

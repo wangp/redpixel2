@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.01.18.14.30.26;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.01.17.13.29.50;	author tjaden;	state Exp;
@@ -45,9 +50,9 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Added DOWN as a possible input.
+@Added blods.
 @
 text
 @#ifndef __included_netmsg_h
@@ -276,10 +281,18 @@ enum {
 
     /* Tell clients to create some blood particles.
 
-       Args: float x, float y, long nparticles, float spread
+       Args: float x, float y, long nparticles, float spread.
      */
 
     MSG_SC_GAMEINFO_BLOOD_CREATE = 'b',
+
+
+    /* Tell clients to create some blod objects.
+
+       Args: float x, float y, long nparticles.
+     */
+
+    MSG_SC_GAMEINFO_BLOD_CREATE = 'B',
 
 
     /* Tell clients to display a text message.
@@ -292,6 +305,18 @@ enum {
 
 
 #endif
+@
+
+
+1.7
+log
+@Added DOWN as a possible input.
+@
+text
+@d227 1
+a227 1
+       Args: float x, float y, long nparticles, float spread
+d231 8
 @
 
 

@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.4
+date	2002.01.19.12.37.08;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.17.14.29.39;	author tjaden;	state Exp;
@@ -25,10 +30,10 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Removed player-only `jump' and `_ramp' variables from object struc,
-and used the generic lua table instead.
+@Exposed object's id value.  This was done for corpse tracking after
+death, but I'm not too sure it should be done like this generally.
 @
 text
 @-- objgen.lua -- generate game object field accessors
@@ -60,8 +65,10 @@ types = {
 
 
 -- variables from struct object that should be read/write from Lua
+-- XXX: actually, most should probably be read-only
 
-cvars = {{ Float, 'x' },
+cvars = {{ Int, 'id' },
+	 { Float, 'x' },
 	 { Float, 'y' },
 	 { Float, 'xv' },
 	 { Float, 'yv' },
@@ -146,6 +153,19 @@ print ([[
 
 
 -- objgen.lua ends here
+@
+
+
+1.3
+log
+@Removed player-only `jump' and `_ramp' variables from object struc,
+and used the generic lua table instead.
+@
+text
+@d30 1
+d32 2
+a33 1
+cvars = {{ Float, 'x' },
 @
 
 

@@ -1,9 +1,34 @@
-head	1.10;
+head	1.15;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.15
+date	2002.01.19.12.35.06;	author tjaden;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2002.01.19.08.22.51;	author tjaden;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2002.01.19.01.37.55;	author tjaden;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2002.01.18.16.14.51;	author tjaden;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2002.01.18.14.32.14;	author tjaden;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2002.01.17.14.27.52;	author tjaden;	state Exp;
@@ -60,10 +85,9 @@ desc
 @@
 
 
-1.10
+1.15
 log
-@Prefixed internal functions/variables that are somehow accessible from
-Lua with "_internal".
+@Added tracking corpses after death.
 @
 text
 @-- basic-player.lua
@@ -76,7 +100,7 @@ store_load ("basic/basic-player.dat", "/basic/player/")
 ----------------------------------------------------------------------
 
 
-local xv_decay, yv_decay = 0.75, 0.5
+local xv_decay, yv_decay = 0.7, 0.45
 
 -- centre of the player sprites
 local cx, cy = 5, 5
@@ -103,22 +127,23 @@ local player_nonproxy_init = function (self)
     self:set_mask (mask_right, "/basic/player/mask/right", cx, cy)
 
     -- weapon stuff
-    self.current_weapon = weapons["basic-blaster"] -- XXX temp
+    self.have_weapon = {}
     function self:receive_weapon (weapon_name)
-	if not weapons[weapon_name] then
+	if weapons[weapon_name] then
 	    self.have_weapon[weapon_name] = 1
-	    if not self.current_weapon then
-		self.current_weapon = weapon[weapon_name]
-	    end
+--	    if not self.current_weapon then
+		self.current_weapon = weapons[weapon_name]
+--	    end
 	end
     end
+    self:receive_weapon ("basic-blaster")
 
     -- firing stuff
     self.fire_delay = 0
     function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
 	    local w = self.current_weapon
-	    if w and w.can_fire (self) then
+	    if w and (not w.can_fire or w.can_fire (self)) then
 		w.fire (self)
 	    end
 	end
@@ -138,9 +163,16 @@ local player_nonproxy_init = function (self)
     self.health = 100
     function self:receive_damage (damage)
 	spawn_blood (self.x + cx, self.y + cy, 100, 2)
+	spawn_blod (self.x, self.y, 10)
 	self.health = self.health - damage
 	if self.health <= 0 then
-	    spawn_object ("basic-player-death-fountain", self.x, self.y)
+	    local corpse = spawn_object ("basic-player-death-fountain",
+					 self.x, self.y)
+	    if corpse then
+		-- this makes the client track the corpse
+		corpse._internal_stalk_me = self.id
+		corpse:add_creation_field ("_internal_stalk_me")
+	    end
 	    self:destroy ()
 	end
     end
@@ -241,7 +273,6 @@ local death_fountain_update_hook = function (self)
 end
 
 Objtype {
-    category = "player",
     name = "basic-player-death-fountain",
     icon = "/basic/player/death-fountain/000",
 
@@ -260,6 +291,71 @@ Objtype {
 	death_fountain_update_hook (self) -- set the initial layer
     end
 }
+@
+
+
+1.14
+log
+@Some changes for multiple weapons testing.
+@
+text
+@d77 7
+a83 1
+	    spawn_object ("basic-player-death-fountain", self.x, self.y)
+@
+
+
+1.13
+log
+@Made test corpse not show up in map editor.
+@
+text
+@d38 1
+a38 1
+    self.current_weapon = weapons["basic-blaster"] -- XXX temp
+d40 1
+a40 1
+	if not weapons[weapon_name] then
+d42 3
+a44 3
+	    if not self.current_weapon then
+		self.current_weapon = weapon[weapon_name]
+	    end
+d47 1
+d54 1
+a54 1
+	    if w and w.can_fire (self) then
+@
+
+
+1.12
+log
+@Decreased player xv_decay, yv_decay to slow down movement a little.
+@
+text
+@a176 1
+    category = "player",
+@
+
+
+1.11
+log
+@Added blods.
+@
+text
+@d11 1
+a11 1
+local xv_decay, yv_decay = 0.75, 0.5
+@
+
+
+1.10
+log
+@Prefixed internal functions/variables that are somehow accessible from
+Lua with "_internal".
+@
+text
+@d73 1
 @
 
 

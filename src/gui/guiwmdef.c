@@ -660,6 +660,8 @@ static int wm_update_screen (BITMAP *bmp)
     if (!dirty) 
 	return 0;
 
+    gui_dirty_clear (bmp);
+
     for (p = windows.next; p; p = p->next) {
 	if (p->hidden) continue;
 

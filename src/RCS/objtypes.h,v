@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.19.01.36.02;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Return error code if registering an object type failed.
 @
 text
 @#ifndef __included_objtypes_h
@@ -32,8 +37,8 @@ typedef struct objtype objtype_t;
 
 void objtypes_init ();
 void objtypes_shutdown ();
-void objtypes_register (const char *type, const char *name,
-			const char *icon, lua_ref_t init_func);
+int objtypes_register (const char *type, const char *name,
+		       const char *icon, lua_ref_t init_func);
 objtype_t *objtypes_lookup (const char *name);
 void objtypes_enumerate (void (*proc) (objtype_t *type));
 
@@ -45,4 +50,16 @@ struct bitmask *objtype_icon_mask (objtype_t *);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 2
+a14 2
+void objtypes_register (const char *type, const char *name,
+			const char *icon, lua_ref_t init_func);
 @

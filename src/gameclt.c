@@ -7,6 +7,7 @@
 #include <math.h>
 #include <allegro.h>
 #include <libnet.h>
+#include "blod.h"
 #include "blood.h"
 #include "camera.h"
 #include "error.h"
@@ -60,6 +61,7 @@ static BITMAP *crosshair;
 /* the game state */
 static map_t *map;
 static object_t *local_object;
+static object_t *tracked_object;
 
 /* network stuff */
 static int pinging;
@@ -132,19 +134,37 @@ static int net_send_rdm_encode (NET_CONN *conn, const char *fmt, ...)
 /*----------------------------------------------------------------------*/
 
 
-static void perform_simple_physics ()
+static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
 {
     list_head_t *object_list;
     object_t *obj;
-    ulong_t t = ticks;
+    int i;
     
     object_list = map_object_list (map);
-    list_for_each (obj, object_list)
-	object_do_simulation (obj, t);
+    list_for_each (obj, object_list) {
+	if (!object_is_client_processed (obj)) {
+	    object_do_simulation (obj, curr_ticks);
+	    continue;
+	}
 
-    blood_particles_update (map_blood_particles (map), map);
-    /* XXX no good because blood particles can only be updated at a
-       regular rate */
+	/*
+	 * For CLIENT PROCESSED objects, we have to do some thinking
+	 * about the physics ourselves, as if we were the server.  But
+	 * we do not have accurate data to work with, so ONLY use
+	 * proxy-only objects when:
+	 *
+	 *  (1) inaccurate results for this object don't matter, and
+	 *  (2) this object will not influence other objects,
+	 *	e.g. in collisions
+	 *
+	 * In short, this means eye-candy only.
+	 */
+	for (i = 0; i < delta_ticks; i++)
+	    object_do_physics (obj, map);
+    }
+
+    for (i = 0; i < delta_ticks; i++) 
+	blood_particles_update (map_blood_particles (map), map);
 }
 
 
@@ -252,7 +272,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		object_set_xy (obj, x, y);
 		object_set_collision_tag (obj, ctag);
 		if (id == client_id) {
-		    local_object = obj;
+		    tracked_object = local_object = obj;
 		    object_set_number (obj, "is_local", 1);
 		}
 
@@ -277,6 +297,10 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		object_run_init_func (obj);
 		map_link_object (map, obj);
+
+		if (object_get_number (obj, "_internal_stalk_me") == client_id)
+		    tracked_object = obj;
+
 		break;
 	    }
 
@@ -290,6 +314,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		    object_set_stale (obj);
 		    if (obj == local_object)
 			local_object = NULL;
+		    if (obj == tracked_object)
+			tracked_object = NULL;
 		}
 		break;
 	    }
@@ -348,6 +374,17 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		break;
 	    }
 
+	    case MSG_SC_GAMEINFO_BLOD_CREATE:
+	    {
+		float x;
+		float y;
+		long nparticles;
+		
+		buf += packet_decode (buf, "ffl", &x, &y, &nparticles);
+		blod_spawn (map, x, y, nparticles);
+		break;
+	    }
+
 	    default:
 		error ("error: unknown code in gameinfo packet (client)\n");
 	}
@@ -386,13 +423,13 @@ static int update_camera ()
     if (backgrounded)
 	return 0;
 
-    if (!local_object)
+    if (!tracked_object)
 	return 0;
     
     oldx = camera_x (cam);
     oldy = camera_y (cam);
 
-    camera_track_object_with_mouse (cam, local_object, mouse_x, mouse_y, 96);
+    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y, 96);
 
     return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
 }
@@ -719,7 +756,7 @@ void game_client_run ()
 		send_gameinfo_controls ();
 
 		dbg ("do physics");
-		perform_simple_physics ();
+		perform_simple_physics (t, t - last_ticks);
 
 		dbg ("poll update hooks");
 		poll_update_hooks ((t - last_ticks) * MSECS_PER_TICK);
@@ -821,6 +858,7 @@ int game_client_init (const char *name, int net_driver, const char *addr)
 
     map = NULL;
     local_object = NULL;
+    tracked_object = NULL;
 
     fps_init ();
 

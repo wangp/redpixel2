@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.5
+date	2002.01.18.14.31.24;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.15.13.24.22;	author tjaden;	state Exp;
@@ -30,9 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Changes I forgot previously for the Makefile.
+@Added blods.
 @
 text
 @##
@@ -119,6 +124,7 @@ MODULES_GAME :=					\
 	bitmask					\
 	bitmaskg				\
 	bitmaskr				\
+	blod					\
 	blood					\
 	camera					\
 	error					\
@@ -246,6 +252,15 @@ suidroot:
 ##
 ## End of Makefile
 ##
+@
+
+
+1.4
+log
+@Changes I forgot previously for the Makefile.
+@
+text
+@d85 1
 @
 
 

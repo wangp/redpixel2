@@ -11,6 +11,7 @@
 
 
 static BITMAP *bmp;
+static int force_reblit;
 static int quit;
 
 
@@ -29,6 +30,12 @@ static void kb_handler (int scancode)
 END_OF_STATIC_FUNCTION (kb_handler);
 
 
+static void display_switch_in_callback (void)
+{
+    force_reblit = 1;
+}
+
+
 int gui_init ()
 {
     bmp = create_bitmap (SCREEN_W, SCREEN_H);
@@ -39,6 +46,12 @@ int gui_init ()
     LOCK_VARIABLE (key_down);
     LOCK_FUNCTION (kb_handler);
     keyboard_lowlevel_callback = kb_handler;
+
+    switch (get_display_switch_mode ()) {
+	case SWITCH_AMNESIA:
+	case SWITCH_BACKAMNESIA:
+	    set_display_switch_callback (SWITCH_IN, display_switch_in_callback);
+    }
 
     gui_dirty_init ();
     gui_wm_init ();
@@ -61,7 +74,12 @@ void gui_shutdown ()
 
 static void update_screen ()
 {
-    gui_dirty_clear (bmp);
+    if (force_reblit) {
+	scare_mouse ();
+	blit (bmp, screen, 0, 0, 0, 0, bmp->w, bmp->h);
+	unscare_mouse ();
+	force_reblit = 0;
+    }
 
     if (gui_wm_update_screen (bmp)) {
 	scare_mouse ();

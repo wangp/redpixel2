@@ -1,0 +1,169 @@
+head	1.3;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	2002.01.19.01.37.07;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.18.17.02.18;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.18.16.39.50;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.3
+log
+@Made blod types not show up in map editor.
+@
+text
+@/* blod.c
+ *
+ * Don't confuse this with blood.c!  "Blod" is Red Pixel terminology
+ * for the bigger chunks of red particles that you see.
+ *
+ * This is only to be run on the client.  All blod objects are proxies.
+ *
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+#include <stdlib.h>
+#include "blod.h"
+#include "map.h"
+#include "mylua.h"
+#include "object.h"
+#include "objtypes.h"
+
+
+static int num_blod_types;	/* inited at run-time */
+
+
+static struct {
+    char *name;
+    char *icon;
+} blod_type_list[] = {
+    { "basic-blod-4x4-000", "/basic/player/blod-4x4/000" },
+    { "basic-blod-4x4-001", "/basic/player/blod-4x4/001" },
+    { "basic-blod-4x4-002", "/basic/player/blod-4x4/002" },
+    { "basic-blod-4x4-003", "/basic/player/blod-4x4/003" },
+    { "basic-blod-4x4-004", "/basic/player/blod-4x4/004" },
+    { "basic-blod-4x4-005", "/basic/player/blod-4x4/005" },
+    { "basic-blod-6x6-000", "/basic/player/blod-6x6/000" },
+    { "basic-blod-6x6-001", "/basic/player/blod-6x6/001" },
+    { "basic-blod-6x6-002", "/basic/player/blod-6x6/002" },
+    { "basic-blod-6x6-003", "/basic/player/blod-6x6/003" },
+    { "basic-blod-6x6-004", "/basic/player/blod-6x6/004" },
+    { "basic-blod-6x6-005", "/basic/player/blod-6x6/005" },
+#if 0
+    /* too hugemungous */
+    { "basic-blod-8x8-000", "/basic/player/blod-8x8/000" },
+    { "basic-blod-8x8-001", "/basic/player/blod-8x8/001" },
+    { "basic-blod-8x8-002", "/basic/player/blod-8x8/002" },
+    { "basic-blod-8x8-003", "/basic/player/blod-8x8/003" },
+    { "basic-blod-8x8-004", "/basic/player/blod-8x8/004" },
+    { "basic-blod-8x8-005", "/basic/player/blod-8x8/005" }
+#endif
+    { 0, 0 }
+};
+
+
+static inline int rnd (int lower, int upper)
+{
+    return (rand() % (upper-lower+1)) + lower;
+}
+ 
+
+static int blod_update_hook (lua_State *L)
+{
+    object_set_stale (lua_toobject (L, 1));
+    return 0;
+}
+
+
+void blod_spawn (map_t *map, float x, float y, long nparticles)
+{
+    object_t *obj;
+    lua_ref_t hook;
+
+    while (nparticles--) {
+	obj = object_create_proxy (blod_type_list[rand () % num_blod_types].name,
+				   OBJID_CLIENT_PROCESSED);
+	if (!obj)
+	    return;
+
+	object_set_xy (obj, x + rnd (-8, 8), y + rnd (-8, 8));
+	object_set_mass (obj, rnd (3000, 8000) / 10000000.);
+	object_set_collision_flags (obj, 1, 0, 0);
+
+	lua_pushcfunction (lua_state, blod_update_hook);
+	hook = lua_ref (lua_state, -1);
+	object_set_update_hook (obj, rnd (10 * 1000, 15 * 1000), hook);
+
+	map_link_object (map, obj);
+    }
+}
+
+
+void blod_init ()
+{
+    int i;
+    for (i = 0; blod_type_list[i].name; i++)
+	objtypes_register (NULL, blod_type_list[i].name,
+			   blod_type_list[i].icon, LUA_NOREF);
+    num_blod_types = i;
+}
+
+
+void blod_shutdown ()
+{
+}
+@
+
+
+1.2
+log
+@Added remaining blods and gave them variable masses and timeouts.
+@
+text
+@d93 1
+a93 1
+	objtypes_register ("player", blod_type_list[i].name,
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d52 1
+a52 1
+static inline int rnd (int n)
+d54 1
+a54 1
+    return rand() % n;
+d71 1
+a71 1
+	obj = object_create_proxy (blod_type_list[rnd (num_blod_types)].name,
+d76 2
+a77 2
+	object_set_xy (obj, x - rnd (15) + 8, y - rnd (15) + 8);
+	object_set_mass (obj, 0.0005);
+d82 1
+a82 1
+	object_set_update_hook (obj, 1000 * 10, hook);
+@

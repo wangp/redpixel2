@@ -1,5 +1,9 @@
 History
 
+19 January 2002: The Allegro unicode string functions are about 3
+times slower than libc string functions (by my tests), so I decided to
+revert to the libc functions and only support ASCII/UTF-8.
+
 02 July 2001: Updated for new Allegro Unicode API (although it's still not
 properly Unicode-enabled).
 

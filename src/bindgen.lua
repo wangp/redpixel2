@@ -170,12 +170,14 @@ generate {
 generate {
     lname	= "objtype_register",
     cname	= "objtypes_register",
-    check	= "sss[fN-]",
-    args	= {{ String, "type" },
+    check	= "[sN]ss[fN-]",
+    args	= {{ String, "type", nil,
+	             "$ = lua_isnil(L, $#) ? 0 : lua_tostring(L, $#);" },
     		   { String, "name" },
 		   { String, "icon" },
 		   { Method, "func", nil, 
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }}
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }},
+    ret		= { Int, "ret", "$ < 0" }
 }
 
 generate {
@@ -369,16 +371,21 @@ generate {
     args	= {{ String, "typename" },
 		   { Float, "x" },
 		   { Float, "y" }},
-    ret		= { Int, "ret", "$ < 0" }
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
 }
 
 generate {
     cname	= "game_server_spawn_projectile",
     lname	= "spawn_projectile",
+    check	= "sun[nN-]",
     args	= {{ String, "typename" },
 		   { Object, "owner" },
-		   { Float, "speed" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Float, "speed" },
+		   { Float, "delta_angle", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0. : lua_tonumber(L, $#));" }},
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
 }
 
 generate {
@@ -388,6 +395,15 @@ generate {
 		   { Float, "y" },
 		   { Int, "nparticles" },
 		   { Float, "spread" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
+    cname	= "game_server_spawn_blod",
+    lname	= "spawn_blod",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 

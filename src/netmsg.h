@@ -224,10 +224,18 @@ enum {
 
     /* Tell clients to create some blood particles.
 
-       Args: float x, float y, long nparticles, float spread
+       Args: float x, float y, long nparticles, float spread.
      */
 
     MSG_SC_GAMEINFO_BLOOD_CREATE = 'b',
+
+
+    /* Tell clients to create some blod objects.
+
+       Args: float x, float y, long nparticles.
+     */
+
+    MSG_SC_GAMEINFO_BLOD_CREATE = 'B',
 
 
     /* Tell clients to display a text message.

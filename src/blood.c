@@ -134,7 +134,7 @@ void blood_particles_spawn (blood_particles_t *blood, float x, float y, long npa
     double theta;
     int r, g, b;
 	
-    while (nparticles--) {
+    while (nparticles > 0) {
 	/* if out of free particles allocate some more or abort */
 	if ((!blood->free_particles) &&
 	    (alloc_free_particles (blood, nparticles) < 0))
@@ -162,6 +162,8 @@ void blood_particles_spawn (blood_particles_t *blood, float x, float y, long npa
 	/* put it into live particles list */
 	p->next = blood->live_particles;
 	blood->live_particles = p;
+
+	nparticles--;
     }
 }
 
