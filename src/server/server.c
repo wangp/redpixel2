@@ -698,13 +698,18 @@ object_t *game_server_spawn_object (const char *typename, float x, float y)
 {
     object_t *obj;
 
+    /* For when an object's init function calls spawn_object() while
+     * the map is still being loaded.  */
+    if (!map)
+	return NULL;
+
     if (!(obj = object_create (typename)))
 	return NULL;
 
     object_set_xy (obj, x, y);
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_run_init_func (obj);
-    map_link_object_bottom (map, obj);
+    map_link_object (map, obj);
     return obj;
 }
 
@@ -736,7 +741,7 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
     object_set_number (obj, "angle", angle);
     object_add_creation_field (obj, "angle");
     object_run_init_func (obj);
-    map_link_object_bottom (map, obj);
+    map_link_object (map, obj);
     return obj;
 }
 
@@ -1040,6 +1045,7 @@ static void server_feed_game_state_to (client_t *c)
 static void server_perform_mass_game_state_feed ()
 {
     client_t *c;
+    object_t *obj;
     int done;
     uchar_t byte;
 
@@ -1087,6 +1093,9 @@ static void server_perform_mass_game_state_feed ()
     } while (!done);
     sync_server_lock ();
 
+    list_for_each (obj, map_object_list (map))
+	object_clear_replication_flags (obj);
+	
     clients_broadcast_rdm_byte (MSG_SC_RESUME);
 }
 
