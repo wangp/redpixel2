@@ -1079,8 +1079,10 @@ static void server_handle_client_controls ()
 			object_set_ya (obj, object_ya (obj) - object_mass (obj) - 4/object_jump(obj));
 			object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
 		    }
-		    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
-			object_set_jump (obj, 1);
+		    else if ((jump == 0) && (object_supported (obj, map))) {
+			float yv = object_yv (obj);
+			if ((yv >= 0.0) && (yv < 0.0000001))
+			    object_set_jump (obj, 1);
 		    }
 		}
 		break;
