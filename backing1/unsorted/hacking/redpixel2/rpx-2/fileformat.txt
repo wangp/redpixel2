@@ -1,0 +1,81 @@
+The Red Pixel II Map File Format
+
+	or ``TRP2MFF'' for short.
+
+
+Ideally the map format would be a text file, human readable and platform
+independant.  I would like it to be in some form of XML, but since I have
+not any C XML parsers on me, I will probably make up my own, easy-to-parse
+format.
+
+
+E.g. if we do RFC 822 style....
+
+----------------------------------------
+Map-Name: This is the name of my map
+Author: Peter Wang <tjaden@psynet.net>
+Notes: blah foo foo blah foo foo blah foo foo blah foo fooblah foo foo blah foo fooblah foo
+Notes: blah foo foo blah foo foo blah foo foo blah foo fooblah foo foo blah foo fooblah foo
+Notes: blah foo foo blah foo foo blah foo foo blah foo fooblah foo foo blah foo fooblah foo
+Notes: blah foo foo blah foo foo blah foo foo blah foo fooblah foo foo blah foo fooblah foo
+Notes: blah foo foo blah foo foo blah foo foo blah foo fooblah foo foo blah foo fooblah foo
+Notes: multi-line is ok?  (confirm this with email headers RFC)
+X-Custom-Header: just like with email headers
+Base-Mapping: /tiles/sometile 1
+Base-Mapping: /tiles/sometile2 2
+Base-Mapping: /tiles/sometile3 3
+Base-Mapping: /tiles/sometile4 4
+Base-Mapping: /tiles/sometile5 5
+X-Etc: yup like that
+------------------------------------------
+
+
+Or if we do XML style:
+------------------------------------------
+<?xml version="1.0">
+<mapname "This is the name of my map"/>
+<author "Peter Wang <tjaden@psynet.net>"/>
+<notes "blahb balhblahblhab ahblahb lah alhb lahb"/>
+
+<!-- Bases -->
+
+<basemapping>
+<base name="/tiles/sometile1" index=1/>
+<base name="/tiles/sometile2" index=2/>
+<base name="/tiles/sometile3" index=3/>
+<base name="/tiles/sometile4" index=4/>
+</basemapping>
+<mapsize width=128 height=77/>
+<basetiles>
+<base>15 16 1 23 12 123 49 12 3 2 471 12 1 21</base>
+<base>15 16 1 23 12 123 49 12 3 2 471 12 1 21</base>
+<base>15 16 1 23 12 123 49 12 3 2 471 12 1 21</base>
+<base>15 16 1 23 12 123 49 12 3 2 471 12 1 21</base>
+<base>15 16 1 23 12 123 49 12 3 2 471 12 1 21</base>
+<base>15 16 1 23 12 123 49 12 3 2 471 12 1 21</base>
+</basetiles>
+
+<!-- Players  -->
+
+<player position="12,34" team="red"/>
+<player position="122,34" team="green"/>
+<player position="45,65" team="khaki"/>
+<etc>
+
+<!-- monsters, with scripts -->
+
+<monster>
+<pos x=34 y=56/>
+<script>
+function shot(attacker) {
+	this.anger++;
+	this.speed++;
+	this.tint.red++;
+	if (!this.current_target.very_close())
+		this.target(attacker);
+}
+</script>
+</monster>
+
+
+--------------------------------- something like that ---------------------vvv
