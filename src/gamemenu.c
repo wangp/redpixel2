@@ -193,10 +193,15 @@ static int root_mp (void)
 
 static int root_editor (void)
 {
+    music_stop_playlist ();
+
     if (editor_init () == 0) {
 	editor_run ();
 	editor_shutdown ();
     }
+
+    select_frontend_music ();
+
     return 0;
 }
 
