@@ -127,6 +127,7 @@ static void draw_tiles(int x, int y)
     int ex = screen_w / TILE_W + x,    /* end */
     	ey = screen_h / TILE_H + y;
     int yoff, xoff;
+    struct tiledata *td;
     
     yoff = 0;
     for (yy=y; yy<ey+1 && yy<rpx.h; yy++)
@@ -134,8 +135,10 @@ static void draw_tiles(int x, int y)
 	xoff = 0;	
 	for (xx=x; xx<ex && xx<rpx.w; xx++) {
 	    i = rpx.tile[yy][xx];
-	    if (i != TILE_BLANK)
-	      draw_sprite(dbuf, tiles->tbl[i].data, xoff, yoff);
+	    if (i != TILE_BLANK) {
+		td = tiles->tbl[i].data;
+		draw_sprite(dbuf, td->bmp, xoff, yoff);
+	    }
 	    putpixel(dbuf, xoff, yoff, makecol(0xef,0xb0,0));
 	    xoff += TILE_W;
 	}
@@ -150,6 +153,7 @@ static void draw_tiles(int x, int y)
  */
 static void palette_draw()
 {
+    struct tiledata *td;
     BITMAP *bmp;
     int i, x, y, yoff = 0;
     
@@ -158,7 +162,9 @@ static void palette_draw()
 	for (x=0; x<2; x++) 
 	{
 	    i = y+x;
-	    if (i < tiles->size && (bmp = tiles->tbl[i].data)) {
+	    if (i < tiles->size) {
+		td = tiles->tbl[i].data;
+		bmp = td->bmp;
 		draw_sprite(palbuf, bmp, x*TILE_W, yoff);
 	    } else 
 	      return;	    

@@ -5,6 +5,7 @@
 
 /* $-start-export-block */
 
+int df_get_item_num(DATAFILE *dat, char *name);   	
 DATAFILE *df_get_item(DATAFILE *dat, char *name);   	
 DATAFILE *df_item(DATAFILE *dat, unsigned int i);   	
 void *df_dat(DATAFILE *d);	       			

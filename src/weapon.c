@@ -20,7 +20,7 @@ static void add(weapon_type_t *addme)
 	addme->prev = addme->next = NULL;
     }
     else {
-	weapon_type_t *it = addme;
+	weapon_type_t *it = head;
 	while (it->next)
 	  it = it->next;
 	
@@ -51,7 +51,9 @@ int assign_weapon_handler(int typenum, seer_addr handler)
     while (it) {
 	if (it->typenum == typenum) {
 	    it->handler = handler;
-	    return 0;	}
+	    return 0;	
+	}
+	it = it->next;
     }
     return -1;
 }

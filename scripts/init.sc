@@ -16,12 +16,13 @@ export init;
 int init()
 {   
     /* tiles */
-    create_tiles_table(200);
+    //create_tiles_table(200);
     add_tiles_pack("data/tiles.dat");
+    add_tiles_pack("data/tiles2.dat");
     
     /* weapons */
     add_script("scripts/rpg.sc");
-    //add_script("scripts/shotgun.sc");
+    add_script("scripts/shotgun.sc");
 
     return 0;
 }

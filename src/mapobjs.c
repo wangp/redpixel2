@@ -1,6 +1,4 @@
-/* mapobjs: 
- * 
- *
+/* mapobjs: map editor - object related 
  */ 
 
 #include <stdio.h>
@@ -20,6 +18,24 @@ static int palette_top = 0;
 static int selected = 0;
 
 
+/* helper */
+static void mark_sprite_dirty(BITMAP *sprite, int x, int y)
+{
+    int sx, sy, w, h;
+    
+    sx = x - left * TILE_W;
+    sy = y - top * TILE_H;
+    w = sprite->w;
+    h = sprite->h;
+    
+    if (sx > screen_w || sy > screen_h || sx+w < 0 || sy+h < 0)
+      return;
+    
+    mark_dirty(sx, sy, w, h);
+}
+
+
+/* helper */
 static void draw_dirty_sprite(BITMAP *sprite, int x, int y)
 {
     int sx, sy, w, h;
@@ -35,22 +51,42 @@ static void draw_dirty_sprite(BITMAP *sprite, int x, int y)
     draw_sprite(dbuf, sprite, sx, sy);
     mark_dirty(sx, sy, w, h);
     
-    printf("%d, %d -> %d, %d\n", sx, sy, w, h);
+    //printf("%d, %d -> %d, %d\n", sx, sy, w, h);
 }
 
 
-/* Handle mouse events.
- */
+/* helper */
+static object_t *get_object_under_cursor(int x, int y)
+{
+    object_t *it = rpx.obj_head;
+
+    while (it) {
+	
+	if (it->x <= x && it->y <= y && 
+	    x <= it->x + it->def->icon->w && 
+	    y <= it->y + it->def->icon->h)
+	  return it;
+	
+	it = it->next;
+    }
+    
+    return NULL;
+}
+
+
+/* mouse button down */
 static void mdown(int x, int y, int b)
 {
 }
 
 
+/* dragged */
 static void drag(int x, int y, int b)
 {
 }
 
 
+/* clicked */
 static void clicked(int x, int y, int b)
 {
     struct object *obj;
@@ -59,17 +95,29 @@ static void clicked(int x, int y, int b)
     if (!def)			       /* unlikely */
       return;
     
-    obj = create_object(def);
-    obj->x = x;
-    obj->y = y;
-    
-    rpx_link_object(obj);
-    draw_dirty_sprite(def->icon, obj->x, obj->y);
+    if (b & 1)
+    {
+    	obj = create_object(def);
+	obj->x = x;
+	obj->y = y;
+	
+	rpx_link_object(obj);
+	draw_dirty_sprite(def->icon, obj->x, obj->y);
+    }
+    else if (b & 2)
+    {
+	obj = get_object_under_cursor(x, y);
+	if (!obj)
+	  return;
+	
+	mark_sprite_dirty(obj->def->icon, obj->x, obj->y);
+	rpx_unlink_object(obj);
+	destroy_object(obj);
+    }
 }
 
 
-/* draw:
- */
+/* draw */
 static void draw(int x, int y)
 {
     struct object *it = rpx.obj_head;
@@ -84,6 +132,7 @@ static void draw(int x, int y)
 /* palette_draw:
  *  Draws the set of tools on the screen. 
  */
+
 static void palette_draw()
 {
     int x, y, max = screen_h / TILE_H;
@@ -112,7 +161,7 @@ static void palette_draw()
 /* palette_key:
  *  The palette gets a chance at the keyboard here.
  */
-static void force_redraw_palette()
+static void force_redraw_palette()     /* helper */
 {
     palette_draw();
     force_draw_palette = 1;

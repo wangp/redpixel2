@@ -8,20 +8,26 @@ CFLAGS = -Wall -O3 -g
 COMMONFLAGS = -Isrc
 DOSFLAGS = $(COMMONFLAGS)
 XFLAGS 	= $(COMMONFLAGS)
-DOSLIBS = -lseerd -lalleg
-XLIBS 	= -lseerd -L/usr/X11R6/lib -Wl,-rpath,/usr/local/lib /usr/local/lib/liballeg.so -lXext -lX11 -lm
+DOSLIBS = -lseerd -lppcol -lalleg
+XLIBS 	= -lseerd -lppcol -lalleg -L/usr/X11R6/lib -lXext -lX11 -lm
 
 
 #----------------------------
 #	Object dependencies
 #----------------------------
 
-COMMONOBJS = mapedit.o report.o wrapper.o script.o tiles.o dirty.o maptiles.o \
-	     convtbl.o rpx.o export.o exalleg.o player.o object.o \
-	     mapobjs.o weapon.o
+COMMONOBJS = common.o report.o wrapper.o script.o tiles.o convtbl.o rpx.o \
+		export.o exalleg.o player.o object.o weapon.o
 
-DOSOBJS = $(addprefix dosobj/,$(COMMONOBJS))
-XOBJS   = $(addprefix xobj/,$(COMMONOBJS))
+MAPEDITOROBJS = $(COMMONOBJS) mapedit.o dirty.o maptiles.o mapobjs.o 
+		
+ENGINEOBJS = $(COMMONOBJS) engine.o
+
+DOSMAPEDITOROBJS = $(addprefix dosobj/,$(MAPEDITOROBJS))
+XMAPEDITOROBJS   = $(addprefix xobj/,$(MAPEDITOROBJS))
+
+DOSENGINEOBJS = $(addprefix dosobj/,$(ENGINEOBJS))
+XENGINEOBJS   = $(addprefix xobj/,$(ENGINEOBJS))
 
 AUTOEXP_SRC = defs.h mapedit.h script.h tiles.h wrapper.h object.h \
 	      player.h weapon.h
@@ -48,11 +54,17 @@ dosobj/%.o : src/%.c
 xobj/%.o : src/%.c
 	$(COMPILE.c) $(XFLAGS) -o $@ $<
 	
-mapedit.exe : $(DOSOBJS) 
-	$(CC) $(DOSFLAGS) -o $@ $(DOSOBJS) $(DOSLIBS)
+mapedit.exe : $(DOSMAPEDITOROBJS)
+	$(CC) $(DOSFLAGS) -o $@ $(DOSMAPEDITOROBJS) $(DOSLIBS)
 
-mapedit : $(XOBJS) 
-	$(CC) $(XFLAGS) -o $@ $(XOBJS) $(XLIBS)
+mapedit : $(XMAPEDITOROBJS) 
+	$(CC) $(XFLAGS) -o $@ $(XMAPEDITOROBJS) $(XLIBS)
+	
+engine.exe : $(DOSENGINEOBJS)
+	$(CC) $(DOSFLAGS) -o $@ $(DOSENGINEOBJS) $(DOSENGINELIBS) $(DOSLIBS) 
+
+engine : $(XENGINEOBJS) 
+	$(CC) $(XFLAGS) -o $@ $(XENGINEOBJS) $(XENGINELIBS) $(XLIBS) 
 
 
 #----------------------------
@@ -68,8 +80,8 @@ autoexp autoexp.exe : tools/autoexp.c
 	$(CC) $(CFLAGS) -o $@ $<
 	
 
-dos : autoexp.exe gen mapedit.exe
-X : autoexp gen mapedit
+dos : autoexp.exe gen mapedit.exe engine.exe
+X : autoexp gen mapedit engine
 
 
 #----------------------------

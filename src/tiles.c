@@ -2,7 +2,9 @@
  */
 
 #include <allegro.h>
+#include <ppcol.h>
 
+#include "tiles.h"
 #include "report.h"
 #include "wrapper.h"
 #include "convtbl.h"
@@ -15,15 +17,17 @@ struct convtable *tiles;
  * destroy_tiles: 
  *  Do what they are called.
  */
-void create_tiles_table(int size)
+void create_tiles_table()
 {
-    tiles = construct_convtable(size);
+    tiles = construct_convtable();
 }
 
 static void _destroy_cb(void *d)
 {
-    if (d)
-      destroy_bitmap((BITMAP*)d);
+    if (d) {
+	destroy_bitmap(((tiledata_t *)d)->bmp);
+	destroy_ppcol_mask(((tiledata_t *)d)->mask);
+    }
 }
 
 void destroy_tiles_table(void)
@@ -41,6 +45,7 @@ static char *_fn;
 static int _add_cb(DATAFILE *e)
 {
     char *prop;
+    struct tiledata *td;
     BITMAP *b1, *b2;
     char buf[256];
     
@@ -48,12 +53,17 @@ static int _add_cb(DATAFILE *e)
     {
 	prop = get_datafile_property(e, DAT_NAME);
 	sprintf(buf, "%s#%s", _fn, prop);
-
+	
+	td = malloc(sizeof(struct tiledata));
+	
 	b1 = e->dat;	
 	b2 = create_bitmap(b1->w, b1->h);
 	blit(b1, b2, 0, 0, 0, 0, b1->w, b2->h);	
 
-	add_convtable_item(tiles, buf, b2);
+	td->bmp = b2;
+	td->mask = create_ppcol_mask(b2);
+	
+	add_convtable_item(tiles, buf, td);
 		    
 	//debugprintf("\t%s\n", buf);
     }    

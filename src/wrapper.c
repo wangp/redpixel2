@@ -15,27 +15,40 @@
 
 
 
-/* df_get_item:
- *  Returns DATAFILE * corresponding to NAME.
+/* df_get_item_num:
+ *  Returns DATAFILE index corresponding to NAME.
  */
-DATAFILE *df_get_item(DATAFILE *dat, char *name)
+int df_get_item_num(DATAFILE *dat, char *name)
 {
     DATAFILE *entry;
     int i = 0;
     
     if (!dat)
-      return 0;
+      return -1;
     
     entry = &dat[0];
     while (entry->type != DAT_END)
     {
 	if (strcmp(name, get_datafile_property(entry, DAT_NAME)) == 0)
-	  return entry;
+	  return i;
 	else
 	  entry = &dat[++i];
     }
     
-    return NULL;    
+    return -1;    
+}
+
+
+/* df_get_item:
+ *  Returns DATAFILE * corresponding to NAME.
+ */
+DATAFILE *df_get_item(DATAFILE *dat, char *name)
+{
+    int i = df_get_item_num(dat, name);
+    if (i == -1)
+      return NULL;
+    else
+      return &dat[i];
 }
 
 

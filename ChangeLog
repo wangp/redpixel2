@@ -40,3 +40,23 @@ May 1999
 1	Simple object placement working.
 
 11	Separated palette from dbuf (now dbuf / palbuf).
+
+14	Simple load/save routines (incomplete).
+	Object removing.
+	Changed convtabl so it uses realloc, instead of a set size at the
+	start of the program.2
+	Simple tiledat loading (not using tiletbl, yet)
+
+20	Fixed load routine - now using convtables (tiletbl)!
+	Started test tile engine. [don't work right yet]
+	
+21	Installed Red Hat 6.0!
+
+22      Did something?  Maybe.
+
+23	Rearranged a few things then accommodated that to support
+	PPCOL_MASKS.  Yum.
+	Continued with dodgey engine test - demo to show at school tomorrow.
+	I hate deadlines.
+	Some half-working player/tile collision routines.
+	Corpses showing on the screen.	

@@ -14,9 +14,10 @@ typedef struct convtable
 } convtable_t;
 
 
-struct convtable *construct_convtable(unsigned int size);
+struct convtable *construct_convtable();
 void destroy_convtable(struct convtable *tbl, void (*freer)(void *));
-convitem_t *add_convtable_item(convtable_t *tbl, char *name, void *data);
+void add_convtable_item(convtable_t *tbl, char *name, void *data);
+int translate_convtable(struct convtable *dest, struct convtable *src, int i);
 
 
 #endif

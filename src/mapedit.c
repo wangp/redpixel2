@@ -17,7 +17,6 @@
 
 
 
-BITMAP *dbuf;			       /* double buffer */
 BITMAP *palbuf;			       /* palette buffer */
 
 
@@ -57,6 +56,15 @@ static int moved(int posa, int posb)
       return FALSE;   
 }
 
+/* to keep the colours correct */
+int _file_select(char *msg, char *path, char *ext)
+{
+    int r;
+    r = file_select(msg, path, ext);
+    text_mode(-1);
+    return r;
+}
+
 static void halcyon()
 {
     struct editmode *mode, *tmp;
@@ -72,7 +80,45 @@ static void halcyon()
     
     mode = mode_tbl[0];
  
-    for (;;) {
+    for (;;) 
+    {
+	/* 
+	 * CTRL+key 
+	 */
+	if (key_shifts & KB_CTRL_FLAG) 
+	{
+
+	    /* save */
+	    if (key[KEY_S])
+	    {
+		char path[1024] = "";
+		if (_file_select("Save .rpx", path, "rpx"))
+		{
+		    if (save_rpx(path) != 0) {
+			alert("Error saving file!", path, "", "Ok", NULL, 13, 27);
+		    }
+		}
+		force_draw = 1;
+	    }
+	    
+	    /* load */
+	    else if (key[KEY_L]) 
+	    {
+		char path[1024] = "";
+		if (_file_select("Load .rpx", path, "rpx"))
+		{
+		    if (load_rpx(path) != 0) {
+			alert("Error loading file!", path, "", "Ok", NULL, 13, 27);
+		    }
+		}
+		force_draw = 1;
+	    }
+	    
+	    /* quit! */
+	    else if (key[KEY_Q])
+	      break;   
+	    
+	} /* end CTRL+key */
 	
 	/* mode switching */
 	i = 0;
@@ -83,11 +129,13 @@ static void halcyon()
 		force_draw_palette = 1;
 		break;
 	    }
-	}	
+	}
 	
-	if (mouse_x < screen_w)	       /* inside editing area */
+	/* inside editing area */
+	if (mouse_x < screen_w)
 	{
-	    /* scrolling 
+	    /* 
+	     * scrolling (QASD) 
 	     */
 	    if (key[KEY_A] && left > 0) { 
 		left--;
@@ -109,7 +157,8 @@ static void halcyon()
 		force_draw = 1;
 	    }
 	    
-	    /* mouse events 
+	    /* 
+	     * mouse events 
 	     */	    
 	    x = left*TILE_W+mouse_x;
 	    y = top*TILE_H+mouse_y;
@@ -118,20 +167,24 @@ static void halcyon()
 	    p = mouse_pos;	       /* save the values here ... */
 	    
 	    if (b) {
-		
+	
+		/* mouse button down */
 		if (!last_mouse_b) {
 		    if (mode->mdown)
 		      mode->mdown(x, y, b);
 		    first_mouse_pos = p;
 		} 
+		/* drag */
 		else if (moved(p, last_mouse_pos) && mode->drag) 
        	  	  mode->drag(x, y, b);
 	    } 
 	    else if (last_mouse_b) 
 	    {		
+		/* clicked */
 		if (!moved(first_mouse_pos, p) && mode->clicked)
-		  mode->clicked(x, y, b);
+		  mode->clicked(x, y, last_mouse_b);
 		
+		/* mouse button up */
 		if (mode->mup)
 		  mode->mup(x, y, b);
 	    }
@@ -172,7 +225,7 @@ static void halcyon()
 	    show_mouse(screen);
 
 	    force_draw = 0;
-	}
+	} /* end update screen */
 	
 	/* update palette */
 	if (force_draw_palette) {
@@ -182,10 +235,8 @@ static void halcyon()
 	    clear(palbuf);
 	    force_draw_palette = 0;
 	}
-	
-	if (key[KEY_Q])
-	  break;
-    }
+    
+    } /* end forever */
 }
 
 
@@ -199,9 +250,11 @@ int main(int argc, char **argv)
 {
     int w = 400, h = 300, bpp = 16;
 
+    /* init SeeR debugging */
     scOpen_Debug(LOGFILE);
     scToggle_Debug(true);                                
 
+    /* initialise Allegro */
     allegro_init();
     install_keyboard();
     install_timer();
@@ -215,29 +268,39 @@ int main(int argc, char **argv)
 	consoleprintf("Couldn't set video mode %dx%dx%dbpp\n", w, h, bpp);
 	return 1;
     }
+    
+    gui_fg_color = makecol(0,0,0);
+    gui_bg_color = makecol(0xff,0xee,0xee);
 
+    /* some size-of-screen settings */
     palette_x = SCREEN_W-TILE_W*2;
     screen_w = palette_x;
     screen_h = SCREEN_H;
        
+    /* bitmap buffers */
     dbuf = create_bitmap(screen_w, SCREEN_H);
     palbuf = create_bitmap(SCREEN_W - palette_x, SCREEN_H);
-    
+
+    create_tiles_table();
+
+    /* export functions to SeeR scripts */
     export();
     exec_script("scripts/init.sc", "init");
     
+    /* clear map */
     reset_rpx();
-    
+
+    /* main loop */
     halcyon();
     
+    /* deinit */
     destroy_tiles_table();
     
     destroy_bitmap(dbuf);
     destroy_bitmap(palbuf);
     
     free_scripts();
-    
     scClose_Debug();            
-                             
+    
     return 0;
 }
