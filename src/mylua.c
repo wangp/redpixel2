@@ -4,6 +4,7 @@
  */
 
 
+#include <time.h>
 #include <allegro.h>
 #include "lua.h"
 #include "lualib.h"
@@ -18,9 +19,16 @@ int mylua_open (int stacksize)
 {
     if (!(lua_state = lua_open (stacksize)))
 	return -1;
+
     lua_baselibopen (lua_state);
     lua_mathlibopen (lua_state); /* XXX: needed? */
     lua_strlibopen (lua_state);
+
+    /* seed RNG */
+    lua_getglobal (lua_state, "randomseed");
+    lua_pushnumber (lua_state, time (0));
+    lua_call (lua_state, 1, 0);
+
     return 0;
 }
 
