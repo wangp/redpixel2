@@ -125,8 +125,8 @@ static int clear_statusbar_buffer_and_exit (void)
 static DIALOG connecting_dialog[] =
 {
     { fancy_bitmap_proc, 230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, NULL, NULL, NULL }, /* 0 */
-    { fancy_label_proc,  230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, statusbar_buf, NULL, NULL }, /* 1 */
-    { fancy_button_proc, 270, 340, 100, 40, 0, -1, 27, 0, 0, 0x80, "Cancel", NULL, clear_statusbar_buffer_and_exit }, /* 2 */
+    { fancy_label_proc,  230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, "Connecting...", NULL, NULL }, /* 1 */
+    { fancy_button_proc, 270, 340, 100, 40, 0, -1, 27, D_EXIT, 0, 0x80, "Cancel", NULL, NULL }, /* 2 */
     { NULL }
 };
 
@@ -260,7 +260,6 @@ static int client_finished_entering_name (void)
 
 static int join_server_pressed (void)
 {
-    strcpy (statusbar_buf, "Connecting. . .");
     messages_init ();
 
     if (client_init(name_editbox_buf, INET_DRIVER, address_editbox_buf) == 0) {
@@ -271,8 +270,11 @@ static int join_server_pressed (void)
     }
 
     messages_shutdown ();
+    set_menu_gfx_mode ();
+    set_menu_mouse_range ();
+    show_mouse (screen);
     select_frontend_music ();
-    return clear_statusbar_buffer_and_exit ();
+    return D_EXIT;
 }
 
 
@@ -328,7 +330,7 @@ static int client_button_pressed (void)
 	fancy_do_dialog (kicked_dialog, KICKED_DLG_DEFAULT_FOCUS);
     }
 
-    return D_REDRAW;
+    return D_EXIT;
 }
 
 
