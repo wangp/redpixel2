@@ -11,8 +11,11 @@ void client_shutdown (void);
 
 void client_send_text_message (const char *text);
 
-void client_play_sound (struct object *, const char *sample); /* Lua binding */
-void client_set_camera (int pushable, int max_dist); /* Lua binding (internal) */
+/* begin Lua bindings */
+void client_spawn_explosion (const char *name, float x, float y);
+void client_play_sound (struct object *, const char *sample);
+void client_set_camera (int pushable, int max_dist); /* internal */
+/* end Lua bindings */
 
 
 #endif

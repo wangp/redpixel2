@@ -823,12 +823,17 @@ void client_send_text_message (const char *text)
 
 /*
  *----------------------------------------------------------------------
- *	Sound stuff
+ *	Lua bindings
  *----------------------------------------------------------------------
  */
 
 
-/* (lua binding) */
+void client_spawn_explosion (const char *name, float x, float y)
+{
+    map_explosion_create (map, name, x, y);
+}
+
+
 void client_play_sound (object_t *obj, const char *sample)
 {
     SAMPLE *spl = store_get_dat (sample);
@@ -838,19 +843,18 @@ void client_play_sound (object_t *obj, const char *sample)
 }
 
 
+void client_set_camera (int pushable, int max_dist)
+{
+    camera_set (cam, pushable, max_dist);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
  *	Camera stuff
  *----------------------------------------------------------------------
  */
-
-
-/* (lua binding) */
-void client_set_camera (int pushable, int max_dist)
-{
-    camera_set (cam, pushable, max_dist);
-}
 
 
 static int update_camera (void)
