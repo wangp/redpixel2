@@ -204,23 +204,23 @@ static DIALOG options_menu[] =
     { fancy_button_proc,    20,  20, 295, 170, 0, -1, 0, D_DISABLED, 0, 0, NULL, NULL, NULL }, /* 1 */
     { fancy_label_proc,     30,  20, 150,  30, 0, -1, 0, 0, 0, 0xa0, "Screen resolution:", NULL, NULL }, /* 2 */
     { fancy_radio_proc,     30,  60, 100,  30, 0, -1, 0, 0, SCREEN_RESOLUTION_RADIO_GROUP, 0x80, "320x200", NULL, disable_stretching }, /* 3 */
-    { fancy_radio_proc,     30,  90, 100,  30, 0, -1, 0, 0, SCREEN_RESOLUTION_RADIO_GROUP, 0x80, "640x400", NULL, enable_stretching }, /* 5 */
-    { fancy_radio_proc,     30, 120, 100,  30, 0, -1, 0, 0, SCREEN_RESOLUTION_RADIO_GROUP, 0x80, "640x480", NULL, enable_stretching }, /* 6 */
-    { fancy_button_proc,   325,  20, 295, 170, 0, -1, 0, D_DISABLED, 0, 0, NULL, NULL, NULL }, /* 7 */
-    { fancy_label_proc,    340,  20, 160,  30, 0, -1, 0, 0, 0, 0xa0, "Stretching method:", NULL, NULL }, /* 8 */
-    { fancy_radio_proc,    340,  60, 160,  30, 0, -1, 0, D_SELECTED, STRETCH_METHOD_RADIO_GROUP, 0x60, "No stretching", NULL, NULL }, /* 9 */
-    { fancy_radio_proc,    340,  90, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Plain stretching", NULL, NULL }, /* 10 */
-    { fancy_radio_proc,    340, 120, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Super 2xSaI", NULL, NULL }, /* 11 */
-    { fancy_radio_proc,    340, 150, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Super Eagle", NULL, NULL }, /* 12 */
-    { fancy_label_proc,    150, 220, 100,  30, 0, -1, 0, 0, 0, 0xa0, "SFX", NULL, NULL }, /* 13 */
-    { fancy_slider_proc,   220, 220, 300,  30, 0,  0, 0, 0, 255, 0, NULL, NULL, NULL }, /* 14 */
-    { fancy_button_proc,   540, 220,  60,  30, 0, -1, 0, 0, 0, 0x80, "Play", NULL, test_sound }, /* 15 */
-    { fancy_checkbox_proc, 120, 260, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Music", NULL, NULL }, /* 16 */
-    { fancy_slider_proc,   220, 260, 300,  30, 0,  0, 0, 0, 255, 0, NULL, music_slider_changed, NULL }, /* 17 */
-    { fancy_label_proc,    120, 300, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Brightness", NULL, NULL }, /* 18 */
-    { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 10, 0, NULL, NULL, NULL }, /* 19 */
-    { fancy_button_proc,   360, 340, 100,  40, 0, -1, 0, 0, 0, 0x80, "Ok", NULL, options_menu_modify_changes_pressed }, /* 20 */
-    { fancy_button_proc,   480, 340, 110,  40, 0, -1, 0, 0, 0, 0x80, "Cancel", NULL, cancel_changes_pressed }, /* 21 */
+    { fancy_radio_proc,     30,  90, 100,  30, 0, -1, 0, 0, SCREEN_RESOLUTION_RADIO_GROUP, 0x80, "640x400", NULL, enable_stretching }, /* 4 */
+    { fancy_radio_proc,     30, 120, 100,  30, 0, -1, 0, 0, SCREEN_RESOLUTION_RADIO_GROUP, 0x80, "640x480", NULL, enable_stretching }, /* 5 */
+    { fancy_button_proc,   325,  20, 295, 170, 0, -1, 0, D_DISABLED, 0, 0, NULL, NULL, NULL }, /* 6 */
+    { fancy_label_proc,    340,  20, 160,  30, 0, -1, 0, 0, 0, 0xa0, "Stretching method:", NULL, NULL }, /* 7 */
+    { fancy_radio_proc,    340,  60, 160,  30, 0, -1, 0, D_SELECTED, STRETCH_METHOD_RADIO_GROUP, 0x60, "No stretching", NULL, NULL }, /* 8 */
+    { fancy_radio_proc,    340,  90, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Plain stretching", NULL, NULL },	/* 9 */
+    { fancy_radio_proc,    340, 120, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Super 2xSaI", NULL, NULL }, /* 10 */
+    { fancy_radio_proc,    340, 150, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Super Eagle", NULL, NULL }, /* 11 */
+    { fancy_label_proc,    150, 220, 100,  30, 0, -1, 0, 0, 0, 0xa0, "SFX", NULL, NULL }, /* 12 */
+    { fancy_slider_proc,   220, 220, 300,  30, 0,  0, 0, 0, 255, 0, NULL, NULL, NULL }, /* 13 */
+    { fancy_button_proc,   540, 220,  60,  30, 0, -1, 0, 0, 0, 0x80, "Play", NULL, test_sound }, /* 14 */
+    { fancy_checkbox_proc, 120, 260, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Music", NULL, NULL }, /* 15 */
+    { fancy_slider_proc,   220, 260, 300,  30, 0,  0, 0, 0, 255, 0, NULL, music_slider_changed, NULL }, /* 16 */
+    { fancy_label_proc,    120, 300, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Brightness", NULL, NULL }, /* 17 */
+    { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 10, 0, NULL, NULL, NULL }, /* 18 */
+    { fancy_button_proc,   360, 340, 100,  40, 0, -1, 0, 0, 0, 0x80, "Ok", NULL, options_menu_modify_changes_pressed },	/* 19 */
+    { fancy_button_proc,   480, 340, 110,  40, 0, -1, 0, 0, 0, 0x80, "Cancel", NULL, cancel_changes_pressed }, /* 20 */
     { d_yield_proc,          0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
     { NULL }
 };
