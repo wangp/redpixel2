@@ -1,0 +1,15 @@
+code design
+-------------
+
+- map editor written in C
+
+- engine written in C
+    (drawing, lighting, input, etc.)
+    
+- networking written in C        
+
+- weapon/object handling in Lua
+    (eg. firing, picking up, etc.)
+    
+- AI written in Lua
+
