@@ -618,8 +618,10 @@ static void handle_svclient_controls (void)
 	 */
 	if (c->controls & CONTROL_FIRE)
 	    object_call (Lsrv, obj, "_internal_fire_hook", 0);
-	if (c->controls & CONTROL_DROP_MINE)
+	if (c->controls & CONTROL_DROP_MINE) {
 	    object_call (Lsrv, obj, "_internal_drop_mine_hook", 0);
+	    c->controls &= ~CONTROL_DROP_MINE; /* hack */
+	}
     }
 }
 
