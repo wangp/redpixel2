@@ -4,10 +4,7 @@
  */
 
 
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <allegro.h>
 #include "libnet.h"
 #include "error.h"
 #include "list.h"
@@ -120,10 +117,21 @@ static void poll_client_joined (svclient_t *c)
 		svgame_process_cs_gameinfo_packet (c, buf+1, size-1);
 	    break;
 
+	case MSG_CS_TEXT: {
+	    long len;
+	    char text[NETWORK_MAX_PACKET_SIZE];
+	    char tmp[NETWORK_MAX_PACKET_SIZE];
+
+	    packet_decode (buf+1, "s", &len, text);
+	    uszprintf (tmp, sizeof tmp, "<%s> %s", c->name, text);
+	    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, tmp);
+	    server_log (tmp);
+	    break;
+	}
+
 	case MSG_CS_PING:
 	    if (curr_state == SERVER_STATE_GAME)
 		svgame_process_cs_ping (c);
-	    
 	    break;
 
 	case MSG_CS_BOING:
@@ -186,7 +194,10 @@ static void command_list (char **last)
 		server_log ("%4d  %s (stale)", c->id, c->name);
 		break;
 	    default:
-		server_log ("%4d  %s (lag: %d)", c->id, c->name, c->lag);
+		if (curr_state == SERVER_STATE_GAME)
+		    server_log ("%4d  %s (lag: %d)", c->id, c->name, c->lag);
+		else
+		    server_log ("%4d  %s", c->id, c->name);
 		break;
 	}
     }
@@ -199,14 +210,14 @@ static void command_kick (char **last)
     char *word;
     svclient_t *c;
 
-    word = strtok_r (NULL, whitespace, last);
+    word = ustrtok_r (NULL, whitespace, last);
     if (!word) {
 	server_log ("KICK requires an argument");
 	return;
     }
 
-    if (isdigit (word[0])) {
-	objid_t id = strtol (word, NULL, 10);
+    if (uisdigit (ugetc (word))) {
+	objid_t id = ustrtol (word, NULL, 10);
 	c = svclients_find_by_id (id);
 	if (!c) {
 	    server_log ("No client with id %d", id);
@@ -234,18 +245,22 @@ static void command_kick (char **last)
 
 static void command_msg (char **last)
 {
-    if (!*last)
+    char buf[NETWORK_MAX_PACKET_SIZE];
+
+    if (!*last) {
 	server_log ("MSG requires an argument");
-    else {
-	svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, *last);
-	server_log (*last);
+	return;
     }
+
+    uszprintf (buf, sizeof buf, "[server] %s", *last);
+    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
+    server_log (buf);
 }
 
 
 static void poll_interface (void)
 {
-#define wordis(test)	(0 == strcasecmp (word, test))
+#define wordis(test)	(0 == ustricmp (word, test))
 
     const char *cmd;
     char *copy, *word, *last;
@@ -253,8 +268,8 @@ static void poll_interface (void)
     if ((!interface) || !(cmd = interface->poll ()))
 	return;
 
-    copy = strdup (cmd);
-    word = strtok_r (copy, whitespace, &last);
+    copy = ustrdup (cmd);
+    word = ustrtok_r (copy, whitespace, &last);
 
     if (word) {
 	if (wordis ("help") || wordis ("?")) {
@@ -272,7 +287,7 @@ static void poll_interface (void)
 	}
 
 	else if (wordis ("map")) {
-	    word = strtok_r (NULL, whitespace, &last);
+	    word = ustrtok_r (NULL, whitespace, &last);
 	    if (!word) {
 		server_log ("Current map: %s", server_current_map_file);
 		server_log ("Selected map: %s", server_next_map_file);

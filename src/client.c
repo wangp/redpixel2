@@ -228,11 +228,14 @@ static void send_gameinfo_controls (void)
     int controls = 0;
     int update = 0;
 
-    if (key[KEY_A]) controls |= CONTROL_LEFT;
-    if (key[KEY_D]) controls |= CONTROL_RIGHT;
-    if (key[KEY_W]) controls |= CONTROL_UP;
-    if (key[KEY_S]) controls |= CONTROL_DOWN;
-    if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
+    if (!messages_grabbed_keyboard ()) {
+	if (key[KEY_A]) controls |= CONTROL_LEFT;
+	if (key[KEY_D]) controls |= CONTROL_RIGHT;
+	if (key[KEY_W]) controls |= CONTROL_UP;
+	if (key[KEY_S]) controls |= CONTROL_DOWN;
+	if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
+    }
+    
     if (mouse_b & 1) controls |= CONTROL_FIRE;
 
     if (controls != last_controls)
@@ -263,6 +266,9 @@ static void send_gameinfo_weapon_switch (void)
     static int last_key[10] = {0,0,0,0,0,0,0,0,0,0};
     lua_State *L = lua_state;
     int i;
+
+    if (messages_grabbed_keyboard ())
+	return;
 
     for (i = 0; i < 10; i++) {
 	int K = KEY_1 + i;
@@ -566,6 +572,20 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
     }
 
     dbg ("done process gameinfo packet");
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Send text message
+ *----------------------------------------------------------------------
+ */
+
+
+void client_send_text_message (const char *text)
+{
+    net_send_rdm_encode (conn, "cs", MSG_CS_TEXT, text);
 }
 
 
