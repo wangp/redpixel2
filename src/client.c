@@ -845,7 +845,8 @@ void client_run (int client_server)
     {
 	int status;
 
-	temporary_message ("Connecting to server...", NULL);
+	temporary_message ("Connecting to server...",
+			   "Press Q to cancel", NULL);
 
 	do {
 	    if (key[KEY_Q])
