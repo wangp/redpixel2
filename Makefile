@@ -118,6 +118,7 @@ MODULES_GAME :=					\
 	fe-widgets				\
 	fps					\
 	gameinit				\
+	gamma					\
 	getoptc					\
 	loaddata				\
 	main					\

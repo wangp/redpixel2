@@ -3,6 +3,7 @@
 #include "fe-lobby.h"
 #include "fe-main.h"
 #include "fe-widgets.h"
+#include "gamma.h"
 #include "music.h"
 #include "screen.h"
 #include "sound.h"
@@ -171,10 +172,16 @@ static int options_menu_modify_changes_pressed (void)
     }
 
     /* Brightness. */
-    /* XXX: doesn't do anything yet */
-    if (GAMMA_SLIDER.d2 != old_desired_brightness)
+    if (GAMMA_SLIDER.d2 != old_desired_brightness) {
 	alert ("You must restart Red Pixel for brightness to take effect.", 
-	       NULL, "(also, this feature doesn't work yet)", "Ok", NULL, 0, 0);
+	       NULL, NULL, "Ok", NULL, 0, 0);
+	/*
+	 * d2 =  0/10 --> gamma = 1.5
+	 * d2 =  5/10 --> gamma = 1.0
+	 * d2 = 10/10 --> gamma = 0.5
+	 */
+	gamma_factor = 0.5 + ((10 - GAMMA_SLIDER.d2) / 10.);
+    }
 
     return D_EXIT;
 }
@@ -208,7 +215,7 @@ static DIALOG options_menu[] =
     { fancy_checkbox_proc, 120, 260, 100,  30, 0, -1, 0, D_DISABLED | D_SELECTED, 0, 0xa0, "Music", NULL, NULL }, /* 16 */
     { fancy_slider_proc,   220, 260, 300,  30, 0,  0, 0, 0, 255, 0, NULL, music_slider_changed, NULL }, /* 17 */
     { fancy_label_proc,    120, 300, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Brightness", NULL, NULL }, /* 18 */
-    { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 4, 0, NULL, NULL, NULL }, /* 19 */
+    { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 10, 0, NULL, NULL, NULL }, /* 19 */
     { fancy_button_proc,   360, 340, 100,  40, 0, -1, 0, 0, 0, 0x80, "Ok", NULL, options_menu_modify_changes_pressed }, /* 20 */
     { fancy_button_proc,   480, 340, 110,  40, 0, -1, 0, 0, 0, 0x80, "Cancel", NULL, cancel_changes_pressed }, /* 21 */
     { d_yield_proc,          0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
@@ -238,6 +245,12 @@ void options_menu_run (void)
     old_music_desired_volume = music_desired_volume;
 
     /* Brightness. */
+    /*
+     * gamma = 1.5 --> d2 =  0/10
+     * gamma = 1.0 --> d2 =  5/10
+     * gamma = 0.5 --> d2 = 10/10
+     */
+    GAMMA_SLIDER.d2 = 10 - ((gamma_factor - 0.5) * 10.);
     old_desired_brightness = GAMMA_SLIDER.d2;
 
     fancy_do_dialog (options_menu, DEFAULT_FOCUS);
@@ -295,7 +308,8 @@ void load_config (int *desired_stretch_method)
     music_desired_volume = get_config_float (CONFIG_SECTION, "music_volume_factor", 1.0);
 
     /* Brightness. */
-    get_config_float (CONFIG_SECTION, "brightness", 1.0);
+    gamma_factor = get_config_float (CONFIG_SECTION, "gamma", 1.0);
+    gamma_factor = MID (0.5, gamma_factor, 1.5);
 
     /* Other stuff. */
     strcpy (name_editbox_buf, get_config_string (CONFIG_SECTION, "name", "Gutless"));
@@ -333,7 +347,7 @@ void save_config (void)
     set_config_float (CONFIG_SECTION, "music_volume_factor", music_desired_volume);
 
     /* Brightness. */
-    set_config_float (CONFIG_SECTION, "brightness", 1.0);
+    set_config_float (CONFIG_SECTION, "gamma", gamma_factor);
 
     /* Other stuff. */
     set_config_string (CONFIG_SECTION, "name", name_editbox_buf);

@@ -5,9 +5,11 @@
 
 
 #include <allegro.h>
+#include <math.h>
 #include "bitmask.h"
 #include "bitmaskg.h"
 #include "extdata.h"
+#include "gamma.h"
 #include "magic4x4.h"
 
 
@@ -33,6 +35,9 @@ static void callback (DATAFILE *d)
 	}
 	else if (!property_exists (d, DAT_MAGK)) {
 	    BITMAP *old = d->dat;
+
+	    apply_gamma (old, gamma_factor);
+
 	    d->dat = get_magic_bitmap_format (old, 0);
 
 	    if (property_exists (d, DAT_BRIG)) {
