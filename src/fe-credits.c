@@ -12,7 +12,7 @@
 
 static char *credits[] = {
     change_font, "times-new-roman-14-bold", "RED PIXEL II",
-    change_font, "times-new-roman-12-bold", "DEMO II",
+    change_font, "times-new-roman-12-bold", "DEMO 2",
     horizontal_line,
     line_break,
     line_break,
@@ -40,21 +40,10 @@ static char *credits[] = {
     change_font, "times-new-roman-14-bold", "DAVID WANG",
     line_break,
     line_break,
-    change_font, "times-new-roman-10-bold", "SOUNDS STOLEN FROM",
+    change_font, "times-new-roman-10-bold", "SOUND EFFECTS",
+    change_font, "times-new-roman-14-bold", "VARIOUS PLACES",
     line_break,
-    change_font, "times-new-roman-14-bold", "COMMANDO",
-    "CYBERDOGS",
-    "GOLGOLTHA",
-    "KING PIN",
-    "MECHWARRIOR II",
-    "STARCRAFT",
-    line_break,
-    line_break,
-    change_font, "times-new-roman-10-bold", "LIBRARIES",
-    change_font, "times-new-roman-14-bold", "ALLEGRO",
-    "DUMB",
-    "LIBNET",
-    "LUA",
+    horizontal_line,
     line_break,
     line_break,
     line_break,
@@ -90,7 +79,7 @@ void do_credits (void)
 		    fnt = font;
 	    }
 	    else if (strcmp (credits[i], horizontal_line) == 0) {
-		rectfill_wh (dbuf, 25, offy + y + 4, 50, 2, gray);
+		rectfill_wh (dbuf, 25, offy + y + 4, dbuf->w - 50, 2, gray);
 		y += 8;
 	    }
 	    else if (strcmp (credits[i], line_break) == 0) {
