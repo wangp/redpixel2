@@ -49,9 +49,9 @@ static struct {
 };
 
 
-static inline int rnd (int n)
+static inline int rnd (int lower, int upper)
 {
-    return rand() % n;
+    return (rand() % (upper-lower+1)) + lower;
 }
  
 
@@ -68,18 +68,18 @@ void blod_spawn (map_t *map, float x, float y, long nparticles)
     lua_ref_t hook;
 
     while (nparticles--) {
-	obj = object_create_proxy (blod_type_list[rnd (num_blod_types)].name,
+	obj = object_create_proxy (blod_type_list[rand () % num_blod_types].name,
 				   OBJID_CLIENT_PROCESSED);
 	if (!obj)
 	    return;
 
-	object_set_xy (obj, x - rnd (15) + 8, y - rnd (15) + 8);
-	object_set_mass (obj, 0.0005);
+	object_set_xy (obj, x + rnd (-8, 8), y + rnd (-8, 8));
+	object_set_mass (obj, rnd (3000, 8000) / 10000000.);
 	object_set_collision_flags (obj, 1, 0, 0);
 
 	lua_pushcfunction (lua_state, blod_update_hook);
 	hook = lua_ref (lua_state, -1);
-	object_set_update_hook (obj, 1000 * 10, hook);
+	object_set_update_hook (obj, rnd (10 * 1000, 15 * 1000), hook);
 
 	map_link_object (map, obj);
     }
