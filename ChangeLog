@@ -26,4 +26,17 @@ April 1999
 	
 25	autoexp!
 	Fixed bug in tile mode.
-	
+
+28	More stuff to get scripting really going (problem encountered because 
+	SeeR returns CS+offsets for its addresses)
+
+29	Forgot.
+
+30	Lot of object related stuff.  (create_object, rpx_link_object, etc.)
+
+
+May 1999
+
+1	Simple object placement working.
+
+11	Separated palette from dbuf (now dbuf / palbuf).

@@ -18,7 +18,7 @@ int init()
     /* tiles */
     create_tiles_table(200);
     add_tiles_pack("data/tiles.dat");
-            
+    
     /* weapons */
     add_script("scripts/rpg.sc");
     //add_script("scripts/shotgun.sc");

@@ -15,6 +15,15 @@ typedef struct script_file
 static script_file_t *head = NULL;
 
 
+/* addressof:
+ *  Returns the address of a symbol in the current running
+ *  instance.  Designed to be used inside a function.
+ */
+int addressof(char *symbol)
+{
+    return scGet_Symbol(scActual_Instance, symbol);
+}
+
 
 /* script_error:
  *  Outputs SeeR error strings.
@@ -114,9 +123,14 @@ int add_script(char *filename)
     }
     
     add(sf);
-    
+
     scCall_Instance(sf->prog, scGet_Symbol(sf->prog, "script_main"));
-   
+    if (scErrorNo) {
+	errprintf("Error calling `script_main' in %s!\n", filename);
+	//script_error();
+	//return -1;
+    }
+
     return 0;
 }
 

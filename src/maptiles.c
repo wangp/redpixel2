@@ -3,7 +3,6 @@
 #include <allegro.h>
 
 #include "mapedit.h"
-#include "hash.h"
 #include "dirty.h"
 #include "defs.h"
 #include "tiles.h"
@@ -160,7 +159,7 @@ static void palette_draw()
 	{
 	    i = y+x;
 	    if (i < tiles->size && (bmp = tiles->tbl[i].data)) {
-		draw_sprite(dbuf, bmp, palette_x+x*TILE_W, yoff);
+		draw_sprite(palbuf, bmp, x*TILE_W, yoff);
 	    } else 
 	      return;	    
 	}	   
@@ -175,7 +174,8 @@ static void palette_draw()
 static void force_redraw_palette()
 {
     palette_draw();
-    mark_dirty(palette_x, 0, SCREEN_W-screen_w, screen_h);
+    force_draw_palette = 1;
+    //mark_dirty(palette_x, 0, SCREEN_W-screen_w, screen_h);
 }
 
 static void palette_key()
@@ -196,7 +196,7 @@ static void palette_key()
 static void palette_select(int x, int y, int b)
 {
     int v = palette_top + (y / TILE_H) * 2;
-    int u = (x - palette_x) / TILE_W;
+    int u = x / TILE_W;
     int i = u + v;
     
     if (i < tiles->size)

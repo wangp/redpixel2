@@ -14,5 +14,7 @@
 
 typedef unsigned int msg_t;	       /* $-export */
 
+typedef int seer_addr;		       /* $-export */
+
 
 #endif

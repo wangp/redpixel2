@@ -11,24 +11,28 @@
 #include "dirty.h"
 #include "mapedit.h"
 #include "maptiles.h"
+#include "mapobjs.h"
 #include "rpx.h"
 #include "export.h"
 
 
 
-BITMAP *dbuf;			   
+BITMAP *dbuf;			       /* double buffer */
+BITMAP *palbuf;			       /* palette buffer */
 
 
 int top, left;			       /* top left of screen (in tiles) */
 int palette_x;			       /* where the icon palette starts */
 int screen_w, screen_h;		       /* taking into account palette_x */
+int force_draw_palette;
 
 
 /* edit modes
  */
 struct editmode *mode_tbl[] =
 {
-    &mode_tiles, 
+    &mode_tiles,
+    &mode_objects,
     NULL
 };
 
@@ -64,7 +68,7 @@ static void halcyon()
     
     reset_dirty();
     not_dirty = 0;
-    force_draw = 1;
+    force_draw = force_draw_palette = 1;
     
     mode = mode_tbl[0];
  
@@ -75,10 +79,11 @@ static void halcyon()
 	while ((tmp = mode_tbl[i++])) {
 	    if (key[tmp->switchkey]) {
 		mode = tmp;
+		force_draw = 1;
+		force_draw_palette = 1;
 		break;
 	    }
 	}	
-	
 	
 	if (mouse_x < screen_w)	       /* inside editing area */
 	{
@@ -140,7 +145,7 @@ static void halcyon()
 	      mode->palette_key();
 	    
 	    if (mouse_b && mode->palette_click)
-	      mode->palette_click(mouse_x, mouse_y, mouse_b);
+	      mode->palette_click(mouse_x - palette_x, mouse_y, mouse_b);
 	}			    
 	
 	/* update screen */
@@ -167,6 +172,15 @@ static void halcyon()
 	    show_mouse(screen);
 
 	    force_draw = 0;
+	}
+	
+	/* update palette */
+	if (force_draw_palette) {
+	    show_mouse(NULL);
+	    blit(palbuf, screen, 0, 0, palette_x, 0, palbuf->w, palbuf->h);
+	    show_mouse(screen);
+	    clear(palbuf);
+	    force_draw_palette = 0;
 	}
 	
 	if (key[KEY_Q])
@@ -201,22 +215,25 @@ int main(int argc, char **argv)
 	consoleprintf("Couldn't set video mode %dx%dx%dbpp\n", w, h, bpp);
 	return 1;
     }
-    
-    dbuf = create_bitmap(SCREEN_W, SCREEN_H);
+
+    palette_x = SCREEN_W-TILE_W*2;
+    screen_w = palette_x;
+    screen_h = SCREEN_H;
+       
+    dbuf = create_bitmap(screen_w, SCREEN_H);
+    palbuf = create_bitmap(SCREEN_W - palette_x, SCREEN_H);
     
     export();
     exec_script("scripts/init.sc", "init");
     
     reset_rpx();
     
-    palette_x = SCREEN_W-TILE_W*2;
-    screen_w = palette_x;
-    screen_h = SCREEN_H;
-   
     halcyon();
     
     destroy_tiles_table();
+    
     destroy_bitmap(dbuf);
+    destroy_bitmap(palbuf);
     
     free_scripts();
     

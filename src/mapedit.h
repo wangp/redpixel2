@@ -24,10 +24,12 @@ typedef struct editmode {
 
 
 extern BITMAP *dbuf;		       /* $-export */
+extern BITMAP *palbuf;
 
 extern int top, left;
 extern int palette_x;
 extern int screen_w, screen_h;
+extern int force_draw_palette;
 
 
 #endif

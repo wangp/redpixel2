@@ -55,7 +55,7 @@ static int _add_cb(DATAFILE *e)
 
 	add_convtable_item(tiles, buf, b2);
 		    
-	debugprintf("\t%s\n", buf);
+	//debugprintf("\t%s\n", buf);
     }    
     
     return 0;
@@ -67,7 +67,7 @@ void add_tiles_pack(char *filename)
     if (!dat)
       return;
     
-    debugprintf("adding %s...\n", filename);
+    debugprintf("Adding %s...\n", filename);
     
     _fn = get_filename(filename);
     df_foreach(dat, _add_cb);

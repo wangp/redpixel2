@@ -13,8 +13,14 @@ int df_foreach(DATAFILE *dat, int (*callback)(DATAFILE *d));
 
 unsigned char *bmp_line(BITMAP *bmp, unsigned int row);	
 int bmp_w(BITMAP *b);		
-int bmp_h(BITMAP *b);	
+int bmp_h(BITMAP *b);
 
 /* $-end-export-block  */
+
+
+#if 0				       /* for SeeR Scripts only $-*/
+extern int printf (char* format, ...); /* $-export */
+#endif
+
 
 #endif

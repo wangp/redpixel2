@@ -156,7 +156,7 @@ char *find_comment(char *line)
 }
 
 
-void insert_line(char *fmt, ...)
+void insert_seer_line(char *fmt, ...)
 {
     char buf[1024];
     va_list va;
@@ -168,7 +168,7 @@ void insert_line(char *fmt, ...)
     
     for (i=0; i < MAX_OUTPUTS; i++)
     {
-	if (output_files[i].type != none)
+	if (output_files[i].type == seer)
 	{
 	    if (writeout_filename)
 	      fprintf(output_files[i].fp, "\n/* %s */\n", writeout_filename);
@@ -203,13 +203,13 @@ int scan_line(char *line)
 	p += strlen(TAG_STRUCT_START) + 1;
 	name = strtok(p, " \t");
 	if (name) {
-	    insert_line("\nstruct %s {\n", name);
+	    insert_seer_line("\nstruct %s {\n", name);
 	    inside_struct = 1;
 	}
     }
     if (strstr(comment, TAG_STRUCT_END)) {
 	inside_struct = 0;
-	insert_line("};\n");
+	insert_seer_line("};\n");
 	return 0;
     }
     
@@ -341,8 +341,10 @@ void export_csrc_line(FILE *fp, char *line)
 {
     char *copy = strdup(line), *symbol;
     symbol = get_symbol(copy);
-    if (symbol)
-      fprintf(fp, "scAddExtSym(%s);\n", symbol);
+    if (symbol) {
+	if (!strstr(line, "typedef ") && !inside_struct)
+	  fprintf(fp, "scAddExtSym(%s);\n", symbol);
+    }
     free(copy);
 }
 

@@ -6,8 +6,8 @@
 #include "scripts/allegro.sh"
 #include "scripts/imports.sh"
 
-export init;
-export deinit;
+export script_main;
+export script_exit;
 
 
 DATAFILE *dat;
@@ -41,6 +41,7 @@ void weapon_pickup(msg_t msg, object_t *obj, player_t *pl)
      */
 }
 
+
 void rpg(msg_t msg, player_t *pl)
 {
     /*
@@ -62,22 +63,19 @@ void rpg(msg_t msg, player_t *pl)
 int script_main()
 {
     dat = load_datafile("data/rpg.dat");
-    if (!dat) 
+    if (!dat)
       return -1;
 
-    ammo 	= df_get_item(dat, "ammo");
-    weapon 	= df_get_item(dat, "weapon");
-    projectile  = df_get_item(dat, "ejected");
-    status 	= df_get_item(dat, "status");
+    ammo 	= df_dat(df_get_item(dat, "ammo"));
+    weapon 	= df_dat(df_get_item(dat, "weapon"));
+    projectile  = df_dat(df_get_item(dat, "ejected"));
+    status 	= df_dat(df_get_item(dat, "status"));
 
     typenum = create_weapon_type("rpg");
-    if (typenum == -1)		       /* too many weapon types */
-      return -1;
+    assign_weapon_handler(typenum, addressof("rpg"));
     
-    set_weapon_handler(typenum, rpg);
-        
-    create_item_type("rpg;ammo", ammo_pickup);
-    create_item_type("rpg;weapon", weapon_pickup);
+    create_object_type("rpg;ammo", addressof("ammo_pickup"), ammo);
+    create_object_type("rpg;weapon", addressof("weapon_pickup"), weapon);
        
     return 0;
 }

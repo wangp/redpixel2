@@ -16,13 +16,15 @@ XLIBS 	= -lseerd -L/usr/X11R6/lib -Wl,-rpath,/usr/local/lib /usr/local/lib/libal
 #	Object dependencies
 #----------------------------
 
-COMMONOBJS = mapedit.o report.o wrapper.o script.o hash.o tiles.o dirty.o \
-	     maptiles.o convtbl.o rpx.o export.o exalleg.o
+COMMONOBJS = mapedit.o report.o wrapper.o script.o tiles.o dirty.o maptiles.o \
+	     convtbl.o rpx.o export.o exalleg.o player.o object.o \
+	     mapobjs.o weapon.o
 
 DOSOBJS = $(addprefix dosobj/,$(COMMONOBJS))
 XOBJS   = $(addprefix xobj/,$(COMMONOBJS))
 
-AUTOEXP_SRC = defs.h mapedit.h script.h tiles.h wrapper.h object.h
+AUTOEXP_SRC = defs.h mapedit.h script.h tiles.h wrapper.h object.h \
+	      player.h weapon.h
     
 AUTOEXP_DEPS = $(addprefix src/,$(AUTOEXP_SRC))
 
@@ -37,17 +39,20 @@ all :
 	@echo "Pick a target, any target:"
 	@echo "	   make { dos X }"
 
+dosobj/export.o : src/_export.c
+xobj/export.o : src/_export.c
+
 dosobj/%.o : src/%.c
 	$(COMPILE.c) $(DOSFLAGS) -o $@ $<
 
 xobj/%.o : src/%.c
 	$(COMPILE.c) $(XFLAGS) -o $@ $<
+	
+mapedit.exe : $(DOSOBJS) 
+	$(CC) $(DOSFLAGS) -o $@ $(DOSOBJS) $(DOSLIBS)
 
-mapedit.exe : $(DOSOBJS)
-	$(CC) $(DOSFLAGS) -o $@ $^ $(DOSLIBS)
-
-mapedit : $(XOBJS)
-	$(CC) $(XFLAGS) -o $@ $^ $(XLIBS)
+mapedit : $(XOBJS) 
+	$(CC) $(XFLAGS) -o $@ $(XOBJS) $(XLIBS)
 
 
 #----------------------------
