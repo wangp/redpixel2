@@ -253,7 +253,7 @@ local animate_player_proxy_firing = function (self)
 	    local anim = self.current_weapon.arm_anim
 	    self.arm_tics = anim.tics or 5
 	    self.arm_frame = self.arm_frame + 1
-	    if self.arm_frame > self.last_arm_frame then
+	    if self.arm_frame > getn (self.current_weapon.arm_anim) then
 		self.arm_frame = 1
 		self.animate_arm = false
 	    end
@@ -339,7 +339,6 @@ local player_proxy_init = function (self)
 	if not self.animate_arm then
 	    self.animate_arm = true
 	    self.arm_tics = 0
-	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
 	end
 	if self.current_weapon.sound then
 	    play_sound (self, self.current_weapon.sound)
