@@ -471,6 +471,20 @@ generate {
 }
 
 generate {
+    cname	= "svgame_tell_health",
+    lname	= "_internal_tell_health",
+    args	= {{ Object, "obj" },
+		   { Int, "health" }}
+}
+
+generate {
+    cname	= "svgame_tell_ammo",
+    lname	= "_internal_tell_ammo",
+    args	= {{ Object, "obj" },
+		   { Int, "ammo" }}
+}
+
+generate {
     cname	= "client_set_camera",
     lname	= "_internal_set_camera",
     args	= {{ Int, "pushable" },	-- XXX should be Bool

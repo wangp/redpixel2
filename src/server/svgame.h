@@ -21,6 +21,8 @@ void svgame_spawn_explosion (const char *name, float x, float y);
 void svgame_spawn_blast (float x, float y, float radius, int damage);
 void svgame_call_method_on_clients (struct object *obj, const char *method, const char *arg);
 int svgame_object_would_collide_with_objects (struct object *obj);
+int svgame_tell_health (struct object *obj, int health);
+int svgame_tell_ammo (struct object *obj, int ammo);
 
 
 extern struct server_state_procs *svgame_procs;

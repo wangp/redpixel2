@@ -772,6 +772,34 @@ int svgame_object_would_collide_with_objects (object_t *obj)
 }
 
 
+void svgame_tell_health (object_t *obj, int health)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!object_is_client (obj))
+	return;
+
+    size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
+			  object_id (obj), 'h', health);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+void svgame_tell_ammo (object_t *obj, int ammo)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!object_is_client (obj))
+	return;
+
+    size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
+			  object_id (obj), 'a', ammo);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
