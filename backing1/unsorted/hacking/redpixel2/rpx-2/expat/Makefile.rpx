@@ -1,0 +1,69 @@
+#
+# Modified from `Makefile' for use with Red Pixel II.
+# Sunday, 24 October, 1999.
+#
+
+CC = gcc
+
+# If you know what your system's byte order is, define XML_BYTE_ORDER:
+# use -DXML_BYTE_ORDER=12 for little-endian byte order;
+# use -DXML_BYTE_ORDER=21 for big-endian (network) byte order.
+# -DXML_NS adds support for checking of lexical aspects of XML namespaces spec
+# -DXML_MIN_SIZE makes a smaller but slower parser
+
+CFLAGS = -O2 -Ixmltok -Ixmlparse -DXML_NS
+
+
+# Use one of the next two lines; unixfilemap is better if it works.
+
+ifdef DJDIR
+EXE = .exe
+FILEMAP_OBJ = xmlwf/readfilemap.o
+else
+EXE =
+FILEMAP_OBJ = xmlwf/unixfilemap.o
+endif
+
+
+XMLPARSE_OBJS =	xmlparse/xmlparse.o xmlparse/hashtable.o
+XMLTOK_OBJS = xmltok/xmltok.o xmltok/xmlrole.o 
+
+OBJS = $(XMLPARSE_OBJS) $(XMLTOK_OBJS) \
+	xmlwf/xmlwf.o \
+	xmlwf/xmlfile.o \
+	xmlwf/codepage.o \
+	$(FILEMAP_OBJ)
+
+
+all: xmlwf/xmlwf$(EXE) lib
+
+
+.c.o:
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+xmltok/nametab.h: gennmtab/gennmtab$(EXE)
+	rm -f $@
+	gennmtab/gennmtab$(EXE) >$@
+
+xmltok/xmltok.o: xmltok/nametab.h
+
+gennmtab/gennmtab$(EXE): gennmtab/gennmtab.c
+	$(CC) $(CFLAGS) -o $@ gennmtab/gennmtab.c
+
+xmlwf/xmlwf$(EXE): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
+	
+	
+lib/libxmlparse.a: $(XMLPARSE_OBJS)
+	ar rs $@ $^
+	
+lib/libxmltok.a: $(XMLTOK_OBJS)
+	ar rs $@ $^
+
+
+lib: lib/libxmlparse.a lib/libxmltok.a
+
+
+clean:
+	rm -f $(OBJS) xmlwf/xmlwf$(EXE) gennmtab/gennmtab$(EXE)
+	rm -f lib/lib*.a
