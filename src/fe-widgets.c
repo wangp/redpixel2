@@ -278,8 +278,8 @@ int fancy_radio_proc (int msg, DIALOG *d, int c)
 	    blit_fancy_dirty_to_screen (active_dialog);
 	return D_O_K;
     }
-    else if ((msg == MSG_CLICK) && (d->dp3)) {
-	int state1 = (d->flags & D_SELECTED), state2;
+    else if ((msg == MSG_CLICK) && (d->dp3) && !(d->flags & D_SELECTED)) {
+	int state1 = 0, state2;
 	void (*proc)(void) = d->dp3;
 
 	while (gui_mouse_b ()) {
