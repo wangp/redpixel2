@@ -1,0 +1,5 @@
+Note: this copy of `expat' has some new files.
+
+./MODIFIED
+./Makefile.rpx
+./sample/Makefile
