@@ -61,7 +61,7 @@
 #endif
 
 #ifdef PDCDEBUG
-char *rcsid_initscr  = "$Id: initscr.c,v 1.1 2002/12/28 00:11:55 tjaden Exp $";
+char *rcsid_initscr  = "$Id: initscr.c,v 1.2 2003/01/07 01:28:00 tjaden Exp $";
 #else
 char*	_curses_notice = "PDCurses 2.2 - Public Domain 1994";
 #endif
@@ -365,9 +365,9 @@ ACS_STERLING= (chtype)30|A_ALTCHARSET;
 	for (i=0;i<linesrippedoff;i++)
 	{
 		if (linesripped[i].line < 0)
-			(*linesripped[i].init)(newwin(1,COLS,LINES-1,0),COLS);
+			(*(void (*)(WINDOW*, int))linesripped[i].init)(newwin(1,COLS,LINES-1,0),COLS);
 		else
-			(*linesripped[i].init)(newwin(1,COLS,SP->linesrippedoffontop++,0),COLS);
+			(*(void (*)(WINDOW*, int))linesripped[i].init)(newwin(1,COLS,SP->linesrippedoffontop++,0),COLS);
 		SP->linesrippedoff++;
 		LINES--;
 	}
