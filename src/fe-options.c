@@ -206,9 +206,9 @@ static int options_menu_modify_changes_pressed (void)
 	gamma_factor = gamma_slider_d2_to_gamma_factor (GAMMA_SLIDER.d2);
     }
 
-    /* Test the desired video mode if it has been changed. */
-    if ((desired_game_screen_w != old_desired_game_screen_w) ||
-	(desired_game_screen_h != old_desired_game_screen_h)) {
+    if ((w != old_desired_game_screen_w) ||
+	(h != old_desired_game_screen_h)) {
+	/* Test the desired video mode if it has been changed. */
 	if (setup_video (w, h, 0) == 0) {
 	    desired_game_screen_w = w;
 	    desired_game_screen_h = h;
