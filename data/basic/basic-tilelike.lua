@@ -11,14 +11,23 @@ objtype_register ("objtile", "basic-barrel-grey", "/basic/tilelike/barrel-gray/m
 --  Crates
 ----------------------------------------------------------------------
 
-local make_crate_nonproxy_init
-function make_crate_nonproxy_init (health, respawn_secs)
+local make_crate_nonproxy_init = function (health, respawn_secs)
     return function (self)
 	self.health = health
 	function self:receive_damage (amount)
 	    self.health = self.health - amount
 	    if self.health <= 0 then
-		self:hide_and_respawn_later (respawn_secs * 1000)
+		self:hide ()
+		function the_hook (self)
+		    if _internal_would_collide_with_objects (self) then
+			-- try again later
+			self:set_update_hook (700, the_hook)
+		    else
+			self:show ()
+			self:remove_update_hook ()
+		    end
+		end
+		self:set_update_hook (respawn_secs * 1000, the_hook)
 	    end
 	end
     end
