@@ -12,6 +12,7 @@
 
 
 #define MAP_FILES	"*.pit"
+#define MAP_FILE_ATTRIB	~(FA_DIREC | FA_HIDDEN)
 
 static int messages_list_proc (int msg, DIALOG *d, int c);
 static int messages_edit_proc (int msg, DIALOG *d, int c);
@@ -169,7 +170,7 @@ static int select_map_button_pressed (void)
 {
     int n = SERVER_LOBBY_MAPS_LISTBOX.d1;
     char str[1024];
-    char *fn = get_nth_filename (MAP_FILES, FA_RDONLY, n, str);
+    char *fn = get_nth_filename (MAP_FILES, MAP_FILE_ATTRIB, n, str);
 
     return selected_next_map (fn);
 }
@@ -680,7 +681,7 @@ static int file_lister_proc (int msg, DIALOG *d, int c)
     struct al_ffblk info;
     FONT *fnt = store_get_dat ("/frontend/menu/lucida-12");
     int height = (d->h - 10) / text_height (fnt);
-    int list_size = count_files (MAP_FILES, FA_RDONLY);
+    int list_size = count_files (MAP_FILES, MAP_FILE_ATTRIB);
     int my = gui_mouse_y ();
     char str[1024];
 
@@ -695,7 +696,7 @@ static int file_lister_proc (int msg, DIALOG *d, int c)
 		blit (d->dp3, fancy_screen, 0, 0, d->x, d->y, d->w, d->h);
 
 	    /* The text. */
-	    if (al_findfirst (MAP_FILES, &info, FA_RDONLY) != 0)
+	    if (al_findfirst (MAP_FILES, &info, MAP_FILE_ATTRIB) != 0)
 		break;
 
 	    do {
@@ -758,7 +759,7 @@ static int file_lister_proc (int msg, DIALOG *d, int c)
 
 	    if ((my > d->y + 5) && (my < d->y + 5 + height * text_height (fnt)) &&
 		(my < d->y + 5 + list_size * text_height (fnt)))
-		return proc (get_nth_filename (MAP_FILES, FA_RDONLY, d->d1, str));
+		return proc (get_nth_filename (MAP_FILES, MAP_FILE_ATTRIB, d->d1, str));
 	}
 
         case MSG_CHAR:
@@ -782,7 +783,7 @@ static int file_lister_proc (int msg, DIALOG *d, int c)
 		int (*proc)(const char *) = d->dp;
 
 		if (proc)
-		    return proc (get_nth_filename (MAP_FILES, FA_RDONLY, d->d1, str));
+		    return proc (get_nth_filename (MAP_FILES, MAP_FILE_ATTRIB, d->d1, str));
 	    }
 	    else
 		break;
