@@ -1,9 +1,0 @@
-#ifndef _included_df_h_
-#define _included_df_h_
-
-void *df_get_item(DATAFILE *dat, char *name);
-
-int df_count(DATAFILE *dat, int type);
-int df_foreach(DATAFILE *dat, int (*callback)(DATAFILE *d));
-
-#endif

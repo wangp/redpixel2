@@ -1,3 +1,0 @@
-
-void export_allegro();
-

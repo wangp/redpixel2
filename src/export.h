@@ -1,3 +1,1 @@
-
-void export();
-
+void export_symbols ();

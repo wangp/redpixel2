@@ -1,0 +1,134 @@
+2000-06-27  Peter Wang  <tjaden@psynet.net>
+
+	* lights.c: Added light selecting.
+
+	* Merge lightgen.c into luadata.c
+
+	* Embedded Lua into gendata.c (renamed to luadata.c).  No more
+	silly script parsing.
+
+2000-06-26  Peter Wang  <tjaden@psynet.net>
+
+	* Wrote lightgen.c utility to generate light maps.
+
+	* lights.c (event_layer): Right click to remove light, click-drag
+	to move existing light.
+
+	* gui.c (gui_main): Added event GUI_EVENT_KEY_HOLD.
+
+	* magicld.c (load_magic_datafile): New function to load in
+	datafiles and automatically convert bitmaps into "magic" format.
+	store.c (store_load_ex): New function to cope with custom loaders,
+	like the above.
+
+	* lights.c: Hackishly put in some test lighting code.  Really,
+	really slow, but looks cool!
+
+2000-06-25  Peter Wang  <tjaden@psynet.net>
+
+	* map.c: Added lights related stuff.
+
+	* lights.c: New editing mode.
+
+	* editarea.c (event): Scroll map with arrow keys.
+
+	* map.c (map_resize): Fixed problems with `realloc'd areas not
+	being cleared.
+
+2000-06-24  Peter Wang  <tjaden@psynet.net>
+
+	* tiles.c (event_layer): Added tile picking.
+
+2000-06-23  Peter Wang  <tjaden@psynet.net>
+
+	* Made tile inserting operational (barely).
+
+	* map.c: New module (handle map structures).
+
+	* Made most files use Allegro's Unicode string functions.
+
+	* Replaced Wumpus with Store, and made tiles.c use it.
+
+2000-06-20  Peter Wang  <tjaden@psynet.net>
+
+	* editarea.c: New module.
+
+2000-06-19  Peter Wang  <tjaden@psynet.net>
+
+	* tiles.c: Made tile lists see the selectbar state individually
+	(i.e. each remembers how far down the list you have scrolled, and
+	which tile is selected)
+
+	* selbar.c: Made selection list support multiple lists
+	(via left/right arrows on top).
+
+	* modemgr.c: Added editing mode management.
+
+	* uglayout.c: Added routines for dynamic building dialog layouts.
+
+	* panelsel.c renamed to selbar.c (selectbar)
+
+2000-06-18  Peter Wang  <tjaden@psynet.net>
+
+	* Wrote gendata.c utility, to do a "grab from grid" operation in
+	batch mode.
+
+	* selector.c: Made selector functional, then separated selector.c
+	into panelsel.c and edsel.c (widget type), so maybe can reuse the
+	widget later.
+
+	* ugwidget.c: Added widget introspection routines.
+
+	* ugdialog.c (ug_dialog_widget): Allowed dialog to look for its
+	widgets by an id.
+
+	* ugwidget.c (ug_widget_create): Gave widgets an id ability.
+	
+	* ugdialog.c: Added dialog introspection routines (x, y, w, h).
+
+	* guiwmdef.c, gui.h: Removed GUI_EVENT_MOUSE_OVER and added
+	GUI_HINT_STEALFOCUS (grabs focus if mouse is over the window).
+
+	* Imported Wumpus from an old Red Pixel II code base and started
+	making tiles.c use it.
+
+	* resource.c: Start of resources module.
+
+	* Improved UG's ideas of events and signals, but still not perfect
+	(e.g. too much code duplication in ug_event.c)
+
+2000-06-17  Peter Wang  <tjaden@psynet.net>
+
+	* selector.c: Started selector module.
+
+	* Reorganised directory structure.
+
+	* guidirty.c (add_rect): Added overlap checking.
+
+	* guiwmdef.c (window_shade): Added window shading.
+
+	* ugdialog.c (layout_dialog): Rewrote layout routine.  Much nicer
+	and easier to use.
+
+	* ugtheme.c: Added UG themes support, with a The Paw theme and a
+	Motif theme.
+
+	* ugdialog.c (layout_dialog): Added simple layout engine.
+
+2000-06-16  Peter Wang  <tjaden@psynet.net>
+
+	* Started UG, the primitive widget set for GUI.
+
+2000-06-15  Peter Wang  <tjaden@psynet.net>
+
+	* guidirty.c: Added dirty rectangles.
+
+2000-06-11  Peter Wang  <tjaden@psynet.net>
+
+	* guiwmdef.c: Added GUI_EVENT_MOUSE_OVER.
+
+2000-06-10  Peter Wang  <tjaden@psynet.net>
+
+	* Started GUI system (core + window manager).
+
+	* Started mucking about with Stonewheel.
