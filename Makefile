@@ -8,14 +8,17 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/gui src/ug src/editor
 
 CC := gcc
-CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT
-CFLAGS += -I libnet/include
-CFLAGS += $(addprefix -I,$(SRCDIRS)) -g
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
-# CFLAGS += -pg
-# LDFLAGS := -pg
+CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
+	  -I libnet/include $(addprefix -I,$(SRCDIRS)) -g
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
+
+ifndef PROFILE
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+else
+CFLAGS += -O2 -funroll-loops -march=pentium -pg
+LDFLAGS := -pg
+endif
 
 PROGRAM := program$(PLAT_EXE)
 OBJDIR := $(PLAT_OBJDIR)
