@@ -24,7 +24,7 @@ void errorv (const char *fmt, ...)
 
     va_start (ap, fmt);
     uvszprintf (buf, sizeof buf, fmt, ap);
-    va_end (fmt);
+    va_end (ap);
 
     error (buf);
 }
