@@ -39,7 +39,6 @@ blast_t *blast_create (float x, float y, float radius, int damage,
     b->y = y;
     b->max_radius = radius;
     b->max_damage = damage;
-    b->r = 0;
     b->visual_only = visual_only;
 
     return b;
@@ -67,7 +66,7 @@ static inline void do_blast_check (blast_t *blast, list_head_t *object_list)
 	dy = object_y (obj) - blast->y;
 	dist = fast_fsqrt ((dx * dx) + (dy * dy));
 	
-	if ((dist <= blast->r) && (dist > blast->r - SPREAD_SPEED)) {
+	if ((dist < blast->r) && (dist >= blast->r - SPREAD_SPEED)) {
 	    dmg = blast->max_damage * (1.5 - dist/blast->max_radius);
 	    dmg = MIN (dmg, blast->max_damage);
 	    if (dmg > 0) {
