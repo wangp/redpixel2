@@ -119,6 +119,7 @@ void object_remove_all_lights (object_t *);
 #define OBJECT_MASK_MAX		5
 
 int object_set_mask (object_t *, int mask_num, const char *key, int offset_x, int offset_y);
+void object_set_masks_centre (object_t *obj, int centre_x, int centre_y);
 int object_remove_mask (object_t *, int mask_num);
 void object_remove_all_masks (object_t *);
 

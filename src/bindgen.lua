@@ -332,6 +332,13 @@ generate {
 }
 
 generate {
+    cname	= "object_set_masks_centre",
+    args	= {{ Object, "obj" },
+		   { Int, "xoffset" },
+		   { Int, "yoffset" }}
+}
+
+generate {
     cname	= "object_remove_mask",
     args	= {{ Object, "obj" },
 		   { Int, "masknumber" }},

@@ -805,16 +805,26 @@ int object_set_mask (object_t *obj, int mask_num, const char *key,
     bitmask_t *mask;
     
     mask = store_dat (key);
-    if ((!mask) || (mask_num < 0) || (mask_num > 4))
+    if ((!mask) || (mask_num < 0) || (mask_num >= OBJECT_MASK_MAX))
 	return -1;
 
     return set_mask (obj, mask_num, mask, 0, centre_x, centre_y);
 }
 
 
+void object_set_masks_centre (object_t *obj, int centre_x, int centre_y)
+{
+    int i;
+    for (i = 0; i < OBJECT_MASK_MAX; i++) {
+	obj->mask[i].centre_x = centre_x;
+	obj->mask[i].centre_y = centre_y;
+    }
+}
+
+
 int object_remove_mask (object_t *obj, int mask_num)
 {
-    if ((mask_num < 0) || (mask_num > 4))
+    if ((mask_num < 0) || (mask_num >= OBJECT_MASK_MAX))
 	return -1;
     bitmask_ref_destroy (obj->mask[mask_num].ref);
     obj->mask[mask_num].ref = NULL;

@@ -26,6 +26,7 @@ function _object_init_hook (self)
 	self.set_collision_flags = object_set_collision_flags
 	self.add_creation_field = object_add_creation_field
 	self.set_mask = object_set_mask
+	self.set_masks_centre = object_set_masks_centre
 	self.remove_mask = object_remove_mask
 	self.remove_all_masks = object_remove_all_masks
 	self.receive_damage = %dummy
@@ -50,6 +51,7 @@ function _object_init_hook (self)
 	self.set_collision_flags = %dummy
 	self.add_creation_field = %dummy
 	self.set_mask = %dummy
+	self.set_masks_centre = %dummy
 	self.remove_mask = %dummy
 	self.remove_all_masks = %dummy
 	self.receive_damage = %dummy
