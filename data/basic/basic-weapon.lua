@@ -76,7 +76,8 @@ Weapon {
 	"/basic/weapon/blaster/1arm000",
 	"/basic/weapon/blaster/1arm001",
 	"/basic/weapon/blaster/1arm002",
-	"/basic/weapon/blaster/1arm003";
+	"/basic/weapon/blaster/1arm003",
+	"/basic/weapon/blaster/1arm004";
 	cx = 0, cy = 3, tics = 2
     },
     fire = function (player)
