@@ -1,0 +1,170 @@
+
+		WUMPUS, the smelly Allegro extension.
+
+Introduction
+
+    Wumpus is an abstraction layer for Allegro DATAFILEs that allows
+    you to access the items via their names, rather than their index
+    numbers.  While this is not new, and can be easily done without
+    using an external library, Wumpus uses hash tables to quickly
+    find the item you want.
+
+    You can also load many separate datafiles together and use them
+    as a single unit (see `gellopy').
+
+    The API is designed to be consistent with Allegro.
+	
+	
+Compiling
+
+    Edit the makefile accordingly, then run `make'.
+
+
+Wumpii
+
+    Wumpii are datafiles with hash tables to the items attached.
+	
+    WUMPUS *load_wumpus(char *filename);
+
+	Load a datafile (.dat) file into memory, returning a pointer
+	to a WUMPUS structure if successful, or NULL on error.
+	Automatically hashes the items in the file.
+
+    void unload_wumpus(WUMPUS *w);
+
+	Frees the wumpus from memory.
+
+    void rebuild_wumpus_hash(WUMPUS *w);
+
+        If you manually hack at the datafile structure in your code,
+	then run this function on the wumpus to rebuild the internal
+	hash table.
+
+    DATAFILE *wumpus_datafile(WUMPUS *w, char *key)
+	
+	Retrieve item KEY from wumpus.
+	
+    void *wumpus_dat(WUMPUS *w, char *key)
+
+	Retrieve the .dat field, rather than the DATAFILE * itself.
+
+    char *get_wumpus_property(WUMPUS *w, char *key, int type)
+	
+        Get the datafile property of TYPE from item KEY.
+	
+    char *get_wumpus_tag(WUMPUS *w, char *key, char *type)
+
+	Same, but allows you to pass a 4 byte string for the type,
+	rather than a DAT_ID.
+
+
+Gellopii
+
+    The `fat_gellopy' is a big internal hash table of all the
+    datafiles that have been linked into it.  Note that if you are
+    using gellopii you do not need to use wumpii.
+
+    If two wumpuses have name space collisions, then the one linked
+    in second will override the original.  This way you can set up
+    PWAD (patch WAD) systems ala DOOM.
+
+    int install_gellopy(int size);
+
+	Call this at the start of your program to set the size of the
+	fat_gellopy hash table.  A larger hash table requires more
+	memory, but reduces the chance of a collision in your table
+	(which will slow down retrieval times).
+
+    void remove_gellopy();
+
+	You should not normally need to call this manually, as
+	install_gellopy will set up an atexit call to it.
+
+    void link_datafile(DATAFILE *d, char *basename);
+    void unlink_datafile(DATAFILE *d);
+    void link_wumpus(WUMPUS *w, char *basename);
+    void unlink_wumpus(WUMPUS *w);
+
+ 	Link and unlink DATAFILEs and WUMPUSes into the fat gellopy.
+	When you unlink a file, wumpus will automatically rebuild
+	the entire fat gellopy hash table.
+
+    DATAFILE *gellopy_datafile(char *key)
+    void *gellopy_dat(char *key)
+    char *get_gellopy_property(char *key, int type)
+    char *get_gellopy_tag(char *key, char *type)
+	
+	See section WUMPII.
+
+	
+Hash table functions
+
+    See hash.c if you want to use them.
+	
+
+Alternative spellings...
+
+    #define HASHED_DATAFILE		WUMPUS
+    #define load_hashed_datafile	load_wumpus
+    #define unload_hashed_datafile	unload_wumpus
+    #define rebuild_hash_table		rebuild_wumpus_hash
+    #define install_hashed_datafile	install_gellopy
+    #define remove_hashed_datafile	remove_gellopy
+    #define link_hashed_datafile	link_wumpus
+    #define unlink_hashed_datafile	unlink_wumpus
+	
+    The use of these `alternative spellings' is discouraged.
+	
+	
+Example	usage
+
+    See example.c
+
+
+Credits
+
+    Peter Wang mashed this together.
+
+    Jerry Coffin and HenkJan Wolthuis wrote the hash table code,
+    which was put in the Snippets collection (public domain).
+
+	
+Contact
+
+    Email:	tjaden@psynet.net
+    WWW: 	http://www.psynet.net/tjaden/
+	
+    BTW, can someone confirm the spelling of `gellopy'?
+
+
+History
+
+    29/06/1999
+
+	Thought of idea to create a new WAD-style file format for Red
+	Pixel II, based off ideas from `mie'.  Designed structure of
+	file and began creating structures in code. As it turns out,
+	the file format did not really offer anything that Allegro
+	datafiles did not provide (except a better grabbing utility)
+	so the code was scrapped, and this was written.
+
+    30/06/1999
+
+	Got idea to do a global hash table for all datafiles, so the
+	gellopy stuff was written. 
+	
+    01/07/1999
+    
+        Editted header a bit to make it work with Allegro 3.9.20.
+	
+	
+    05/09/1999
+    
+        Editted header (extern "C") for C++ programs -- untested.
+	
+	
+    25/09/1999
+      
+        Fixed example.c to work with Allegro 3.9.25.
+	Changed Makefile (removed platform.XXX).
+	Fixed bugs in unlink_datafile and unlink_wumpus.
