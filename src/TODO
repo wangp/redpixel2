@@ -1,0 +1,5 @@
+think more about client and server on the same machine
+	who is in charge of the map and objects data
+	who does the controlling of objects and replication
+	who receives raw input?
+	what is the point of the client if the server does most these things

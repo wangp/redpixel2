@@ -18,6 +18,8 @@ local player = {
     end,
 
     process = function (self)
+	if self.role == "authority" then return end
+
 	self.anim = self.anim + 1
 	if self.anim < 3 then return end
 	self.anim = 0

@@ -138,6 +138,12 @@ int net_client_poll ()
 }
 
 
+int net_client_connected ()
+{
+    return state == STATE_CONNECTED;
+}
+
+
 void net_client_disconnect ()
 {
     if (state == STATE_CONNECTED)

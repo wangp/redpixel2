@@ -217,7 +217,7 @@ static int read_lights (map_t *map, PACKFILE *f)
 }
 
 
-static int read_objects (map_t *map, PACKFILE *f)
+static int read_objects (map_t *map, PACKFILE *f, int loadobjects)
 {
     int num, i;
     char tmp[1024];
@@ -236,13 +236,17 @@ static int read_objects (map_t *map, PACKFILE *f)
 	if ((x == EOF) || (y == EOF))
 	    goto error;
 
-	p = object_create (tmp);
-	if (!p)
-	    goto error;
-	else {
-	    p->x = x;
-	    p->y = y;
-	    map_link_object (map, p);
+	/* If we are the client, skip object creation as the server
+	 * will send replicate them to us anyway.  */
+	if (loadobjects) {
+	    p = object_create (tmp, OBJECT_ROLE_AUTHORITY);
+	    if (!p)
+		goto error;
+	    else {
+		p->x = x;
+		p->y = y;
+		map_link_object (map, p);
+	    }
 	}
     }
 
@@ -280,7 +284,7 @@ static int read_starts (map_t *map, PACKFILE *f)
 }
 
 
-map_t *map_load (const char *filename)
+map_t *map_load (const char *filename, int loadobjects)
 {
     PACKFILE *f;
     map_t *map = 0;
@@ -336,7 +340,7 @@ map_t *map_load (const char *filename)
 		break;
 
 	    case MARK_OBJECTS:
-		if (read_objects (map, f) < 0)
+		if (read_objects (map, f, loadobjects) < 0)
 		    goto error;
 		break;
 

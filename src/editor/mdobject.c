@@ -265,7 +265,7 @@ static int event_layer (int event, struct editarea_event *d)
 		move = 0;
 	    }
 	    else if (!p) {
-		p = object_create (selectbar_selected_name ());
+		p = object_create (selectbar_selected_name (), OBJECT_ROLE_AUTHORITY);
 		p->x = x;
 		p->y = y;
 		map_link_object (map, p);

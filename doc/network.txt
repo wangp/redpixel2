@@ -1,6 +1,7 @@
 
- [  This stuff is design only and has not been implemented yet.  ]
- [  It is mostly based on the Unreal networking architecture.    ]
+    This stuff is design only and has not been implemented yet.  
+    It is mostly based on the Unreal networking architecture.    
+    It may or may not be out of date.
 
 The game server is authoritive, game clients contain only proxies of
 game objects.  The game client performs simple physics so that state
@@ -37,11 +38,28 @@ example, say the player has touched a lightamp object (on the server):
 Some scripts may run on the client, but they must explicitly do so.
 	[ figure out how to do this ]
 
+----------------------------------------------------------------------
+
 Things requiring replication:
 
        object creation, destruction
        object variable changes
        special function calls (eg. play_sound on client)
+
+CREATION - an object's type, id, x, y, xv, yv are the only data to be
+sent from the server.  On the client, the object's [lua] `init'
+function must initialise the rest of the object.
+
+DESTRUCTION - the server sends an id, which the client can then search
+for and destroy
+
+VARIABLE CHANGES - only these C variables may be changed via direct
+replication: x, y, xv, yv.  The rest (such as render type) are
+replicated function calls.  Any Lua variable may be replicated.
+
+FUNCTION CALLS - require a special procotol (based on Lua API?)
+
+----------------------------------------------------------------------
 
 Unfortunately it is not that simple, as the client has to tell the
 server the players' actions, and therefore the player expects a
@@ -72,8 +90,7 @@ Bullet firing involves:
 	 6.2. if invalid, tell the client to destroy the
 	       object (through a DESTROY OBJECT packet)
 
-
---------------------
+----------------------------------------------------------------------
 
 Here are terms used by the UT networking architecture, which may be
 useful when implementing.  It's good sometimes to be able recognise
@@ -91,3 +108,7 @@ doing something right, or at least not in uncharted territory.
             opposed to simulation, is done.  
 
       AUTHORITY - I am on the game server.
+
+
+RP2 has an instance variable called `role' in object_t (and the
+corresponding lua object), which can either be `proxy' or `authority'.

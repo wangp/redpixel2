@@ -61,6 +61,7 @@ static void __export__object_type_register (void)
 
 static void __export__object_set_visual_bitmap (void)
     /* (object, bitmap) : (none) */
+    /* YYY: not on server */
 {
     lua_Object obj;
     const char *bmp;
@@ -80,6 +81,7 @@ static void __export__object_set_visual_bitmap (void)
 
 static void __export__object_set_visual_image (void)
     /* (object, visual-rep) : (none) */
+    /* YYY: not on server */
 {
     lua_Object obj, rep;
     lua_Object elem;
@@ -151,6 +153,7 @@ static void __export__object_set_visual_image (void)
 
 static void __export__object_set_visual_anim (void)
     /* (object, visual-rep, time) : (none) */
+    /* YYY: not on server */
 {
     lua_Object obj, rep, elem;
     float time;
@@ -198,6 +201,7 @@ static void __export__object_set_visual_anim (void)
 
 static void __export__object_set_collision_masks (void)
     /* (object, mask, mask-top, mask-bottom, mask-left, mask-right) : (none) */
+    /* YYY: on server, but also replicate to client */
 {
     object_t *p;
     bitmask_t *mask;
@@ -223,12 +227,16 @@ static void __export__object_set_collision_masks (void)
 
 static void __export__object_destroy (void)
     /* (object) : (none) */
+    /* YYY: replicate to client */
 {
     object_t *p;
     
     if (istable (1)) {
 	p = get_userdata_element (gettable (1), "_parent");
-	if (p) p->dying = 1;
+	if (p && (p->role == OBJECT_ROLE_AUTHORITY)) {
+	    p->dying = 1;
+	    gamenet_server_replicate_object_destroy (p->id);
+	}
     }
 }
 

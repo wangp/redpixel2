@@ -40,6 +40,7 @@ void map_generate_tile_mask (map_t *map);
 
 void map_link_object (map_t *map, object_t *obj);
 void map_unlink_object (map_t *map, object_t *obj);
+object_t *map_find_object (map_t *map, int id);
 
 light_t *map_light_create (map_t *map, int x, int y, int lightmap);
 void map_light_destroy (map_t *map, light_t *light);

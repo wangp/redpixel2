@@ -21,7 +21,7 @@
 #include "map.h"
 
 
-int editor (int argc, char *argv[])
+int editor ()
 {
     font = &_new_font;
 

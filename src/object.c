@@ -15,10 +15,35 @@
 static bitmask_t *bitmask_create_from_magic_bitmap (BITMAP *bmp);
 
 
-object_t *object_create (const char *type_name)
+static unsigned int id;
+
+
+static void set_role (object_t *p, int role)
+{
+    lua_beginblock ();
+
+    lua_pushobject (lua_getref (p->self));
+    lua_pushstring ("role");
+ 
+    p->role = role;
+    if (role == OBJECT_ROLE_PROXY)
+	lua_pushstring ("dumb");
+    else if (role == OBJECT_ROLE_AUTHORITY)
+	lua_pushstring ("authority");
+    else
+	lua_pushnil ();
+
+    lua_rawsettable ();
+
+    lua_endblock ();
+}
+
+
+object_t *object_create (const char *type_name, int role)
 {
     object_t *p;
     object_type_t *type;
+    lua_Object table, self, init;
     
     type = object_types_lookup (type_name);
     if (!type) return 0;
@@ -27,10 +52,13 @@ object_t *object_create (const char *type_name)
     
     if (p) {
 	p->type = type;
+	p->id = id++;
+	set_role (p, role);
 
 	lua_beginblock ();
 
-	lua_pushobject (lua_createtable ());
+	self = lua_createtable ();
+	lua_pushobject (self);
 	p->self = lua_ref (1);
 
 	lua_pushobject (lua_getref (p->self));
@@ -43,17 +71,15 @@ object_t *object_create (const char *type_name)
 	p->mask = bitmask_create_from_magic_bitmap (p->bitmap);
 		/* XXX: memory wastage and leak */
 
-    	/* XXX */
-	/* init (self, type-name) : (no output) */
-	if (lua_istable (lua_getref (p->type->table))) {
-	    lua_Object init;
-
-	    lua_pushobject (lua_getref (p->type->table));
+	/* call object init (self, type-name) */
+	table = lua_getref (p->type->table);
+	if (lua_istable (table)) {
+	    lua_pushobject (table);
 	    lua_pushstring ("init");
 	    init = lua_gettable ();
 
 	    if (lua_isfunction (init)) {
-		lua_pushobject (lua_getref (p->self));
+		lua_pushobject (self);
 		lua_pushstring (p->type->name);
 		lua_callfunction (init);
 	    }

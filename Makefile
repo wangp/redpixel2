@@ -2,7 +2,7 @@
 ## Makefile for Red Pixel II
 ##
 
-SRCDIRS = src src/net src/store src/gui src/ug src/editor 
+SRCDIRS = src src/net src/store src/magic src/gui src/ug src/editor 
 
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
 LOADLIBES = `allegro-config --libs` -llua -lnet
@@ -15,6 +15,10 @@ OBJDIR = obj/linux
 MODULES_STORE =					\
 	hash					\
 	store
+
+MODULES_MAGIC =					\
+	magic4x4				\
+	magicrot
 
 MODULES_GUI =					\
 	gui					\
@@ -67,11 +71,10 @@ MODULES_GAME =					\
 	game					\
 	gameinit				\
 	gameloop				\
+	gamenet					\
 	loaddata				\
 	loadhelp				\
 	luastack				\
-	magic4x4				\
-	magicrot				\
 	main					\
 	map					\
 	mapfile					\
@@ -81,10 +84,12 @@ MODULES_GAME =					\
 	objtypes				\
 	path					\
 	render					\
-	scripts
+	scripts					\
+	yield
 
 MODULES = 					\
 	$(MODULES_STORE) 			\
+	$(MODULES_MAGIC)			\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\

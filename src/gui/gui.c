@@ -4,10 +4,10 @@
  */
 
 
-#include <unistd.h>		/* XXX: for sleep */
 #include <allegro.h>
 #include "gui.h"
 #include "guiinter.h"
+#include "yield.h"
 
 
 static BITMAP *bmp;
@@ -123,8 +123,7 @@ void gui_main ()
 	    gui_quit ();
 
 	/* Free up CPU cycles for other processes.  */
-	/* XXX: not portable */
-	sleep (0);
+	yield ();
     }
     
     show_mouse (0);

@@ -112,7 +112,6 @@ void map_link_object (map_t *map, object_t *p)
 
     for (q = &map->objects; q->next; q = q->next)
 	;
-
     p->next = 0;
     p->prev = (q != &map->objects) ? q :  0;
     q->next = p;
@@ -127,6 +126,18 @@ void map_unlink_object (map_t *map, object_t *p)
     if (p->next) p->next->prev = p->prev;
 
     p->prev = p->next = 0;
+}
+
+
+object_t *map_find_object (map_t *map, int id)
+{
+    object_t *p;
+
+    for (p = map->objects.next; p; p = p->next)
+	if (p->id == id)
+	    break;
+
+    return p;
 }
 
 

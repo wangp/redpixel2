@@ -14,6 +14,7 @@
 struct conn {
     NET_CONN *conn;
     int id;
+    int local;
     int state;
     int timestamp;
     char name[32];
@@ -26,6 +27,7 @@ static NET_CONN **listen;
 
 static int id;
 static struct conn clients;
+int net_server_num_clients;
 
 static unsigned char packet[NET_MAX_PACKET_SIZE];
 static void (*message_processor) (int id, const unsigned char *packet, int size);
@@ -40,6 +42,7 @@ int net_server_init (void (*proc)(int id, const unsigned char *packet, int size)
     int i;
 
     running = quitting = 0;
+    net_server_num_clients = 0;
 
     for (num_drivers = 0, drv = net_drivers; drv->name; drv++)
 	num_drivers++;
@@ -103,6 +106,7 @@ static void poll_listen ()
 	if (new) {
 	    struct conn *p = malloc (sizeof *p);
 
+	    p->local = (net_drivers[i].num == NET_DRIVER_LOCAL);
 	    p->state = STATE_REGISTER;
 	    p->conn = new;
 	    p->timestamp = net_time;		
@@ -158,6 +162,7 @@ static void poll_clients ()
 			memset (p->name, 0, sizeof p->name);
 			ustrncpy (p->name, packet + 1, sizeof p->name - 1);
 			p->state = STATE_CONNECTED;
+			net_server_num_clients++;
 		    }
 		    else {
 			/*  bad packet */
@@ -186,6 +191,7 @@ static void poll_clients ()
 		prev->next = p->next;
 		free (p);
 		p = prev;
+		net_server_num_clients--;
 		break;
 	}
     }
@@ -194,7 +200,7 @@ static void poll_clients ()
 
 int net_server_poll ()
 {
-    if (quitting && (!clients.next || (net_time - quit_time > TIME_SERVER_SHUTDOWN)))
+    if (quitting && (!net_server_num_clients || (net_time - quit_time > TIME_SERVER_SHUTDOWN)))
 	return -1;
 
     if (running) {
@@ -231,5 +237,19 @@ void net_server_broadcast (const unsigned char *packet, int size)
 
     for (p = clients.next; p; p = p->next)
 	if (p->state == STATE_CONNECTED)
+	    net_send_rdm (p->conn, buf, size + 1);
+}
+
+
+void net_server_broadcast_nonlocal (const unsigned char *packet, int size)
+{
+    unsigned char buf[size + 1];
+    struct conn *p;
+
+    buf[0] = PACKET_MESSAGE;
+    memcpy (buf + 1, packet, size);
+
+    for (p = clients.next; p; p = p->next)
+	if ((p->state == STATE_CONNECTED) && !p->local)
 	    net_send_rdm (p->conn, buf, size + 1);
 }

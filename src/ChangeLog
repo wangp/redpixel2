@@ -1,4 +1,20 @@
+2000-07-04  Peter Wang  <tjaden@psynet.net>
+
+	* Got object movement replication going at a decent rate.  The
+	server now only sends replication packets every render loop, not
+	every logic loop.  The client, however, polls for packets every
+	logic loop (they could arrive at any time).
+	
+	* gameloop.c: Scrapped old file, which was a quick hack to test
+	out a few ideas, and restarted.
+
 2000-07-03  Peter Wang  <tjaden@psynet.net>
+
+	* Started playing around with replication, then making things
+	ready for real replication.
+	* gamenet.c: New module.
+
+	* Moved "magic" stuff into own directory.
 
 	* Derived network client/server framework from George Foot's code,
 	and merged into source tree (under `net' subdirectory).

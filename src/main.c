@@ -49,6 +49,8 @@ static void setup_allegro (int w, int h, int d)
         allegro_message ("Error setting video mode.\n");
 	exit (1);
     }
+
+    set_window_title ("Red Pixel II");
 }
 
 
@@ -64,6 +66,9 @@ int main (int argc, char *argv[])
 	switch (c) {
 	    case 'e':
 		edit = 1;
+		break;
+	    case 's':
+		server = 1;
 		break;
 	    case 'w':
 		w = atoi (optarg);
@@ -92,11 +97,11 @@ int main (int argc, char *argv[])
     setup_allegro (w, h, d);
 
     game_init ();
-    
+
     if (edit)
-	ret = editor (argc, argv);
+	ret = editor ();
     else
-	ret = game (argc, argv);
+	ret = game ();
 
     game_shutdown ();
 

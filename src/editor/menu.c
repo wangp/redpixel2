@@ -65,7 +65,7 @@ static void load ()
     if (!prompt_filename ("Load...", filename, "pit"))
 	return;
     
-    m = map_load (filename);
+    m = map_load (filename, 1);
     if (!m)
 	prompt ("Error loading map", "Ok", 0);
     else {

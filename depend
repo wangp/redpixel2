@@ -5,22 +5,24 @@ obj/linux/bdstore.o: src/bdstore.c src/bindings.h src/extdata.h src/path.h \
  src/store/store.h
 obj/linux/bindings.o: src/bindings.c src/bindings.h
 obj/linux/bitmask.o: src/bitmask.c src/bitmask.h
-obj/linux/extdata.o: src/extdata.c src/bitmask.h src/extdata.h src/magic4x4.h
+obj/linux/extdata.o: src/extdata.c src/bitmask.h src/extdata.h \
+ src/magic/magic4x4.h
 obj/linux/fps.o: src/fps.c src/fps.h
-obj/linux/game.o: src/game.c src/bindings.h src/game.h src/gameloop.h \
- src/loaddata.h src/magic4x4.h src/map.h src/bitmask.h src/object.h \
- src/objtypes.h src/mapfile.h src/path.h src/scripts.h \
- src/store/store.h src/vtree.h
-obj/linux/gameloop.o: src/gameloop.c src/fps.h src/gameloop.h src/magic4x4.h \
- src/render.h src/map.h src/bitmask.h src/object.h src/objtypes.h \
+obj/linux/game.o: src/game.c src/game.h src/gameloop.h src/gamenet.h src/map.h \
+ src/bitmask.h src/object.h src/objtypes.h src/mapfile.h src/net/net.h
+obj/linux/gameinit.o: src/gameinit.c src/gameinit.h src/loaddata.h \
+ src/magic/magic4x4.h src/objtypes.h src/path.h src/scripts.h \
  src/store/store.h
+obj/linux/gameloop.o: src/gameloop.c src/fps.h src/gameloop.h src/gamenet.h \
+ src/magic/magic4x4.h src/net/net.h src/render.h src/map.h \
+ src/bitmask.h src/object.h src/objtypes.h src/store/store.h
+obj/linux/gamenet.o: src/gamenet.c src/gamenet.h src/map.h src/bitmask.h \
+ src/object.h src/objtypes.h src/yield.h
 obj/linux/loaddata.o: src/loaddata.c src/alloc.h src/loadhelp.h src/vtree.h
 obj/linux/loadhelp.o: src/loadhelp.c src/alloc.h src/extdata.h src/loadhelp.h \
- src/path.h src/store/store.h src/vtree.h
+ src/path.h src/store/store.h
 obj/linux/luastack.o: src/luastack.c
-obj/linux/magic4x4.o: src/magic4x4.c src/magic4x4.h
-obj/linux/magicrot.o: src/magicrot.c src/magicrot.h
-obj/linux/main.o: src/main.c src/editor/editor.h src/game.h
+obj/linux/main.o: src/main.c src/editor/editor.h src/gameinit.h src/game.h
 obj/linux/map.o: src/map.c src/alloc.h src/map.h src/bitmask.h src/object.h \
  src/objtypes.h src/store/store.h
 obj/linux/mapfile.o: src/mapfile.c src/map.h src/bitmask.h src/object.h \
@@ -33,15 +35,21 @@ obj/linux/objlayer.o: src/objlayer.c src/alloc.h src/object.h src/bitmask.h \
  src/objtypes.h
 obj/linux/objtypes.o: src/objtypes.c src/alloc.h src/objtypes.h
 obj/linux/path.o: src/path.c src/path.h
-obj/linux/render.o: src/render.c src/magic4x4.h src/magicrot.h src/map.h \
- src/bitmask.h src/object.h src/objtypes.h src/store/store.h \
+obj/linux/render.o: src/render.c src/magic/magic4x4.h src/magic/magicrot.h \
+ src/map.h src/bitmask.h src/object.h src/objtypes.h src/store/store.h \
  src/render.h
 obj/linux/scripts.o: src/scripts.c src/alloc.h src/bindings.h src/luastack.h \
  src/path.h src/scripts.h
+obj/linux/yield.o: src/yield.c src/yield.h
+obj/linux/netclnt.o: src/net/netclnt.c src/net/net.h src/net/netinter.h
+obj/linux/netmain.o: src/net/netmain.c src/net/net.h src/net/netinter.h
+obj/linux/netserv.o: src/net/netserv.c src/net/net.h src/net/netinter.h
 obj/linux/example.o: src/store/example.c src/store/store.h
 obj/linux/hash.o: src/store/hash.c src/store/hash.h
 obj/linux/store.o: src/store/store.c src/store/hash.h src/store/store.h
-obj/linux/gui.o: src/gui/gui.c src/gui/gui.h src/gui/guiinter.h
+obj/linux/magic4x4.o: src/magic/magic4x4.c src/magic/magic4x4.h
+obj/linux/magicrot.o: src/magic/magicrot.c src/magic/magicrot.h
+obj/linux/gui.o: src/gui/gui.c src/gui/gui.h src/gui/guiinter.h src/yield.h
 obj/linux/guidirty.o: src/gui/guidirty.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guimouse.o: src/gui/guimouse.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guiwm.o: src/gui/guiwm.c src/gui/gui.h src/gui/guiinter.h
@@ -62,41 +70,38 @@ obj/linux/ugthmmot.o: src/ug/ugthmmot.c src/ug/ugtheme.h
 obj/linux/ugthmpaw.o: src/ug/ugthmpaw.c src/ug/ugtheme.h
 obj/linux/ugwidget.o: src/ug/ugwidget.c src/ug/ug.h src/gui/gui.h \
  src/ug/uginter.h
-obj/linux/cursor.o: src/editor/cursor.c src/editor/cursor.h src/magic4x4.h
+obj/linux/cursor.o: src/editor/cursor.c src/editor/cursor.h src/magic/magic4x4.h
 obj/linux/editarea.o: src/editor/editarea.c src/gui/gui.h src/alloc.h \
- src/editor/editarea.h src/magic4x4.h src/editor/modes.h
-obj/linux/editor.o: src/editor/editor.c src/gui/gui.h src/ug/ug.h src/bindings.h \
- src/editor/cursor.h src/magic4x4.h src/map.h src/bitmask.h \
- src/object.h src/objtypes.h src/editor/newfont.h src/scripts.h \
- src/store/store.h src/path.h src/editor/editarea.h src/editor/menu.h \
- src/editor/modemgr.h src/editor/modes.h src/editor/selbar.h \
- src/editor/edselect.h
+ src/editor/editarea.h src/magic/magic4x4.h src/editor/modes.h
+obj/linux/editor.o: src/editor/editor.c src/gui/gui.h src/ug/ug.h \
+ src/editor/cursor.h src/editor/newfont.h src/editor/editarea.h \
+ src/editor/menu.h src/editor/modebar.h src/editor/selbar.h \
+ src/editor/edselect.h src/editor/modemgr.h src/editor/modes.h \
+ src/map.h src/bitmask.h src/object.h src/objtypes.h
 obj/linux/edselect.o: src/editor/edselect.c src/ug/ug.h src/gui/gui.h \
- src/ug/uginter.h src/alloc.h src/editor/edselect.h src/magic4x4.h \
- src/editor/rect.h
+ src/ug/uginter.h src/alloc.h src/editor/edselect.h \
+ src/magic/magic4x4.h src/editor/rect.h
 obj/linux/mdlights.o: src/editor/mdlights.c src/alloc.h src/editor/depths.h \
- src/editor/editarea.h src/editor/editor.h src/editor/edselect.h \
- src/ug/ug.h src/gui/gui.h src/loaddata.h src/magic4x4.h src/map.h \
- src/bitmask.h src/object.h src/objtypes.h src/editor/modemgr.h \
- src/editor/modes.h src/editor/rect.h src/editor/selbar.h \
- src/store/store.h src/vtree.h
+ src/editor/editarea.h src/editor/edselect.h src/ug/ug.h src/gui/gui.h \
+ src/loaddata.h src/magic/magic4x4.h src/map.h src/bitmask.h \
+ src/object.h src/objtypes.h src/editor/modemgr.h src/editor/modes.h \
+ src/editor/rect.h src/editor/selbar.h src/store/store.h src/vtree.h
 obj/linux/mdobject.o: src/editor/mdobject.c src/alloc.h src/editor/cursor.h \
- src/editor/depths.h src/editor/editarea.h src/editor/editor.h \
- src/editor/edselect.h src/ug/ug.h src/gui/gui.h src/map.h \
- src/bitmask.h src/object.h src/objtypes.h src/editor/modemgr.h \
- src/editor/modes.h src/editor/selbar.h src/scripts.h \
- src/store/store.h src/path.h src/editor/rect.h
+ src/editor/depths.h src/editor/editarea.h src/editor/edselect.h \
+ src/ug/ug.h src/gui/gui.h src/map.h src/bitmask.h src/object.h \
+ src/objtypes.h src/editor/modemgr.h src/editor/modes.h \
+ src/editor/selbar.h src/scripts.h src/store/store.h src/path.h \
+ src/editor/rect.h
 obj/linux/mdstarts.o: src/editor/mdstarts.c src/editor/depths.h \
  src/editor/editarea.h src/editor/edselect.h src/ug/ug.h src/gui/gui.h \
- src/magic4x4.h src/map.h src/bitmask.h src/object.h src/objtypes.h \
- src/editor/modes.h src/editor/modemgr.h src/editor/selbar.h \
- src/editor/rect.h
+ src/magic/magic4x4.h src/map.h src/bitmask.h src/object.h \
+ src/objtypes.h src/editor/modes.h src/editor/modemgr.h \
+ src/editor/selbar.h src/editor/rect.h
 obj/linux/mdtiles.o: src/editor/mdtiles.c src/alloc.h src/editor/depths.h \
- src/editor/editarea.h src/editor/editor.h src/loaddata.h \
- src/magic4x4.h src/map.h src/bitmask.h src/object.h src/objtypes.h \
- src/editor/modemgr.h src/editor/modes.h src/editor/selbar.h \
- src/editor/edselect.h src/ug/ug.h src/gui/gui.h src/store/store.h \
- src/vtree.h
+ src/editor/editarea.h src/loaddata.h src/magic/magic4x4.h src/map.h \
+ src/bitmask.h src/object.h src/objtypes.h src/editor/modemgr.h \
+ src/editor/modes.h src/editor/selbar.h src/editor/edselect.h \
+ src/ug/ug.h src/gui/gui.h src/store/store.h src/vtree.h
 obj/linux/menu.o: src/editor/menu.c src/gui/gui.h src/ug/ug.h \
  src/editor/editarea.h src/editor/editor.h src/map.h src/bitmask.h \
  src/object.h src/objtypes.h src/mapfile.h
