@@ -89,7 +89,8 @@ end
 
 -- objtype_register wrapper
 
-function Objtype (t)
+function Objtype (t, u)
+    if u then t = merge (t, u) end
     local result =
     objtype_register (t.category, t.name, t.icon,
 	function (self)
@@ -109,8 +110,9 @@ end
 
 weapons = {}
 
-function Weapon (t)
-    weapons[t.name] = t
+function Weapon (t, u)
+    if u then t = merge (t, u) end
+    weapons[t.name] = u and merge (t, u) or t
 end
 
 

@@ -13,48 +13,54 @@ store_load ("basic/basic-weapon.dat", "/basic/weapon/")
 -- Declare a new weapon type with a standard firing routine, and standard ammo
 -- counts.
 local Weapon_With_Firer = function (t)
-    return Weapon (merge (t, { can_fire = function (player)
-				   return player:ammo (t.ammo_type) > 0
-			       end,
-			       fire = function (player)
-			           spawn_projectile (t.projectile, player, t.projectile_speed)
-				   player.fire_delay = t.fire_delay_secs * 50
-				   player:deduct_ammo (t.ammo_type)
-			       end }))
+    return Weapon (t, {
+	can_fire = function (player)
+	    return player:ammo (t.ammo_type) > 0
+	end,
+	fire = function (player)
+	    spawn_projectile (t.projectile, player, t.projectile_speed)
+	    player.fire_delay = t.fire_delay_secs * 50
+	    player:deduct_ammo (t.ammo_type)
+	end
+    })
 end
 
 
 -- Declare a new weapon or ammo pickup, which respawns a while after being
 -- picked up.
 local Standard_Pickup = function (t)
-    return Objtype (merge (t, { category = "weapon",
-			        nonproxy_init = function (self)
-				    self:set_collision_flags ("p")
-				    function self:collide_hook (player)
-					if t.weapon_to_give then
-					    player:receive_weapon (t.weapon_to_give)
-					end
-					if t.ammo_to_give then
-					    player:receive_ammo (t.ammo_to_give, t.ammo_amount)
-					end
-					self:hide_and_respawn_later (t.respawn_secs * 1000)
-				    end
-				end }))
+    return Objtype (t, {
+	category = "weapon",
+	nonproxy_init = function (self)
+	    self:set_collision_flags ("p")
+	    function self:collide_hook (player)
+		if t.weapon_to_give then
+		    player:receive_weapon (t.weapon_to_give)
+		end
+		if t.ammo_to_give then
+		    player:receive_ammo (t.ammo_to_give, t.ammo_amount)
+		end
+		self:hide_and_respawn_later (t.respawn_secs * 1000)
+	    end
+	end
+    })
 end
 
 
 -- Declare a new projectile type.  This only handles standard-style
 -- projectiles, like bullets.
 local Standard_Projectile = function (t)
-    return Objtype (merge (t, { nonproxy_init = function (self)
-				    function self:collide_hook (obj)
-					obj:receive_damage (t.damage)
-					self:destroy ()
-				    end
-				    function self:tile_collide_hook ()
-					self:destroy ()
-				    end	
-				end }))
+    return Objtype (t, {
+	nonproxy_init = function (self)
+	    function self:collide_hook (obj)
+		obj:receive_damage (t.damage)
+		self:destroy ()
+	    end
+	    function self:tile_collide_hook ()
+		self:destroy ()
+	    end	
+	end
+    })
 end
 
 
