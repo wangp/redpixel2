@@ -268,19 +268,18 @@ static void send_gameinfo_controls (void)
 /* XXX stuff in the same packet as _CONTROLS? */
 static void send_gameinfo_weapon_switch (void)
 {
-    static int last_key[10] = {0,0,0,0,0,0,0,0,0,0};
+    static char last_key[10] = {0,0,0,0,0,0,0,0,0,0};
     lua_State *L = lua_state;
+    int cant_set = 0;
     int i;
 
     if (messages_grabbed_keyboard ())
-	return;
+	cant_set = 1;
 
     for (i = 0; i < 10; i++) {
-	int K = KEY_1 + i;
-	int is_down = key[K];
+	int is_down = key[KEY_1 + i];
 
-	if (is_down && !last_key[K]) {
-	    last_key[K] = 1;
+	if (!cant_set && is_down && !last_key[i]) {
 	    lua_getglobal (L, "weapon_order");
 	    lua_pushnumber (L, i+1);
 	    lua_rawget (L, -2);
@@ -290,10 +289,10 @@ static void send_gameinfo_weapon_switch (void)
 				     lua_tostring (L, -1));
 	    }
 	    lua_pop (L, 1);
-	    return;
+	    cant_set = 1;
 	}
 
-	last_key[K] = is_down;
+	last_key[i] = is_down;
     }
 }
 
