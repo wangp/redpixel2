@@ -17,7 +17,6 @@ void object_types_shutdown ();
 void object_types_register (const char *, lua_Object,
 			    const char *, const char *);
 object_type_t *object_type (const char *name);
-object_type_t *object_type_from_icon (const char *icon);
 
 
 #endif

@@ -3,8 +3,9 @@
 dofile ("tilehelp.lua")
 
 images = {
-    ["books"]	 = "books.png",
+    ["book"]	 = "book.png",
     ["desk"]	 = "desk.png",
+    ["chair"]	 = "chair.png",
     ["computer"] = "computer.png"
 }
 

@@ -63,8 +63,10 @@ MODULES_GAME =					\
 	luastack				\
 	magic4x4				\
 	magicld					\
+	magicrot				\
 	map					\
 	mapfile					\
+	objlayer				\
 	objtypes				\
 	path					\
 	render					\

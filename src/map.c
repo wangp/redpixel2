@@ -151,7 +151,8 @@ object_t *map_object_create (map_t *map, const char *type_name)
 	    lua_rawsettable ();
 	}
 
-	p->visual = store_dat (p->type->icon);
+	p->render = OBJECT_RENDER_MODE_BITMAP;
+	p->bitmap = store_dat (p->type->icon);
 
 	link_object (map, p);
 
@@ -179,6 +180,8 @@ object_t *map_object_create (map_t *map, const char *type_name)
 void map_object_destroy (map_t *map, object_t *p)
 {
     unlink_object (map, p);
+    if (p->layer)
+	object_layer_list_destroy (p->layer);
     lua_unref (p->self);
     free (p);
 }

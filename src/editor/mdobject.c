@@ -100,7 +100,7 @@ void mode_objects_register_object_hook (const char *name, lua_Object table,
 	if (!p) return;
     }
 
-    add_to_type (p, icon, bmp);
+    add_to_type (p, name, bmp);
 }
 
 
@@ -200,18 +200,13 @@ static struct editmode object_mode = {
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
     object_t *p;
-    BITMAP *b;
 
     offx *= 16;
     offy *= 16;
 
-    for (p = map->objects.next; p; p = p->next) {
-	b = store_dat (p->type->icon);
-
-	draw_sprite (bmp, b,
-		     ((p->x - offx) - (b->w / 6)) * 3,
-		     (p->y - offy) - (b->h / 2));
-    }
+    for (p = map->objects.next; p; p = p->next)
+	draw_sprite (bmp, store_dat (p->type->icon),
+		     (p->x - offx) * 3, (p->y - offy));
 }
 
 static object_t *find_object (int x, int y)
@@ -221,11 +216,8 @@ static object_t *find_object (int x, int y)
     
     for (p = map->objects.next, last = 0; p; p = p->next) {
 	b = store_dat (p->type->icon);
-	
-	if (in_rect (x, y,
-		     p->x - (b->w / 6),
-		     p->y - (b->h / 2),
-		     b->w / 3, b->h))
+
+	if (in_rect (x, y, p->x, p->y, b->w / 3, b->h))
 	    last = p;
     }
 
@@ -275,14 +267,13 @@ static int event_layer (int event, struct editarea_event *d)
 	    }
 	    else if (!p) {
 		BITMAP *b;
-		
-		p = map_object_create (map,
-			object_type_from_icon (selectbar_selected_name ())->name);
-		b = store_dat (selectbar_selected_name ());
-		p->x = x + (b->w / 6);
-		p->y = y + (b->h / 2);
+
+		p = map_object_create (map, selectbar_selected_name ()); 
+		p->x = x;
+		p->y = y;
 
 		move = p;
+		b = store_dat (p->type->icon);
 		move_offx = -(b->w / 6);
 		move_offy = -(b->h / 2);
 		return 1;

@@ -91,15 +91,3 @@ object_type_t *object_type (const char *name)
 
     return 0;
 }
-
-
-object_type_t *object_type_from_icon (const char *icon)
-{
-    int i;
-
-    for (i = 0; i < num; i++)
-	if (!ustrcmp (types[i]->icon, icon))
-	    return types[i];
-
-    return 0;
-}

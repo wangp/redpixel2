@@ -68,6 +68,31 @@ void game_loop ()
 	    if (key[KEY_RIGHT]) camera.x += 2;
 	    /* end XXX ------ */
 
+	    /* XXX */
+	    {
+		object_t *p;
+
+		for (p = map->objects.next; p; p = p->next) {
+		    lua_beginblock ();
+		    
+  		    /* process (self) : (no output) */
+		    if (lua_istable (lua_getref (p->type->table))) {
+			lua_Object process;
+
+			lua_pushobject (lua_getref (p->type->table));
+			lua_pushstring ("process");
+			process = lua_gettable ();
+
+			if (lua_isfunction (process)) {
+			    lua_pushobject (lua_getref (p->self));
+			    lua_callfunction (process);
+			}
+		    }
+		 
+		    lua_endblock ();
+		}
+	    }
+
 	    t--, tick--;
 	    draw = 1;
 	}

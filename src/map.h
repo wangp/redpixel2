@@ -3,26 +3,13 @@
 #define __included_map_h
 
 
-#include <allegro.h>
-#include "objtypes.h"
+#include "object.h"
 
 
 typedef struct light {
     int x, y, lightmap;
     struct light *next;
 } light_t;
-
-
-typedef struct object {
-    object_type_t *type;
-    int self;			/* Lua table ref */
-
-    /* values we store in C, for speed reasons  */
-    int x, y;
-    BITMAP *visual;
-
-    struct object *prev, *next;
-} object_t;
 
 
 typedef struct map {

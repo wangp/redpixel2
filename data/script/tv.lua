@@ -1,16 +1,12 @@
 -- lightamp.lua
 
 local frames = {
-    "/lightamp/anim1", 
-    "/lightamp/anim2",
-    "/lightamp/anim3", 
-    "/lightamp/anim4",
-    "/lightamp/anim3", 
-    "/lightamp/anim2", 
-    "/lightamp/anim1"
+    "/tv/anim1", 
+    "/tv/anim2",
+    "/tv/anim3", 
 }
 
-local lightamp = {
+local tv = {
     init = function (self)
 	self.animframe = 1
 	self.animtics = 60/10
@@ -22,7 +18,7 @@ local lightamp = {
 	if self.animtics < 1 then
 	    set_visual (self, %frames[self.animframe])
 	    self.animframe = self.animframe + 1 
-	    if self.animframe > 7 then
+	    if self.animframe > 3 then
 		self.animframe = 1
 	    end
 
@@ -32,6 +28,6 @@ local lightamp = {
 }
 
 function __module__init ()
-    store_load ("object/lightamp.dat", "/lightamp/")
-    register_object ("lightamp", %lightamp, "item", "/lightamp/anim1")
+    store_load ("object/tv.dat", "/tv/")
+    register_object ("tv", %tv, "item", "/tv/anim1")
 end

@@ -1,4 +1,22 @@
+2000-07-01  Peter Wang  <tjaden@psynet.net>
+
+	* magicrot.c: New module to handle magic sprite rotations (hack of
+	rotate.c from Allegro).
+
+	* editor/mdobject.c (event_layer): Got rid of a really ridiculous
+	jump-through-hoops line.
+
 2000-06-30  Peter Wang  <tjaden@psynet.net>
+
+	* editor/mdobject.c, render.c: Made objects' (x, y) coordinates
+	mean the top-left corner, rather than the centre of the sprite.
+	
+	* Implemented ``rendering modes'' for objects, and added `layered'
+	mode.  Original mode named `bitmap' mode.
+	* objlayer.c: New module to help out with this.
+
+	* gameloop.c (game_loop): Objects get a `process' loop.  Used it
+	to test out lightamp animation driven in Lua.
 
 	* map.c (map_object_create): Objects begin with their icon as
 	their visual rep.
