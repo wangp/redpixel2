@@ -381,32 +381,90 @@ static void send_gameinfo_controls (void)
 
 
 /* XXX stuff in the same packet as _CONTROLS? */
+/* XXX a bit dirty this function */
 static void send_gameinfo_weapon_switch (void)
 {
-    static char last_key[10] = {0,0,0,0,0,0,0,0,0,0};
-    int cant_set = 0;
-    int i;
+    int keyboard_grabbed;
+    int already_set = 0;
 
-    if (messages_grabbed_keyboard ())
-	cant_set = 1;
+    keyboard_grabbed = messages_grabbed_keyboard ();
 
-    for (i = 0; i < 10; i++) {
-	int is_down = key[KEY_1 + i];
+    /* KEY_1 - KEY_9 */
+    {
+	static char last_key[9] = {0,0,0,0,0,0,0,0,0};
+	int i;
 
-	if (!cant_set && is_down && !last_key[i]) {
-	    lua_getglobal (Lclt, "weapon_order");
-	    lua_pushnumber (Lclt, i+1);
-	    lua_rawget (Lclt, -2);
-	    if (lua_isstring (Lclt, -1)) {
+	for (i = 0; i < 9; i++) {
+	    int is_down = key[KEY_1 + i];
+
+	    if (!already_set && !keyboard_grabbed &&
+		is_down && !last_key[i]) {
+		lua_getglobal (Lclt, "weapon_order");
+		lua_pushnumber (Lclt, i+1);
+		lua_rawget (Lclt, -2);
+		if (lua_isstring (Lclt, -1)) {
+		    net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+					 MSG_CS_GAMEINFO_WEAPON_SWITCH,
+					 lua_tostring (Lclt, -1));
+		}
+		lua_pop (Lclt, 1);
+		already_set = 1;
+	    }
+
+	    last_key[i] = is_down;
+	}
+    }
+
+    /* KEY_Q, KEY_E */
+    {
+	static int last_Q;
+	static int last_E;
+
+	int Q = key[KEY_Q];
+	int E = key[KEY_E];
+
+	int prev = !last_Q && Q;
+	int next = !last_E && E;
+
+	last_Q = Q;
+	last_E = E;
+
+	if (!already_set && !keyboard_grabbed) {
+	    if (prev && !next) {
 		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
 				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
-				     lua_tostring (Lclt, -1));
+				     "_internal_prev");
+		already_set = 1;
 	    }
-	    lua_pop (Lclt, 1);
-	    cant_set = 1;
+	    else if (next && !prev) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     "_internal_next");
+		already_set = 1;
+	    }
 	}
+    }
 
-	last_key[i] = is_down;
+    /* mouse wheelie */
+    {
+	static int last_mouse_z;
+	int dir = last_mouse_z - mouse_z;
+	last_mouse_z = mouse_z;
+
+	if (!already_set) {
+	    if (dir > 0) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     "_internal_prev");
+		already_set = 1;
+	    }
+	    else if (dir < 0) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     "_internal_next");
+		already_set = 1;
+	    }
+	}
     }
 }
 
@@ -1016,7 +1074,7 @@ void client_run (int client_server)
 			   "Press Q to cancel", NULL);
 
 	do {
-	    if (key[KEY_Q])
+	    if (key[KEY_ESC])
 		return;
 	    sync_client_lock ();
 	    status = net_poll_connect (conn);
@@ -1083,7 +1141,7 @@ void client_run (int client_server)
 	    sync_client_lock ();
 
 	    if (!messages_grabbed_keyboard ()) {
-		if (key[KEY_Q]) {
+		if (key[KEY_ESC]) {
 		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
 		    sync_client_unlock ();
 		    goto disconnect;
@@ -1151,7 +1209,7 @@ void client_run (int client_server)
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_Q]) {
+	    if (key[KEY_ESC]) {
 		sync_client_unlock ();
 		goto disconnect;
 	    }
@@ -1199,7 +1257,7 @@ void client_run (int client_server)
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_Q]) {
+	    if (key[KEY_ESC]) {
 		sync_client_unlock ();
 		goto disconnect;
 	    }
@@ -1258,7 +1316,7 @@ void client_run (int client_server)
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_Q]) {
+	    if (key[KEY_ESC]) {
 		sync_client_unlock ();
 		goto disconnect;
 	    }

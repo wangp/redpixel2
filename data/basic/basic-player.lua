@@ -79,10 +79,34 @@ local player_nonproxy_init = function (self)
     end
 
     function self:switch_weapon (name)
-	if weapons[name] and self.have_weapon[name] then
+	-- handle up/down switching instead of direct switching
+	if name == "_internal_next" then
+	    self:switch_weapon_up_down_helper (1)
+	elseif name == "_internal_prev" then
+	    self:switch_weapon_up_down_helper (-1)
+
+	-- otherwise name is really the name of a weapon
+	elseif weapons[name] and self.have_weapon[name] then
 	    self.current_weapon = weapons[name]
 	    self.desired_weapon = weapons[name]
 	    self:post_weapon_switch_hook ()
+	end
+    end
+
+    function self:switch_weapon_up_down_helper (direction)
+	local i = index_of (weapon_order, self.current_weapon.name)
+	if i then
+	    while true do
+		i = i + direction
+		local name = weapon_order[i]
+		if name == nil then
+		    break
+		end
+		if self.have_weapon[name] and self:has_ammo_for (name) then
+		    self:switch_weapon (name)
+		    break
+		end
+	    end
 	end
     end
 
