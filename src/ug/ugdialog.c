@@ -362,7 +362,7 @@ ug_widget_t *ug_dialog_widget (ug_dialog_t *d, char *id)
     for (i = 0; i < d->num; i++)
 	if (is_real_widget (d->widget[i])
 	    && (d->widget[i]->id)
-	    && (!ustrcmp (d->widget[i]->id, id)))
+	    && (!strcmp (d->widget[i]->id, id)))
 	    return d->widget[i];
 
     return 0;

@@ -4,6 +4,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "alloc.h"
 #include "extdata.h"
@@ -44,7 +45,7 @@ int tiles_load (const char *filename, const char *prefix)
 	return -1;
 
     f = alloc (sizeof *f);
-    f->prefix = ustrdup (prefix);
+    f->prefix = strdup (prefix);
     f->handle = handle;
     list_add (tiles_list, f);
     return 0;
@@ -94,7 +95,7 @@ int lights_load (const char *filename, const char *prefix)
 	return -1;
 
     f = alloc (sizeof *f);
-    f->prefix = ustrdup (prefix);
+    f->prefix = strdup (prefix);
     f->handle = handle;
     list_add (lights_list, f);
     return 0;

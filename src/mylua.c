@@ -11,6 +11,8 @@
 #include "error.h"
 #include "mylua.h"
 #include "path.h"
+#include "strlcat.h"
+#include "strlcpy.h"
 #include "ticks.h"
 
 
@@ -214,8 +216,8 @@ int lua_dofile_path (lua_State *L, const char *filename)
     char **p, tmp[1024];
 
     for (p = path_share; *p; p++) {
-	ustrzcpy (tmp, sizeof tmp, *p);
-	ustrzcat (tmp, sizeof tmp, filename);
+	strlcpy (tmp, *p, sizeof tmp);
+	strlcat (tmp, filename, sizeof tmp);
 	if (file_exists (tmp, FA_RDONLY|FA_HIDDEN|FA_SYSTEM|FA_ARCH, NULL))
 	    if (lua_dofile (L, tmp) == 0)
 		return 0;

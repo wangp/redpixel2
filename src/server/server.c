@@ -4,6 +4,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "libnet.h"
 #include "error.h"
@@ -256,14 +257,14 @@ static void command_kick (char **last)
     char *word;
     svclient_t *c;
 
-    word = ustrtok_r (NULL, whitespace, last);
+    word = strtok_r (NULL, whitespace, last);
     if (!word) {
 	server_log ("KICK requires an argument");
 	return;
     }
 
     if (uisdigit (ugetc (word))) {
-	objid_t id = ustrtol (word, NULL, 10);
+	objid_t id = strtol (word, NULL, 10);
 	c = svclients_find_by_id (id);
 	if (!c) {
 	    server_log ("No client with id %d", id);
@@ -307,7 +308,7 @@ static void command_msg (char **last)
 
 static void poll_interface (void)
 {
-#define wordis(test)	(0 == ustricmp (word, test))
+#define wordis(test)	(0 == stricmp (word, test))
 
     const char *cmd;
     char *copy, *word, *last;
@@ -315,8 +316,8 @@ static void poll_interface (void)
     if ((!interface) || !(cmd = interface->poll ()))
 	return;
 
-    copy = ustrdup (cmd);
-    word = ustrtok_r (copy, whitespace, &last);
+    copy = strdup (cmd);
+    word = strtok_r (copy, whitespace, &last);
 
     if (word) {
 	if (wordis ("help") || wordis ("?")) {
@@ -334,7 +335,7 @@ static void poll_interface (void)
 	}
 
 	else if (wordis ("map")) {
-	    word = ustrtok_r (NULL, whitespace, &last);
+	    word = strtok_r (NULL, whitespace, &last);
 	    if (!word) {
 		server_log ("Current map: %s", server_current_map_file);
 		server_log ("Selected map: %s", server_next_map_file);

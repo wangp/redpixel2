@@ -4,6 +4,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "alloc.h"
 #include "bitmask.h"
@@ -41,9 +42,9 @@ static objtype_t *create (const char *type, const char *name,
 	return 0;
     }
 
-    p->type = type ? ustrdup (type) : 0;
-    p->name = ustrdup (name);
-    p->icon = ustrdup (icon);
+    p->type = type ? strdup (type) : 0;
+    p->name = strdup (name);
+    p->icon = strdup (icon);
     p->init_func = init_func;
     p->icon_mask = icon_mask;
 
@@ -104,7 +105,7 @@ objtype_t *objtypes_lookup (const char *name)
     int i;
 
     for (i = 0; i < num; i++)
-	if (!ustrcmp (types[i]->name, name))
+	if (!strcmp (types[i]->name, name))
 	    return types[i];
 
     return NULL;

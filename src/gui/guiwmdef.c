@@ -327,7 +327,7 @@ static void window_ghost (gui_window_t *w, int ghost)
 static void window_set_title (gui_window_t *w, const char *title)
 {
     free (w->title);
-    w->title = ustrdup (title);
+    w->title = strdup (title);
     window_frame_dirty (w);
 }
 

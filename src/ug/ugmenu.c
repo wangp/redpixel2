@@ -76,7 +76,7 @@ static void item_slot (ug_widget_t *p, ug_signal_t signal, void *d)
     root = private (parent)->root;
 
     for (i = 0; !last_item (root, i); i++)
-	if (!ustrcmp (root->item[i].label, ug_widget_id (p)))
+	if (!strcmp (root->item[i].label, ug_widget_id (p)))
 	    break;
 
     if (!last_item (root, i))

@@ -50,7 +50,7 @@ void ed_select_list_add_item (list_t *p, const char *name, BITMAP *bmp)
 
     p->item = realloc (p->item, sizeof (item_t) * (p->num + 1));
     i = p->item + p->num;
-    i->name = ustrdup (name);
+    i->name = strdup (name);
     i->bmp = bmp;
 
     p->num++;
@@ -69,7 +69,7 @@ int ed_select_list_item_index (list_t *p, const char *name)
     int i;
 
     for (i = 0; i < p->num; i++)
-	if (!ustrcmp (p->item[i].name, name))
+	if (!strcmp (p->item[i].name, name))
 	    return i;
 
     return -1;

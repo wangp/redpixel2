@@ -20,6 +20,7 @@
 #include "packet.h"
 #include "sync.h"
 #include "server.h"
+#include "strlcpy.h"
 #include "svclient.h"
 #include "svintern.h"
 #include "svstats.h"
@@ -919,7 +920,7 @@ const char *svgame_get_client_name (client_id_t client_id)
 void svgame_broadcast_text_message (const char *msg)
 {
     char buf[64];
-    ustrzcpy (buf, sizeof buf, msg);
+    strlcpy (buf, msg, sizeof buf);
     svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
 }
 
@@ -929,7 +930,7 @@ void svgame_send_text_message (client_id_t client_id, const char *msg)
     svclient_t *c = svclients_find_by_id (client_id);
     if (c) {
 	char buf[64];
-	ustrzcpy (buf, sizeof buf, msg);
+	strlcpy (buf, msg, sizeof buf);
 	svclient_send_rdm_encode (c, "cs", MSG_SC_TEXT, buf);
     }
 }

@@ -4,6 +4,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "alloc.h"
 #include "explo.h"
@@ -73,7 +74,7 @@ int explosion_type_register (const char *name, const char *first_frame,
 	return -1;
 
     t = alloc (sizeof *t);
-    t->name = ustrdup (name);
+    t->name = strdup (name);
     t->first_frame = d;
     t->nframes = nframes;
     t->tics = tics;
@@ -93,7 +94,7 @@ static etype_t *find_type_by_name (const char *name)
     etype_t *t;
     
     list_for_each (t, &etypes)
-	if (0 == ustrcmp (t->name, name))
+	if (0 == strcmp (t->name, name))
 	    return t;
     
     return NULL;

@@ -12,6 +12,7 @@
 #include "messages.h"
 #include "server.h"
 #include "svintern.h"
+#include "strlcpy.h"
 
 
 static char the_line[1024];
@@ -57,7 +58,7 @@ static const char *clsvface_poll (void)
 
 void client_server_interface_add_input (const char *line)
 {
-    ustrzcpy (the_line, sizeof the_line, line);
+    strlcpy (the_line, line, sizeof the_line);
     have_line = 1;
 }
 

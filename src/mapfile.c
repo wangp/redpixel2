@@ -164,7 +164,7 @@ static int read_tiles (map_t *map, PACKFILE *f)
 	    if (!pack_fgets (tmp, sizeof tmp, f))
 		goto error;
 	    
-	    if (ustrcmp (tmp, "()") == 0)
+	    if (strcmp (tmp, "()") == 0)
 		t = 0;
 	    else {
 		t = store_get_index (tmp);

@@ -44,7 +44,7 @@ void modemgr_select (char *name)
     int i;
 
     for (i = 0; i < num; i++)
-	if (!ustrcmp (name, modes[i]->name)) {
+	if (!strcmp (name, modes[i]->name)) {
 	    if (current >= 0)
 		modes[current]->leave_mode ();
 	    modes[i]->enter_mode ();
@@ -119,7 +119,7 @@ static void slot (ug_widget_t *p, ug_signal_t signal, void *d)
 
     if (signal == UG_SIGNAL_CLICKED)
 	for (i = 0; i < num; i++)
-	    if (!ustrcmp (modes[i]->name, id)) {
+	    if (!strcmp (modes[i]->name, id)) {
 		if (num != current)
 		    modemgr_select (id);
 		break;

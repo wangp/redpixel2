@@ -30,7 +30,7 @@ static int button_create (ug_widget_t *p, void *label)
     memset (p->private, 0, sizeof (struct button));
 
     if (label)
-	private (p)->label = ustrdup (label);
+	private (p)->label = strdup (label);
 
     return 0;
 }

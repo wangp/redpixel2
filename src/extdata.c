@@ -17,7 +17,7 @@
 
 static int property_exists (DATAFILE *d, int prop)
 {
-    return ustrcmp (get_datafile_property (d, prop), empty_string) != 0;
+    return strcmp (get_datafile_property (d, prop), empty_string) != 0;
 }
 
 

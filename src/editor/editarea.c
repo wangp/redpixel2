@@ -255,7 +255,7 @@ void editarea_layer_register (const char *name,
 {
     struct layer *p = alloc (sizeof *p);
     
-    p->name = ustrdup (name);
+    p->name = strdup (name);
     p->draw = draw;
     p->event = event;
     p->depth = depth;
@@ -271,7 +271,7 @@ void editarea_layer_show (const char *name, int show)
 {
     struct layer *p;
     list_for_each (p, &layers)
-	if (!ustrcmp (p->name, name)) {
+	if (!strcmp (p->name, name)) {
 	    p->show = show;
 	    break;
 	}
@@ -282,7 +282,7 @@ void editarea_layer_activate (const char *name)
 {
     struct layer *p;
     list_for_each (p, &layers)
-	if (!ustrcmp (name, p->name)) {
+	if (!strcmp (name, p->name)) {
 	    active = p;
 	    break;
 	}

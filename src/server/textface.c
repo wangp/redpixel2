@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "server.h"
+#include "strlcpy.h"
 #include "svintern.h"
 #include "textface.h"
 
@@ -133,10 +134,8 @@ static void set_status (const char *text)
 {
     if (!text)
 	status_line[0] = 0;
-    else {
-	strncpy (status_line, text, sizeof status_line);
-	status_line[sizeof status_line-1] = 0;
-    }
+    else
+	strlcpy (status_line, text, sizeof status_line);
     refresh_all ();
 }
 

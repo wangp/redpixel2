@@ -5,6 +5,7 @@
 
 
 #include <math.h>
+#include <string.h>
 #include <allegro.h>
 #include "libnet.h"
 #include "alloc.h"
@@ -197,9 +198,9 @@ static void client_info_list_add (client_id_t id, const char *name,
     client_info_t *c = alloc (sizeof *c);
 
     c->id = id;
-    c->name = ustrdup (name);
-    c->face_icon = ustrdup (face_icon);
-    c->score = ustrdup (score);
+    c->name = strdup (name);
+    c->face_icon = strdup (face_icon);
+    c->score = strdup (score);
     list_append (client_info_list, c);
 }
 
@@ -229,7 +230,7 @@ static void client_info_list_set_score (client_id_t id, const char *score)
     client_info_t *c = get_client_info (id);
     if (c) {
 	free (c->score);
-	c->score = ustrdup (score);
+	c->score = strdup (score);
     }
 }
 
@@ -1530,7 +1531,7 @@ int client_init (const char *name, int net_driver, const char *addr)
 	return -1;
     net_connect (conn, addr);
 
-    client_name = ustrdup (name);
+    client_name = strdup (name);
 
     bmp = create_magic_bitmap (screen_width, screen_height);
     cam = camera_create (screen_width, screen_height);

@@ -4,6 +4,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "gui.h"
 #include "ug.h"
@@ -42,7 +43,7 @@ static struct type *create_type (const char *name)
 {
     struct type *p = alloc (sizeof *p);
 
-    p->name = ustrdup (name);
+    p->name = strdup (name);
     p->list = ed_select_list_create ();
 
     list_add (type_list, p);
@@ -54,7 +55,7 @@ static struct type *find_type (const char *name)
     struct type *p;
 
     list_for_each (p, &type_list)
-	if (!ustrcmp (name, p->name)) 
+	if (!strcmp (name, p->name)) 
 	    return p;
 
     return NULL;

@@ -4,6 +4,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "alloc.h"
 #include "depths.h"
@@ -21,6 +22,8 @@
 #include "render.h"
 #include "selbar.h"
 #include "store.h"
+#include "strlcat.h"
+#include "strlcpy.h"
 
 
 #define DAT_INFO  DAT_ID('i','n','f','o')
@@ -59,16 +62,16 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d,
 	if (!name[0])
 	    continue;
 
-	ustrzcpy (path, sizeof path, prefix);
-	ustrzcat (path, sizeof path, name);
+	strlcpy (path, prefix, sizeof path);
+	strlcat (path, name, sizeof path);
 	
 	if (d[i].type == DAT_FILE) {
-	    ustrzcat (path, sizeof path, "/");
+	    strlcat (path, "/", sizeof path);
 	    _add_to_list (list, d[i].dat, path);
 	}
 	else if (d[i].type == DAT_BITMAP) {
 	    const char *name = get_datafile_property (&d[i], DAT_NAME);
-	    if ((name) && ustrstr (name, "-icon"))
+	    if ((name) && strstr (name, "-icon"))
 		ed_select_list_add_item (list, path, d[i].dat);
 	}
     }

@@ -13,6 +13,7 @@
 #include "music.h"
 #include "screen.h"
 #include "store.h"
+#include "strlcpy.h"
 #include "textout.h"
 
 
@@ -127,7 +128,7 @@ static int mp_client (void)
     if (virgin) {
 	char *user = getenv ("USER");
 	if (user)
-	    ustrzcpy (name, sizeof name, user);
+	    strlcpy (name, user, sizeof name);
 	virgin = 0;
     }
 

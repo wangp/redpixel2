@@ -27,7 +27,7 @@ ug_widget_t *ug_widget_create (ug_widget_class_t *class, void *data, const char 
     }
 
     if (id)
-	p->id = ustrdup (id);
+	p->id = strdup (id);
     
     return p;
 }
