@@ -149,8 +149,8 @@ int fancy_button_proc (int msg, DIALOG *d, int c)
 		d->flags |= D_DIRTY;
 
 		if (d->dp3) {
-		    int (*proc)(DIALOG *) = d->dp3;
-		    return proc(d);
+		    int (*proc)(void) = d->dp3;
+		    return proc ();
 		}
 
 		if (d->flags & D_EXIT)
@@ -164,8 +164,8 @@ int fancy_button_proc (int msg, DIALOG *d, int c)
 
 	case MSG_KEY:
 	    if (d->dp3) {
-		int (*proc)(DIALOG *) = d->dp3;
-		return proc(d);
+		int (*proc)(void) = d->dp3;
+		return proc ();
 	    }
 
 	    if (d->flags & D_EXIT) return D_CLOSE;
@@ -196,14 +196,9 @@ int fancy_checkbox_proc (int msg, DIALOG *d, int c)
 	    }
 
 	    /* Toggled. */
-	    if (d->flags & D_SELECTED) {
-		/* XXX: draw a tick. */
-		if (d->dp3) {
-		    set_alpha_blender ();
-		    draw_trans_sprite (fancy_screen, d->dp3, d->x + 5, d->y + 5);
-		}
-		else
-		    rectfill_wh (fancy_screen, d->x + 5, d->y + 5, d->h - 11, d->h - 11, white);
+	    if ((d->flags & D_SELECTED) && d->dp3) {
+		set_alpha_blender ();
+		draw_trans_sprite (fancy_screen, d->dp3, d->x + 5, d->y + 5);
 	    }
 
 	    d->flags |= D_FANCY_DIRTY;
@@ -216,13 +211,6 @@ int fancy_checkbox_proc (int msg, DIALOG *d, int c)
 
         case MSG_WANTFOCUS:
 	    return D_WANTFOCUS;
-
-	case MSG_KEY:
-	    if (d->dp3) {
-		int (*proc)(DIALOG *) = d->dp3;
-		return proc(d);
-	    }
-	    break;
     }
 
     return D_O_K;
@@ -348,7 +336,7 @@ int fancy_edit_proc (int msg, DIALOG *d, int c)
 	    save_clip (fancy_screen, &old_clip);
 	    set_clip_wh (fancy_screen, d->x + 5, d->y, d->w - 11, d->h);
 
-	    if (l < d->w - 10) {
+	    if (l < d->w - 12) {
 		if (d->flags & D_GOTFOCUS) {
 		    vline (fancy_screen, d->x + l + 5, y - 5, y + h, light_gray);
 		    vline (fancy_screen, d->x + l + 6, y - 5, y + h, light_gray);
@@ -358,8 +346,8 @@ int fancy_edit_proc (int msg, DIALOG *d, int c)
 	    }
 	    else {
 		if (d->flags & D_GOTFOCUS) {
-		    vline (fancy_screen, d->x + d->w - 6, y - 5, y + h, c);
-		    vline (fancy_screen, d->x + d->w - 7, y - 5, y + h, c);
+		    vline (fancy_screen, d->x + d->w - 7, y - 5, y + h, light_gray);
+		    vline (fancy_screen, d->x + d->w - 8, y - 5, y + h, light_gray);
 		}
 		textout (fancy_screen, fancy_edit_font, d->dp,
 			 d->x + d->w - 5 - l, y, d->fg);
@@ -375,8 +363,8 @@ int fancy_edit_proc (int msg, DIALOG *d, int c)
 	case MSG_CHAR:
 	    if (c >> 8 == KEY_ENTER) {
 		if (d->dp3) {
-		    int (*proc)(DIALOG *) = d->dp3;
-		    return proc (d);
+		    int (*proc)(void) = d->dp3;
+		    return proc ();
 		}
 	    }
 
@@ -503,6 +491,7 @@ int fancy_slider_proc (int msg, DIALOG *d, int c)
 {
     int old_d2 = d->d2;
     int step_size = (d->d1 > 20) ? d->d1 / 20 : 1;
+    void (*proc)(DIALOG *) = d->dp2;
 
     switch (msg) {
         case MSG_DRAW: {
@@ -550,6 +539,10 @@ int fancy_slider_proc (int msg, DIALOG *d, int c)
 		if (d->d2 != old_d2) {
 		    d->flags |= D_DIRTY;
 		    old_d2 = d->d2;
+
+		    /* callback */
+		    if (proc)
+			proc (d);
 		}
 
 		/* let other objects continue to animate */
@@ -566,8 +559,13 @@ int fancy_slider_proc (int msg, DIALOG *d, int c)
 
 	    d->d2 = MID (0, d->d2, d->d1);
 
-	    if (d->d2 != old_d2)
+	    if (d->d2 != old_d2) {
 		d->flags |= D_DIRTY;
+
+		/* callback */
+		if (proc)
+		    proc (d);
+	    }
 	    break;
 
         case MSG_CHAR:
@@ -580,8 +578,14 @@ int fancy_slider_proc (int msg, DIALOG *d, int c)
 
 	    d->d2 = MID (0, d->d2, d->d1);
 
-	    if (d->d2 != old_d2)
+	    if (d->d2 != old_d2) {
 		d->flags |= D_DIRTY;
+
+		/* callback */
+		if (proc)
+		    proc (d);
+	    }
+
 	    return D_USED_CHAR;
     }
 
