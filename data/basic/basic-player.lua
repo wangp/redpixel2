@@ -779,7 +779,7 @@ local Corpse = function (t)
 	
 	proxy_init = function (self)
 	    -- self.frame is given by server
-	    self:add_light ("/basic/light/red-32", 0, 0)
+	    self:add_light ("/basic/light/red-64", 0, 0)
 	    self:set_update_hook (t.speed, proxy_update)
 	    proxy_update (self) -- set the initial layer
 	end
