@@ -4,6 +4,7 @@
  */
 
 
+#include <inttypes.h>
 #include <math.h>
 #include <string.h>
 #include <allegro.h>
@@ -49,7 +50,7 @@
 
 
 typedef unsigned char uchar_t;
-typedef unsigned long ulong_t;
+typedef uint32_t ulong_t;
 
 #define Lclt client_lua_namespace
 

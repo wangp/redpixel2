@@ -4,6 +4,7 @@
  */
 
 
+#include <inttypes.h>
 #include "timeval.h"
 
 
@@ -28,7 +29,7 @@ void svstats_init (void)
 int svstats_poll (void)
 {
     struct pwtimeval now;
-    unsigned long elapsed_msec;
+    uint32_t elapsed_msec;
 
     gettimeofday (&now, 0);
     elapsed_msec = (((now.tv_sec * 1000) + (now.tv_usec / 1000)) -

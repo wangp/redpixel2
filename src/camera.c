@@ -4,6 +4,7 @@
  */
 
 
+#include <inttypes.h>
 #include <math.h>
 #include "alloc.h"
 #include "camera.h"

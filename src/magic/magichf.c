@@ -17,11 +17,11 @@
 #define PUT_MEMORY_PIXEL(p,c)  ((*(p) = (c)),                           \
 				(*(p + 1) = ((c) >> 8)),                \
 				(*(p + 2) = ((c) >> 16)))
-#define GET_MEMORY_PIXEL(p)    (((unsigned long) (*(p)))                \
-				| ((unsigned long) (*((p) + 1)) << 8)   \
-				| ((unsigned long) (*((p) + 2)) << 16))
+#define GET_MEMORY_PIXEL(p)    (((uint32_t) (*(p)))			\
+				| ((uint32_t) (*((p) + 1)) << 8)	\
+				| ((uint32_t) (*((p) + 2)) << 16))	\
 
-#define IS_SPRITE_MASK(b,c)    ((unsigned long) (c) == MASK_COLOR_8)
+#define IS_SPRITE_MASK(b,c)    ((uint32_t) (c) == MASK_COLOR_8)
 
 
 
@@ -72,7 +72,7 @@ void draw_magic_sprite_h_flip(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg + y], dxbeg);
 
 	 for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), DEC_PIXEL_PTR(d), x--) {
-	    unsigned long c = GET_MEMORY_PIXEL(s);
+	    uint32_t c = GET_MEMORY_PIXEL(s);
 	    if (!IS_SPRITE_MASK(src, c)) {
 	       PUT_MEMORY_PIXEL(d, c);
 	    }

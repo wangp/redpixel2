@@ -33,15 +33,15 @@ static inline void put_short (unsigned char *buf, short s)
 }
 
 
-static inline long get_long (const unsigned char *buf)
+static inline uint32_t get_long (const unsigned char *buf)
 {
-    return ntohl (*((long *) buf));
+    return ntohl (*((uint32_t *) buf));
 }
 
 
-static inline void put_long (unsigned char *buf, long l)
+static inline void put_long (unsigned char *buf, uint32_t l)
 {
-    *((long *) buf) = htonl (l);
+    *((uint32_t *) buf) = htonl (l);
 }
 
 
@@ -82,7 +82,7 @@ int packet_encode_v (unsigned char *buf, const char *fmt, va_list ap)
 	    break;
 
 	case 'l':
-	    put_long (buf, va_arg (ap, long)); buf += 4;
+	    put_long (buf, va_arg (ap, int32_t)); buf += 4;
 	    break;
 
 	case 'f':
@@ -124,7 +124,7 @@ int packet_decode (const unsigned char *buf, const char *fmt, ...)
 	    break;
 
 	case 'l':
-	    *(va_arg (ap, long *)) = get_long (buf); buf += 4;
+	    *(va_arg (ap, int32_t *)) = get_long (buf); buf += 4;
 	    break;
 		
 	case 'f':

@@ -25,7 +25,7 @@ else
 ifdef PENTIUMONLY
     OFLAGS = -march=i586 -O2 -fomit-frame-pointer -ffast-math
 else
-    OFLAGS = -mcpu=pentium -O2 -fomit-frame-pointer -ffast-math
+    OFLAGS = -O2 -fomit-frame-pointer -ffast-math
 endif
 endif
 endif

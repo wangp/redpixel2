@@ -1,20 +1,17 @@
+#include <inttypes.h>
 #include <string.h>
 #include <allegro.h>
 #include <allegro/internal/aintern.h>
 #include "2xsai.h"
 
-#define uint32 unsigned long
-#define uint16 unsigned short
-#define uint8 unsigned char
 
 
-
-static uint32 colorMask = 0xF7DEF7DE;
-static uint32 lowPixelMask = 0x08210821;
-static uint32 qcolorMask = 0xE79CE79C;
-static uint32 qlowpixelMask = 0x18631863;
-static uint32 redblueMask = 0xF81F;
-static uint32 greenMask = 0x7E0;
+static uint32_t colorMask = 0xF7DEF7DE;
+static uint32_t lowPixelMask = 0x08210821;
+static uint32_t qcolorMask = 0xE79CE79C;
+static uint32_t qlowpixelMask = 0x18631863;
+static uint32_t redblueMask = 0xF81F;
+static uint32_t greenMask = 0x7E0;
 static int PixelsPerMask = 2;
 static int xsai_depth = 0;
 
@@ -55,10 +52,10 @@ int Init_2xSaI(int d)
 		qlowpixelMask |= (qlowpixelMask << 16);
 	}
 
-	TRACE("Color Mask:       0x%lX\n", colorMask);
-	TRACE("Low Pixel Mask:   0x%lX\n", lowPixelMask);
-	TRACE("QColor Mask:      0x%lX\n", qcolorMask);
-	TRACE("QLow Pixel Mask:  0x%lX\n", qlowpixelMask);
+	TRACE("Color Mask:       0x%X\n", colorMask);
+	TRACE("Low Pixel Mask:   0x%X\n", lowPixelMask);
+	TRACE("QColor Mask:      0x%X\n", qcolorMask);
+	TRACE("QLow Pixel Mask:  0x%X\n", qlowpixelMask);
 	
 	xsai_depth = d;
 
@@ -67,7 +64,7 @@ int Init_2xSaI(int d)
 
 
 #if 0
-static int GetResult1(uint32 A, uint32 B, uint32 C, uint32 D)
+static int GetResult1(uint32_t A, uint32_t B, uint32_t C, uint32_t D)
 {
 	int x = 0;
 	int y = 0;
@@ -87,7 +84,7 @@ static int GetResult1(uint32 A, uint32 B, uint32 C, uint32 D)
 	return r;
 }
 
-static int GetResult2(uint32 A, uint32 B, uint32 C, uint32 D, uint32 E)
+static int GetResult2(uint32_t A, uint32_t B, uint32_t C, uint32_t D, uint32_t E)
 {
 	int x = 0;
 	int y = 0;
@@ -220,12 +217,12 @@ void Super2xSaI(BITMAP * src, BITMAP * dest, int s_x, int s_y, int d_x, int d_y,
 	return;
 }
 
-void Super2xSaI_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, uint32 width, uint32 height) {
+void Super2xSaI_ex(uint8_t *src, uint32_t src_pitch, uint8_t *unused, BITMAP *dest, uint32_t width, uint32_t height) {
 
 	int j, v;
 	unsigned int x, y;
 	int sbpp = BYTES_PER_PIXEL(bitmap_color_depth(dest));
-	unsigned long color[16];
+	uint32_t color[16];
 
 	/* Point to the first 3 lines. */
 	src_line[0] = src;
@@ -261,13 +258,13 @@ void Super2xSaI_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 		color[12] = *sbp;    color[13] = color[12];   color[14] = *(sbp + 1); color[15] = *(sbp + 2);
 	}
 	else {
-		unsigned long *lbp;
-		lbp = (unsigned long*)src_line[0];
+		uint32_t *lbp;
+		lbp = (uint32_t*)src_line[0];
 		color[0] = *lbp;       color[1] = color[0];   color[2] = color[0];    color[3] = color[0];
 		color[4] = color[0];   color[5] = color[0];   color[6] = *(lbp + 1);  color[7] = *(lbp + 2);
-		lbp = (unsigned long*)src_line[2];
+		lbp = (uint32_t*)src_line[2];
 		color[8] = *lbp;     color[9] = color[8];     color[10] = *(lbp + 1); color[11] = *(lbp + 2);
-		lbp = (unsigned long*)src_line[3];
+		lbp = (uint32_t*)src_line[3];
 		color[12] = *lbp;    color[13] = color[12];   color[14] = *(lbp + 1); color[15] = *(lbp + 2);
 	}
 
@@ -276,7 +273,7 @@ void Super2xSaI_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 		/* Todo: x = width - 2, x = width - 1 */
 		
 		for (x = 0; x < width; x++) {
-			unsigned long product1a, product1b, product2a, product2b;
+			uint32_t product1a, product1b, product2a, product2b;
 
 //---------------------------------------  B0 B1 B2 B3    0  1  2  3
 //                                         4  5* 6  S2 -> 4  5* 6  7
@@ -340,14 +337,14 @@ void Super2xSaI_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 				product1a = color[5];
 	
 			if (PixelsPerMask == 2) {
-				*((unsigned long *) (&dst_line[0][x * 4])) = product1a | (product1b << 16);
-				*((unsigned long *) (&dst_line[1][x * 4])) = product2a | (product2b << 16);
+				*((uint32_t *) (&dst_line[0][x * 4])) = product1a | (product1b << 16);
+				*((uint32_t *) (&dst_line[1][x * 4])) = product2a | (product2b << 16);
 			}
 			else {
-				*((unsigned long *) (&dst_line[0][x * 8])) = product1a;
-				*((unsigned long *) (&dst_line[0][x * 8 + 4])) = product1b;
-				*((unsigned long *) (&dst_line[1][x * 8])) = product2a;
-				*((unsigned long *) (&dst_line[1][x * 8 + 4])) = product2b;
+				*((uint32_t *) (&dst_line[0][x * 8])) = product1a;
+				*((uint32_t *) (&dst_line[0][x * 8 + 4])) = product1b;
+				*((uint32_t *) (&dst_line[1][x * 8])) = product2a;
+				*((uint32_t *) (&dst_line[1][x * 8 + 4])) = product2b;
 			}
 			
 			/* Move color matrix forward */
@@ -364,10 +361,10 @@ void Super2xSaI_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 					color[15] = *(((unsigned short*)src_line[3]) + x);
 				}
 				else {
-					color[3] = *(((unsigned long*)src_line[0]) + x);
-					color[7] = *(((unsigned long*)src_line[1]) + x);
-					color[11] = *(((unsigned long*)src_line[2]) + x);
-					color[15] = *(((unsigned long*)src_line[3]) + x);
+					color[3] = *(((uint32_t*)src_line[0]) + x);
+					color[7] = *(((uint32_t*)src_line[1]) + x);
+					color[11] = *(((uint32_t*)src_line[2]) + x);
+					color[15] = *(((uint32_t*)src_line[3]) + x);
 				}
 				x -= 3;
 			}
@@ -397,29 +394,29 @@ void Super2xSaI_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 			color[12] = *sbp;    color[13] = color[12];  color[14] = *(sbp + 1); color[15] = *(sbp + 2);
 		}
 		else {
-			unsigned long *lbp;
-			lbp = (unsigned long*)src_line[0];
+			uint32_t *lbp;
+			lbp = (uint32_t*)src_line[0];
 			color[0] = *lbp;     color[1] = color[0];    color[2] = *(lbp + 1);  color[3] = *(lbp + 2);
-			lbp = (unsigned long*)src_line[1];
+			lbp = (uint32_t*)src_line[1];
 			color[4] = *lbp;     color[5] = color[4];    color[6] = *(lbp + 1);  color[7] = *(lbp + 2);
-			lbp = (unsigned long*)src_line[2];
+			lbp = (uint32_t*)src_line[2];
 			color[8] = *lbp;     color[9] = color[9];    color[10] = *(lbp + 1); color[11] = *(lbp + 2);
-			lbp = (unsigned long*)src_line[3];
+			lbp = (uint32_t*)src_line[3];
 			color[12] = *lbp;    color[13] = color[12];  color[14] = *(lbp + 1); color[15] = *(lbp + 2);
 		}
 		
 		
 		/* Write the 2 lines, if not already done so */
 		if (v) {
-			unsigned long dst_addr;
+			uintptr_t dst_addr;
 		
 			dst_addr = bmp_write_line(dest, y * 2);
-			for (j = 0; j < dest->w * sbpp; j += sizeof(long))
-				bmp_write32(dst_addr + j, *((unsigned long *) (dst_line[0] + j)));
+			for (j = 0; j < dest->w * sbpp; j += sizeof(int32_t))
+				bmp_write32(dst_addr + j, *((uint32_t *) (dst_line[0] + j)));
 				
 			dst_addr = bmp_write_line(dest, y * 2 + 1);
-			for (j = 0; j < dest->w * sbpp; j += sizeof(long))
-				bmp_write32(dst_addr + j, *((unsigned long *) (dst_line[1] + j)));
+			for (j = 0; j < dest->w * sbpp; j += sizeof(int32_t))
+				bmp_write32(dst_addr + j, *((uint32_t *) (dst_line[1] + j)));
 		}
 		else {
 			if (y < height - 1) {
@@ -472,12 +469,12 @@ void SuperEagle(BITMAP * src, BITMAP * dest, int s_x, int s_y, int d_x, int d_y,
 	return;
 }
 
-void SuperEagle_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, uint32 width, uint32 height) {
+void SuperEagle_ex(uint8_t *src, uint32_t src_pitch, uint8_t *unused, BITMAP *dest, uint32_t width, uint32_t height) {
 
 	int j, v;
 	unsigned int x, y;
 	int sbpp = BYTES_PER_PIXEL(bitmap_color_depth(dest));
-	unsigned long color[12];
+	uint32_t color[12];
 
 	/* Point to the first 3 lines. */
 	src_line[0] = src;
@@ -513,13 +510,13 @@ void SuperEagle_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 		color[10] = *sbp;    color[11] = *(sbp + 1); 
 	}
 	else {
-		unsigned long *lbp;
-		lbp = (unsigned long*)src_line[0];
+		uint32_t *lbp;
+		lbp = (uint32_t*)src_line[0];
 		color[0] = *lbp;       color[1] = color[0];   color[2] = color[0];    color[3] = color[0];
 		color[4] = *(lbp + 1); color[5] = *(lbp + 2);
-		lbp = (unsigned long*)src_line[2];
+		lbp = (uint32_t*)src_line[2];
 		color[6] = *lbp;     color[7] = color[6];     color[8] = *(lbp + 1); color[9] = *(lbp + 2);
-		lbp = (unsigned long*)src_line[3];
+		lbp = (uint32_t*)src_line[3];
 		color[10] = *lbp;    color[11] = *(lbp + 1);
 	}
 
@@ -528,7 +525,7 @@ void SuperEagle_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 		/* Todo: x = width - 2, x = width - 1 */
 		
 		for (x = 0; x < width; x++) {
-			unsigned long product1a, product1b, product2a, product2b;
+			uint32_t product1a, product1b, product2a, product2b;
 
 //---------------------------------------     B1 B2           0  1
 //                                         4  5  6  S2 ->  2  3  4  5
@@ -594,14 +591,14 @@ void SuperEagle_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 			}
 
 			if (PixelsPerMask == 2) {
-				*((unsigned long *) (&dst_line[0][x * 4])) = product1a | (product1b << 16);
-				*((unsigned long *) (&dst_line[1][x * 4])) = product2a | (product2b << 16);
+				*((uint32_t *) (&dst_line[0][x * 4])) = product1a | (product1b << 16);
+				*((uint32_t *) (&dst_line[1][x * 4])) = product2a | (product2b << 16);
 			}
 			else {
-				*((unsigned long *) (&dst_line[0][x * 8])) = product1a;
-				*((unsigned long *) (&dst_line[0][x * 8 + 4])) = product1b;
-				*((unsigned long *) (&dst_line[1][x * 8])) = product2a;
-				*((unsigned long *) (&dst_line[1][x * 8 + 4])) = product2b;
+				*((uint32_t *) (&dst_line[0][x * 8])) = product1a;
+				*((uint32_t *) (&dst_line[0][x * 8 + 4])) = product1b;
+				*((uint32_t *) (&dst_line[1][x * 8])) = product2a;
+				*((uint32_t *) (&dst_line[1][x * 8 + 4])) = product2b;
 			}
 			
 			/* Move color matrix forward */
@@ -621,12 +618,12 @@ void SuperEagle_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 					color[11] = *(((unsigned short*)src_line[3]) + x);
 				}
 				else {
-					color[1] = *(((unsigned long*)src_line[0]) + x);
+					color[1] = *(((uint32_t*)src_line[0]) + x);
 					if (x < width) {
-						color[5] = *(((unsigned long*)src_line[1]) + x + 1);
-						color[9] = *(((unsigned long*)src_line[2]) + x + 1);
+						color[5] = *(((uint32_t*)src_line[1]) + x + 1);
+						color[9] = *(((uint32_t*)src_line[2]) + x + 1);
 					}
-					color[11] = *(((unsigned long*)src_line[3]) + x);
+					color[11] = *(((uint32_t*)src_line[3]) + x);
 				}
 				x -= 2;
 			}
@@ -656,29 +653,29 @@ void SuperEagle_ex(uint8 *src, uint32 src_pitch, uint8 *unused, BITMAP *dest, ui
 			color[10] = *sbp;    color[11] = *(sbp + 1);
 		}
 		else {
-			unsigned long *lbp;
-			lbp = (unsigned long*)src_line[0];
+			uint32_t *lbp;
+			lbp = (uint32_t*)src_line[0];
 			color[0] = *lbp;     color[1] = *(lbp + 1);
-			lbp = (unsigned long*)src_line[1];
+			lbp = (uint32_t*)src_line[1];
 			color[2] = *lbp;     color[3] = color[2];    color[4] = *(lbp + 1);  color[5] = *(lbp + 2);
-			lbp = (unsigned long*)src_line[2];
+			lbp = (uint32_t*)src_line[2];
 			color[6] = *lbp;     color[7] = color[6];    color[8] = *(lbp + 1);  color[9] = *(lbp + 2);
-			lbp = (unsigned long*)src_line[3];
+			lbp = (uint32_t*)src_line[3];
 			color[10] = *lbp;    color[11] = *(lbp + 1);
 		}
 
 
 		/* Write the 2 lines, if not already done so */
 		if (v) {
-			unsigned long dst_addr;
+			uintptr_t dst_addr;
 		
 			dst_addr = bmp_write_line(dest, y * 2);
-			for (j = 0; j < dest->w * sbpp; j += sizeof(long))
-				bmp_write32(dst_addr + j, *((unsigned long *) (dst_line[0] + j)));
+			for (j = 0; j < dest->w * sbpp; j += sizeof(int32_t))
+				bmp_write32(dst_addr + j, *((uint32_t *) (dst_line[0] + j)));
 				
 			dst_addr = bmp_write_line(dest, y * 2 + 1);
-			for (j = 0; j < dest->w * sbpp; j += sizeof(long))
-				bmp_write32(dst_addr + j, *((unsigned long *) (dst_line[1] + j)));
+			for (j = 0; j < dest->w * sbpp; j += sizeof(int32_t))
+				bmp_write32(dst_addr + j, *((uint32_t *) (dst_line[1] + j)));
 		}
 		else {
 			if (y < height - 1) {

@@ -92,7 +92,7 @@ void ug_widget_send_event (ug_widget_t *, ug_event_t, ug_event_data_t *);
 /*: Emit a signal (including event data) to a widget.  Signals are
  *  like events, but are handled by user-defined slots, rather than
  *  the widget's class.  */
-void ug_widget_emit_signal (ug_widget_t *, ug_event_t, ug_event_data_t *);
+void ug_widget_emit_signal (ug_widget_t *, ug_signal_t, ug_event_data_t *);
 
 /*: Send an event to a widget, with keyboard event data.  */
 void ug_widget_send_event_key (ug_widget_t *, ug_event_t, int key);

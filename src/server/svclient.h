@@ -36,7 +36,7 @@ struct svclient {
     float last_sent_aim_angle;
     char *score;
     timeout_t timeout;
-    unsigned long pong_time;
+    uint32_t pong_time;
     int lag;
 };
 

@@ -4,6 +4,7 @@
  */
 
 
+#include <inttypes.h>
 #include "alloc.h"
 #include "bitmask.h"
 #include "bitmaskr.h"

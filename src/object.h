@@ -175,11 +175,11 @@ int object_standing_on_ladder (object_t *);
 void object_do_physics (object_t *, struct map *);
 
 
-void object_set_auth_info (object_t *, unsigned long time,
+void object_set_auth_info (object_t *, uint32_t time,
 			   float x, float y,
 			   float xv, float yv,
 			   float xa, float ya);
-void object_do_simulation (object_t *, unsigned long curr_time);
+void object_do_simulation (object_t *, uint32_t curr_time);
 
 
 /* Lua table operations.  */

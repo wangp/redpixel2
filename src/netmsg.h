@@ -21,7 +21,7 @@ enum {
     /* The server sends this to a client right after it joins to
        notify it of its registration details.
        
-       Args: long client_id.  */
+       Args: int32_t client_id.  */
 
     MSG_SC_JOININFO = 'j',
 
@@ -58,7 +58,7 @@ enum {
        that exists (possibly itself).  This is sent once when a new
        client is connected.
 
-       Args: long client_id, string name, string face_icon, string score.
+       Args: int32_t client_id, string name, string face_icon, string score.
        Score maybe be 0-length.
      */
 
@@ -69,7 +69,7 @@ enum {
        client is no more.  This is sent once when a client is
        disconnected.
 
-       Args: long client_id.
+       Args: int32_t client_id.
      */
 
     MSG_SC_CLIENT_REMOVE = '-',
@@ -208,7 +208,7 @@ enum {
     /* Tell clients about a client's new aim angle.  Note: these
        angles are only approximate.
 
-       Args: long client_id, float aim_angle.
+       Args: int32_t client_id, float aim_angle.
      */
 
     MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE = 'a',
@@ -216,7 +216,7 @@ enum {
 
     /* Tell clients about their status.
 
-       Args: long client_id, byte prop, long value.
+       Args: int32_t client_id, byte prop, int32_t value.
        where prop is
 		'h' for health,
 		'a' for ammo,
@@ -228,7 +228,7 @@ enum {
 
     /* Tell clients about theirs or other client's scores.
 
-       Args: long client_id, string score.
+       Args: int32_t client_id, string score.
 
        The score is a string for displaying only.  As such, it could
        be anything (but usually it would be dealing in death).
@@ -239,8 +239,8 @@ enum {
 
     /* Tell clients to create a new object.
 
-       Args: string type, long object_id, byte hidden_or_not,
-	     float x, float y, float xv, float yv, long collision_tag.
+       Args: string type, int32_t object_id, byte hidden_or_not,
+	     float x, float y, float xv, float yv, int32_t collision_tag.
 
        This is followed by extra fields for the proxy object.
        Each field is of the following format:
@@ -256,7 +256,7 @@ enum {
 
     /* Tell clients to destroy an object.
 
-       Args: long object_id.
+       Args: int32_t object_id.
      */
 
     MSG_SC_GAMEINFO_OBJECT_DESTROY = 'd',
@@ -264,7 +264,7 @@ enum {
 
     /* Tell clients about an object's new position and velocities.
 
-       Args: long object_id, float x, float y, float xv, float yv,
+       Args: int32_t object_id, float x, float y, float xv, float yv,
              float xa, float ya.
      */
 
@@ -273,7 +273,7 @@ enum {
 
     /* Tell clients about an object's new hidden status.
 
-       Args: long object_id, byte hidden_or_not.
+       Args: int32_t object_id, byte hidden_or_not.
      */
 
     MSG_SC_GAMEINFO_OBJECT_HIDDEN = 'h',
@@ -281,7 +281,7 @@ enum {
 
     /* Tell clients to call an object method.
 
-       Args: long object_id, string method, string arg.
+       Args: int32_t object_id, string method, string arg.
      */
 
     MSG_SC_GAMEINFO_OBJECT_CALL = 'C',
@@ -289,7 +289,7 @@ enum {
 
     /* Tell clients to create some particles.
 
-       Args: char type, float x, float y, long nparticles, float spread.
+       Args: char type, float x, float y, int32_t nparticles, float spread.
        where type is 'b' for blood, 's' for sparks, 'r' for respawn particles
      */
 
@@ -298,7 +298,7 @@ enum {
 
     /* Tell clients to create some blod objects.
 
-       Args: float x, float y, long nparticles.
+       Args: float x, float y, int32_t nparticles.
      */
 
     MSG_SC_GAMEINFO_BLOD_CREATE = 'B',
@@ -306,7 +306,7 @@ enum {
 
     /* Tell clients to create an explosion.
 
-       Args: string name, float x, float y, long nparticles.
+       Args: string name, float x, float y, int32_t nparticles.
      */
 
     MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e',
@@ -314,7 +314,7 @@ enum {
 
     /* Tell clients to create a (visual-only) blast.
 
-       Args: float x, float y, float max_radius, long damage.
+       Args: float x, float y, float max_radius, int32_t damage.
      */
 
     MSG_SC_GAMEINFO_BLAST_CREATE = 'b',

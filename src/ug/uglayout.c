@@ -4,6 +4,7 @@
  */
 
 
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 #include "ug.h"
@@ -29,7 +30,7 @@ void ug_dialog_layout_destroy (ug_dialog_layout_t *p)
 static int count (ug_dialog_layout_t *p)
 {
     int n = 0;
-    while ((int) p[n].class != -1)
+    while ((intptr_t) p[n].class != -1)
 	n++;
     return n + 1;
 }

@@ -994,7 +994,7 @@ static void purge_stale_objects (void)
 
 static void svgame_poll (void)
 {
-    unsigned long t = svticker_ticks (ticker);
+    uint32_t t = svticker_ticks (ticker);
     long dt, i;
 
     if (!svticker_poll (ticker))

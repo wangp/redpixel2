@@ -107,7 +107,7 @@ static int kick_player_pressed (void)
 
     /* XXX: don't allow kicking yourself. */
     c = client_get_nth_client_info (SERVER_LOBBY_PLAYER_LISTBOX.d2);
-    sprintf (str, ",kick %ld", c->id);
+    sprintf (str, ",kick %d", c->id);
     new_input = strdup (str);
 
     object_message (&SERVER_LOBBY_PLAYER_LISTBOX, MSG_DRAW, 0);

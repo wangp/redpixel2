@@ -10,7 +10,7 @@ typedef struct bitmask bitmask_t;
 
 /* Set this to a 32 bit unsigned integer on your machine, or
  * alternatively, check the code works with other sizes.  */
-typedef unsigned long _bitmask_u32_t;
+typedef uint32_t _bitmask_u32_t;
 
 #define _bitmask_u32_bytes	(sizeof (_bitmask_u32_t))
 #define _bitmask_u32_bits	(_bitmask_u32_bytes * 8)

@@ -22,9 +22,9 @@
  * There is more information in object.h.
  */
 
-typedef unsigned long client_id_t;
-typedef unsigned long objid_t;
-typedef unsigned long objtag_t;
+typedef uint32_t client_id_t;
+typedef uint32_t objid_t;
+typedef uint32_t objtag_t;
 
 
 #endif

@@ -4,6 +4,7 @@
  */
 
 
+#include <inttypes.h>
 #include "alloc.h"
 #include "svticker.h"
 #include "timeval.h"
@@ -11,7 +12,7 @@
 
 struct svticker {
     unsigned int msecs_per_tick;
-    unsigned long ticks;
+    uint32_t ticks;
     struct pwtimeval last_update;
 };
 
@@ -60,7 +61,7 @@ void svticker_destroy (svticker_t *t)
 }
 
 
-unsigned long svticker_ticks (svticker_t *t)
+uint32_t svticker_ticks (svticker_t *t)
 {
     return t->ticks;
 }

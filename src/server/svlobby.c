@@ -4,6 +4,7 @@
  */
 
 
+#include <inttypes.h>
 #include "netmsg.h"
 #include "server.h"
 #include "svclient.h"

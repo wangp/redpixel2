@@ -135,9 +135,9 @@ void free_magic_color_map(void)
  
 
 /* Lookup tables for speeding up the color conversion.  */
-static unsigned short rgtable[0x10000];
-static unsigned long  brtable[0x10000];
-static unsigned short gbtable[0x10000];
+static uint16_t rgtable[0x10000];
+static uint32_t brtable[0x10000];
+static uint16_t gbtable[0x10000];
 
 
 /* Builds some helper tables for doing color conversions.  */
@@ -178,10 +178,10 @@ void generate_magic_conversion_tables(void)
 /* Copies from our magic format data onto a normal Allegro memory/screen bitmap.  */
 void blit_magic_format(BITMAP *bmp, BITMAP *dest, int w, int h)
 {
-   unsigned long addr;
-   unsigned long *data;
-   unsigned long in1, in2, in3;
-   unsigned long out1, out2;
+   uintptr_t addr;
+   uint32_t *data;
+   uint32_t in1, in2, in3;
+   uint32_t out1, out2;
    int x, y;
     
    /* Warning: this function contains some rather hairy optimisations :-)
@@ -242,7 +242,7 @@ void blit_magic_format(BITMAP *bmp, BITMAP *dest, int w, int h)
 
    for (y = 0; y < h; y++) {
       addr = bmp_write_line(dest, y);
-      data = (unsigned long *)bmp->line[y];
+      data = (uint32_t *)bmp->line[y];
 
       for (x = 0; x < w; x++) {
 	 in1 = *(data++);
