@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.23.03.53.17;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added spark particles.
 @
 text
 @/* This file is shared between the map editor and the game. */
@@ -27,6 +32,7 @@ text
 
 struct object;
 struct blood_particles;
+struct spark_particles;
 
 
 typedef struct light light_t;
@@ -67,8 +73,20 @@ int map_start_y (start_t *start);
 void map_start_move (start_t *start, int x, int y);
 struct list_head *map_start_list (map_t *map);
 
-struct blood_particles *map_blood_particles (map_t *map);
+struct particles *map_particles (map_t *map);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 1
+d49 1
+a49 1
+struct blood_particles *map_blood_particles (map_t *map);
 @

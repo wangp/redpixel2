@@ -1,9 +1,19 @@
-head	1.8;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.10
+date	2002.01.23.14.09.19;	author tjaden;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2002.01.23.03.54.00;	author tjaden;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2002.01.22.01.48.52;	author tjaden;	state Exp;
@@ -50,9 +60,9 @@ desc
 @@
 
 
-1.8
+1.10
 log
-@Added set_status() method to game_server_interface.
+@Added particles for respawning ball.
 @
 text
 @#ifndef __included_gamesrv_h
@@ -80,11 +90,31 @@ void game_server_shutdown ();
 struct object *game_server_spawn_object (const char *typename, float x, float y);
 struct object *game_server_spawn_projectile (const char *typename, struct object *, float speed, float delta_angle);
 void game_server_spawn_blood (float x, float y, long nparticles, float spread);
+void game_server_spawn_sparks (float x, float y, long nparticles, float spread);
+void game_server_spawn_respawn_particles (float x, float y, long nparticles, float spread);
 void game_server_spawn_blod (float x, float y, long nparticles);
 void game_server_call_method_on_clients (struct object *, const char *method, const char *arg);
 
 
 #endif
+@
+
+
+1.9
+log
+@Added spark particles.
+@
+text
+@d27 1
+@
+
+
+1.8
+log
+@Added set_status() method to game_server_interface.
+@
+text
+@d26 1
 @
 
 

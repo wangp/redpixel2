@@ -1,0 +1,650 @@
+head	1.8;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.8
+date	2002.01.23.14.08.50;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.01.23.03.51.39;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.01.18.14.28.06;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.01.18.12.44.52;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.01.15.14.07.14;	author tjaden;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2002.01.15.13.28.55;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.14.17.00.59;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.8
+log
+@Added particles for respawning ball.
+@
+text
+@/* particle.c
+ *
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+/*
+  XXX -- fragmentation problems with so many small allocs?
+ */
+
+
+#include <math.h>
+#include <allegro.h>
+#include <allegro/internal/aintern.h>
+#include "alloc.h"
+#include "bitmask.h"
+#include "map.h"
+#include "particle.h"
+
+
+#define INITIAL_PARTICLES	1024
+#define MAX_PARTICLES		8192
+
+
+typedef struct particle {
+    struct particle *next;
+    float x, y;
+    float xv, yv;
+    int color;
+    short life;
+    short weightless;
+} particle_t;
+
+
+struct particles {
+    int total_particles;
+    particle_t *live_particles;
+    particle_t *free_particles;
+};
+
+
+static int alloc_free_particles (particles_t *part, int num)
+{
+    if (part->total_particles >= MAX_PARTICLES)
+	return -1;
+
+    if (num > MAX_PARTICLES - part->total_particles)
+	num = MAX_PARTICLES - part->total_particles;
+
+    part->total_particles += num;    
+    while (num--) {
+	particle_t *p = alloc (sizeof *p);
+	p->next = part->free_particles;
+	part->free_particles = p;
+    }
+
+    return 0;
+}
+
+
+particles_t *particles_create (void)
+{
+    particles_t *part = alloc (sizeof *part);
+    alloc_free_particles (part, INITIAL_PARTICLES);
+    return part;
+}
+
+
+static void free_particles_list (particle_t *p)
+{
+    while (p) {
+	particle_t *q = p->next;
+	free (p);
+	p = q;
+    }
+}
+
+
+void particles_destroy (particles_t *p)
+{
+    if (p) {
+	free_particles_list (p->free_particles);
+	free_particles_list (p->live_particles);
+	free (p);
+    }
+}
+
+
+void particles_update (particles_t *part, map_t *map)
+{
+    bitmask_t *mask = map_tile_mask (map);
+    particle_t *p = part->live_particles;
+    particle_t *prev = NULL;
+    particle_t *next;
+    
+    while (p) {
+	p->x += p->xv;
+	p->y += p->yv;
+	if (!p->weightless) {
+	    p->xv *= 0.995;
+	    p->yv += 0.05;
+	}
+	
+	if (bitmask_point (mask, p->x, p->y))
+	    p->life = 0;
+	else
+	    p->life--;
+
+	if (p->life > 0) {
+	    prev = p;
+	    p = p->next;
+	}
+	else {
+	    /* particle dead: move to free list */
+	    next = p->next;
+	    if (prev)
+		prev->next = next;
+	    else
+		part->live_particles = next;
+	    p->next = part->free_particles;
+	    part->free_particles = p;
+	    p = next;
+	}
+    }
+}
+
+
+static inline int rnd (int lower, int upper)
+{
+    return (rand() % (upper-lower+1)) + lower;
+}
+ 
+
+enum {
+    TYPE_BLOOD,
+    TYPE_SPARK,
+    TYPE_RESPAWNING
+};
+ 
+
+static void particles_spawn (particles_t *part, int type,
+			     float x, float y, long nparticles, float spread)
+{
+    particle_t *p;
+    double theta;
+    int r, g, b;
+    float h, s, v;
+
+    while (nparticles > 0) {
+	/* if out of free particles allocate some more or abort */
+	if ((!part->free_particles) &&
+	    (alloc_free_particles (part, nparticles) < 0))
+	    break;
+
+	/* get free particle */
+	p = part->free_particles;
+	part->free_particles = p->next;
+
+	/* initialise it */
+	switch (type) {
+
+	    case TYPE_BLOOD:
+		theta = rnd (0, M_PI * 2 * 1000) / 1000.;
+		p->x = x + rnd (-3, 3);
+		p->y = y + rnd (-3, 3);
+		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
+		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
+		p->life = 100;
+		p->weightless = 0;
+		
+		r = rnd (4, 9);
+		g = rnd (0, 2);
+		b = rnd (1, 3);
+		if (!rnd (0, 32)) {
+		    r += rnd (0, 3);
+		    g += rnd (0, 3);
+		    b += rnd (0, 3);
+		}
+		p->color = makecol24 (r, g, b);
+		break;
+
+	    case TYPE_SPARK:
+		theta = rnd (0, M_PI * 2 * 1000) / 1000.;
+		p->x = x + rnd (-3, 3);
+		p->y = y + rnd (-3, 3);
+		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
+		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
+		p->life = 100;
+		p->weightless = 0;
+		
+		h = rnd (30, 60);
+		s = rnd (80, 100) / 100.;
+		v = 0.8;
+		hsv_to_rgb (h, s, v, &r, &g, &b);
+		p->color = makecol24 (r/16, g/16, b/16);
+		break;
+
+	    case TYPE_RESPAWNING:
+		theta = rnd (0, M_PI * 2 * 1000) / 1000.;
+		p->x = x + rnd (-16, 16);
+		p->y = y + rnd (-16, 16);
+		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
+		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
+		p->life = rnd (10, 40);
+		p->weightless = 1;
+		
+		h = rnd (180, 240);
+		s = rnd (80, 100) / 100.;
+		v = 0.8;
+		hsv_to_rgb (h, s, v, &r, &g, &b);
+		p->color = makecol24 (r/16, g/16, b/16);
+		break;
+	}
+
+	/* put it into live particles list */
+	p->next = part->live_particles;
+	part->live_particles = p;
+
+	nparticles--;
+    }
+}
+
+
+void particles_spawn_blood (particles_t *part, float x, float y, long nparticles, float spread)
+{
+    particles_spawn (part, TYPE_BLOOD, x, y, nparticles, spread);
+}
+
+
+void particles_spawn_spark (particles_t *part, float x, float y, long nparticles, float spread)
+{
+    particles_spawn (part, TYPE_SPARK, x, y, nparticles, spread);
+}
+
+
+void particles_spawn_respawn_particles (particles_t *part, float x, float y, long nparticles, float spread)
+{
+    particles_spawn (part, TYPE_RESPAWNING, x, y, nparticles, spread);
+}
+
+
+void particles_draw (BITMAP *bmp, particles_t *part, int offset_x, int offset_y)
+{
+    int old_cl = bmp->cl;
+    int old_cr = bmp->cr;
+    bmp->cl /= 3;
+    bmp->cr /= 3;
+
+    {
+	particle_t *p;
+	for (p = part->live_particles; p; p = p->next)
+	    _linear_putpixel24 (bmp, p->x - offset_x, p->y - offset_y, p->color);
+    }
+
+    bmp->cl = old_cl;
+    bmp->cr = old_cr;
+}
+@
+
+
+1.7
+log
+@Added spark particles.  (blood.[ch] renamed to particle.[ch])
+@
+text
+@d30 2
+a31 1
+    int life;
+d99 4
+a102 2
+	p->xv *= 0.99;
+	p->yv += 0.05;
+d128 1
+a128 1
+static inline int rnd (int n)
+d130 1
+a130 1
+    return rand() % n;
+d134 9
+a142 1
+void particles_spawn_blood (particles_t *part, float x, float y, long nparticles, float spread)
+d147 2
+a148 1
+	
+d160 54
+a213 13
+	theta = rnd (M_PI * 2. * 1000.) / 1000.;
+	p->x = x + rnd (7) - 6;
+	p->y = y + rnd (7) - 6;
+	p->xv = rnd (spread * 1000) * cos (theta) / 1000.;
+	p->yv = rnd (spread * 1000) * sin (theta) / 1000.;
+	p->life = 100;
+
+	r = 4 + rnd (5);
+	g = 0 + rnd (2);
+	b = 1 + rnd (2);
+	if (!rnd (32))
+	    r += rnd (3), g += rnd (3), b += rnd (3);
+	p->color = makecol24 (r, g, b);
+d224 1
+a224 1
+void particles_spawn_spark (particles_t *spark, float x, float y, long nparticles, float spread)
+d226 2
+a227 9
+    particle_t *p;
+    double theta;
+    int r, g, b;
+	
+    while (nparticles > 0) {
+	/* if out of free particles allocate some more or abort */
+	if ((!spark->free_particles) &&
+	    (alloc_free_particles (spark, nparticles) < 0))
+	    break;
+a228 3
+	/* get free particle */
+	p = spark->free_particles;
+	spark->free_particles = p->next;
+d230 4
+a233 18
+	/* initialise it */
+	theta = rnd (M_PI * 2. * 1000.) / 1000.;
+	p->x = x + rnd (7) - 4;
+	p->y = y + rnd (7) - 4;
+	p->xv = rnd (spread * 1000) * cos (theta) / 1000.;
+	p->yv = rnd (spread * 1000) * sin (theta) / 1000.;
+	p->life = 100;
+
+	{
+	    float h = 30 + rnd (30);
+	    float s = (80 + rnd (20)) / 100.;
+	    float v = 0.8;
+
+	    hsv_to_rgb (h, s, v, &r, &g, &b);
+	    r /= 16;
+	    g /= 16;
+	    b /= 16;
+	}
+a234 6
+/*  	r = 4 + rnd (5); */
+/*  	g = 0 + rnd (2); */
+/*  	b = 1 + rnd (2); */
+/*  	if (!rnd (32)) */
+/*  	    r += rnd (3), g += rnd (3), b += rnd (3); */
+	p->color = makecol24 (r, g, b);
+d236 3
+a238 6
+	/* put it into live particles list */
+	p->next = spark->live_particles;
+	spark->live_particles = p;
+
+	nparticles--;
+    }
+@
+
+
+1.6
+log
+@Precautionary fix in case some wise guy passes zero or a negative
+number for nparticles to blood_particles_spawn.
+@
+text
+@d1 1
+a1 1
+/* blood.c
+a16 1
+#include "blood.h"
+d18 1
+d34 1
+a34 1
+struct blood_particles {
+d41 1
+a41 1
+static int alloc_free_particles (blood_particles_t *blood, int num)
+d43 1
+a43 1
+    if (blood->total_particles >= MAX_PARTICLES)
+d46 2
+a47 2
+    if (num > MAX_PARTICLES - blood->total_particles)
+	num = MAX_PARTICLES - blood->total_particles;
+d49 1
+a49 1
+    blood->total_particles += num;    
+d52 2
+a53 2
+	p->next = blood->free_particles;
+	blood->free_particles = p;
+d60 1
+a60 1
+blood_particles_t *blood_particles_create (void)
+d62 3
+a64 3
+    blood_particles_t *blood = alloc (sizeof *blood);
+    alloc_free_particles (blood, INITIAL_PARTICLES);
+    return blood;
+d78 1
+a78 1
+void blood_particles_destroy (blood_particles_t *p)
+d88 1
+a88 1
+void blood_particles_update (blood_particles_t *blood, map_t *map)
+d91 1
+a91 1
+    particle_t *p = blood->live_particles;
+d116 3
+a118 3
+		blood->live_particles = next;
+	    p->next = blood->free_particles;
+	    blood->free_particles = p;
+d131 1
+a131 1
+void blood_particles_spawn (blood_particles_t *blood, float x, float y, long nparticles, float spread)
+d139 2
+a140 2
+	if ((!blood->free_particles) &&
+	    (alloc_free_particles (blood, nparticles) < 0))
+d144 2
+a145 2
+	p = blood->free_particles;
+	blood->free_particles = p->next;
+d163 2
+a164 2
+	p->next = blood->live_particles;
+	blood->live_particles = p;
+d171 52
+a222 1
+void blood_particles_draw (BITMAP *bmp, blood_particles_t *blood, int offset_x, int offset_y)
+d231 1
+a231 1
+	for (p = blood->live_particles; p; p = p->next)
+@
+
+
+1.5
+log
+@Fixed a bug where it would try to allocate zero new particles.
+@
+text
+@d137 1
+a137 1
+    while (nparticles) {
+@
+
+
+1.4
+log
+@Changed colour of blood particles to less red and closer to colours in
+death fountain anim.  Also cleaned up the file a bit.
+@
+text
+@d137 1
+a137 1
+    while (nparticles--) {
+d165 2
+@
+
+
+1.3
+log
+@Made the spread parameter to spawn blood a float (instead of int).
+@
+text
+@d41 1
+a41 1
+static void alloc_free_particles (blood_particles_t *blood, int num)
+d43 6
+d55 2
+d123 6
+d135 1
+a137 1
+
+d139 3
+a141 12
+	if (!blood->free_particles) {
+	    int n;
+
+	    if (blood->total_particles >= MAX_PARTICLES)
+		break;
+
+	    if (nparticles > MAX_PARTICLES - blood->total_particles)
+		n = MAX_PARTICLES - blood->total_particles;
+	    else
+		n = nparticles;	    
+	    alloc_free_particles (blood, n);
+	}
+d143 1
+d147 6
+a152 5
+	theta = (rand() % (int)(M_PI * 2. * 1000.)) / 1000.;
+	p->x = x + (rand()%7) - 6;
+	p->y = y + (rand()%7) - 6;
+	p->xv = (rand() % (int)(spread * 1000)) * cos (theta) / 1000.;
+	p->yv = (rand() % (int)(spread * 1000)) * sin (theta) / 1000.;
+a153 1
+	p->color = makecol24 (4 + (rand() % 8), 0, 0);
+d155 8
+@
+
+
+1.2
+log
+@Changed blood particles to use linked lists instead of an array.  This
+is/should/might be faster and will allocate more particles if needed.
+@
+text
+@d117 1
+a117 1
+void blood_particles_spawn (blood_particles_t *blood, float x, float y, long nparticles, long spread)
+d144 2
+a145 2
+	p->xv = (rand() % spread) * cos (theta) / 1000.;
+	p->yv = (rand() % spread) * sin (theta) / 1000.;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 1
+a8 1
+  XXX -- use linked lists?  would be faster
+d21 2
+a22 1
+#define INITIAL_NUMBER_OF_PARTICLES	10000
+d25 2
+a26 1
+typedef struct {
+d35 3
+a37 2
+    int nparticles;
+    particle_t *particles;
+d41 11
+d55 3
+a58 2
+    blood->nparticles = INITIAL_NUMBER_OF_PARTICLES;
+    blood->particles = alloc (INITIAL_NUMBER_OF_PARTICLES * sizeof (particle_t));
+d60 7
+a66 1
+    return blood;
+d73 2
+a74 1
+	free (p->particles);
+d83 24
+a106 11
+    particle_t *p = blood->particles;
+    int n = blood->nparticles;
+
+    while (n--) {
+	if (p->life) {
+	    p->x += p->xv;
+	    p->y += p->yv;
+	    p->xv *= 0.99;
+	    p->yv += 0.05;
+	    if (bitmask_point (mask, p->x, p->y))
+		p->life = 0;
+d108 4
+a111 1
+		p->life--;
+a112 1
+	p++;
+d119 1
+a119 2
+    particle_t *p = blood->particles;
+    int n = blood->nparticles;
+d122 5
+a126 9
+    while (n-- && nparticles) {
+	if (!p->life) {
+	    theta = (rand() % (int)(M_PI * 2. * 1000.)) / 1000.;
+	    p->x = x + (rand()%7) - 6;
+	    p->y = y + (rand()%7) - 6;
+	    p->xv = (rand() % spread) * cos (theta) / 1000.;
+	    p->yv = (rand() % spread) * sin (theta) / 1000.;
+	    p->life = 100;
+	    p->color = makecol24 (4 + (rand() % 8), 0, 0);
+d128 8
+a135 1
+	    nparticles--;
+d138 13
+a150 1
+	p++;
+d163 3
+a165 7
+	particle_t *p = blood->particles;
+	int n = blood->nparticles;
+	while (n--) {
+	    if (p->life)
+		_linear_putpixel24 (bmp, p->x - offset_x, p->y - offset_y, p->color);
+	    p++;
+	}
+@

@@ -83,7 +83,6 @@ MODULES_GAME :=					\
 	bitmaskg				\
 	bitmaskr				\
 	blod					\
-	blood					\
 	camera					\
 	error					\
 	extdata					\
@@ -101,6 +100,7 @@ MODULES_GAME :=					\
 	object					\
 	objtypes				\
 	packet					\
+	particle				\
 	path					\
 	render					\
 	sync					\

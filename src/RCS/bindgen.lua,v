@@ -1,9 +1,19 @@
-head	1.18;
+head	1.20;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.20
+date	2002.01.23.14.09.37;	author tjaden;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	2002.01.23.03.53.24;	author tjaden;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	2002.01.21.16.08.54;	author tjaden;	state Exp;
@@ -100,9 +110,9 @@ desc
 @@
 
 
-1.18
+1.20
 log
-@Made last argument to call_method_on_clients() optional.
+@Added particles for respawning ball.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -505,6 +515,24 @@ generate {
 }
 
 generate {
+    cname	= "game_server_spawn_sparks",
+    lname	= "spawn_sparks",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" },
+		   { Float, "spread" }}
+}
+
+generate {
+    cname	= "game_server_spawn_respawn_particles",
+    lname	= "spawn_respawn_particles",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" },
+		   { Float, "spread" }}
+}
+
+generate {
     cname	= "game_server_spawn_blod",
     lname	= "spawn_blod",
     args	= {{ Float, "x" },
@@ -533,6 +561,24 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.19
+log
+@Added spark particles.
+@
+text
+@d410 9
+@
+
+
+1.18
+log
+@Made last argument to call_method_on_clients() optional.
+@
+text
+@d401 9
 @
 
 

@@ -947,8 +947,23 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 				 x - mask[mask_num].centre_x,
 				 y - mask[mask_num].centre_y,
 				 0, 0)) {
-	object_call (obj, "tile_collide_hook", 0);
-	return 1;
+	lua_State *L = lua_state;
+	int top = lua_gettop (L);
+	int collide = 1;
+
+	/* if tile_collide_hook returns non-nil then no collision */
+	lua_getref (L, obj->table);
+	lua_pushstring (L, "tile_collide_hook");
+	lua_rawget (L, -2);
+	if (lua_isfunction (L, -1)) {
+	    lua_pushobject (L, obj);
+	    lua_call (L, 1, 1);
+	    if (!lua_isnil (L, -1))
+		collide = 0;
+	}
+
+	lua_settop (L, top);
+	return collide;
     }
 
     return 0;

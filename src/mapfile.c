@@ -242,8 +242,8 @@ static int read_objects (map_t *map, PACKFILE *f, int loadobjects)
 		goto error;
 	    else {
 		object_set_xy (p, x, y);
-		object_run_init_func (p);
 		map_link_object (map, p);
+		object_run_init_func (p);
 	    }
 	}
     }

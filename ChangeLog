@@ -1,11 +1,63 @@
+2002-01-24  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-base.lua, gamesrv.c, bindgen.lua, gameclt.c, gamesrv.h,
+	* netmsg.h, particle.h, particle.c: 
+	Added particles for respawning ball.
+
+	* basic-weapon.lua, basic-player.lua:
+	Added auto weapon switching.
+
 2002-01-23  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-base.lua: Added contains() function.
+
+	* mapfile.c, gamesrv.c, gameclt.c: Link objects _before_ calling
+	their init hooks.  This is so that objects created later in the
+	init hook will appear on top, as expected.
+
+	* object.c: Made it so that if tile_collide_hook() returns non-nil
+	then it is treated as if no collision happened.
+
+	* basic-weapon.lua:
+	Added spark particles when some projectiles hit tiles.
+
+	* basic-player.lua:
+	Create a new respawn ball when a player is spawned.
+
+	* basic-base.lua, basic-weapon.lua, basic-player.lua:
+	Made Objtype able to take an alias field and automatically call
+	add_alias() with it.
+
+	* gamesrv.c:
+	1. Fixed crashing when spawn_object() is called during map load
+	2. Link new objects at the top of the list
+	3. Clear object replication flags after a mass game state feed
+
+	* object.c: Made it so that if tile_collide_hook() returns non-nil
+	then it is treated as if no collision happened.
+
+	* particle.c, bindgen.lua, gameclt.c, gamesrv.c, netmsg.h:
+	Added spark particles.
+	* particle.c, particle.h: (renamed from blood.c, blood.h)
+
+	* basic-base.lua: Added lights to the respawning ball.
+
+	* basic-player.lua:
+	Made player walking animation code zero-based again to match datafile
+	item names.
+
+	* basic-weapon.lua, basic-powerup.lua, basic-base.lua:
+	Added respawning ball to respawing items and made a wrapper around
+	Objtype for respawning items.
 
 	* mylua.c: Seed lua random() function.
 
-	* gamesrv.c: Changed the test for a very small yv from
-	0 <= yv < 0.0000001 to 0 <= yv < 0.0001.
+	* gamesrv.c:
+	Changed the test for a very small yv from 0 <= yv < 0.0000001 to
+	0 <= yv < 0.0001.
 
-	* basic-player.lua: Added rest of death animations.
+	* basic-player.lua:
+	Added rest of death animations and cleaned up the code around that.
 
 2002-01-22  Peter Wang  <tjaden@users.sourceforge.net>
 

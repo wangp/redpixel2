@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.6
+date	2002.01.23.03.53.39;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.18.14.31.24;	author tjaden;	state Exp;
@@ -35,9 +40,9 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Added blods.
+@Added spark particles.
 @
 text
 @##
@@ -125,7 +130,6 @@ MODULES_GAME :=					\
 	bitmaskg				\
 	bitmaskr				\
 	blod					\
-	blood					\
 	camera					\
 	error					\
 	extdata					\
@@ -143,6 +147,7 @@ MODULES_GAME :=					\
 	object					\
 	objtypes				\
 	packet					\
+	particle				\
 	path					\
 	render					\
 	sync					\
@@ -252,6 +257,17 @@ suidroot:
 ##
 ## End of Makefile
 ##
+@
+
+
+1.5
+log
+@Added blods.
+@
+text
+@a85 1
+	blood					\
+d103 1
 @
 
 

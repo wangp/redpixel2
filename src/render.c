@@ -5,12 +5,12 @@
 
 
 #include <allegro.h>
-#include "blood.h"
 #include "camera.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "object.h"
+#include "particle.h"
 #include "store.h"
 #include "render.h"
 
@@ -74,9 +74,9 @@ static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 }
 
 
-static void render_blood (BITMAP *bmp, map_t *map, int offx, int offy)
+static void render_particles (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    blood_particles_draw (bmp, map_blood_particles (map), offx, offy);
+    particles_draw (bmp, map_particles (map), offx, offy);
 }
 
 
@@ -89,7 +89,7 @@ void render (BITMAP *bmp, map_t *map, camera_t *cam)
 
     render_tiles (bmp, map, x, y, w, h);
     render_object_layers (bmp, map, x, y);
-    render_blood (bmp, map, x, y);
+    render_particles (bmp, map, x, y);
     render_lights (bmp, map, x, y);
     render_object_lights (bmp, map, x, y);
 }

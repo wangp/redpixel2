@@ -1,0 +1,101 @@
+head	1.4;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	2002.01.23.14.08.54;	author tjaden;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2002.01.23.03.52.08;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.15.13.29.00;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.4
+log
+@Added particles for respawning ball.
+@
+text
+@#ifndef __included_particle_h
+#define __included_particle_h
+
+
+struct map;
+struct BITMAP;
+
+
+typedef struct particles particles_t;
+
+
+particles_t *particles_create (void);
+void particles_destroy (particles_t *);
+void particles_update (particles_t *, struct map *);
+void particles_spawn_blood (particles_t *, float x, float y, long nparticles, float spread);
+void particles_spawn_spark (particles_t *, float x, float y, long nparticles, float spread);
+void particles_spawn_respawn_particles (particles_t *, float x, float y, long nparticles, float spread);
+void particles_draw (struct BITMAP *, particles_t *, int offset_x, int offset_y);
+
+
+#endif
+@
+
+
+1.3
+log
+@Added spark particles.  (blood.[ch] renamed to particle.[ch])
+@
+text
+@d17 1
+@
+
+
+1.2
+log
+@Made the spread parameter to spawn blood a float (instead of int).
+@
+text
+@d1 2
+a2 2
+#ifndef __included_blood_h
+#define __included_blood_h
+d9 1
+a9 1
+typedef struct blood_particles blood_particles_t;
+d12 6
+a17 5
+blood_particles_t *blood_particles_create (void);
+void blood_particles_destroy (blood_particles_t *);
+void blood_particles_update (blood_particles_t *, struct map *);
+void blood_particles_spawn (blood_particles_t *, float x, float y, long nparticles, float spread);
+void blood_particles_draw (struct BITMAP *, blood_particles_t *, int offset_x, int offset_y);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 1
+a15 1
+void blood_particles_spawn (blood_particles_t *, float x, float y, long nparticles, long spread);
+@

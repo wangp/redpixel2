@@ -11,7 +11,6 @@ $(OBJDIR)/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
 $(OBJDIR)/blod.o: src/blod.c src/blod.h src/map.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
  src/object.h src/objtypes.h
-$(OBJDIR)/blood.o: src/blood.c src/alloc.h src/bitmask.h src/blood.h src/map.h
 $(OBJDIR)/camera.o: src/camera.c src/alloc.h src/camera.h \
  src/fastsqrt/fastsqrt.h src/object.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h
@@ -19,12 +18,12 @@ $(OBJDIR)/error.o: src/error.c src/error.h
 $(OBJDIR)/extdata.o: src/extdata.c src/bitmask.h src/bitmaskg.h src/extdata.h \
  src/magic/magic4x4.h
 $(OBJDIR)/fps.o: src/fps.c src/fps.h
-$(OBJDIR)/gameclt.o: src/gameclt.c src/blod.h src/blood.h src/camera.h \
- src/error.h src/fps.h src/gameclt.h src/list.h src/magic/magic4x4.h \
- src/map.h src/mapfile.h src/messages.h src/netmsg.h src/object.h \
- src/mylua.h lua-4.1-work3/include/lua.h \
- lua-4.1-work3/include/lauxlib.h src/packet.h src/render.h \
- src/store/store.h src/sync.h src/timeout.h src/timeval.h
+$(OBJDIR)/gameclt.o: src/gameclt.c src/blod.h src/camera.h src/error.h src/fps.h \
+ src/gameclt.h src/list.h src/magic/magic4x4.h src/map.h src/mapfile.h \
+ src/messages.h src/netmsg.h src/object.h src/mylua.h \
+ lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
+ src/packet.h src/particle.h src/render.h src/store/store.h src/sync.h \
+ src/timeout.h src/timeval.h
 $(OBJDIR)/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h src/blod.h \
  src/extdata.h src/fastsqrt/fastsqrt.h src/gameinit.h \
  src/jpgalleg/jpgalleg.h src/loaddata.h src/magic/magic4x4.h \
@@ -41,9 +40,9 @@ $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
  src/loaddata.h src/path.h src/store/store.h
 $(OBJDIR)/main.o: src/main.c src/editor/editor.h src/gameinit.h src/gameclt.h \
  src/gamesrv.h src/getoptc.h src/sync.h src/textface.h
-$(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blood.h src/list.h \
- src/map.h src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
- lua-4.1-work3/include/lauxlib.h src/store/store.h
+$(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/list.h src/map.h \
+ src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
+ lua-4.1-work3/include/lauxlib.h src/particle.h src/store/store.h
 $(OBJDIR)/mapfile.o: src/mapfile.c src/list.h src/map.h src/mapfile.h \
  src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
  lua-4.1-work3/include/lauxlib.h src/objtypes.h src/store/store.h
@@ -59,11 +58,13 @@ $(OBJDIR)/objtypes.o: src/objtypes.c src/alloc.h src/bitmask.h src/bitmaskg.h \
  src/error.h src/mylua.h lua-4.1-work3/include/lua.h \
  lua-4.1-work3/include/lauxlib.h src/objtypes.h src/store/store.h
 $(OBJDIR)/packet.o: src/packet.c src/packet.h src/error.h
+$(OBJDIR)/particle.o: src/particle.c src/alloc.h src/bitmask.h src/map.h \
+ src/particle.h
 $(OBJDIR)/path.o: src/path.c src/path.h
-$(OBJDIR)/render.o: src/render.c src/blood.h src/camera.h src/list.h \
- src/magic/magic4x4.h src/map.h src/object.h src/mylua.h \
- lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
- src/store/store.h src/render.h
+$(OBJDIR)/render.o: src/render.c src/camera.h src/list.h src/magic/magic4x4.h \
+ src/map.h src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
+ lua-4.1-work3/include/lauxlib.h src/particle.h src/store/store.h \
+ src/render.h
 $(OBJDIR)/sync.o: src/sync.c src/sync.h src/yield.h
 $(OBJDIR)/textface.o: src/textface.c src/gamesrv.h src/textface.h
 $(OBJDIR)/timeout.o: src/timeout.c src/alloc.h src/timeout.h src/timeval.h
@@ -104,7 +105,8 @@ $(OBJDIR)/editarea.o: src/editor/editarea.c src/gui/gui.h src/alloc.h \
  src/editor/editarea.h src/list.h src/magic/magic4x4.h \
  src/editor/modes.h src/editor/selbar.h
 $(OBJDIR)/editor.o: src/editor/editor.c src/gui/gui.h src/ug/ug.h \
- src/editor/cursor.h src/store/store.h src/path.h \
+ src/editor/cursor.h src/mylua.h lua-4.1-work3/include/lua.h \
+ lua-4.1-work3/include/lauxlib.h src/store/store.h src/path.h \
  src/editor/editarea.h src/editor/menu.h src/editor/modebar.h \
  src/editor/selbar.h src/editor/modemgr.h src/editor/modes.h src/map.h
 $(OBJDIR)/edselect.o: src/editor/edselect.c src/ug/ug.h src/ug/uginter.h \

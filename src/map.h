@@ -5,6 +5,7 @@
 
 struct object;
 struct blood_particles;
+struct spark_particles;
 
 
 typedef struct light light_t;
@@ -45,7 +46,7 @@ int map_start_y (start_t *start);
 void map_start_move (start_t *start, int x, int y);
 struct list_head *map_start_list (map_t *map);
 
-struct blood_particles *map_blood_particles (map_t *map);
+struct particles *map_particles (map_t *map);
 
 
 #endif

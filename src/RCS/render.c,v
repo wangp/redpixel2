@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.23.03.52.57;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added spark particles.
 @
 text
 @/* render.c
@@ -27,12 +32,12 @@ text
 
 
 #include <allegro.h>
-#include "blood.h"
 #include "camera.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "object.h"
+#include "particle.h"
 #include "store.h"
 #include "render.h"
 
@@ -96,9 +101,9 @@ static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 }
 
 
-static void render_blood (BITMAP *bmp, map_t *map, int offx, int offy)
+static void render_particles (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    blood_particles_draw (bmp, map_blood_particles (map), offx, offy);
+    particles_draw (bmp, map_particles (map), offx, offy);
 }
 
 
@@ -111,8 +116,28 @@ void render (BITMAP *bmp, map_t *map, camera_t *cam)
 
     render_tiles (bmp, map, x, y, w, h);
     render_object_layers (bmp, map, x, y);
-    render_blood (bmp, map, x, y);
+    render_particles (bmp, map, x, y);
     render_lights (bmp, map, x, y);
     render_object_lights (bmp, map, x, y);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a7 1
+#include "blood.h"
+d13 1
+d77 1
+a77 1
+static void render_blood (BITMAP *bmp, map_t *map, int offx, int offy)
+d79 1
+a79 1
+    blood_particles_draw (bmp, map_blood_particles (map), offx, offy);
+d92 1
+a92 1
+    render_blood (bmp, map, x, y);
 @

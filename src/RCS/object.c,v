@@ -1,9 +1,14 @@
-head	1.15;
+head	1.16;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.16
+date	2002.01.23.06.25.27;	author tjaden;	state Exp;
+branches;
+next	1.15;
 
 1.15
 date	2002.01.21.00.19.13;	author tjaden;	state Exp;
@@ -85,10 +90,10 @@ desc
 @@
 
 
-1.15
+1.16
 log
-@Allowed object_call() to take an nargs argument.  The arguments should
-be already be pushed on the lua stack.
+@Made it so that if tile_collide_hook() returns non-nil then it is
+treated as if no collision happened.
 @
 text
 @/* object.c
@@ -1040,8 +1045,23 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 				 x - mask[mask_num].centre_x,
 				 y - mask[mask_num].centre_y,
 				 0, 0)) {
-	object_call (obj, "tile_collide_hook", 0);
-	return 1;
+	lua_State *L = lua_state;
+	int top = lua_gettop (L);
+	int collide = 1;
+
+	/* if tile_collide_hook returns non-nil then no collision */
+	lua_getref (L, obj->table);
+	lua_pushstring (L, "tile_collide_hook");
+	lua_rawget (L, -2);
+	if (lua_isfunction (L, -1)) {
+	    lua_pushobject (L, obj);
+	    lua_call (L, 1, 1);
+	    if (!lua_isnil (L, -1))
+		collide = 0;
+	}
+
+	lua_settop (L, top);
+	return collide;
     }
 
     return 0;
@@ -1654,6 +1674,19 @@ void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
     *rx2 = x2;
     *ry2 = y2;
 }
+@
+
+
+1.15
+log
+@Allowed object_call() to take an nargs argument.  The arguments should
+be already be pushed on the lua stack.
+@
+text
+@d950 17
+a966 2
+	object_call (obj, "tile_collide_hook", 0);
+	return 1;
 @
 
 

@@ -40,17 +40,32 @@ local player_nonproxy_init = function (self)
     -- weapon stuff
     self.have_weapon = {}
 
-    function self:receive_weapon (weapon_name)
-	if weapons[weapon_name] then
-	    self.have_weapon[weapon_name] = 1
-	    self:switch_weapon (weapon_name)
+    function self:receive_weapon (name)
+	if weapons[name] and not self.have_weapon[name] then
+	    self.have_weapon[name] = true
+	    if contains (weapon_auto_switch_order, name) then
+		self:switch_weapon (name)
+	    end
 	end
     end
 
-    function self:switch_weapon (weapon_name)
-	if weapons[weapon_name] and self.have_weapon[weapon_name] then
-	    self.current_weapon = weapons[weapon_name]
-	    call_method_on_clients (self, "switch_weapon", weapon_name)
+    function self:switch_weapon (name)
+	if weapons[name] and self.have_weapon[name] then
+	    self.current_weapon = weapons[name]
+	    self.desired_weapon = weapons[name]
+	    call_method_on_clients (self, "switch_weapon", name)
+	end
+    end
+
+    function self:auto_switch_weapon ()
+	for _, name in weapon_auto_switch_order do
+	    if (weapons[name] and self.have_weapon[name] and
+		weapons[name].can_fire (self))
+	    then
+		self.current_weapon = weapons[name]
+		call_method_on_clients (self, "switch_weapon", name)
+		break
+	    end
 	end
     end
 
@@ -61,6 +76,14 @@ local player_nonproxy_init = function (self)
 
     function self:receive_ammo (ammo_type, amount)
 	self._ammo[ammo_type] = (self._ammo[ammo_type] or 0) + amount
+
+	if self.desired_weapon ~= self.current_weapon and
+	    self.desired_weapon.can_fire (self) and
+	    contains (weapon_auto_switch_order, self.desired_weapon.name)
+	then
+	    self.current_weapon = self.desired_weapon
+	    call_method_on_clients (self, "switch_weapon", self.current_weapon.name)
+	end
     end
 
     function self:deduct_ammo (ammo_type, amount)
@@ -73,12 +96,15 @@ local player_nonproxy_init = function (self)
 
     -- firing stuff
     self.fire_delay = 0
+
     function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
 	    local w = self.current_weapon
-	    if w and (not w.can_fire or w.can_fire (self)) then
+	    if w and w.can_fire (self) then
 		w.fire (self)
 		call_method_on_clients (self, "start_firing_anim")
+	    else
+		self:auto_switch_weapon ()
 	    end
 	end
     end
@@ -136,6 +162,9 @@ local player_nonproxy_init = function (self)
 	    end
 	end
     )
+
+    -- create a respawning ball where the player is
+    spawn_object ("basic-respawning-ball", self.x, self.y)
 end
 
 
@@ -145,7 +174,7 @@ end
 
 local walk_anim = {}
 for i = 0,7 do
-    tinsert (walk_anim, format ("/basic/player/walk/%03d", i))
+    walk_anim[i] = format ("/basic/player/walk/%03d", i)
 end
 
 local animate_player_proxy_firing = function (self)
@@ -176,8 +205,8 @@ local animate_player_proxy_walking = function (self)
 	self.walk_frame_tics = 2
 
 	self.walk_frame = self.walk_frame + 1
-	if self.walk_frame > getn (walk_anim) then
-	    self.walk_frame = 1
+	if self.walk_frame >= getn (walk_anim) then
+	    self.walk_frame = 0
 	end
 	self:replace_layer (0, walk_anim[self.walk_frame], cx, cy)
     end
@@ -237,14 +266,14 @@ local player_proxy_init = function (self)
     -- (called by nonproxy fire hook)
     function self:start_firing_anim ()
 	if not self.animate_arm and self.current_weapon then
-	    self.animate_arm = 1
+	    self.animate_arm = true
 	    self.arm_tics = 0
 	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
 	end
     end
 
     -- animation and update hook
-    self.walk_frame = 1
+    self.walk_frame = 0
     self.walk_frame_tics = 0
     self:set_update_hook (
 	1000/50,
@@ -326,10 +355,6 @@ local Corpse = function (t)
 		end
 	    )
 	end
-    end
-
-    if t.alias then
-	add_alias (t.name, t.alias)
     end
 
     if not t.speed then

@@ -29,19 +29,14 @@ end
 -- Declare a new weapon or ammo pickup, which respawns a while after being
 -- picked up.
 local Standard_Pickup = function (t)
-    if t.alias then add_alias (t.name, t.alias) end
-    return Objtype (t, {
+    return Respawning_Item (t, {
 	category = "weapon",
-	nonproxy_init = function (self)
-	    self:set_collision_flags ("p")
-	    function self:collide_hook (player)
-		if t.weapon_to_give then
-		    player:receive_weapon (t.weapon_to_give)
-		end
-		if t.ammo_to_give then
-		    player:receive_ammo (t.ammo_to_give, t.ammo_amount)
-		end
-		self:hide_and_respawn_later (t.respawn_secs * 1000)
+	collide_hook = function (self, player)
+	    if t.weapon_to_give then
+		player:receive_weapon (t.weapon_to_give)
+	    end
+	    if t.ammo_to_give then
+		player:receive_ammo (t.ammo_to_give, t.ammo_amount)
 	    end
 	end
     })
@@ -51,7 +46,6 @@ end
 -- Declare a new projectile type.  This only handles standard-style
 -- projectiles, like bullets.
 local Standard_Projectile = function (t)
-    if t.alias then add_alias (t.name, t.alias) end
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    function self:collide_hook (obj)
@@ -59,6 +53,9 @@ local Standard_Projectile = function (t)
 		self:destroy ()
 	    end
 	    function self:tile_collide_hook ()
+		if t.sparks then
+		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		end
 		self:destroy ()
 	    end	
 	end
@@ -80,6 +77,9 @@ Weapon {
 	"/basic/weapon/blaster/1arm004";
 	cx = 0, cy = 3, tics = 2
     },
+    can_fire = function (player)
+	return true
+    end,
     fire = function (player)
 	spawn_projectile ("basic-blaster-projectile", player, 10)
 	player.fire_delay = 50 * 0.1
@@ -98,6 +98,7 @@ Standard_Projectile {
     alias = "~bp",
     icon = "/basic/weapon/blaster/projectile",
     damage = 10,
+    sparks = 30,
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
@@ -156,9 +157,7 @@ Weapon_With_Firer {
 	"/basic/weapon/ak/2arm001",
 	"/basic/weapon/ak/2arm002",
 	"/basic/weapon/ak/2arm003",
-	"/basic/weapon/ak/2arm004",
-	"/basic/weapon/ak/2arm005",
-	"/basic/weapon/ak/2arm006";
+	"/basic/weapon/ak/2arm004";
 	cx = 0, cy = 3
     }
 }
@@ -176,7 +175,8 @@ Standard_Projectile {
     name = "basic-ak-projectile",
     alias = "~Ap",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 10
+    damage = 10,
+    sparks = 40
 }
 
 Weapon {
@@ -216,7 +216,8 @@ Standard_Projectile {
     name = "basic-minigun-projectile",
     alias = "~mp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 10
+    damage = 10,
+    sparks = 50
 }
 
 
@@ -298,7 +299,8 @@ Standard_Projectile {
     name = "basic-shotgun-projectile",
     alias = "~sp",
     icon = "/basic/weapon/shotgun/projectile",
-    damage = 10
+    damage = 10,
+    sparks = 20
 }
 
 
@@ -334,17 +336,23 @@ Standard_Pickup {
 
 Objtype {
     name = "basic-rifle-projectile",
+    alias = "~Rp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     nonproxy_init = function (self)
-        self:set_collision_flags ("pn")
 	function self:collide_hook (obj)
 	    obj:receive_damage (50)
 	    self:destroy ()
 	end
+	function self:tile_collide_hook (obj)
+	    -- sniper rifle slugs don't collide with tiles, but for fun
+	    -- we make them spawn sparks the first time they hit one 
+	    spawn_sparks (self.x, self.y, 30, 2)
+	    self:set_collision_flags ("pn")
+	    self.tile_collide_hook = nil
+	    return true
+	end
     end
 }
-
-add_alias ("basic-rifle-projectile", "~Rp")
 
 
 ----------------------------------------------------------------------
@@ -362,6 +370,7 @@ Standard_Pickup {
 --  Weapon switch order
 ----------------------------------------------------------------------
 
+-- This is the order that weapons will be numbered for selection.
 weapon_order = {
     "basic-blaster",
     "basic-shotgun",
@@ -370,4 +379,13 @@ weapon_order = {
     "basic-bow",
     "basic-rpg",
     "basic-rifle"
+}
+
+-- This is the order in which weapons will be auto-selected for you.
+-- I recommend not putting in explosives.
+weapon_auto_switch_order = {
+    "basic-minigun",
+    "basic-ak",
+    "basic-shotgun",
+    "basic-blaster"
 }

@@ -1,9 +1,30 @@
-head	1.23;
+head	1.27;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.27; strict;
 comment	@ * @;
 
+
+1.27
+date	2002.01.23.14.10.06;	author tjaden;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	2002.01.23.06.30.55;	author tjaden;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	2002.01.23.06.05.30;	author tjaden;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	2002.01.23.03.52.34;	author tjaden;	state Exp;
+branches;
+next	1.23;
 
 1.23
 date	2002.01.22.13.03.33;	author tjaden;	state Exp;
@@ -125,10 +146,9 @@ desc
 @@
 
 
-1.23
+1.27
 log
-@Changed the test for a very small yv from 0 <= yv < 0.0000001 to
-0 <= yv < 0.0001.
+@Added particles for respawning ball.
 @
 text
 @/* gamesrv.c
@@ -831,13 +851,18 @@ object_t *game_server_spawn_object (const char *typename, float x, float y)
 {
     object_t *obj;
 
+    /* For when an object's init function calls spawn_object() while
+     * the map is still being loaded.  */
+    if (!map)
+	return NULL;
+
     if (!(obj = object_create (typename)))
 	return NULL;
 
     object_set_xy (obj, x, y);
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
+    map_link_object (map, obj);
     object_run_init_func (obj);
-    map_link_object_bottom (map, obj);
     return obj;
 }
 
@@ -868,22 +893,37 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_set_number (obj, "angle", angle);
     object_add_creation_field (obj, "angle");
+    map_link_object (map, obj);
     object_run_init_func (obj);
-    map_link_object_bottom (map, obj);
     return obj;
 }
 
 
-/* Spawn some blood (Lua binding). */
+/* Spawn some particles (Lua bindings). */
 
-void game_server_spawn_blood (float x, float y, long nparticles, float spread)
+static void queue_particle_packet (char type, float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
-    size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
-			  x, y, nparticles, spread);
+    size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
+			  type, x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
+}
+
+void game_server_spawn_blood (float x, float y, long nparticles, float spread)
+{
+    queue_particle_packet ('b', x, y, nparticles, spread);
+}
+
+void game_server_spawn_sparks (float x, float y, long nparticles, float spread)
+{
+    queue_particle_packet ('s', x, y, nparticles, spread);
+}
+
+void game_server_spawn_respawn_particles (float x, float y, long nparticles, float spread)
+{
+    queue_particle_packet ('r', x, y, nparticles, spread);
 }
 
 
@@ -945,8 +985,8 @@ static object_t *server_spawn_player (objid_t id)
     obj = object_create_ex ("player", id);
     object_set_xy (obj, map_start_x (start), map_start_y (start));
     object_set_collision_tag (obj, id); /* XXX temp */
-    object_run_init_func (obj);
     map_link_object (map, obj);
+    object_run_init_func (obj);
 
     if ((c = clients_find_by_id (id)))
 	c->last_sent_aim_angle = 0;
@@ -1160,6 +1200,7 @@ static void server_feed_game_state_to (client_t *c)
 static void server_perform_mass_game_state_feed ()
 {
     client_t *c;
+    object_t *obj;
     int done;
     uchar_t byte;
 
@@ -1207,6 +1248,9 @@ static void server_perform_mass_game_state_feed ()
     } while (!done);
     sync_server_lock ();
 
+    list_for_each (obj, map_object_list (map))
+	object_clear_replication_flags (obj);
+	
     clients_broadcast_rdm_byte (MSG_SC_RESUME);
 }
 
@@ -1484,8 +1528,8 @@ static void server_handle_wantfeeds ()
 	    obj = object_create_ex ("player", c->id);
 	    object_set_xy (obj, map_start_x (start), map_start_y (start));
 	    object_set_collision_tag (obj, c->id); /* XXX temp */
-	    object_run_init_func (obj);
 	    map_link_object (map, obj);
+	    object_run_init_func (obj);
 
 	    {
 		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
@@ -1688,6 +1732,92 @@ void game_server_shutdown ()
 	interface->shutdown ();
     net_closeconn (listen);
 }
+@
+
+
+1.26
+log
+@Link objects _before_ calling their init hooks.  This is so that
+objects created later in the init hook will appear on top, as
+expected.
+@
+text
+@d749 1
+a749 1
+/* Spawn some blood (Lua binding). */
+d751 1
+a751 1
+void game_server_spawn_blood (float x, float y, long nparticles, float spread)
+d757 1
+a757 1
+			  'b', x, y, nparticles, spread);
+d761 4
+d766 4
+a769 1
+/* Spawn some sparks (Lua binding). */
+d771 1
+a771 1
+void game_server_spawn_sparks (float x, float y, long nparticles, float spread)
+d773 1
+a773 6
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+    
+    size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
+			  's', x, y, nparticles, spread);
+    add_to_gameinfo_packet_queue (buf, size);
+@
+
+
+1.25
+log
+@1. Fixed crashing when spawn_object() is called during map load
+2. Link new objects at the top of the list
+3. Clear object replication flags after a mass game state feed
+@
+text
+@d711 1
+a712 1
+    map_link_object (map, obj);
+d743 1
+a744 1
+    map_link_object (map, obj);
+d833 1
+a834 1
+    map_link_object (map, obj);
+d1376 1
+a1377 1
+	    map_link_object (map, obj);
+@
+
+
+1.24
+log
+@Added spark particles.
+@
+text
+@d701 5
+d712 1
+a712 1
+    map_link_object_bottom (map, obj);
+d744 1
+a744 1
+    map_link_object_bottom (map, obj);
+d1048 1
+d1096 3
+@
+
+
+1.23
+log
+@Changed the test for a very small yv from 0 <= yv < 0.0000001 to
+0 <= yv < 0.0001.
+@
+text
+@d751 15
+a765 2
+    size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
+			  x, y, nparticles, spread);
 @
 
 

@@ -1,9 +1,19 @@
-head	1.10;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2002.01.23.14.09.12;	author tjaden;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2002.01.23.03.52.27;	author tjaden;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2002.01.21.15.27.11;	author tjaden;	state Exp;
@@ -60,9 +70,9 @@ desc
 @@
 
 
-1.10
+1.12
 log
-@Added weapon switching with keyboard.
+@Added particles for respawning ball.
 @
 text
 @#ifndef __included_netmsg_h
@@ -305,12 +315,13 @@ enum {
     MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE = 'a',
 
 
-    /* Tell clients to create some blood particles.
+    /* Tell clients to create some particles.
 
-       Args: float x, float y, long nparticles, float spread.
+       Args: char type, float x, float y, long nparticles, float spread.
+       where type is 'b' for blood, 's' for sparks, 'r' for respawn particles
      */
 
-    MSG_SC_GAMEINFO_BLOOD_CREATE = 'b',
+    MSG_SC_GAMEINFO_PARTICLES_CREATE = 'p',
 
 
     /* Tell clients to create some blod objects.
@@ -331,6 +342,34 @@ enum {
 
 
 #endif
+@
+
+
+1.11
+log
+@Added spark particles.
+@
+text
+@d244 1
+a244 1
+       where type is 'b' for blood, 's' for sparks
+@
+
+
+1.10
+log
+@Added weapon switching with keyboard.
+@
+text
+@d241 1
+a241 1
+    /* Tell clients to create some blood particles.
+d243 2
+a244 1
+       Args: float x, float y, long nparticles, float spread.
+d247 1
+a247 1
+    MSG_SC_GAMEINFO_BLOOD_CREATE = 'b',
 @
 
 

@@ -238,12 +238,13 @@ enum {
     MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE = 'a',
 
 
-    /* Tell clients to create some blood particles.
+    /* Tell clients to create some particles.
 
-       Args: float x, float y, long nparticles, float spread.
+       Args: char type, float x, float y, long nparticles, float spread.
+       where type is 'b' for blood, 's' for sparks, 'r' for respawn particles
      */
 
-    MSG_SC_GAMEINFO_BLOOD_CREATE = 'b',
+    MSG_SC_GAMEINFO_PARTICLES_CREATE = 'p',
 
 
     /* Tell clients to create some blod objects.

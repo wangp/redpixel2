@@ -2,21 +2,8 @@
 
 store_load ("basic/basic-powerup.dat", "/basic/powerup/")
 
-local Item = function (t, u)
-    t = merge (t, u)
-    return Objtype (t, {
-	category = "item",
-	nonproxy_init = function (self)
-	    self:set_collision_flags ("p")
-	    function self:collide_hook (player)
-		self:hide_and_respawn_later (1000 * t.respawn_secs)
-		if t.action then
-		    t.action (self, player)
-		end
-	    end
-	end 
-    })
-end
+
+local Item = Respawning_Item
 
 
 ----------------------------------------------------------------------
@@ -58,7 +45,7 @@ Item {
     name = "basic-lightamp", 
     icon = "/basic/powerup/lightamp/000", 
     respawn_secs = 10,
-    action = function (self, player)
+    collide_hook = function (self, player)
 	call_method_on_clients (player, "start_alt_light",
 	    "return '/basic/powerup/lightamp/light', 3000, 20")
     end,
@@ -74,7 +61,7 @@ Item {
 
 local Health_Item = function (t)
     return Item (t, {
-	action = function (self, player)
+	collide_hook = function (self, player)
 	    player:receive_health (t.give_health)
 	end
     })

@@ -398,6 +398,24 @@ generate {
 }
 
 generate {
+    cname	= "game_server_spawn_sparks",
+    lname	= "spawn_sparks",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" },
+		   { Float, "spread" }}
+}
+
+generate {
+    cname	= "game_server_spawn_respawn_particles",
+    lname	= "spawn_respawn_particles",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" },
+		   { Float, "spread" }}
+}
+
+generate {
     cname	= "game_server_spawn_blod",
     lname	= "spawn_blod",
     args	= {{ Float, "x" },

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.23.06.30.57;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,11 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Link objects _before_ calling their init hooks.  This is so that
+objects created later in the init hook will appear on top, as
+expected.
 @
 text
 @/* mapfile.c
@@ -264,8 +271,8 @@ static int read_objects (map_t *map, PACKFILE *f, int loadobjects)
 		goto error;
 	    else {
 		object_set_xy (p, x, y);
-		object_run_init_func (p);
 		map_link_object (map, p);
+		object_run_init_func (p);
 	    }
 	}
     }
@@ -395,4 +402,15 @@ map_t *map_load (const char *filename, int is_client, int *warning)
     
     return 0;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d245 1
+a246 1
+		map_link_object (map, p);
 @
