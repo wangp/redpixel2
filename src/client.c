@@ -61,6 +61,7 @@ static BITMAP *crosshair;
 /* the game state */
 static map_t *map;
 static object_t *local_object;
+static object_t *tracked_object;
 
 /* network stuff */
 static int pinging;
@@ -271,7 +272,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		object_set_xy (obj, x, y);
 		object_set_collision_tag (obj, ctag);
 		if (id == client_id) {
-		    local_object = obj;
+		    tracked_object = local_object = obj;
 		    object_set_number (obj, "is_local", 1);
 		}
 
@@ -296,6 +297,10 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		object_run_init_func (obj);
 		map_link_object (map, obj);
+
+		if (object_get_number (obj, "_internal_stalk_me") == client_id)
+		    tracked_object = obj;
+
 		break;
 	    }
 
@@ -309,6 +314,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		    object_set_stale (obj);
 		    if (obj == local_object)
 			local_object = NULL;
+		    if (obj == tracked_object)
+			tracked_object = NULL;
 		}
 		break;
 	    }
@@ -416,13 +423,13 @@ static int update_camera ()
     if (backgrounded)
 	return 0;
 
-    if (!local_object)
+    if (!tracked_object)
 	return 0;
     
     oldx = camera_x (cam);
     oldy = camera_y (cam);
 
-    camera_track_object_with_mouse (cam, local_object, mouse_x, mouse_y, 96);
+    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y, 96);
 
     return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
 }
@@ -851,6 +858,7 @@ int game_client_init (const char *name, int net_driver, const char *addr)
 
     map = NULL;
     local_object = NULL;
+    tracked_object = NULL;
 
     fps_init ();
 

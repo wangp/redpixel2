@@ -74,7 +74,13 @@ local player_nonproxy_init = function (self)
 	spawn_blod (self.x, self.y, 10)
 	self.health = self.health - damage
 	if self.health <= 0 then
-	    spawn_object ("basic-player-death-fountain", self.x, self.y)
+	    local corpse = spawn_object ("basic-player-death-fountain",
+					 self.x, self.y)
+	    if corpse then
+		-- this makes the client track the corpse
+		corpse._internal_stalk_me = self.id
+		corpse:add_creation_field ("_internal_stalk_me")
+	    end
 	    self:destroy ()
 	end
     end
