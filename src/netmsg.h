@@ -204,6 +204,15 @@ enum {
     MSG_SC_GAMEINFO_OBJECT_UPDATE = 'u',
 
 
+    /* Tell clients about a client's new aim angle.  Note: these
+       angles are only approximate.
+
+       Args: long client_id, float aim_angle.
+     */
+
+    MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE = 'a',
+
+
     /* Tell clients to create some blood particles.
 
        Args: float x, float y, long nparticles, long spread

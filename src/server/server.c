@@ -101,6 +101,7 @@ struct client {
     int flags;
     int controls;
     float aim_angle;
+    float last_sent_aim_angle;
     timeout_t timeout;
     ulong_t pong_time;
     int lag;
@@ -686,6 +687,7 @@ static object_t *server_spawn_player (objid_t id)
 {
     start_t *start;
     object_t *obj;
+    client_t *c;
 
     start = server_pick_random_start ();
     obj = object_create_ex ("player", id);
@@ -693,6 +695,10 @@ static object_t *server_spawn_player (objid_t id)
     object_set_collision_tag (obj, id); /* XXX temp */
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);
+
+    if ((c = clients_find_by_id (id)))
+	c->last_sent_aim_angle = 0;
+    
     return obj;
 }
 
@@ -1069,6 +1075,22 @@ static void server_poll_update_hooks (int elapsed_msecs)
 }
 
 
+/* Sending aim angles to clients. */
+
+static void server_send_client_aim_angles ()
+{
+    client_t *c;
+
+    for_each_client (c) {
+	if (ABS (c->aim_angle - c->last_sent_aim_angle) > (M_PI/16)) {
+	    add_to_gameinfo_packet ("clf", MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE,
+				    c->id, c->aim_angle);
+	    c->last_sent_aim_angle = c->aim_angle;
+	}
+    }
+}
+
+
 /* Sending important object changes to clients. */
 
 static void server_send_object_updates ()
@@ -1220,6 +1242,7 @@ static void server_state_game_poll ()
     server_poll_update_hooks (MSECS_PER_TICK * dt);
 
     start_gameinfo_packet (NULL);
+    server_send_client_aim_angles ();
     server_send_object_updates ();
     gameinfo_packet_queue_flush ();
     done_gameinfo_packet ();
