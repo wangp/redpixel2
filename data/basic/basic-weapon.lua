@@ -48,6 +48,13 @@ local Standard_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    if t.dot_mask then
+		self:set_mask (mask_main,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_top,    "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_bottom, "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_left,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_right,  "/basic/weapon/single-dot-mask", 0, 0)
+	    end
 	    self.damage = t.damage
 	    function self:collide_hook (obj)
 		obj:receive_damage (self.damage, self.owner)
@@ -69,6 +76,13 @@ local Explosive_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    if t.dot_mask then
+		self:set_mask (mask_main,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_top,    "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_bottom, "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_left,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_right,  "/basic/weapon/single-dot-mask", 0, 0)
+	    end
 	    self.damage = t.damage
 	    local hook = function (self, obj)
 		if t.explosion then
@@ -139,7 +153,9 @@ Standard_Projectile {
     icon = "/basic/weapon/blaster/projectile",
     damage = 8,
     sparks = 30,
+    dot_mask = true,
     proxy_init = function (self)
+	self:move_layer (0, 3, 0)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
@@ -195,7 +211,9 @@ Explosive_Projectile {
     radius = 55,
     damage = 40,
     explosion = "basic-explo42",
+    dot_mask = true,
     proxy_init = function (self)
+	self:move_layer (0, 8, 1)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
@@ -333,9 +351,11 @@ Explosive_Projectile {
     icon = "/basic/weapon/rpg/projectile",
     radius = 75,
     damage = 80,
+    dot_mask = true,
     explosion = "basic-explo42",
     smoke_trails = "basic-rocket-smoke",
     proxy_init = function (self)
+	self:move_layer (0, 5, 3)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
