@@ -176,7 +176,7 @@ static int client_send_rdm_byte (client_t *c, uchar_t byte)
 static int client_send_rdm_encode (client_t *c, const char *fmt, ...)
 {
     va_list ap;
-    uchar_t buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NETWORK_MAX_PACKET_SIZE];
     int size;
 
     va_start (ap, fmt);
@@ -211,7 +211,7 @@ static void clients_broadcast_rdm_byte (uchar_t c)
 static void clients_broadcast_rdm_encode (const char *fmt, ...)
 {
     va_list ap;
-    uchar_t buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NETWORK_MAX_PACKET_SIZE];
     int size;
 
     va_start (ap, fmt);
@@ -355,8 +355,8 @@ static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, 
 
 static void server_poll_clients_state_joining (client_t *c)
 {
-    uchar_t buf[NET_MAX_PACKET_SIZE];
-    char name[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NETWORK_MAX_PACKET_SIZE];
+    char name[NETWORK_MAX_PACKET_SIZE];
     long len;
     char version;
 
@@ -389,7 +389,7 @@ static void server_poll_clients_state_joining (client_t *c)
 
 static void server_poll_clients_state_joined (client_t *c)
 {
-    uchar_t buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NETWORK_MAX_PACKET_SIZE];
     int size;
 
     size = client_receive_rdm (c, buf, sizeof buf);
@@ -587,6 +587,10 @@ static void server_poll_interface ()
 			"Unknown context (probably in a transition)");
 	}
 
+	else if (wordis ("yom")) {
+	    server_log ("You can't use yom like that!");
+	}
+
 	else {
 	    server_log ("Unrecognised command: %s", word);
 	}
@@ -636,6 +640,8 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
     object_set_xvyv (obj, xv, yv);
     object_set_collision_tag (obj, object_collision_tag (owner));
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
+    object_set_number (obj, "angle", c->aim_angle);
+    object_add_creation_field (obj, "angle");
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);
     return 0;
@@ -646,7 +652,7 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
 
 int game_server_spawn_blood (float x, float y, long nparticles, long spread)
 {
-    char buf[NET_MAX_PACKET_SIZE];
+    char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
     
     size = packet_encode (buf, "cffll", MSG_SC_GAMEINFO_BLOOD_CREATE,
@@ -720,7 +726,7 @@ static void server_free_game_state ()
 /* Helpers to send large gameinfo packets.  This will split a gameinfo
    packet into multiple if necessary. */
 
-static char gameinfo_packet_buf[NET_MAX_PACKET_SIZE];
+static char gameinfo_packet_buf[NETWORK_MAX_PACKET_SIZE];
 static int gameinfo_packet_size;
 static client_t *gameinfo_packet_dest;
 
@@ -749,7 +755,7 @@ static void add_to_gameinfo_packet_raw (void *buf, size_t size)
 static void add_to_gameinfo_packet (const char *fmt, ...)
 {
     va_list ap;
-    char buf[NET_MAX_PACKET_SIZE];
+    char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
     va_start (ap, fmt);
@@ -819,6 +825,32 @@ static void gameinfo_packet_queue_flush (void)
 }
 
 
+/* Make a MSG_SC_GAMEINFO_OBJECT_CREATE packet. */
+
+/* XXX lots of potention buffer overflows */
+static size_t make_object_creation_packet (object_t *obj, char *buf)
+{
+    char *p;
+    creation_field_t *f;
+    
+    p = buf + packet_encode (buf, "cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+			     objtype_name (object_type (obj)), 
+			     object_id (obj),
+			     object_x (obj), object_y (obj),
+			     object_xv (obj), object_yv (obj),
+			     object_collision_tag (obj));
+
+    /* creation fields */
+    /* XXX this only supports fields of type float right now */
+    list_for_each (f, object_creation_fields (obj))
+	p += packet_encode (p, "csf", 'f', f->name,
+			    object_get_number (obj, f->name));
+
+    p += packet_encode (p, "c", 0); /* terminator */
+    return p - buf;
+}
+
+
 /* Feeding the game state to clients. */
 
 static void server_feed_game_state_to (client_t *c)
@@ -832,15 +864,14 @@ static void server_feed_game_state_to (client_t *c)
     {
 	list_head_t *list;
 	object_t *obj;
+	char buf[NETWORK_MAX_PACKET_SIZE];
+	size_t size;
 
 	list = map_object_list (map);
-	list_for_each (obj, list)
-	    add_to_gameinfo_packet ("cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
-				    objtype_name (object_type (obj)), 
-				    object_id (obj),
-				    object_x (obj), object_y (obj),
-				    object_xv (obj), object_yv (obj),
-				    object_collision_tag (obj));
+	list_for_each (obj, list) {
+	    size = make_object_creation_packet (obj, buf);
+	    add_to_gameinfo_packet_raw (buf, size);
+	}
     }
 
     done_gameinfo_packet ();
@@ -1024,6 +1055,8 @@ static void server_send_object_updates ()
 {
     list_head_t *object_list;
     object_t *obj;
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
     
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
@@ -1033,13 +1066,10 @@ static void server_send_object_updates ()
 	    continue;
 	}
 
-	if (object_need_replication (obj, OBJECT_REPLICATE_CREATE))
-	    add_to_gameinfo_packet ("cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
-				    objtype_name (object_type (obj)),
-				    object_id (obj), 
-				    object_x (obj), object_y (obj),
-				    object_xv (obj), object_yv (obj),
-				    object_collision_tag (obj));
+	if (object_need_replication (obj, OBJECT_REPLICATE_CREATE)) {
+	    size = make_object_creation_packet (obj, buf);
+	    add_to_gameinfo_packet_raw (buf, size);
+	}
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE)) {
 	    add_to_gameinfo_packet ("clffffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
@@ -1138,11 +1168,11 @@ static void server_handle_wantfeeds ()
 	    object_run_init_func (obj);
 	    map_link_object_bottom (map, obj);
 
-	    clients_broadcast_rdm_encode
-		("ccslffffc", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
-		 objtype_name (object_type (obj)),
-		 object_id (obj), object_x (obj), object_y (obj),
-		 object_xv (obj), object_yv (obj), object_collision_tag (obj));
+	    {
+		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
+		size_t size = make_object_creation_packet (obj, buf+1);
+		clients_broadcast_rdm (buf, size+1);
+	    }
 
 	    c->client_object = obj;
 	}
