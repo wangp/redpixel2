@@ -347,6 +347,7 @@ explosion_type_register (
     nil  -- no sound
 )
 
+
 ----------------------------------------------------------------------
 --  Shotgun
 ----------------------------------------------------------------------
@@ -453,6 +454,53 @@ Objtype {
 	    return false
 	end
     end
+}
+
+
+----------------------------------------------------------------------
+--  Vulcan cannon
+----------------------------------------------------------------------
+
+Standard_Pickup {
+    name = "basic-vulcan-ammo",
+    icon = "/basic/weapon/ammo/vulcan",
+    ammo_to_give = "basic-vulcan-ammo",
+    ammo_amount = 20,
+    respawn_secs = 10
+}
+
+Weapon_With_Firer {
+    name = "basic-vulcan",
+    ammo_type = "basic-vulcan-ammo",
+    projectile = "basic-vulcan-projectile",
+    projectile_speed = 300,
+    fire_delay_secs = 0.06,
+    arm_anim = {
+	"/basic/weapon/vulcan/2arm000",
+	"/basic/weapon/vulcan/2arm001",
+	"/basic/weapon/vulcan/2arm002",
+	"/basic/weapon/vulcan/2arm003",
+	"/basic/weapon/vulcan/2arm004";
+	cx = 0, cy = 3
+    },
+    sound = "/basic/weapon/vulcan/sound"
+}
+
+Standard_Pickup {
+    name = "basic-vulcan",
+    icon = "/basic/weapon/vulcan/pickup",
+    weapon_to_give = "basic-vulcan",
+    ammo_to_give = "basic-vulcan-ammo",
+    ammo_amount = 10,
+    respawn_secs = 10
+}
+
+Standard_Projectile {
+    name = "basic-vulcan-projectile",
+    alias = "~vp",
+    icon = "/basic/weapon/vulcan/projectile",
+    damage = 5,
+    sparks = 40,
 }
 
 
@@ -590,6 +638,7 @@ weapon_order = {
     "basic-blaster",
     "basic-shotgun",
     "basic-ak",
+    "basic-vulcan",
     "basic-minigun",
     "basic-bow",
     "basic-rpg",
@@ -600,6 +649,7 @@ weapon_order = {
 -- I recommend not putting in explosives.
 weapon_auto_switch_order = {
     "basic-minigun",
+    "basic-vulcan",
     "basic-ak",
     "basic-shotgun",
     "basic-blaster"
