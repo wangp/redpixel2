@@ -1,6 +1,8 @@
 #ifndef __included_bitmask_h
 #define __included_bitmask_h
 
+#include <inttypes.h>
+
 
 typedef struct bitmask bitmask_t;
 

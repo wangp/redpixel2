@@ -1,6 +1,8 @@
 #ifndef __included_id_h
 #define __included_id_h
 
+#include <inttypes.h>
+
 
 /*
  * There are various types of id numbers used, namely client ids,

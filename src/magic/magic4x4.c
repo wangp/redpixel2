@@ -9,6 +9,7 @@
  */
 
 
+#include <inttypes.h>
 #include <allegro.h>
 #include <allegro/internal/aintern.h>
 #include "magic4x4.h"
