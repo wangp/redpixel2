@@ -20,6 +20,9 @@
 #include "store.h"
 
 
+#define DAT_INFO  DAT_ID('i','n','f','o')
+
+
 /* Lists of tiles, divided into files (packs).  */
 
 struct file {
@@ -41,9 +44,11 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefi
     int i;
 
     for (i = 0; d[i].type != DAT_END; i++) {
+	if (d[i].type == DAT_INFO)
+	    continue;
+
 	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!ustrcmp (name, empty_string)
-	    || !ustrcmp (name, "GrabberInfo"))
+	if (!name[0])
 	    continue;
 
 	ustrzcpy (path, sizeof path, prefix);

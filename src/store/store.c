@@ -11,6 +11,9 @@
 #include "store.h"
 
 
+#define DAT_INFO  DAT_ID('i','n','f','o')
+
+
 struct file {
     int id;
     char *prefix;
@@ -159,9 +162,11 @@ static void table_add (DATAFILE *d, AL_CONST char *prefix)
     int i, n;
 
     for (i = 0; d[i].type != DAT_END; i++) {
+	if (d[i].type == DAT_INFO)
+	    continue;
+
 	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!strcmp (name, empty_string)
-	    || !strcmp (name, "GrabberInfo"))
+	if (!name[0])
 	    continue;
 
 	strncpy (path, prefix, sizeof path); path[(sizeof path) - 1] = '\0';

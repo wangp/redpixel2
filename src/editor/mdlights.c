@@ -23,6 +23,9 @@
 #include "store.h"
 
 
+#define DAT_INFO  DAT_ID('i','n','f','o')
+
+
 static int full_brightness = 1;
 static BITMAP *icon;
 
@@ -49,9 +52,11 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d,
     int i;
 
     for (i = 0; d[i].type != DAT_END; i++) {
+	if (d[i].type == DAT_INFO)
+	    continue;
+
 	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!ustrcmp (name, empty_string)
-	    || !ustrcmp (name, "GrabberInfo"))
+	if (!name[0])
 	    continue;
 
 	ustrzcpy (path, sizeof path, prefix);
