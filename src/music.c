@@ -1,17 +1,81 @@
 /* music.c
+ *
+ * This is dodgy.  Allegro doesn't guarantee that audiostreams can be updated
+ * from a background thread, but we do exactly that because we're too lazy to
+ * put in polling functions everywhere (yet).
  * 
  * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 
 #include <ctype.h>
-#include <pthread.h>
 #include <string.h>
 #include <allegro.h>
 #include "aldumb.h"
 #include "alloc.h"
 #include "music.h"
 #include "ral.h"
+
+
+
+#ifdef THREADS_PTHREAD
+
+#include <pthread.h>
+
+static pthread_t the_thread;
+static int thread_started;
+
+static void *thread_stub_pthread (void *proc_)
+{
+    void (*proc)(void *) = proc_;
+    proc ();
+    return NULL;
+}
+
+static void start_the_thread (void (*proc)(void))
+{
+    thread_started = 1;
+    pthread_create (&the_thread, NULL, thread_stub_pthread, proc);
+}
+
+static void stop_the_thread (void)
+{
+    thread_started = 0;
+    pthread_join (the_thread, NULL);
+}
+
+#endif
+
+
+
+#ifdef THREADS_WIN32
+
+#include <winalleg.h>
+#include <process.h>
+
+static int thread_started;
+static HANDLE thread;
+
+static void thread_stub_win32 (void *proc_)
+{
+    void (*proc)(void) = proc_;
+    proc ();
+}
+
+static void start_the_thread (void (*proc)(void))
+{
+    thread_started = 1;
+    thread = (HANDLE) _beginthread (thread_stub_win32, 0, proc);
+}
+
+static void stop_the_thread (void)
+{
+    thread_started = 0;
+    WaitForSingleObject (thread, INFINITE);
+}
+
+#endif
+
 
 
 struct playlist_entry
@@ -23,10 +87,6 @@ struct playlist_entry
 
 static int playlist_length;
 static struct playlist_entry *playlist;
-
-
-static pthread_t the_thread;
-static int thread_started;
 
 
 float music_desired_volume = 1.0; /* 0.0 to 1.0 */
@@ -68,7 +128,6 @@ static void my_rest (int msecs)
     /* This seems to give better results under Windows that Sleep(0)
      * (which is what yield_timeslice() uses).  */
 
-    void __stdcall Sleep (int);
     Sleep (msecs);
 
 #else
@@ -193,7 +252,7 @@ const char *random_playlist_filename (void)
 
 
 /* This is the DUMB poller thread. */
-static void *player_thread_func (void *unused)
+static void player_thread_func (void)
 {
     const int freq = 22050;
     const int bufsize = 1024;
@@ -205,8 +264,6 @@ static void *player_thread_func (void *unused)
     const char *last_song = NULL;
     const char *song;
     float actual_volume = music_desired_volume;
-
-    (void)unused;
 
     while (thread_started) {
 
@@ -246,8 +303,6 @@ static void *player_thread_func (void *unused)
 
     al_stop_duh (dp);
     unload_duh (duh);
-
-    return NULL;
 }
 
 
@@ -262,19 +317,15 @@ void music_select_playlist (const char *filename)
     music_stop_playlist ();
 
     load_playlist (filename);
-    if (playlist) {
-	thread_started = 1;
-	pthread_create (&the_thread, NULL, player_thread_func, NULL);
-    }
+    if (playlist)
+	start_the_thread (player_thread_func);
 }
 
 
 void music_stop_playlist (void)
 {
     if (thread_started) {
-	thread_started = 0;
-	pthread_join (the_thread, NULL);
-
+	stop_the_thread ();
 	free_playlist ();
     }
 }
