@@ -183,13 +183,15 @@ generate {
 generate {
     lname	= "explosion_type_register",
     cname	= "explosion_type_register",
-    check	= "ssnn[sN-]",
+    check	= "ssnn[sN-][sN-]",
     args	= {{ String, "name" },
 		   { String, "first_frame" },
 		   { Int, "nframes" },
 		   { Int, "tics" },
 	       	   { String, "light", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" }},
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" },
+	           { String, "sound", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#)); "}},
     ret		= { Int, "ret", "$ < 0" }
 }
 
