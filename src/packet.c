@@ -16,20 +16,7 @@
 #endif
 
 
-static inline int get_word (const unsigned char *buf)
-{
-    return ((int) buf[0] << 8) | ((int) buf[1]);
-}
-
-
-static inline void put_word (unsigned char *buf, int w)
-{
-    buf[0] = (w & 0xFF00) >> 8;
-    buf[1] = (w & 0x00FF);
-}
-
-
-static inline long get_long (const unsigned char *buf)
+static long get_long (const unsigned char *buf)
 {
     return (((long) buf[0] << 24) |
 	    ((long) buf[1] << 16) |
@@ -38,7 +25,7 @@ static inline long get_long (const unsigned char *buf)
 }
 
 
-static inline void put_long (unsigned char *buf, long l)
+static void put_long (unsigned char *buf, long l)
 {
     buf[0] = (int)((l & 0xFF000000L) >> 24);
     buf[1] = (int)((l & 0x00FF0000L) >> 16);
@@ -47,7 +34,7 @@ static inline void put_long (unsigned char *buf, long l)
 }
 
 
-static inline float get_float (const unsigned char *buf)
+static float get_float (const unsigned char *buf)
 {
     float f;
     memcpy (&f, buf, sizeof (float));
@@ -55,7 +42,7 @@ static inline float get_float (const unsigned char *buf)
 }
 
 
-static inline void put_float (unsigned char *buf, float f)
+static void put_float (unsigned char *buf, float f)
 {
     memcpy (buf, &f, sizeof (float));
 }
@@ -85,10 +72,6 @@ int packet_encode_v (unsigned char *buf, const char *fmt, va_list ap)
 	    *buf++ = va_arg (ap, int);
 	    break;
 
-	case 'w':
-	    put_word (buf, va_arg (ap, int)); buf += 2;
-	    break;
-
 	case 'l':
 	    put_long (buf, va_arg (ap, long)); buf += 4;
 	    break;
@@ -104,7 +87,7 @@ int packet_encode_v (unsigned char *buf, const char *fmt, va_list ap)
 		
 	    str = va_arg (ap, const char *);
 	    len = strlen (str);
-	    put_word (buf, len); buf += 2;
+	    put_long (buf, len); buf += 4;
 	    memcpy (buf, str, len); buf += len;
 	    break;
 	}
@@ -131,10 +114,6 @@ int packet_decode (const unsigned char *buf, const char *fmt, ...)
 	    *(va_arg (ap, char *)) = *buf++;
 	    break;
 
-	case 'w':
-	    *(va_arg (ap, int *)) = get_word (buf); buf += 2;
-	    break;
-
 	case 'l':
 	    *(va_arg (ap, long *)) = get_long (buf); buf += 4;
 	    break;
@@ -145,11 +124,11 @@ int packet_decode (const unsigned char *buf, const char *fmt, ...)
 
 	case 's': {
 	    /* XXX possible buffer overflow */
-	    int *len;
+	    long *len;
 	    char *s;
 
-	    len = va_arg (ap, int *);
-	    *len = get_word (buf); buf += 2;
+	    len = va_arg (ap, long *);
+	    *len = get_long (buf); buf += 4;
 	    s = va_arg (ap, char *);
 	    memcpy (s, buf, *len);
 	    s[*len] = '\0';

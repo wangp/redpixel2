@@ -5,19 +5,21 @@
 
 
 #include <stdio.h>
-#include <pthread.h>
 #include <allegro.h>
 #include <libnet.h>
 #include "editor.h"
 #include "gameinit.h"
 #include "gameclt.h"
 #include "gamesrv.h"
+#include "sync.h"
 #include "textface.h"
-#include "yield.h"
 
 
 /* XXX remove this when glibc is properly upgraded */
-int atexit(void (*fnc)(void)) {return 0;}
+int atexit(void (*fnc)(void))
+{
+    return 0;
+}
 
 
 static int setup_video (int w, int h, int d)
@@ -75,56 +77,10 @@ static void setup_minimal_allegro ()
 }
 
 
-static pthread_t thread;
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
-
-
-static int need_lock;
-
-
-void server_lock ()
-{
-    if (!need_lock)
-	yield ();
-    else {
-	pthread_mutex_lock (&mutex);
-	pthread_cond_wait (&cond, &mutex);
-	allegro_errno = &errno;	/* errno is thread-specific */
-    }
-}
-
-
-void server_unlock ()
-{
-    if (!need_lock) return;
-    pthread_mutex_unlock (&mutex);
-}
-
-
 static void *server_thread (void *arg)
 {
     game_server_run ();
     return NULL;
-}
-
-
-static void client_lock ()
-{
-    if (!need_lock) return;
-    pthread_mutex_lock (&mutex);
-    allegro_errno = &errno;	/* errno is thread-specific */
-}
-
-
-static void client_unlock ()
-{
-    if (!need_lock)
-	yield ();
-    else {
-	pthread_cond_signal (&cond);
-	pthread_mutex_unlock (&mutex);
-    }
 }
 
 
@@ -203,17 +159,10 @@ int main (int argc, char *argv[])
 			     "game server is already running on the same port?\n");
 	} else {
 	    game_server_enable_single_hack ();
-	    need_lock = 1;
 
-	    pthread_mutex_init (&mutex, NULL);
-	    pthread_cond_init (&cond, NULL);
-
-	    pthread_create (&thread, NULL, server_thread, NULL);
-	    game_client_run (client_lock, client_unlock);
-	    pthread_join (thread, NULL);
-
-	    pthread_cond_destroy (&cond);
-	    pthread_mutex_destroy (&mutex);
+	    sync_init (server_thread);
+	    game_client_run ();
+	    sync_shutdown ();
 
 	    game_client_shutdown ();
 	    game_server_shutdown ();
@@ -228,7 +177,9 @@ int main (int argc, char *argv[])
 	    allegro_message ("Error initialising game server.  Perhaps another\n"
 			     "game server is already running on the same port?\n");
 	} else {
+	    sync_init (NULL);
 	    game_server_run ();
+	    sync_shutdown ();
 	    game_server_shutdown ();
 	}
 	goto end;
@@ -236,7 +187,9 @@ int main (int argc, char *argv[])
 
     /* run client */
     if (game_client_init (name, NET_DRIVER_SOCKETS, addr) == 0) {
-	game_client_run (client_lock, client_unlock);
+	sync_init (NULL);
+	game_client_run ();
+	sync_shutdown ();
 	game_client_shutdown ();
     }
 

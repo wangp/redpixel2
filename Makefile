@@ -90,6 +90,7 @@ MODULES_GAME =					\
 	path					\
 	physics					\
 	render					\
+	sync					\
 	textface				\
 	timeout					\
 	yield

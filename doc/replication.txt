@@ -1,0 +1,86 @@
+The server contains the one true game state.  Clients only have
+proxies (no prediction for now, only simulation).  To reduce network
+bandwidth usage, the server should only replicate object attributes
+that the client needs for rendering, which the client cannot deduce.
+This includes:
+
+	x,y	-- position
+	xv,yv	-- velocity
+	xa,ya	-- acceleration
+
+In addition, the client knows an object's xv_decay and yv_decay values
+(from scripts).  With these attributes known, the client can simulate
+the object's movement (for a single tick) by doing:
+
+	xv = (xv + xa) * xv_decay
+	yv = (yv + ya) * yv_decay
+	x = x + xv
+	y = y + yv
+
+xa and ya are explicitly replicated from the server to the client.
+
+
+When is replication necessary?
+
+1. Consider a simple object, such as a missle.  It moves in a straight
+   path, determined by its velocity.  It has no mass (i.e. not
+   affected by gravity), and never accelerates or decelerates.  Once
+   it touches something, it is destroyed.  Thus no replication is
+   required, beyond initial object creation and eventual destruction.
+
+
+2. Consider a more complex object, such as a perpetually bouncing
+   ball.  It has mass, can hit things, and then travel different
+   directions.  Thus acceleration is important.
+
+   Normally, acceleration is downward (gravity).  We don't want to
+   replicate this constantly.  When the ball hits something, it needs
+   to travel in another direction.  Therefore, when acceleration
+   changes, we replicate. 
+
+   To track whether acceleration changes, the server stores old_xa and
+   old_ya.  xa and ya are copied into old_xa and old_ya after every
+   tick.  Game logic can modify xa and ya to move the object.
+   Therefore, moving an object on the server looks like this:
+
+	ya = ya + mass
+
+	xv = (xv + xa) * xv_decay
+	yv = (yv + ya) * yv_decay
+	x = x + xv
+	y = y + yv
+
+	if ((old_xa != xa) || (old_ya != ya)): queue_replication
+	old_xa = xa
+	old_ya = ya
+
+
+3. Consider a really complex object, the player object.  This is like
+   the ball, but when it lands on the floor, it stops falling (and
+   doesn't bounce).  If the ground disappears, or the player moves,
+   the object needs to be able to start falling again.
+
+   Since the client doesn't do any collision detection, we can't just
+   tell it that the acceleration is downward and expect it to simulate
+   the object properly, as the object would fall through the floor.
+   The server needs to tell clients exactly when an object is falling,
+   or not falling, like this:
+
+	old_xv = xv
+	old_yv = yv
+
+	ya = ya + mass
+
+	xv = (xv + xa) * xv_decay
+	yv = (yv + ya) * yv_decay
+	try:
+		x = x + xv
+		y = y + yv
+	except collision_occured:
+		xa = ya = 0
+		xv = yv = 0
+		queue_replication
+
+	if ((old_xa != xa) || (old_ya != ya)): queue_replication
+	old_xa = xa
+	old_ya = ya

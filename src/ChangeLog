@@ -1,3 +1,16 @@
+2001-07-19  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* sync.c: New module to contain the thread stuff.
+
+	* object.h: Changed objid_t to unsigned long.  Yesterday I changed
+	it to signed short, but that's not enough for all the bullets,
+	etc.  Client objects are no longer negative (not enough of them to
+	justify halving the id space).
+	
+	* Reverted packet size and protocol changes from yesterday as they
+	were mysteriously making client/server in the same process not
+	work properly.
+
 2001-07-18  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* netmsg.h, gamesrv.c, gameclt.c: Changed protocol to try and

@@ -17,8 +17,8 @@
 #include "objtypes.h"
 #include "packet.h"
 #include "physics.h"
+#include "sync.h"
 #include "timeout.h"
-#include "yield.h"
 
 
 typedef unsigned char uchar_t;
@@ -101,7 +101,7 @@ struct client {
     int lag;
 };
 
-#define client_object_id(c)	(- (c)->id)
+#define client_object_id(c)	((c)->id)
 
 #define client_set_state(c,s)	((c)->state = (s))
 
@@ -235,6 +235,16 @@ static client_t *clients_find_by_id (int id)
     return NULL;
 }
 
+static client_t *clients_find_by_name (const char *name)
+{
+    client_t *c;
+
+    for_each_client (c)
+	if (!ustricmp (c->name, name)) return c;
+
+    return NULL;
+}
+
 static void clients_remove_stale ()
 {
     client_t *c, *next;
@@ -249,7 +259,7 @@ static void clients_remove_stale ()
 static void clients_init ()
 {
     list_init (clients);
-    clients_next_id = 1;  /* not zero! (see client_object_id) */
+    clients_next_id = 0;
 }
 
 static void clients_shutdown ()
@@ -313,7 +323,7 @@ static void server_check_new_connections ()
 	return;
     c = client_create (conn);
     client_set_state (c, CLIENT_STATE_JOINING);
-    client_send_rdm_encode (c, "cw", MSG_SC_JOININFO, c->id);
+    client_send_rdm_encode (c, "cl", MSG_SC_JOININFO, c->id);
 }
 
 
@@ -342,7 +352,7 @@ static void server_poll_clients_state_joining (client_t *c)
 {
     uchar_t buf[NET_MAX_PACKET_SIZE];
     char name[NET_MAX_PACKET_SIZE];
-    int len;
+    long len;
     char version;
 
     if (client_receive_rdm (c, buf, sizeof buf) <= 0)
@@ -515,7 +525,6 @@ static void poll_interface_command_list (char **last)
 static void poll_interface_command_kick (char **last)
 {
     char *word;
-    int id;
     client_t *c;
 
     word = ustrtok_r (NULL, whitespace, last);
@@ -523,17 +532,21 @@ static void poll_interface_command_kick (char **last)
 	server_log ("KICK requires an argument");
 	return;
     }
-    
-    id = ustrtol (word, NULL, 10);
-    if (!id) {
-	server_log ("Invalid argument to KICK");
-	return;
-    }
 
-    c = clients_find_by_id (id);
-    if (!c) {
-	server_log ("No client with id %d", id);
-	return;
+    if (uisdigit (ugetc (word))) {
+	objid_t id = ustrtol (word, NULL, 10);
+	c = clients_find_by_id (id);
+	if (!c) {
+	    server_log ("No client with id %d", id);
+	    return;
+	}
+    }
+    else {
+	c = clients_find_by_name (word);
+	if (!c) {
+	    server_log ("No client with name %s", word);
+	    return;
+	}
     }
 
     if (c->state == CLIENT_STATE_STALE) {
@@ -572,7 +585,7 @@ static void server_poll_interface ()
 	    server_log ("  RESTART                  - restart game mode (with new map)");
 	    server_log ("  QUIT                     - quit completely");
 	    server_log ("  LIST                     - list clients");
-	    server_log ("  KICK <clientid> [reason] - forcefully disconnect a client");
+	    server_log ("  KICK <id|name> [reason]  - forcefully disconnect a client");
 	    server_log ("  MSG <message>            - broadcast text message to clients");
 	    server_log ("  CONTEXT                  - show current context");
 	}
@@ -641,7 +654,6 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
 
     xv = speed * cos (c->aim_angle);
     yv = speed * sin (c->aim_angle);
-//    printf("SERVER: %f, %f (%f)\n", xv, yv, sqrt(xv*xv + yv*yv));
 
     object_set_xy (obj, object_x (owner), object_y (owner));
     object_set_xvyv (obj, xv, yv);
@@ -785,7 +797,7 @@ static void server_feed_game_state_to (client_t *c)
 
 	list = map_object_list (map);
 	list_for_each (obj, list)
-	    add_to_gameinfo_packet ("cswffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+	    add_to_gameinfo_packet ("cslffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
 				    objtype_name (object_type (obj)), 
 				    object_id (obj),
 				    object_x (obj), object_y (obj),
@@ -800,9 +812,6 @@ static void server_feed_game_state_to (client_t *c)
     /* After the client receives the game state, it will automatically
      * switch to 'paused' mode. */
 }
-
-void server_lock ();
-void server_unlock ();
 
 static void server_perform_mass_game_state_feed ()
 {
@@ -820,10 +829,9 @@ static void server_perform_mass_game_state_feed ()
 	}
     }
 
-    server_unlock ();
+    sync_server_unlock ();
     do {
-/*  	yield (); */
-	server_lock ();
+	sync_server_lock ();
 
 	done = 1;
 	for_each_client (c) {
@@ -851,9 +859,9 @@ static void server_perform_mass_game_state_feed ()
 	    }
 	}
 
-	server_unlock ();
+	sync_server_unlock ();
     } while (!done);
-    server_lock ();
+    sync_server_lock ();
 
     clients_broadcast_rdm_byte (MSG_SC_RESUME);
 }
@@ -867,10 +875,9 @@ static void server_perform_single_game_state_feed (client_t *c)
     client_set_cantimeout (c);
     client_set_timeout (c, 5);
 
-    server_unlock ();
+    sync_server_unlock ();
     while (1) {
-/*  	yield (); */
-	server_lock ();
+	sync_server_lock ();
 
 	if (client_timed_out (c)) {
 	    client_set_state (c, CLIENT_STATE_STALE);
@@ -888,9 +895,9 @@ static void server_perform_single_game_state_feed (client_t *c)
 	    break;
 	}
 
-	server_unlock ();
+	sync_server_unlock ();
     }
-    server_lock ();
+    sync_server_lock ();
 }
 
 
@@ -910,15 +917,20 @@ static void server_handle_client_controls ()
 
 	/* left */
 	if (c->controls & CONTROL_LEFT) {
-	    object_set_xv (obj, object_xv (obj) - 1.4);
-	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
+/*  	    object_set_xv (obj, object_xv (obj) - 1.4); */
+/*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+	    object_set_xa (obj, -1.4);
 	}
 
 	/* right */
-	if (c->controls & CONTROL_RIGHT) {
-	    object_set_xv (obj, object_xv (obj) + 1.4);
-	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
+	else if (c->controls & CONTROL_RIGHT) {
+/*  	    object_set_xv (obj, object_xv (obj) + 1.4); */
+/*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+	    object_set_xa (obj, +1.4);
 	}
+
+	else
+	    object_set_xa (obj, 0);
 	    
 	/* up */
 	if (c->controls & CONTROL_UP) {
@@ -970,13 +982,13 @@ static void server_send_object_updates ()
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
 	if (object_stale (obj)) {
-	    add_to_gameinfo_packet ("cw", MSG_SC_GAMEINFO_OBJECT_DESTROY,
+	    add_to_gameinfo_packet ("cl", MSG_SC_GAMEINFO_OBJECT_DESTROY,
 				    object_id (obj));
 	    continue;
 	}
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_CREATE)) {
-	    add_to_gameinfo_packet ("cswffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+	    add_to_gameinfo_packet ("cslffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
 				    objtype_name (object_type (obj)),
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
@@ -986,7 +998,7 @@ static void server_send_object_updates ()
 	}
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE)) {
-	    add_to_gameinfo_packet ("cwffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
+	    add_to_gameinfo_packet ("clffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
 				    object_xv (obj), object_yv (obj));
@@ -1082,7 +1094,7 @@ static void server_handle_wantfeeds ()
 	    map_link_object_bottom (map, obj);
 
 	    clients_broadcast_rdm_encode
-		("ccswffffc", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
+		("ccslffffl", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
 		 objtype_name (object_type (obj)),
 		 object_id (obj), object_x (obj), object_y (obj),
 		 object_xv (obj), object_yv (obj), object_collision_tag (obj));
@@ -1143,7 +1155,7 @@ void game_server_run ()
     next_state = SERVER_STATE_LOBBY;
 
     do {
-	server_lock ();
+	sync_server_lock ();
 
 	while (curr_state != next_state) {
 	    p = server_state_procs + next_state;
@@ -1187,8 +1199,7 @@ void game_server_run ()
 		p->shutdown ();
 	}
 
-	server_unlock ();
-/*  	yield (); */
+	sync_server_unlock ();
     } while (next_state != SERVER_STATE_QUIT);
 }
 

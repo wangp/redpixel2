@@ -11,9 +11,11 @@ struct map;
 typedef struct object object_t;
 
 /* Unique id number.  All machines playing the same game have the same
- * id numbers for objects.  Negative numbers are reserved for use by
- * objects controlled by clients.  */
-typedef short objid_t;
+ * id numbers for objects.  Numbers less than OBJID_PLAYER_MAX are
+ * reserved for use by objects controlled by clients. */
+typedef unsigned long objid_t;
+
+#define OBJID_PLAYER_MAX	1024
 
 
 int object_init ();
@@ -28,6 +30,7 @@ void object_destroy (object_t *);
 
 struct objtype *object_type (object_t *);
 objid_t object_id (object_t *);
+int object_is_client (object_t *);
 int object_stale (object_t *);
 void object_set_stale (object_t *);
 
@@ -39,8 +42,10 @@ float object_yv (object_t *);
 void object_set_xv (object_t *, float);
 void object_set_yv (object_t *, float);
 void object_set_xvyv (object_t *, float, float);
-float object_proxy_yv (object_t *);
-void object_set_proxy_yv (object_t *, float);
+float object_xa (object_t *);
+float object_ya (object_t *);
+void object_set_xa (object_t *, float);
+void object_set_ya (object_t *, float);
 float object_xv_decay (object_t *);
 float object_yv_decay (object_t *);
 float object_mass (object_t *);

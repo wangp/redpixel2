@@ -49,8 +49,8 @@ Objtype {
     category = "item",
     name = "basic-lightamp", 
     icon = "/basic/powerup/lightamp/000", 
-    nonproxy_init = function (self)
-	basic_powerup_init (self)
+    nonproxy_init = basic_powerup_init,
+    proxy_init = function (self)
 	self:add_light ("/basic/light/blue-16", 0, 0)
     end
 }

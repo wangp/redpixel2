@@ -1,8 +1,8 @@
-pick up
+physics.c merged with object.c
 
 split objects into different areas?
 
-client/server in the same process
+clean up: client/server in the same process
 
 map_link_object and map_link_object_bottom may be reversed (or the renderers are)
 

@@ -45,13 +45,14 @@ struct object {
     char is_proxy;
 
     /* server/client */
-    float x;
-    float y;
-    float xv;
-    float yv;
-    float xv_decay;		/* not replicated */
-    float yv_decay;		/* not replicated */
-    float mass;			/* not replicated */
+    float x, y;
+    float xv, yv;
+    float xa, ya;	/* on the server, these are only used to store
+			   what to tell the client; on the client,
+			   they are added to velocities each tick */
+    float xv_decay;	/* not replicated */
+    float yv_decay;	/* not replicated */
+    float mass;		/* not replicated */
     lua_ref_t table;
 
     /* server (non-proxy) */
@@ -61,7 +62,6 @@ struct object {
     char collision_flags;
     char collision_tag;
     char replication_flags;
-    float proxy_yv;		/* this is the yv that the proxy will receive */
 
     /* client (proxy) */
     list_head_t layers;
@@ -84,7 +84,7 @@ int object_init ()
 {
     object_tag = lua_newtag (lua_state);
     REGISTER_OBJECT_TAG_METHODS (lua_state, object_tag);
-    next_id = 0;
+    next_id = OBJID_PLAYER_MAX;
     return 0;
 }
 
@@ -196,6 +196,12 @@ objid_t object_id (object_t *obj)
 }
 
 
+int object_is_client (object_t *obj)
+{
+    return obj->id < OBJID_PLAYER_MAX;
+}
+
+
 inline int object_stale (object_t *obj)
 {
     return obj->is_stale;
@@ -258,15 +264,27 @@ void object_set_xvyv (object_t *obj, float xv, float yv)
 }
 
 
-float object_proxy_yv (object_t *obj)
+float object_xa (object_t *obj)
 {
-    return obj->proxy_yv;
+    return obj->xa;
 }
 
 
-void object_set_proxy_yv (object_t *obj, float yv)
+float object_ya (object_t *obj)
 {
-    obj->proxy_yv = yv;
+    return obj->ya;
+}
+
+
+void object_set_xa (object_t *obj, float xa)
+{
+    obj->xa = xa;
+}
+
+
+void object_set_ya (object_t *obj, float ya)
+{
+    obj->ya = ya;
 }
 
 
