@@ -297,7 +297,7 @@ int main (int argc, char *argv[])
 
     install_allegro(SYSTEM_NONE, &errno, atexit);
 
-    L = lua_open(0);
+    L = lua_open();
     lua_baselibopen(L);
     lua_strlibopen(L);
     lua_iolibopen(L);
