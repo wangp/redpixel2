@@ -1,0 +1,8 @@
+# Basic options common to different platforms
+
+CC = gcc
+CFLAGS = -Wall -O3 -g $(JSFLAGS) 
+LDFLAGS =
+
+LIBS = -lalleg -ljs -lfdm
+
