@@ -5,8 +5,11 @@
 
 
 #include <stdlib.h>
-#include "map.h"
+#include <lua.h>
 #include "alloc.h"
+#include "map.h"
+#include "objtypes.h"
+#include "store.h"
 
 
 /* This is only here because both the game and the editor use it, and
@@ -99,34 +102,83 @@ void map_light_destroy (map_t *map, light_t *light)
 }
 
 
-object_t *map_object_create (map_t *map)
+static void link_object (map_t *map, object_t *p)
 {
-    object_t *p, *q;
+    object_t *q;
+
+    q = &map->objects;
+    while (q->next)
+	q = q->next;
+	
+    p->next = q->next;
+    if (p->next)
+	p->next->prev = p;
+    q->next = p;
+    if (q != &map->objects)
+	p->prev = q;
+}
+
+
+static void unlink_object (map_t *map, object_t *p)
+{
+    if (map->objects.next == p)
+	map->objects.next = p->next;
+    if (p->prev) p->prev->next = p->next;
+    if (p->next) p->next->prev = p->prev;
+}
+
+
+object_t *map_object_create (map_t *map, const char *type_name)
+{
+    object_t *p;
+    object_type_t *type;
+
+    type = object_type (type_name);
+    if (!type) return 0;
 
     p = alloc (sizeof (object_t));
-
+    
     if (p) {
-	q = &map->objects;
-	while (q->next)
-	    q = q->next;
-	
-	p->next = q->next;
-	if (p->next)
-	    p->next->prev = p;
-	q->next = p;
-	if (q != &map->objects)
-	    p->prev = q;
+	p->type = type;
+
+	lua_pushobject (lua_createtable ());
+	p->self = lua_ref (1);
+
+	{
+	    lua_pushobject (lua_getref (p->self));
+	    lua_pushstring ("_parent");
+	    lua_pushuserdata (p);
+	    lua_rawsettable ();
+	}
+
+	p->visual = store_dat (p->type->icon);
+
+	link_object (map, p);
+
+    	/* XXX */
+	/* init (self, type-name) : (no output) */
+	if (lua_istable (lua_getref (p->type->table))) {
+	    lua_Object init;
+
+	    lua_pushobject (lua_getref (p->type->table));
+	    lua_pushstring ("init");
+	    init = lua_gettable ();
+
+	    if (lua_isfunction (init)) {
+		lua_pushobject (lua_getref (p->self));
+		lua_pushstring (p->type->name);
+		lua_callfunction (init);
+	    }
+	}
     }
 	
     return p;
 }
 
 
-void map_object_destroy (map_t *map, object_t *obj)
+void map_object_destroy (map_t *map, object_t *p)
 {
-    if (map->objects.next == obj)
-	map->objects.next = obj->next;
-    if (obj->prev) obj->prev->next = obj->next;
-    if (obj->next) obj->next->prev = obj->prev;
-    free (obj);
+    unlink_object (map, p);
+    lua_unref (p->self);
+    free (p);
 }

@@ -10,6 +10,7 @@
 
 
 #include <allegro.h>
+#include "magic4x4.h"
 
 
 /* Give images some light of their own.  Make this zero for total black.  */

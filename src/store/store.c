@@ -5,8 +5,8 @@
 
 
 #include <allegro.h>
-#include "store.h"
 #include "hash.h"
+#include "store.h"
 
 
 struct file {

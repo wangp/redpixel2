@@ -4,6 +4,7 @@
 
 
 #include <allegro.h>
+#include "objtypes.h"
 
 
 typedef struct light {
@@ -12,9 +13,14 @@ typedef struct light {
 } light_t;
 
 
-typedef struct object {		/* XXX: need to think about this */
+typedef struct object {
+    object_type_t *type;
+    int self;			/* Lua table ref */
+
+    /* values we store in C, for speed reasons  */
     int x, y;
-    int icon;
+    BITMAP *visual;
+
     struct object *prev, *next;
 } object_t;
 
@@ -37,7 +43,7 @@ int map_resize (map_t *map, int width, int height);
 light_t *map_light_create (map_t *map, int x, int y, int lightmap);
 void map_light_destroy (map_t *map, light_t *light);
 
-object_t *map_object_create (map_t *map);
+object_t *map_object_create (map_t *map, const char *type_name);
 void map_object_destroy (map_t *map, object_t *obj);
 
 

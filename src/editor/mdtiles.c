@@ -8,17 +8,17 @@
 #include <string.h>
 #include <allegro.h>
 #include "alloc.h"
-#include "store.h"
-#include "modes.h"
+#include "depths.h"
+#include "editarea.h"
+#include "editor.h"
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "magicld.h"
-#include "modemgr.h"
-#include "editarea.h"
-#include "selbar.h"
-#include "editor.h"
 #include "map.h"
-#include "depths.h"
+#include "modemgr.h"
+#include "modes.h"
+#include "selbar.h"
+#include "store.h"
 #include "vtree.h"
 
 

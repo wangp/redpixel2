@@ -1,4 +1,4 @@
-/* luabind.c
+/* bdstore.c - Lua export functions (store)
  *
  * Peter Wang <tjaden@psynet.net>
  */
@@ -6,7 +6,7 @@
 
 #include <lua.h>
 #include <allegro.h>
-#include "luabind.h"
+#include "bindings.h"
 #include "magicld.h"
 #include "path.h"
 #include "store.h"
@@ -15,7 +15,7 @@
 static void __export__store_load (void)
     /* (filename, prefix) : (zero on success) */
 {
-    char *filename, *prefix;
+    const char *filename, *prefix;
     char **p, tmp[1024];
     
     if (!lua_isstring (lua_getparam (1)) ||
@@ -52,7 +52,7 @@ static void __export__store_dat (void)
 }
 
 
-void luabind_init ()
+void __bindings_store_export_functions ()
 {
 #define e(func)	(lua_register (#func, __export__##func))
 
@@ -60,10 +60,4 @@ void luabind_init ()
     e (store_dat);
 
 #undef e
-}
-
-
-
-void luabind_shutdown ()
-{
 }

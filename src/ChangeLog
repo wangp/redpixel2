@@ -1,4 +1,29 @@
+2000-06-30  Peter Wang  <tjaden@psynet.net>
+
+	* map.c (map_object_create): Objects begin with their icon as
+	their visual rep.
+
+	* render.c (render_objects): Now renders objects.
+
+	* bdobject.c (__export__set_visual): Objects may set their own
+	visual representation from Lua scripts (set_visual function).
+
+	* map.c (map_object_create): An object's init function is called
+	when it is created.
+
+	* map.h (object_t): Changed object_t structure (e.g. removed icon).
+	* editor/mdobject.c, objtypes.c, mapfiles.c: Accompanying changes.
+
 2000-06-29  Peter Wang  <tjaden@psynet.net>
+
+	* mapfile.c: Simple object loading and saving (doesn't do anything
+	in the engine).
+
+	* objtypes.c: New module to keep track of object types.
+
+	* Made editor and game share script executing, object loading, and
+	bindings code.  New modules or renamed: bdobject.c, bdstore.c,
+	bindings.c, scripts.c.
 
 	* luastack.c: New file (function extracted from Lua sources) to
 	provide a stack traceback for Lua scripts fail.

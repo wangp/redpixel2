@@ -289,9 +289,11 @@ int mode_lights_init ()
 
     {
 	PALETTE pal;
-	BITMAP *tmp = load_bitmap ("data/icons/light.bmp", pal); /* XXX: path */
-	icon = get_magic_bitmap_format (tmp, pal);
-	destroy_bitmap (tmp);
+	BITMAP *tmp = load_bitmap ("data/icon/light.bmp", pal); /* XXX: path */
+	if (tmp) {
+	    icon = get_magic_bitmap_format (tmp, pal);
+	    destroy_bitmap (tmp);
+	}
     }
 
     return 0;

@@ -6,12 +6,12 @@
 
 #include <string.h>
 #include <allegro.h>
-#include "alloc.h"
-#include "edselect.h"
-#include "rect.h"
 #include "ug.h"
 #include "uginter.h"
+#include "alloc.h"
+#include "edselect.h"
 #include "magic4x4.h"
+#include "rect.h"
 
 
 typedef struct {
@@ -44,7 +44,7 @@ void ed_select_list_destroy (list_t *p)
     free (p);
 }
 
-void ed_select_list_item_add (list_t *p, char *name, BITMAP *bmp)
+void ed_select_list_item_add (list_t *p, const char *name, BITMAP *bmp)
 {
     item_t *i;
 

@@ -7,6 +7,7 @@
 #include <allegro.h>
 #include "map.h"
 #include "mapfile.h"
+#include "objtypes.h"
 #include "store.h"
 
 
@@ -32,6 +33,7 @@ static int pack_fputs_nl (const char *s, PACKFILE *f)
 
 #define MARK_TILES	ID ('t', 'i', 'l', 'e')
 #define MARK_LIGHTS	ID ('l', 'i', 't', 'e')
+#define MARK_OBJECTS	ID ('o', 'b', 'j', 'c')
 
 
 int map_save (map_t *map, const char *filename)
@@ -96,7 +98,28 @@ int map_save (map_t *map, const char *filename)
     }
 
     /* Objects.  */
-    /* ... */
+    if (pack_iputl (MARK_OBJECTS, f) == EOF)
+	goto error;
+
+    {
+	object_t *p;
+	int num;
+
+	for (p = map->objects.next, num = 0; p; p = p->next)
+	    num++;
+
+	if (pack_iputl (num, f) == EOF)
+	    goto error;
+	
+	for (p = map->objects.next; p; p = p->next) {
+	    const char *name = p->type->name;
+
+	    if ((pack_fputs_nl (name, f) == EOF)
+		|| (pack_iputl (p->x, f) == EOF)
+		|| (pack_iputl (p->y, f) == EOF))
+		goto error;
+	}
+    }
 
     pack_fclose (f);
     return 0;
@@ -194,12 +217,42 @@ map_t *map_load (const char *filename)
 	    idx = store_index (tmp);
 	    if (idx == 0) goto error;
 	    
-	    map_light_create (map, x, y, idx);
+	    if (!map_light_create (map, x, y, idx))
+		goto error;
 	}
     }
     
     /* Objects.  */
-    /* ... */
+    if (pack_igetl (f) != MARK_OBJECTS)
+	goto error;
+
+    {
+	int num, i;
+	char tmp[1024];
+	int x, y;
+	object_t *p;
+
+	num = pack_igetl (f);
+	if (num == EOF) goto error;
+
+	for (i = 0; i < num; i++) {
+	    if (!pack_fgets (tmp, sizeof tmp, f))
+		goto error;
+	    
+	    x = pack_igetl (f);
+	    y = pack_igetl (f);
+	    if ((x == EOF) || (y == EOF))
+		goto error;
+
+	    p = map_object_create (map, tmp);
+	    if (!p)
+		goto error;
+	    else {
+		p->x = x;
+		p->y = y;
+	    }
+	}
+    }
 
     pack_fclose (f);
     return map;

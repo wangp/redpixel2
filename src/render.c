@@ -5,10 +5,10 @@
 
 
 #include <allegro.h>
-#include "render.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "store.h"
+#include "render.h"
 
 
 static void render_tiles (BITMAP *bmp, map_t *map, int offx, int offy)
@@ -45,9 +45,23 @@ static void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 }
 
 
+static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
+{
+    object_t *p;
+    BITMAP *b;
+
+    for (p = map->objects.next; p; p = p->next)
+	if ((b = p->visual))
+	    draw_magic_sprite (bmp, b,
+			       ((p->x - offx) - (b->w / 6)),
+			       (p->y - offy) - (b->h / 2));
+}
+
+
 void render (BITMAP *bmp, map_t *map, camera_t *cam)
 {
     clear (bmp);
     render_tiles (bmp, map, cam->x, cam->y);
+    render_objects (bmp, map, cam->x, cam->y);
     render_lights (bmp, map, cam->x, cam->y);
 }

@@ -5,15 +5,17 @@
 
 
 #include <allegro.h>
+#include "bindings.h"
 #include "game.h"
 #include "gameloop.h"
-#include "map.h"
-#include "mapfile.h"
 #include "loaddata.h"
-#include "luabind.h"
 #include "magic4x4.h"
 #include "magicld.h"
+#include "map.h"
+#include "mapfile.h"
+#include "objtypes.h"
 #include "path.h"
+#include "scripts.h"
 #include "store.h"
 #include "vtree.h"
 
@@ -26,14 +28,15 @@ int game (int argc, char *argv[])
     generate_magic_conversion_tables ();
 
     /* Initialise.  */
-    luabind_init ();
-    
     path_init ();
     store_init (201);
+    scripts_init ();
 
-    /* Load data.  */
     tiles_load (0);
     lights_load (0);
+    object_types_init ();
+
+    scripts_execute ("script/*.lua");
 
     /* Load map.  */    
     map = map_load ("test.pit");
@@ -51,10 +54,13 @@ int game (int argc, char *argv[])
     if (map)
 	map_destroy (map);
     
+    object_types_shutdown ();
+    lights_unload ();
+    tiles_unload ();
+
+    scripts_shutdown ();
     store_shutdown ();
     path_shutdown ();
-
-    luabind_shutdown ();
     
     return 0;
 }

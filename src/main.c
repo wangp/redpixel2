@@ -6,11 +6,8 @@
 
 #include <stdio.h>
 #include <allegro.h>
-#include <lua.h>
-#include <luadebug.h>
 #include "editor.h"
 #include "game.h"
-#include "luastack.h"
 
 
 static int setup_video (int w, int h, int d)
@@ -52,14 +49,6 @@ static void setup_allegro (int w, int h, int d)
 }
 
 
-static void setup_lua ()
-{
-    lua_open ();
-    lua_setdebug (lua_state, 1);
-    luastack_init (lua_state);
-}
-
-
 int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1, c;
@@ -97,8 +86,6 @@ int main (int argc, char *argv[])
     }
 
     setup_allegro (w, h, d);
-
-    setup_lua ();
 
     if (edit)
 	return editor (argc, argv);

@@ -6,8 +6,8 @@
 
 #include <string.h>
 #include "gui.h"
-#include "editarea.h"
 #include "alloc.h"
+#include "editarea.h"
 #include "magic4x4.h"
 #include "modes.h"
 

@@ -1,11 +1,10 @@
-/* mdobjects.c
+/* mdobject.c
  *
  * Peter Wang <tjaden@psynet.net>
  */
 
 
 #include <allegro.h>
-#include <lua.h>
 #include "alloc.h"
 #include "cursor.h"
 #include "depths.h"
@@ -16,7 +15,9 @@
 #include "modemgr.h"
 #include "modes.h"
 #include "selbar.h"
+#include "scripts.h"
 #include "store.h"
+#include "objtypes.h"
 #include "path.h"
 #include "rect.h"
 
@@ -65,7 +66,7 @@ static struct type *find_type (const char *name)
     return 0;
 }
 
-static void add_to_type (struct type *p, char *name, BITMAP *bmp)
+static void add_to_type (struct type *p, const char *name, BITMAP *bmp)
 {
     ed_select_list_item_add (p->list, name, bmp);
 }
@@ -81,6 +82,25 @@ static void destroy_all_types ()
 	free (p->name);
 	free (p);
     }
+}
+
+
+void mode_objects_register_object_hook (const char *name, lua_Object table,
+					const char *type, const char *icon)
+{
+    BITMAP *bmp;
+    struct type *p;
+
+    bmp = store_dat (icon);
+    if (!bmp) return;
+    
+    p = find_type (type);
+    if (!p) {
+	p = create_type (type);
+	if (!p) return;
+    }
+
+    add_to_type (p, icon, bmp);
 }
 
 
@@ -186,7 +206,7 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offy *= 16;
 
     for (p = map->objects.next; p; p = p->next) {
-	b = store[p->icon]->dat;
+	b = store_dat (p->type->icon);
 
 	draw_sprite (bmp, b,
 		     ((p->x - offx) - (b->w / 6)) * 3,
@@ -196,11 +216,11 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
 
 static object_t *find_object (int x, int y)
 {
-    object_t *p, *last = 0;
+    object_t *p, *last;
     BITMAP *b;
     
-    for (p = map->objects.next; p; p = p->next) {
-	b = store[p->icon]->dat;
+    for (p = map->objects.next, last = 0; p; p = p->next) {
+	b = store_dat (p->type->icon);
 	
 	if (in_rect (x, y,
 		     p->x - (b->w / 6),
@@ -214,12 +234,11 @@ static object_t *find_object (int x, int y)
 
 static void do_object_pickup (object_t *p)
 {
-    char *key;
+    const char *key;
     struct type *type;
 
-    key = store_key (p->icon);
-    if (!key) return;
-    
+    key = p->type->icon;
+
     for (type = type_list.next; type; type = type->next) {
 	int i = ed_select_list_item_index (type->list, key);
 	if (i >= 0) {
@@ -257,9 +276,9 @@ static int event_layer (int event, struct editarea_event *d)
 	    else if (!p) {
 		BITMAP *b;
 		
-		p = map_object_create (map);
-		p->icon = store_index (selectbar_selected_name ());
-		b = store[p->icon]->dat;
+		p = map_object_create (map,
+			object_type_from_icon (selectbar_selected_name ())->name);
+		b = store_dat (selectbar_selected_name ());
 		p->x = x + (b->w / 6);
 		p->y = y + (b->h / 2);
 
@@ -296,135 +315,12 @@ static int event_layer (int event, struct editarea_event *d)
 }
 
 
-
-/*
- *	Lua export functions
- */
-
-static void __export__register_object (void)
-    /* (item-table, type, icon) : (zero on success) */
-{
-    lua_Object table;
-    char *type;
-    char *iconname;
-    BITMAP *icon;
-    struct type *p;
-
-    if ((!lua_istable (lua_getparam (1))
-	 && !lua_isnil (lua_getparam (1)))
-	|| !lua_isstring (lua_getparam (2))
-	|| !lua_isstring (lua_getparam (3)))
-	goto error;
-
-    table    = lua_getparam (1);	/* XXX: do something with this */
-    type     = lua_getstring (lua_getparam (2));
-    iconname = lua_getstring (lua_getparam (3));
-    icon = store_dat (iconname);
-    if (!icon) goto error;
-
-    p = find_type (type);
-    if (!p) {
-	p = create_type (type);
-	if (!p) goto error;
-    }
-    
-    add_to_type (p, iconname, icon);
-    
-    lua_pushnumber (0);
-    return;
-    
-  error:
-
-    lua_pushnumber (-1);
-}
-
-static void export_functions ()
-{
-#define e(func)	(lua_register (#func, __export__##func))
-
-    e (register_object);
-
-#undef e
-}
-
-
-
-/*
- *	Lua interaction
- */
-
-#define INIT		"__module__init"
-#define SHUTDOWN	"__module__shutdown"
-
-
-struct file {
-    int shutdown;
-    struct file *next;
-};
-
-static struct file file_list;
-
-
-static void do_file (const char *filename, int attrib, int param)
-{
-    lua_Object func;
-    struct file *f;
-
-    lua_pushnil ();
-    lua_setglobal (INIT);
-
-    if (lua_dofile ((char *) filename) != 0)
-	return;
-
-    func = lua_getglobal (INIT);
-    if (lua_isfunction (func))
-	lua_callfunction (func);
-    
-    func = lua_getglobal (SHUTDOWN);
-    if (!lua_isfunction (func))
-	return;
-
-    f = alloc (sizeof *f);
-    if (f) {
-	lua_pushobject (func);
-	f->shutdown = lua_ref (1);
-	f->next = file_list.next;
-	file_list.next = f;
-    }
-}
-
-static void undo_all_files ()
-{
-    struct file *f, *next;
-
-    for (f = file_list.next; f; f = next) {
-	next = f->next;
-
-	lua_callfunction (lua_getref (f->shutdown));
-	lua_unref (f->shutdown);
-	free (f);
-    }
-}
-
-
-
 /*
  *	Module init / shutdown
  */
 
 int mode_objects_init ()
 {
-    char **p, tmp[1024];
-
-    export_functions ();
-    file_list.next = 0;
-
-    for (p = path_share; *p; p++) {
-	ustrncpy (tmp, *p, sizeof tmp);
-	ustrncat (tmp, "scripts/*.lua", sizeof tmp);
-	for_each_file (tmp, FA_RDONLY | FA_ARCH, do_file, 0);
-    }
-
     if (!type_list.next)
 	return -1;
     current = type_list.next;
@@ -437,6 +333,5 @@ int mode_objects_init ()
 
 void mode_objects_shutdown ()
 {
-    undo_all_files ();
     destroy_all_types ();
 }

@@ -7,10 +7,10 @@
 #include <allegro.h>
 #include "gui.h"
 #include "ug.h"
+#include "editarea.h"
+#include "editor.h"
 #include "map.h"
 #include "mapfile.h"
-#include "editor.h"
-#include "editarea.h"
 
 
 static int prompt (const char *msg, const char *true, const char *false)

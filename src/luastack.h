@@ -4,7 +4,7 @@
 
 #include <lua.h>
 
-void luastack_init (lua_State *);
+void lua_enablestacktraceback (lua_State *);
 
 
 #endif

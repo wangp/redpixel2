@@ -8,19 +8,21 @@
 #include <lua.h>
 #include "gui.h"
 #include "ug.h"
+
+#include "bindings.h"
+#include "cursor.h"
+#include "magic4x4.h"
+#include "map.h"
+#include "newfont.h"
+#include "scripts.h"
 #include "store.h"
 #include "path.h"
-#include "luabind.h"
-#include "map.h"
-#include "magic4x4.h"
-#include "cursor.h"
-#include "newfont.h"
 
 #include "editarea.h"
-#include "modemgr.h"
-#include "selbar.h"
 #include "menu.h"
+#include "modemgr.h"
 #include "modes.h"
+#include "selbar.h"
 
 
 int editor (int argc, char *argv[])
@@ -32,10 +34,12 @@ int editor (int argc, char *argv[])
     generate_magic_conversion_tables ();
 
     /* Initialise.  */
-    luabind_init ();
-    
     path_init ();
     store_init (201);
+
+    scripts_init ();
+    set_register_object_hook (mode_objects_register_object_hook);
+    scripts_execute ("script/*.lua");
 
     if (gui_init () < 0)
 	return 1;
@@ -82,10 +86,10 @@ int editor (int argc, char *argv[])
     ug_shutdown ();
     gui_shutdown ();
     
+    scripts_shutdown ();
+
     store_shutdown ();
     path_shutdown ();
-
-    luabind_shutdown ();
 
     return 0;
 }

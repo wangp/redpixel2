@@ -5,7 +5,7 @@
 SRCDIRS = src src/store src/gui src/ug src/editor
 
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
-LOADLIBES = `allegro-config --libs` -llua -llualib
+LOADLIBES = `allegro-config --libs` -llua
 
 PROGRAM = main
 OBJDIR = obj/linux
@@ -52,19 +52,23 @@ MODULES_EDITOR =				\
 
 MODULES_GAME =					\
 	alloc					\
+	bdobject				\
+	bdstore					\
+	bindings				\
 	fps					\
 	game					\
 	gameloop				\
 	loaddata				\
 	loadhelp				\
-	luabind					\
 	luastack				\
 	magic4x4				\
 	magicld					\
 	map					\
 	mapfile					\
+	objtypes				\
 	path					\
-	render
+	render					\
+	scripts
 
 MODULES = 					\
 	$(MODULES_STORE) 			\

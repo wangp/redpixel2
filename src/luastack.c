@@ -1,5 +1,6 @@
 /*
  * This was extracted from `liolib.c' in the Lua distribution.
+ * Modified slightly to use Allegro's Unicode routines.
  */
 
 
@@ -65,7 +66,7 @@ static void errorfb (lua_State *L) {
 }
 
 
-void luastack_init (lua_State *L)
+void lua_enablestacktraceback (lua_State *L)
 {
   lua_register (L, "_ERRORMESSAGE", errorfb);
 }

@@ -5,8 +5,8 @@
 
 
 #include <allegro.h>
-#include "gameloop.h"
 #include "fps.h"
+#include "gameloop.h"
 #include "magic4x4.h"
 #include "render.h"
 
@@ -75,7 +75,7 @@ void game_loop ()
 	if (draw) {
 	    render (dbuf, map, &camera);
 	    blit_magic_format (dbuf, screen, SCREEN_W, SCREEN_H);
-	    //textprintf (screen, font, 0, 0, white, "%d FPS", fps);
+	    textprintf (screen, font, 0, 0, white, "%d FPS", fps);
 
 	    frames++;
 	    draw = 0;
