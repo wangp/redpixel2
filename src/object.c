@@ -54,6 +54,10 @@ struct object {
     float mass;			/* not replicated */
     lua_ref_t table;
 
+    lua_ref_t update_hook;
+    int update_hook_msecs;
+    int update_hook_unused_msecs;
+
     
     /*
      * Non-proxy
@@ -103,14 +107,24 @@ struct object {
 };
 
 
-#include "objecttm.inc"
-
-
 static void set_default_masks (object_t *obj);
-
 
 static lua_tag_t object_tag;
 static objid_t next_id;
+
+
+
+/*
+ * Tag methods.
+ */
+
+#include "objecttm.inc"
+
+
+
+/*
+ * Module init/shutdown.
+ */
 
 
 int object_init ()
@@ -125,6 +139,12 @@ int object_init ()
 void object_shutdown ()
 {
 }
+
+
+
+/*
+ * Creation / destruction.
+ */
 
 
 object_t *object_create (const char *type_name)
@@ -161,6 +181,8 @@ object_t *object_create_ex (const char *type_name, objid_t id)
 
     lua_newtable (L);
     obj->table = lua_ref (L, 1);
+
+    obj->update_hook = LUA_NOREF;
 
     set_default_masks (obj);
 
@@ -215,9 +237,16 @@ void object_destroy (object_t *obj)
     object_remove_all_masks (obj);
     object_remove_all_lights (obj);
     object_remove_all_layers (obj);
+    object_remove_update_hook (obj);
     lua_unref (lua_state, obj->table);
     free (obj);
 }
+
+
+
+/*
+ * Object properties.
+ */
 
 
 objtype_t *object_type (object_t *obj)
@@ -448,7 +477,52 @@ list_head_t *object_creation_fields (object_t *obj)
 }
 
 
-/* Layers.  */
+
+/*
+ * Update hooks.
+ */
+
+
+void object_set_update_hook (object_t *obj, int msecs, lua_ref_t hook)
+{
+    object_remove_update_hook (obj);
+    obj->update_hook = hook;
+    obj->update_hook_msecs = msecs;
+    obj->update_hook_unused_msecs = 0;
+}
+
+
+void object_remove_update_hook (object_t *obj)
+{
+    if (obj->update_hook != LUA_NOREF) {
+	lua_unref (lua_state, obj->update_hook);
+	obj->update_hook = LUA_NOREF;
+    }
+}
+
+
+void object_poll_update_hook (object_t *obj, int elapsed_msecs)
+{
+    if (obj->update_hook == LUA_NOREF)
+	return;
+
+    elapsed_msecs += obj->update_hook_unused_msecs;
+
+    while (elapsed_msecs > obj->update_hook_msecs) {
+	lua_getref (lua_state, obj->update_hook);
+	lua_pushobject (lua_state, obj);
+	lua_call (lua_state, 1, 0);
+	elapsed_msecs -= obj->update_hook_msecs;
+    }
+
+    obj->update_hook_unused_msecs = elapsed_msecs;
+}
+
+
+
+/*
+ * Layers.
+ */
 
 
 typedef struct objlayer objlayer_t;
@@ -586,6 +660,7 @@ void object_remove_all_layers (object_t *obj)
 }
 
 
+
 /* Lights.  */
 
 
@@ -694,7 +769,10 @@ void object_remove_all_lights (object_t *obj)
 }
 
 
-/* Masks.  */
+
+/*
+ * Masks.
+ */
 
 
 static int set_mask (object_t *obj, int mask_num, bitmask_t *mask,
@@ -759,7 +837,10 @@ static void set_default_masks (object_t *obj)
 }
 
 
-/* Collisions.  */
+
+/*
+ * Collisions.
+ */
 
 
 #define is_player(o)		((o)->collision_flags & CNFLAG_IS_PLAYER)
@@ -882,7 +963,10 @@ int object_supported_at (object_t *obj, map_t *map, float x, float y)
 }
 
 
-/* Object movement.  */
+
+/*
+ * Object movement.
+ */
 
 
 #define SIGN(a)	((a < 0) ? -1 : 1)
@@ -997,6 +1081,7 @@ void object_do_physics (object_t *obj, map_t *map)
 }
 
 
+
 /* Proxy simulation.  */
 
 
@@ -1057,7 +1142,10 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
 }
 
 
-/* Lua table operations.  */
+
+/*
+ * Lua table operations.
+ */
 
 
 void lua_pushobject (lua_State *L, object_t *obj)
@@ -1148,7 +1236,10 @@ void object_set_string (object_t *obj, const char *var, const char *value)
 }
 
 
-/* Drawing.  */
+
+/*
+ * Drawing.
+ */
 
 
 void object_draw_layers (BITMAP *dest, object_t *obj,
@@ -1225,7 +1316,10 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
 }
 
 
-/* Misc.  */
+
+/*
+ * Misc.
+ */
 
 
 void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
