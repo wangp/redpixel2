@@ -6,7 +6,7 @@ struct object;
 
 
 int client_init (const char *name, int net_driver, const char *addr);
-void client_run (void);
+void client_run (int client_server);
 void client_shutdown (void);
 
 void client_send_text_message (const char *text);

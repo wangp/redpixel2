@@ -80,12 +80,14 @@ MODULES_EDITOR :=				\
 	selbar
 
 MODULES_SERVER :=				\
+	clsvface				\
 	server					\
 	svclient				\
 	svgame					\
 	svlobby					\
 	svstats					\
-	svticker
+	svticker				\
+	textface				\
 
 MODULES_GAME :=					\
 	alloc					\
@@ -117,7 +119,6 @@ MODULES_GAME :=					\
 	path					\
 	render					\
 	sync					\
-	textface				\
 	timeout					\
 	timeval					\
 	yield

@@ -7,7 +7,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <allegro.h>
-#include "client.h"
 #include "magic4x4.h"
 #include "messages.h"
 #include "store.h"
@@ -154,7 +153,7 @@ void messages_add (const char *fmt, ...)
 }
 
 
-void messages_poll_input (void)
+const char *messages_poll_input (void)
 {
     if ((num_lines > 0) && timeout_test (&next_scroll))
 	scroll_line ();
@@ -165,9 +164,9 @@ void messages_poll_input (void)
 
 	if (sc == KEY_ENTER) {
 	    if (input_enabled) {
-		if (input_line[0])
-		    client_send_text_message (ucs16_to_utf8 (input_line));
 		input_enabled = 0;
+		if (input_line[0])
+		    return ucs16_to_utf8 (input_line);
 	    }
 	    else {
 		input_line[0] = 0;
@@ -210,6 +209,8 @@ void messages_poll_input (void)
 		break;
 	}
     }
+
+    return NULL;
 }
 
 
