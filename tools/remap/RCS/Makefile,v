@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.15.10.14.55;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.05.53;	author tjaden;	state Exp;
@@ -15,15 +20,18 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Updated to Lua 4.1-work3.
 @
 text
 @CC := gcc
-CFLAGS := -Wall -g
+LUADIR := ../../lua-4.1-work3
+CFLAGS := -Wall -g -I $(LUADIR)/include
 LDFLAGS := -s
-LDLIBS := `allegro-config --libs` -llua -llualib
+LDLIBS := `allegro-config --libs`		\
+	  $(LUADIR)/lib/liblua.a		\
+	  $(LUADIR)/lib/liblualib.a
 
 remap: remap.o 
 
@@ -38,4 +46,18 @@ remap.inc: remap.lua
 
 clean:
 	rm -f remap.o remap
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 2
+a3 1
+CFLAGS := -Wall -g
+d5 3
+a7 1
+LDLIBS := `allegro-config --libs` -llua -llualib
 @

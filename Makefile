@@ -9,7 +9,8 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include $(addprefix -I,$(SRCDIRS)) -g
+	  -I libnet/include -I lua-4.1-work3/include \
+	  $(addprefix -I,$(SRCDIRS)) -g
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
@@ -129,13 +130,28 @@ $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 src/bindings.inc: src/bindgen.lua
-	lua $< > $@
+	$(PLAT_LUABIN) $< > $@
 
-src/objecttm.inc: src/objgen.lua
-	lua $< > $@
+src/objectet.inc: src/objgen.lua
+	$(PLAT_LUABIN) $< > $@
 
-$(PROGRAM): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+$(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
+
+#----------------------------------------------------------------------
+
+ifeq "$(PLATFORM)" "LINUX"
+
+$(PLAT_LIBNET):
+	cp libnet/makfiles/linux.mak libnet/port.mak
+	$(MAKE) -C libnet lib
+
+endif
+
+## other OSes here
+
+$(PLAT_LIBLUA):
+	$(MAKE) -C lua-4.1-work3
 
 #----------------------------------------------------------------------
 
@@ -150,10 +166,10 @@ tags: $(SOURCES)
 #----------------------------------------------------------------------
 
 doc/gui_api.html: src/gui/gui.h
-	lua -f tools/mtfm.lua $< > $@
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@
 
 doc/ug_api.html: src/ug/ug.h
-	lua -f tools/mtfm.lua $< > $@
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@
 
 mtfmdocs: doc/gui_api.html doc/ug_api.html
 
@@ -187,7 +203,7 @@ suidroot:
 	chmod 4750 $(PROGRAM)
 
 
-.PHONY: clean cleaner backup suidroot
+.PHONY: clean cleaner backup suidroot lua
 
 
 ##

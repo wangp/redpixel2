@@ -51,8 +51,8 @@ function generate_code (lname, cname, check, args, ret, success, error)
 
     function generate_check ()
 	local str = ""
-	for i,v in %args do
-	    local typ = %ctypes[v[1]]
+	for i,v in args do
+	    local typ = ctypes[v[1]]
 	    str = str..typ[1]
 	end
 	return str
@@ -184,6 +184,16 @@ generate {
     args	= {{ Object, "obj" }}
 }
 
+generate {
+    cname	= "object_hide",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_show",
+    args	= {{ Object, "obj" }}
+}
+
 -- little hack for player walking animation code in basic-player.lua
 -- don't use it!
 generate {
@@ -256,7 +266,7 @@ generate {
     cname	= "object_hflip_layer",
     args	= {{ Object, "obj" },
 		   { Int, "layerid" },
-		   { Int, "hflip" }},
+		   { Int, "hflip" }},	-- XXX should be Bool
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -374,7 +384,7 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
-		   { Int, "spread" }},
+		   { Float, "spread" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.15.10.16.15;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.14.00;	author tjaden;	state Exp;
@@ -15,15 +20,35 @@ desc
 @@
 
 
+1.2
+log
+@Change main makefile a bit (Lua source now included in our tree).
+@
+text
+@# Configuration for Linux (x86) build.  -*- makefile -*-
+
+PLATFORM := LINUX
+PLAT_TARGET := -DTARGET_LINUX
+PLAT_CFLAGS := -DHAVE_GETOPT -DTHREADS_PTHREAD
+PLAT_OBJDIR := obj/linux
+PLAT_LIBNET := libnet/lib/libnet.a
+PLAT_LUABIN := lua-4.1-work3/bin/lua
+PLAT_LIBLUA := lua-4.1-work3/lib/liblua.a lua-4.1-work3/lib/liblualib.a
+PLAT_LIBS := `allegro-config --libs` $(PLAT_LIBNET) $(PLAT_LIBLUA) \
+	     -lpthread -lcurses
+@
+
+
 1.1
 log
 @Initial revision
 @
 text
-@# Configuration for Linux (x86) build.
-
-PLAT_TARGET := -DTARGET_LINUX
-PLAT_CFLAGS := -DHAVE_GETOPT -DTHREADS_PTHREAD
-PLAT_OBJDIR := obj/linux
+@d1 1
+a1 1
+# Configuration for Linux (x86) build.
+d3 1
+d7 5
+a11 1
 PLAT_LIBS := `allegro-config --libs` -llua -llualib libnet/lib/libnet.a -lpthread -lcurses
 @

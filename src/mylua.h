@@ -2,11 +2,11 @@
 #define __included_mylua_h
 
 
-#include <lua.h>
+#include "lua.h"
+#include "lauxlib.h"
 
 
 typedef int lua_ref_t;
-typedef int lua_tag_t;
 
 extern lua_State *lua_state;
 

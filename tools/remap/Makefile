@@ -1,7 +1,10 @@
 CC := gcc
-CFLAGS := -Wall -g
+LUADIR := ../../lua-4.1-work3
+CFLAGS := -Wall -g -I $(LUADIR)/include
 LDFLAGS := -s
-LDLIBS := `allegro-config --libs` -llua -llualib
+LDLIBS := `allegro-config --libs`		\
+	  $(LUADIR)/lib/liblua.a		\
+	  $(LUADIR)/lib/liblualib.a
 
 remap: remap.o 
 

@@ -232,15 +232,21 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		char type[NETWORK_MAX_PACKET_SIZE];
 		long len;
 		objid_t id;
+		char hidden;
 		float x, y;
 		float xv, yv;
 		int ctag;
 		object_t *obj;
 
-		buf += packet_decode (buf, "slffffc", &len, type, &id, &x, &y, &xv, &yv, &ctag);
+		buf += packet_decode (buf, "slcffffc", &len, type, &id, &hidden,
+				      &x, &y, &xv, &yv, &ctag);
 		obj = object_create_proxy (type, id);
 		if (!obj)
 		    error ("error: unable to create a proxy object (unknown type?)");
+		if (hidden)
+		    object_hide (obj);
+		else
+		    object_show (obj);
 		object_set_auth_info (obj, ticks - lag, x, y, xv, yv, 0, 0);
 		object_set_xy (obj, x, y);
 		object_set_collision_tag (obj, ctag);
@@ -301,6 +307,22 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		break;
 	    }
 
+	    case MSG_SC_GAMEINFO_OBJECT_HIDDEN:
+	    {
+		objid_t id;
+		char hidden;
+		object_t *obj;
+
+		buf += packet_decode (buf, "lc", &id, &hidden);
+		if ((obj = map_find_object (map, id))) {
+		    if (hidden)
+			object_hide (obj);
+		    else
+			object_show (obj);
+		}
+		break;
+	    }
+
 	    case MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE:
 	    {
 		long id;
@@ -318,9 +340,9 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		float x;
 		float y;
 		long nparticles;
-		long spread;
+		float spread;
 
-		buf += packet_decode (buf, "ffll", &x, &y, &nparticles, &spread);
+		buf += packet_decode (buf, "fflf", &x, &y, &nparticles, &spread);
 		blood_particles_spawn (map_blood_particles (map), x, y, nparticles, spread);
 		break;
 	    }

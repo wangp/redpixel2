@@ -5,8 +5,8 @@
 
 
 #include <allegro.h>
-#include <lua.h>
-#include <lualib.h>
+#include "lua.h"
+#include "lualib.h"
 #include "mylua.h"
 #include "path.h"
 

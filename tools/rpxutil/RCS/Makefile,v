@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.15.10.15.17;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.08.08;	author tjaden;	state Exp;
@@ -15,21 +20,47 @@ desc
 @@
 
 
+1.2
+log
+@Updated to Lua 4.1-work3.
+@
+text
+@ALLEGRODIR := $(HOME)/cvs/allegro
+LUADIR := ../../lua-4.1-work3
+
+CC := gcc
+CFLAGS := -Wall -g -I$(ALLEGRODIR)/tools -I$(LUADIR)/include
+SOURCES := rpxutil.c
+LDLIBS := $(ALLEGRODIR)/lib/unix/libaldat.a `allegro-config --libs` $(LUADIR)/lib/liblua.a
+
+ifdef NO_LOADPNG
+	CFLAGS += -DNO_LOADPNG
+else
+	CFLAGS += -Iloadpng
+	SOURCES += loadpng/loadpng.c
+	LDLIBS += -lpng
+endif
+
+rpxutil: $(SOURCES)
+	$(CC) $(CFLAGS) -o rpxutil $(SOURCES) $(LDLIBS)
+@
+
+
 1.1
 log
 @Initial revision
 @
 text
-@ALLEGRO = $(HOME)/allegro
+@d1 7
+a7 4
+ALLEGRO = $(HOME)/allegro
 CFLAGS = -Wall -g -I$(ALLEGRO)/tools
 LDFLAGS = -s
 LOADLIBES = $(ALLEGRO)/lib/unix/libaldat.a `allegro-config --libs` -llua
-
-ifdef NO_LOADPNG
-	CFLAGS += -DNO_LOADPNG
-else
+d12 3
+a14 1
 	LOADLIBES += -lldpng -lpng
-endif
-
+d17 2
+a18 1
 rpxutil: rpxutil.c
 @

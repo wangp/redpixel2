@@ -1,0 +1,117 @@
+2002-01-16  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* blood.c: Changed colour of blood particles to less red and
+	closer to colours in death fountain anim.  Also cleaned up the
+	file a bit.
+
+	* basic/basic-player.lua, blood.h, blood.c, gamesrv.h,
+	* bindgen.lua, netmsg.h, gameclt.c, gamesrv.c: 
+	Made the spread parameter to spawn blood a float (instead of int).
+
+	* basic/basic-player.lua: Added a light for the test corpse, which
+	disappears after its animation finishes.
+
+	* gamesrv.c: Added `a bit off' state, before the client becomes
+	`stale'.  This state is for when the client should be
+	disconnected, but we also need to tell other clients to destroy
+	the stale client's game object.  Also added handling for the case
+	where we are having problems sending to a client (then the client
+	gets disconnected).
+
+2002-01-15  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Updated to Lua 4.1-work3.
+
+	* basic/basic-weapon.lua: Removed the light from blaster
+	projectiles (it was just a test).
+
+	* blood.c: Changed blood particles to use linked lists instead of
+	an array.  This is/should/might be faster and will allocate more
+	particles if needed.
+
+	* basic/basic-powerup.lua: Used object hidden attribute to
+	implement respawning powerups.
+
+	* basic/basic-base.lua, bindgen.lua, gameclt.c, gamesrv.c,
+	* netmsg.h, object.h, object.c:
+	Added ``hidden'' attribute to objects.
+
+	* basic/basic-base.lua, bindgen.lua, object.h, object.c:
+	Added object_set_masks_centre() for the situation where you want
+	to change where the centre of all the bitmasks are at once.
+
+	* gameclt.c: Centred mouse sprite on mouse_x, mouse_y properly.
+
+	* gameclt.c: Update camera at consistent rate on different
+	machines.
+
+	* basic/basic-player.lua: Flip and rotate remote clients' arms
+	depending on the aim angle.
+	
+	* netmsg.h, gamesrv.c, gameclt.c: Send and receive remote player's
+	aim angles.
+
+	* camera.c: Slowed down the camera acceleration.
+
+2002-01-14  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* magic/magichf.c: Fixed the horizontal clipping for
+	draw_magic_sprite_h_flip().
+
+	* basic/basic-player.lua: Put in playing walking animation.
+	
+	* object.h, object.c, bindgen.lua:
+	Added `object_moving_horizontally' function, which is a hack for
+	the player walking animation.
+
+	* gamesrv.c: Made it obvious which units the lag value is in
+	(msecs).
+
+	* gameclt.c: On slower machines `ticks' can change while we are
+	using it, so cache the value and use that fixed value instead.
+
+	* netmsg.h, gamesrv.c, gameclt.c: Added player respawning.
+
+	* basic/basic-weapon.lua: Rotate blaster projectile in the angle
+	it is fired.
+
+	* basic/basic-player.lua: The beginnings of corpses.
+
+	* basic/basic-base.lua, basic/basic-player.lua: Update hook and
+	creation fields changes.
+
+	* gameclt.c: Limited the update rate.
+
+	* gamesrv.c, gameclt.c: Poll objects' update hooks.  The old
+	client object's _client_update_hook is obsolete and removed.
+
+	* mylua.c: Open the strlib for use from Lua.
+
+	* object.c, object.h, bindgen.lua: Added an ``update hook''
+	feature to objects.
+
+	* object.c, object.h, bindgen.lua, gameclt.c, gamesrv.c:
+	Initial creation field stuff.
+
+	* gamesrv.c: Yom command.  Spawn projectile sets obj.angle field
+	and marks it as creation field.
+
+	* gamesrv.c, gameclt.c, netmsg.h:
+	Libnet has a maximum packet size of 512 bytes, for channels.
+	Conns take up some of those bytes (too lazy to check how many), so
+	we impose our own limit (NETWORK_MAX_PACKET_SIZE).
+	
+2002-01-13  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c, gameclt.c, bindgen.lua, gamesrv.h:
+	New lua binding to spawn an arbitrary object.  Also handle the
+	fact that clients may lose their objects (i.e. players get killed,
+	so the objects become stale).
+
+	* object.c: In some situations this line: while (interval--) {
+	could (and did) loop forever.
+
+	* Started using RCS.  Note to self: to update this file
+	semi-automatically in Emacs, run C-x v a.  Strip the src, data,
+	tools prefixes as they are plain noise.
+

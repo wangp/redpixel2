@@ -1,9 +1,19 @@
-head	1.4;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.01.15.13.28.28;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.01.14.16.06.04;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.14.13.54.07;	author tjaden;	state Exp;
@@ -30,9 +40,9 @@ desc
 @@
 
 
-1.4
+1.6
 log
-@Send clients' aim angles to other clients.
+@Made the spread parameter to spawn blood a float (instead of int).
 @
 text
 @#ifndef __included_netmsg_h
@@ -210,8 +220,8 @@ enum {
 
     /* Tell clients to create a new object.
 
-       Args: long len, char type[], long object_id, float x, float y,
-             float xv, float yv, byte collision_tag.
+       Args: long len, char type[], long object_id, byte hidden_or_not,
+	     float x, float y, float xv, float yv, byte collision_tag.
 
        This is followed by extra fields for the proxy object.
        Each field is of the following format:
@@ -241,6 +251,14 @@ enum {
     MSG_SC_GAMEINFO_OBJECT_UPDATE = 'u',
 
 
+    /* Tell clients about an object's new hidden status.
+
+       Args: long object_id, byte hidden_or_not.
+     */
+
+    MSG_SC_GAMEINFO_OBJECT_HIDDEN = 'h',
+    
+
     /* Tell clients about a client's new aim angle.  Note: these
        angles are only approximate.
 
@@ -252,7 +270,7 @@ enum {
 
     /* Tell clients to create some blood particles.
 
-       Args: float x, float y, long nparticles, long spread
+       Args: float x, float y, long nparticles, float spread
      */
 
     MSG_SC_GAMEINFO_BLOOD_CREATE = 'b',
@@ -268,6 +286,30 @@ enum {
 
 
 #endif
+@
+
+
+1.5
+log
+@Added ``hidden'' attribute to objects.
+@
+text
+@d226 1
+a226 1
+       Args: float x, float y, long nparticles, long spread
+@
+
+
+1.4
+log
+@Send clients' aim angles to other clients.
+@
+text
+@d176 2
+a177 2
+       Args: long len, char type[], long object_id, float x, float y,
+             float xv, float yv, byte collision_tag.
+d206 8
 @
 
 

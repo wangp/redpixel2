@@ -1,9 +1,24 @@
-head	1.6;
+head	1.9;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.9
+date	2002.01.15.13.28.36;	author tjaden;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2002.01.15.10.12.51;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.01.14.16.07.52;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.01.14.15.00.24;	author tjaden;	state Exp;
@@ -40,10 +55,9 @@ desc
 @@
 
 
-1.6
+1.9
 log
-@Added object_set_masks_centre() for the situation where you want to
-change where the centre of all the bitmasks are at once.
+@Made the spread parameter to spawn blood a float (instead of int).
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -99,8 +113,8 @@ function generate_code (lname, cname, check, args, ret, success, error)
 
     function generate_check ()
 	local str = ""
-	for i,v in %args do
-	    local typ = %ctypes[v[1]]
+	for i,v in args do
+	    local typ = ctypes[v[1]]
 	    str = str..typ[1]
 	end
 	return str
@@ -232,6 +246,16 @@ generate {
     args	= {{ Object, "obj" }}
 }
 
+generate {
+    cname	= "object_hide",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_show",
+    args	= {{ Object, "obj" }}
+}
+
 -- little hack for player walking animation code in basic-player.lua
 -- don't use it!
 generate {
@@ -304,7 +328,7 @@ generate {
     cname	= "object_hflip_layer",
     args	= {{ Object, "obj" },
 		   { Int, "layerid" },
-		   { Int, "hflip" }},
+		   { Int, "hflip" }},	-- XXX should be Bool
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -422,7 +446,7 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
-		   { Int, "spread" }},
+		   { Float, "spread" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -430,6 +454,42 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.8
+log
+@Updated to Lua 4.1-work3.
+@
+text
+@d387 1
+a387 1
+		   { Int, "spread" }},
+@
+
+
+1.7
+log
+@Added ``hidden'' attribute to objects.
+@
+text
+@d54 2
+a55 2
+	for i,v in %args do
+	    local typ = %ctypes[v[1]]
+d269 1
+a269 1
+		   { Int, "hflip" }},
+@
+
+
+1.6
+log
+@Added object_set_masks_centre() for the situation where you want to
+change where the centre of all the bitmasks are at once.
+@
+text
+@d187 10
 @
 
 

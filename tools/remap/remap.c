@@ -5,8 +5,8 @@
 
 
 #include <allegro.h>
-#include <lua.h>
-#include <lualib.h>
+#include "lua.h"
+#include "lualib.h"
 
 
 /*----------------------------------------------------------------------*/
@@ -123,7 +123,7 @@ static int bind_pack_fopen(lua_State *L)
 	mode = lua_tostring(L, 2);
 	ret = pack_fopen(filename, mode);
 	if (!ret) goto error;
-	lua_pushuserdata(L, ret); return 1;
+	lua_newuserdatabox(L, ret); return 1;
 error:
 	lua_pushnil(L); return 1;
 }

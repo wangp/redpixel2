@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.15.10.15.21;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.08.32;	author tjaden;	state Exp;
@@ -16,9 +21,9 @@ desc
 @
 
 
-1.1
+1.2
 log
-@Initial revision
+@Updated to Lua 4.1-work3.
 @
 text
 @/*
@@ -31,7 +36,7 @@ text
 #include <stdio.h>
 #include <string.h>
 #include <allegro.h>
-#include <lua.h>
+#include "lua.h"
 #include "datedit.h"
 
 #ifndef NO_LOADPNG
@@ -216,7 +221,7 @@ static DATAFILE *new_datafile (void)
 static int _new_datafile (lua_State *L)
     /* (no input) : (dat) */
 {
-    lua_pushuserdata (L, new_datafile ());
+    lua_newuserdatabox (L, new_datafile ());
     return 1;
 }
 
@@ -255,7 +260,7 @@ static int _add_to_datafile_bitmap (lua_State *L)
 
     dat = datedit_insert (dat, NULL, name, DAT_BITMAP, bmp, 0);
 
-    lua_pushuserdata (L, dat);
+    lua_newuserdatabox (L, dat);
     return 1;
 }
 
@@ -272,7 +277,7 @@ static int _add_to_datafile_magic_bitmap (lua_State *L)
     dat = datedit_insert (dat, &new, name, DAT_BITMAP, bmp, 0);
     datedit_set_property (new, DAT_ID ('M','A','G','K'), "Magical lightbulb");
 
-    lua_pushuserdata (L, dat);
+    lua_newuserdatabox (L, dat);
     return 1;
 }
 
@@ -341,7 +346,7 @@ static int _add_to_datafile_grab_from_grid (lua_State *L)
 
   end:
 
-    lua_pushuserdata (L, dat);
+    lua_newuserdatabox (L, dat);
     return 1;
 }
 
@@ -456,9 +461,9 @@ static int _create_simple_lightmap (lua_State *L)
     float brightness = pop_number (L, 3);
     float pinpoint   = pop_number (L, 4);
 
-    lua_pushuserdata (L, ((hue > 0)
-			  ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
-			  : (create_simple_mono_lightmap (radius, brightness, pinpoint))));
+    lua_newuserdatabox (L, ((hue > 0)
+			    ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
+			    : (create_simple_mono_lightmap (radius, brightness, pinpoint))));
     return 1;
 }
 
@@ -485,7 +490,7 @@ static int _create_lightmap_icon (lua_State *L)
     textprintf_centre (bmp, font, bmp->w / 2, bmp->h / 2,
 		       makecol16 (0, 0, 0), "%d", radius);
 
-    lua_pushuserdata (L, bmp);
+    lua_newuserdatabox (L, bmp);
     return 1;
 }
 
@@ -518,7 +523,7 @@ static int _create_lightmap_from_bitmap (lua_State *L)
 
     destroy_bitmap (bmp);
 
-    lua_pushuserdata (L, magic);
+    lua_newuserdatabox (L, magic);
     return 1;
 }
 
@@ -582,4 +587,38 @@ int main (int argc, char *argv[])
 }
 
 END_OF_MAIN ();
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d11 1
+a11 1
+#include <lua.h>
+d196 1
+a196 1
+    lua_pushuserdata (L, new_datafile ());
+d235 1
+a235 1
+    lua_pushuserdata (L, dat);
+d252 1
+a252 1
+    lua_pushuserdata (L, dat);
+d321 1
+a321 1
+    lua_pushuserdata (L, dat);
+d436 3
+a438 3
+    lua_pushuserdata (L, ((hue > 0)
+			  ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
+			  : (create_simple_mono_lightmap (radius, brightness, pinpoint))));
+d465 1
+a465 1
+    lua_pushuserdata (L, bmp);
+d498 1
+a498 1
+    lua_pushuserdata (L, magic);
 @

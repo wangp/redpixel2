@@ -1,9 +1,19 @@
-head	1.3;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.5
+date	2002.01.15.10.16.54;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.01.14.16.08.11;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.14.15.00.49;	author tjaden;	state Exp;
@@ -25,10 +35,9 @@ desc
 @@
 
 
-1.3
+1.5
 log
-@Added object_set_masks_centre() for the situation where you want to
-change where the centre of all the bitmasks are at once.
+@Updated to Lua 4.1-work3.
 @
 text
 @-- basic-base.lua -- XXX: rename this file?
@@ -56,6 +65,8 @@ function _object_init_hook (self)
 
 	-- nonproxy methods
 	self.destroy = object_destroy
+	self.hide = object_hide
+	self.show = object_show
 	self.set_collision_flags = object_set_collision_flags
 	self.add_creation_field = object_add_creation_field
 	self.set_mask = object_set_mask
@@ -81,6 +92,8 @@ function _object_init_hook (self)
 
 	-- nonproxy methods
 	self.destroy = %dummy
+	self.hide = %dummy
+	self.show = %dummy
 	self.set_collision_flags = %dummy
 	self.add_creation_field = %dummy
 	self.set_mask = %dummy
@@ -133,8 +146,30 @@ end
 -- utility functions
 
 function radian_to_bangle (rads)
-    return rads * 128 / 3.1415
+    return rads * 128 / PI
 end
+@
+
+
+1.4
+log
+@Added ``hidden'' attribute to objects.
+@
+text
+@d107 1
+a107 1
+    return rads * 128 / 3.1415
+@
+
+
+1.3
+log
+@Added object_set_masks_centre() for the situation where you want to
+change where the centre of all the bitmasks are at once.
+@
+text
+@d26 2
+d53 2
 @
 
 

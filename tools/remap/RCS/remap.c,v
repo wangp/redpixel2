@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.15.10.15.09;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.06.18;	author tjaden;	state Exp;
@@ -16,9 +21,9 @@ desc
 @
 
 
-1.1
+1.2
 log
-@Initial revision
+@Updated to Lua 4.1-work3.
 @
 text
 @/* remap.c
@@ -28,8 +33,8 @@ text
 
 
 #include <allegro.h>
-#include <lua.h>
-#include <lualib.h>
+#include "lua.h"
+#include "lualib.h"
 
 
 /*----------------------------------------------------------------------*/
@@ -146,7 +151,7 @@ static int bind_pack_fopen(lua_State *L)
 	mode = lua_tostring(L, 2);
 	ret = pack_fopen(filename, mode);
 	if (!ret) goto error;
-	lua_pushuserdata(L, ret); return 1;
+	lua_newuserdatabox(L, ret); return 1;
 error:
 	lua_pushnil(L); return 1;
 }
@@ -340,4 +345,22 @@ int main (int argc, char *argv[])
     return 0;
 }
 
+END_OF_MAIN ();
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 2
+a9 2
+#include <lua.h>
+#include <lualib.h>
+d126 1
+a126 1
+	lua_pushuserdata(L, ret); return 1;
+d320 1
+a320 1
 END_OF_MAIN ();@

@@ -31,6 +31,11 @@ typedef char *string_t;
 #define string_free(var)	({ free (var); var = NULL; })
 
 
+
+static void server_log (const char *fmt, ...);
+
+
+
 /*----------------------------------------------------------------------*/
 /*			          Ticker	      			*/
 /*----------------------------------------------------------------------*/
@@ -87,7 +92,10 @@ typedef struct client client_t;
 typedef enum {
     CLIENT_STATE_JOINING,
     CLIENT_STATE_JOINED,
-    CLIENT_STATE_STALE,
+    CLIENT_STATE_BITOFF, /* almost stale: we need a chance to
+			    broadcast that this client's game object
+			    should be destroyed */
+    CLIENT_STATE_STALE,  /* stale: will delete the client object */
 } client_state_t;
 
 struct client {
@@ -164,8 +172,10 @@ static int client_timed_out (client_t *c)
 static int client_send_rdm (client_t *c, const void *buf, int size)
 {
     int x = net_send_rdm (c->conn, buf, size);
-    if (x < 0)
-	error ("internal error: exceeded conn outqueue\n");
+    if (x < 0) {
+	client_set_state (c, CLIENT_STATE_BITOFF);
+	server_log ("Client %s was disconnected [send error]", c->name);
+    }
     return x;
 }
 
@@ -200,7 +210,8 @@ static void clients_broadcast_rdm (const void *buf, int size)
     client_t *c;
 
     for_each_client (c)
-	if (c->state != CLIENT_STATE_STALE)
+	if ((c->state != CLIENT_STATE_BITOFF) ||
+	    (c->state != CLIENT_STATE_STALE))
 	    client_send_rdm (c, buf, size);
 }
 
@@ -317,6 +328,22 @@ static void server_log (const char *fmt, ...)
 }
 
 
+/* Upgrade ``bit off'' clients to ``stale'' status. */
+
+static void server_handle_bit_off_clients ()
+{
+    client_t *c;
+
+    for_each_client (c) {
+	if (c->state != CLIENT_STATE_BITOFF)
+	    continue;
+	if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
+	    object_set_stale (c->client_object);
+	client_set_state (c, CLIENT_STATE_STALE);
+    }
+}
+
+
 /* Check new connections on the listening conn. */
 
 static void server_check_new_connections ()
@@ -415,11 +442,8 @@ static void server_poll_clients_state_joined (client_t *c)
 
 	case MSG_CS_DISCONNECT_ASK:
 	    client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
-	    client_set_state (c, CLIENT_STATE_STALE);
+	    client_set_state (c, CLIENT_STATE_BITOFF);
 	    server_log ("Client %s was disconnected by request", c->name);
-
-	    if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
-		object_set_stale (c->client_object);
 	    break;
     }
 }
@@ -438,6 +462,7 @@ static void server_poll_clients ()
 	    server_poll_clients_state_joined (c);
 	    break;
 
+	case CLIENT_STATE_BITOFF:
 	case CLIENT_STATE_STALE:
 	    break;
     }
@@ -457,6 +482,7 @@ static void poll_interface_command_list (char **last)
 
     for_each_client (c) {
 	switch (c->state) {
+	    case CLIENT_STATE_BITOFF:
 	    case CLIENT_STATE_STALE:
 		server_log ("%4d  %s (stale)", c->id, c->name);
 		break;
@@ -496,17 +522,14 @@ static void poll_interface_command_kick (char **last)
 	}
     }
 
-    if (c->state == CLIENT_STATE_STALE) {
+    if ((c->state == CLIENT_STATE_BITOFF) || (c->state == CLIENT_STATE_STALE)) {
 	server_log ("Client %s already disconnected", c->name);
 	return;
     }
 
     client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
-    client_set_state (c, CLIENT_STATE_STALE);
+    client_set_state (c, CLIENT_STATE_BITOFF);
     server_log ("Client %s was kicked", c->name);
-    
-    if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
-	object_set_stale (c->client_object);
 }
 
 static void poll_interface_command_msg (char **last)
@@ -651,12 +674,12 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
 
 /* Spawn some blood (Lua binding). */
 
-int game_server_spawn_blood (float x, float y, long nparticles, long spread)
+int game_server_spawn_blood (float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
     
-    size = packet_encode (buf, "cffll", MSG_SC_GAMEINFO_BLOOD_CREATE,
+    size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
     return 0;
@@ -840,9 +863,9 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
     list_head_t *list;
     creation_field_t *f;
     
-    p = buf + packet_encode (buf, "cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+    p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
 			     objtype_name (object_type (obj)), 
-			     object_id (obj),
+			     object_id (obj), object_hidden (obj),
 			     object_x (obj), object_y (obj),
 			     object_xv (obj), object_yv (obj),
 			     object_collision_tag (obj));
@@ -1113,14 +1136,16 @@ static void server_send_object_updates ()
 	    add_to_gameinfo_packet_raw (buf, size);
 	}
 
-	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE)) {
+	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE))
 	    add_to_gameinfo_packet ("clffffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
 				    object_xv (obj), object_yv (obj),
 				    object_xa (obj), object_ya (obj));
-/*  	    server_log ("replicated %d\n", random()%100); */
-	}
+
+	if (object_need_replication (obj, OBJECT_REPLICATE_HIDDEN))
+	    add_to_gameinfo_packet ("clc", MSG_SC_GAMEINFO_OBJECT_HIDDEN,
+				    object_id (obj), object_hidden (obj));
 
 	object_clear_replication_flags (obj);
     }
@@ -1295,6 +1320,12 @@ void game_server_run ()
 	    else
 		curr_state = next_state;
 	}
+
+	/* Do this before p->poll so that this will set "a bit off"
+	 * client objects to "stale", which server_state_game_poll can
+	 * see to tell other clients to destroy the stale object.
+	 */
+	server_handle_bit_off_clients ();
 
 	if (p->poll)
 	    p->poll ();

@@ -1,9 +1,19 @@
-head	1.2;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.4
+date	2002.01.15.13.24.22;	author tjaden;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2002.01.15.10.16.08;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.14.08.36.11;	author tjaden;	state Exp;
@@ -20,9 +30,9 @@ desc
 @@
 
 
-1.2
+1.4
 log
-@Small changes to Makefile
+@Changes I forgot previously for the Makefile.
 @
 text
 @##
@@ -36,7 +46,8 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include $(addprefix -I,$(SRCDIRS)) -g
+	  -I libnet/include -I lua-4.1-work3/include \
+	  $(addprefix -I,$(SRCDIRS)) -g
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
@@ -156,13 +167,28 @@ $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@@ -c $<
 
 src/bindings.inc: src/bindgen.lua
-	lua $< > $@@
+	$(PLAT_LUABIN) $< > $@@
 
-src/objecttm.inc: src/objgen.lua
-	lua $< > $@@
+src/objectet.inc: src/objgen.lua
+	$(PLAT_LUABIN) $< > $@@
 
-$(PROGRAM): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@@ $^ $(LDLIBS)
+$(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA)
+	$(CC) $(LDFLAGS) -o $@@ $(OBJS) $(LDLIBS)
+
+#----------------------------------------------------------------------
+
+ifeq "$(PLATFORM)" "LINUX"
+
+$(PLAT_LIBNET):
+	cp libnet/makfiles/linux.mak libnet/port.mak
+	$(MAKE) -C libnet lib
+
+endif
+
+## other OSes here
+
+$(PLAT_LIBLUA):
+	$(MAKE) -C lua-4.1-work3
 
 #----------------------------------------------------------------------
 
@@ -177,10 +203,10 @@ tags: $(SOURCES)
 #----------------------------------------------------------------------
 
 doc/gui_api.html: src/gui/gui.h
-	lua -f tools/mtfm.lua $< > $@@
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@@
 
 doc/ug_api.html: src/ug/ug.h
-	lua -f tools/mtfm.lua $< > $@@
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@@
 
 mtfmdocs: doc/gui_api.html doc/ug_api.html
 
@@ -214,12 +240,63 @@ suidroot:
 	chmod 4750 $(PROGRAM)
 
 
-.PHONY: clean cleaner backup suidroot
+.PHONY: clean cleaner backup suidroot lua
 
 
 ##
 ## End of Makefile
 ##
+@
+
+
+1.3
+log
+@Change main makefile a bit (Lua source now included in our tree).
+@
+text
+@d133 1
+a133 1
+	$(LUA) $< > $@@
+d136 1
+a136 1
+	$(LUA) $< > $@@
+d169 1
+a169 1
+	$(LUA) -f tools/mtfm.lua $< > $@@
+d172 1
+a172 1
+	$(LUA) -f tools/mtfm.lua $< > $@@
+@
+
+
+1.2
+log
+@Small changes to Makefile
+@
+text
+@d12 2
+a13 1
+	  -I libnet/include $(addprefix -I,$(SRCDIRS)) -g
+d133 1
+a133 1
+	lua $< > $@@
+d135 2
+a136 2
+src/objecttm.inc: src/objgen.lua
+	lua $< > $@@
+d138 17
+a154 2
+$(PROGRAM): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@@ $^ $(LDLIBS)
+d169 1
+a169 1
+	lua -f tools/mtfm.lua $< > $@@
+d172 1
+a172 1
+	lua -f tools/mtfm.lua $< > $@@
+d206 1
+a206 1
+.PHONY: clean cleaner backup suidroot
 @
 
 

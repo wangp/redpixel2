@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.15.13.29.00;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Made the spread parameter to spawn blood a float (instead of int).
 @
 text
 @#ifndef __included_blood_h
@@ -34,9 +39,20 @@ typedef struct blood_particles blood_particles_t;
 blood_particles_t *blood_particles_create (void);
 void blood_particles_destroy (blood_particles_t *);
 void blood_particles_update (blood_particles_t *, struct map *);
-void blood_particles_spawn (blood_particles_t *, float x, float y, long nparticles, long spread);
+void blood_particles_spawn (blood_particles_t *, float x, float y, long nparticles, float spread);
 void blood_particles_draw (struct BITMAP *, blood_particles_t *, int offset_x, int offset_y);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 1
+a15 1
+void blood_particles_spawn (blood_particles_t *, float x, float y, long nparticles, long spread);
 @

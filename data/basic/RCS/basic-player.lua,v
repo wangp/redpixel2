@@ -1,10 +1,29 @@
-head	1.5;
+head	1.9;
 access;
 symbols;
-locks
-	tjaden:1.5; strict;
+locks; strict;
 comment	@# @;
 
+
+1.9
+date	2002.01.15.13.29.12;	author tjaden;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2002.01.15.13.26.31;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.01.15.10.17.01;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.01.15.06.07.30;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.14.13.55.02;	author tjaden;	state Exp;
@@ -36,9 +55,9 @@ desc
 @@
 
 
-1.5
+1.9
 log
-@Flip and rotate remote clients' arms depending on the aim angle.
+@Made the spread parameter to spawn blood a float (instead of int).
 @
 text
 @-- basic-player.lua
@@ -61,14 +80,14 @@ local cx, cy = 5, 5
 -- Non-proxy
 --
 
-function player_nonproxy_init (self)
-    local cx, cy = %cx, %cy
-
-    self.xv_decay = %xv_decay
-    self.yv_decay = %yv_decay
+local player_nonproxy_init = function (self)
+    -- some properties
+    self.xv_decay = xv_decay
+    self.yv_decay = yv_decay
     self._ramp = 6
     self.mass = 0.9
 
+    -- collision stuff
     object_set_collision_is_player (self)
     self:set_collision_flags ("tn")
     self:set_mask (mask_main, "/basic/player/mask/whole", cx, cy)
@@ -77,13 +96,20 @@ function player_nonproxy_init (self)
     self:set_mask (mask_left, "/basic/player/mask/left", cx, cy)
     self:set_mask (mask_right, "/basic/player/mask/right", cx, cy)
 
-    self.health = 100
-
-    self.fire_delay = 0
-
+    -- weapon stuff
     self.current_weapon = weapons["basic-blaster"] -- XXX temp
-    
-    function self._fire_hook (self)
+    function self:receive_weapon (weapon_name)
+	if not weapons[weapon_name] then
+	    self.have_weapon[weapon_name] = 1
+	    if not self.current_weapon then
+		self.current_weapon = weapon[weapon_name]
+	    end
+	end
+    end
+
+    -- firing stuff
+    self.fire_delay = 0
+    function self:_fire_hook ()
 	if self.fire_delay <= 0 then
 	    local w = self.current_weapon
 	    if w and w.can_fire (self) then
@@ -92,30 +118,25 @@ function player_nonproxy_init (self)
 	end
     end
 
+    -- update hook
     self:set_update_hook (
 	1000/50,
 	function (self)
-	    self.fire_delay = self.fire_delay - 1
+	    if self.fire_delay > 0 then
+		self.fire_delay = self.fire_delay - 1
+	    end
 	end
     )
 
-    function self.receive_weapon (self, weapon_name)
-	if weapons[weapon_name] then
-	    self.have_weapon[weapon_name] = 1
-	    if not self.current_weapon then
-		self.current_weapon = weapon[weapon_name]
-	    end
-	end
-    end
-
-    function self.receive_damage (self, damage)
+    -- health stuff
+    self.health = 100
+    function self:receive_damage (damage)
+	spawn_blood (self.x + cx, self.y + cy, 100, 2)
 	self.health = self.health - damage
 	if self.health <= 0 then
 	    spawn_object ("basic-player-death-fountain", self.x, self.y)
 	    self:destroy ()
 	end
-	spawn_blood (self.x + %cx, self.y + %cy, 100, 2000)
-	-- XXX spread should be float
     end
 end
 
@@ -124,7 +145,7 @@ end
 -- Proxy
 --
 
-function animate_player_proxy (self)
+local animate_player_proxy = function (self)
     if not _object_moving_horizontally (self) then
 	return
     end
@@ -137,45 +158,39 @@ function animate_player_proxy (self)
 	if self.walk_frame > 7 then
 	    self.walk_frame = 0
 	end
-	self:replace_layer (0, format ("/basic/player/walk/%03d", self.walk_frame), %cx, %cy)
+	self:replace_layer (0, format ("/basic/player/walk/%03d", self.walk_frame), cx, cy)
     end
 end
 
-function rotate_and_flip_player_proxy_based_on_aim_angle (self)
+local rotate_and_flip_player_proxy_based_on_aim_angle = function (self)
     if self.last_aim_angle == self.aim_angle then
 	return
     end
 
     self.last_aim_angle = self.aim_angle
 
-    local a = radian_to_bangle (self.aim_angle)
-    local hflipped = (a < -63 or a > 63) or 0
-    
-    self:hflip_layer (0, hflipped)
-    self:hflip_layer (self.arm_layer, hflipped)
-    
-    if hflipped ~= 0
-    then self:rotate_layer (self.arm_layer, a-128)
-    else self:rotate_layer (self.arm_layer, a)
-    end
+    local angle = radian_to_bangle (self.aim_angle)
+    local hflip = (angle < -63 or angle > 63)
+    self:hflip_layer (0, hflip and 1 or 0)
+    self:hflip_layer (self.arm_layer, hflip and 1 or 0)
+    self:rotate_layer (self.arm_layer, angle - (hflip and 128 or 0))
 end
 
-function player_proxy_init (self)
-    self.xv_decay = %xv_decay
-    self.yv_decay = %yv_decay
+local player_proxy_init = function (self)
+    -- some properties
+    self.xv_decay = xv_decay
+    self.yv_decay = yv_decay
 
-    self:move_layer (0, %cx, %cy)
+    -- layers
+    self:move_layer (0, cx, cy)
     self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
 
+    -- light
+    self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
+
+    -- animation and update hook
     self.walk_frame = 0
     self.walk_frame_tics = 0
-    
-    if not self.is_local then
-	self:add_light ("/basic/light/white-32", 0, 0)
-    else
-	self:add_light ("/basic/light/white-64", 0, 0)
-    end
-
     self:set_update_hook (
 	1000/50,
 	function (self)
@@ -199,12 +214,23 @@ Objtype {
 --  Corpses
 ----------------------------------------------------------------------
 
-function death_fountain_update_hook (self)
-    self:replace_layer (0, format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
+local death_fountain_update_hook = function (self)
+    self:replace_layer (0,format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
     self.frame = self.frame + 1
     if self.frame > 30 then
 	self.frame = 30
-	self:remove_update_hook ()
+	if not self.is_proxy then
+	    self:remove_update_hook ()
+	else
+	    -- proxy: let the light remain for half a second more
+	    self:set_update_hook (
+		1000/2,
+		function (self)
+		    self:remove_all_lights ()
+		    self:remove_update_hook ()
+		end
+	    )
+	end
     end
 end
 
@@ -214,17 +240,147 @@ Objtype {
     icon = "/basic/player/death-fountain/000",
 
     nonproxy_init = function (self)
-	self:set_collision_flags ("")
-	self.frame = 1
+	self:set_masks_centre (44, 16)
+	self:set_collision_flags ("t")
+	self.mass = 0.005
+	self.frame = 0
 	self:add_creation_field ("frame")
 	self:set_update_hook (1000/10, death_fountain_update_hook)
     end,
 
     proxy_init = function (self)
+	self:add_light ("/basic/light/white-32", 0, 0)
 	self:set_update_hook (1000/10, death_fountain_update_hook)
 	death_fountain_update_hook (self) -- set the initial layer
     end
 }
+@
+
+
+1.8
+log
+@Added a light for the test corpse, which disappears after its
+animation finishes.
+@
+text
+@d72 1
+a72 1
+	spawn_blood (self.x + cx, self.y + cy, 100, 2000) -- XXX spread should be float
+@
+
+
+1.7
+log
+@Updated to Lua 4.1-work3.
+@
+text
+@d156 1
+a156 1
+    self:replace_layer (0, format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
+d160 12
+a171 1
+	self:remove_update_hook ()
+d190 1
+@
+
+
+1.6
+log
+@Small changes for death fountain test corpse.
+@
+text
+@d21 4
+a24 5
+function player_nonproxy_init (self)
+    local cx, cy = %cx, %cy
+
+    self.xv_decay = %xv_decay
+    self.yv_decay = %yv_decay
+d28 1
+d37 10
+a46 1
+    self.health = 100
+d48 1
+d50 1
+a50 4
+
+    self.current_weapon = weapons["basic-blaster"] -- XXX temp
+    
+    function self._fire_hook (self)
+d59 1
+d63 3
+a65 1
+	    self.fire_delay = self.fire_delay - 1
+d69 4
+a72 10
+    function self.receive_weapon (self, weapon_name)
+	if weapons[weapon_name] then
+	    self.have_weapon[weapon_name] = 1
+	    if not self.current_weapon then
+		self.current_weapon = weapon[weapon_name]
+	    end
+	end
+    end
+
+    function self.receive_damage (self, damage)
+a77 2
+	spawn_blood (self.x + %cx, self.y + %cy, 100, 2000)
+	-- XXX spread should be float
+d86 1
+a86 1
+function animate_player_proxy (self)
+d99 1
+a99 1
+	self:replace_layer (0, format ("/basic/player/walk/%03d", self.walk_frame), %cx, %cy)
+d103 1
+a103 1
+function rotate_and_flip_player_proxy_based_on_aim_angle (self)
+d110 5
+a114 10
+    local a = radian_to_bangle (self.aim_angle)
+    local hflipped = (a < -63 or a > 63) or 0
+    
+    self:hflip_layer (0, hflipped)
+    self:hflip_layer (self.arm_layer, hflipped)
+    
+    if hflipped ~= 0
+    then self:rotate_layer (self.arm_layer, a-128)
+    else self:rotate_layer (self.arm_layer, a)
+    end
+d117 4
+a120 3
+function player_proxy_init (self)
+    self.xv_decay = %xv_decay
+    self.yv_decay = %yv_decay
+d122 2
+a123 1
+    self:move_layer (0, %cx, %cy)
+d126 4
+a131 7
+    
+    if not self.is_local then
+	self:add_light ("/basic/light/white-32", 0, 0)
+    else
+	self:add_light ("/basic/light/white-64", 0, 0)
+    end
+
+d155 1
+a155 1
+function death_fountain_update_hook (self)
+d173 1
+a173 1
+	self.frame = 1
+@
+
+
+1.5
+log
+@Flip and rotate remote clients' arms depending on the aim angle.
+@
+text
+@d174 3
+a176 1
+	self:set_collision_flags ("")
 @
 
 

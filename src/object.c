@@ -48,6 +48,9 @@ struct object {
     objid_t id;
     char is_proxy;
     char is_stale;
+    /* Hidden objects are invisible and do not collide, but their
+     * update hooks are called. */
+    char is_hidden;
 
     float x, y;
     float xv_decay, yv_decay;	/* not replicated */
@@ -109,16 +112,16 @@ struct object {
 
 static void set_default_masks (object_t *obj);
 
-static lua_tag_t object_tag;
 static objid_t next_id;
+static lua_ref_t object_eventtable;
 
 
 
 /*
- * Tag methods.
+ * Eventtable methods.
  */
 
-#include "objecttm.inc"
+#include "objectet.inc"
 
 
 
@@ -129,15 +132,22 @@ static objid_t next_id;
 
 int object_init ()
 {
-    object_tag = lua_newtag (lua_state);
-    REGISTER_OBJECT_TAG_METHODS (lua_state, object_tag);
     next_id = OBJID_PLAYER_MAX;
+
+    /* Eventtable for objects.  */
+    lua_newtable (lua_state);
+    object_eventtable = lua_ref (lua_state, 1);
+    lua_getref (lua_state, object_eventtable);
+    REGISTER_OBJECT_EVENTTABLE_METHODS (lua_state);
+    lua_pop (lua_state, 1); /* pop the eventtable */
+
     return 0;
 }
 
 
 void object_shutdown ()
 {
+    lua_unref (lua_state, object_eventtable);
 }
 
 
@@ -276,6 +286,30 @@ inline int object_stale (object_t *obj)
 void object_set_stale (object_t *obj)
 {
     obj->is_stale = 1;
+}
+
+
+inline int object_hidden (object_t *obj)
+{
+    return obj->is_hidden;
+}
+
+
+void object_hide (object_t *obj)
+{
+    if (!obj->is_hidden) {
+	obj->is_hidden = 1;
+	object_set_replication_flag (obj, OBJECT_REPLICATE_HIDDEN);
+    }
+}
+
+
+void object_show (object_t *obj)
+{
+    if (obj->is_hidden) {
+	obj->is_hidden = 0;
+	object_set_replication_flag (obj, OBJECT_REPLICATE_HIDDEN);
+    }
 }
 
 
@@ -898,7 +932,7 @@ static void call_collide_hook (object_t *obj, object_t *touched_obj)
     int top = lua_gettop (L);
 
     lua_pushobject (L, obj);
-    lua_pushstring (L, "collide_hook");
+    lua_pushliteral (L, "collide_hook");
     lua_gettable (L, -2);
     if (lua_isfunction (L, -1)) {
 	lua_pushvalue (L, -2);
@@ -917,7 +951,7 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
     objmask_t *mask;
     object_t *p;
 
-    if (object_stale (obj) || !touch_objects (obj))
+    if (!touch_objects (obj))
 	return 0;
 
     mask = obj->mask;
@@ -926,7 +960,10 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 
     list = map_object_list (map);
     list_for_each (p, list) {
-	if ((p == obj) || (object_stale (p)) || (!p->mask[0].ref))
+	if ((p == obj) || (object_stale (p)) || (object_hidden (p)))
+	    continue;
+
+	if (!p->mask[0].ref)
 	    continue;
 	
 	if ((p->collision_tag) && (p->collision_tag == obj->collision_tag))
@@ -948,10 +985,14 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 	call_collide_hook (p, obj);
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
+	if (object_hidden (p)) continue;
+	if (object_hidden (obj)) return 0;
 
 	call_collide_hook (obj, p);
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
+	if (object_hidden (p)) continue;
+	if (object_hidden (obj)) return 0;
 
 	return 1;
     }
@@ -963,8 +1004,9 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 static inline int check_collision (object_t *obj, int mask_num, map_t *map,
 				   float x, float y)
 {
-    return (check_collision_with_tiles (obj, mask_num, map, x, y) ||
-	    check_collision_with_objects (obj, mask_num, map, x, y));
+    return ((!object_stale (obj)) && (!object_hidden (obj)) &&
+	    (check_collision_with_tiles (obj, mask_num, map, x, y) ||
+	     check_collision_with_objects (obj, mask_num, map, x, y)));
 }
 
 
@@ -1167,13 +1209,22 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
 
 void lua_pushobject (lua_State *L, object_t *obj)
 {
-    lua_pushusertag(L, obj, object_tag);
+    lua_newuserdatabox (L, obj);
+    lua_getref (L, object_eventtable);
+    lua_seteventtable (L, -2);
 }
 
 
 object_t *lua_toobject (lua_State *L, int index)
 {
-    if (!lua_isuserdata(L, index) || (lua_tag(L, index) != object_tag))
+    int is_object;
+
+    lua_geteventtable (L, index);
+    lua_getref (L, object_eventtable);
+    is_object = lua_equal (L, -1, -2);
+    lua_pop (L, 2);
+
+    if (!is_object)
 	return NULL;
 
     return lua_touserdata(L, index);
@@ -1265,6 +1316,9 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
+    if (object_hidden (obj))
+	return;
+
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
 	if (layer->angle == 0) {
@@ -1298,6 +1352,9 @@ void object_draw_lit_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
+    if (object_hidden (obj))
+	return;
+
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
 	if ((layer->angle != 0) && (!layer->hflip))
@@ -1323,6 +1380,9 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
 {
     objlight_t *light;
     BITMAP *bmp;
+
+    if (object_hidden (obj))
+	return;
 
     list_for_each (light, &obj->lights) {
 	bmp = light->bmp;

@@ -23,6 +23,8 @@ function _object_init_hook (self)
 
 	-- nonproxy methods
 	self.destroy = object_destroy
+	self.hide = object_hide
+	self.show = object_show
 	self.set_collision_flags = object_set_collision_flags
 	self.add_creation_field = object_add_creation_field
 	self.set_mask = object_set_mask
@@ -48,6 +50,8 @@ function _object_init_hook (self)
 
 	-- nonproxy methods
 	self.destroy = %dummy
+	self.hide = %dummy
+	self.show = %dummy
 	self.set_collision_flags = %dummy
 	self.add_creation_field = %dummy
 	self.set_mask = %dummy
@@ -100,5 +104,5 @@ end
 -- utility functions
 
 function radian_to_bangle (rads)
-    return rads * 128 / 3.1415
+    return rads * 128 / PI
 end
