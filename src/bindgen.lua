@@ -46,6 +46,7 @@ StoreKey = "StoreKey"
 --	error:	 code to execute on error; default is to return nil
 
 function generate_code (lname, cname, check, args, ret, success, error)
+    lname = lname or cname
     local tab = "\t"
     local str
 
@@ -59,7 +60,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
     end
 
     -- function declaration
-    str = "static int bind_"..(lname or cname).."(lua_State *L)\n{\n"
+    str = "static int bind_"..lname.."(lua_State *L)\n{\n"
 
     -- argument declarations
     for i,v in args do
@@ -73,7 +74,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
     end
 
     -- argument checking
-    str = str..tab..'if (!lua_checkargs(L, "'..(check or generate_check())..'")) goto error;\n'
+    str = str..tab..'if (!lua_checkargs(L, "'..(check or generate_check())..'")) goto badargs;\n'
 
     -- argument conversion
     for i,v in args do
@@ -85,9 +86,9 @@ function generate_code (lname, cname, check, args, ret, success, error)
 	    str = str..tab..v[2].." = "..typ[3].."(L, "..i..");\n"
 	end
 	if v[3] then 
-	    str = str..tab.."if ("..v[3]..") goto error;\n"
+	    str = str..tab.."if ("..v[3]..") goto badargs;\n"
 	elseif typ[4] then
-	    str = str..tab.."if ("..gsub(typ[4], "%$", v[2])..") goto error;\n"
+	    str = str..tab.."if ("..gsub(typ[4], "%$", v[2])..") goto badargs;\n"
 	end
     end
 
@@ -116,6 +117,11 @@ function generate_code (lname, cname, check, args, ret, success, error)
 
     -- success clause
     str = str..tab..(success or "lua_pushnumber(L, 1); return 1;").."\n"
+
+    -- bad args clause
+    str = str..
+	"badargs:\n"..tab..'printf("bad args to '..lname..'\\n");\n'..
+	tab.."goto error; /* shut up the compiler about unused labels */\n"
 
     -- error clause
     str = str.."error:\n"..tab..(error or "lua_pushnil(L); return 1;").."\n"
