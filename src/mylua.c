@@ -116,14 +116,14 @@ static lua_State *fork_namespace (lua_State *orig_state)
 
     /* Make a copy of orig_state's globals table on top of the
      * orig_state stack.  */
-    lua_dostring (orig_state, "
-	do
-	  local t = {}
-	  for i,v in getglobals () do
-	    t[i] = v
-	  end
-	  return t
-	end
+    lua_dostring (orig_state, "			\
+	do					\
+	  local t = {}				\
+	  for i,v in getglobals () do		\
+	    t[i] = v				\
+	  end					\
+	  return t				\
+	end					\
     ");
 
     /* Make the new table new_state's global table.  */
