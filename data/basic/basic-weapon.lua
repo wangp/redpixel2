@@ -556,6 +556,8 @@ Objtype {
     nonproxy_init = function (self)
 	self.mass = 0.005
 
+	self.is_dead = false
+
 	-- Initially the mine doesn't touch players..
 	self:set_collision_flags ("tn")
 	self:set_mask (mask_bottom, "/basic/weapon/mine/dropping-mask", 0, 0)
@@ -585,15 +587,27 @@ Objtype {
 		end
 
 		function self:die ()
-		    -- spew some ball bearings, a blast and play a sound
-		    for i, deg in { -10, -30, -50, -70, -90, -110, -130, -150, -170} do
-			spawn_projectile_raw ("basic-mine-projectiles",
-					      self.owner, self.x, self.y,
-					      math.rad (deg), 5)
-		    end
-		    spawn_blast (self.x, self.y, 25, 20, self.owner)
+		    -- only want the mine to explode once
+		    if self.is_dead then return end
+		    self.is_dead = true
+
+		    -- spawn a blast and play a sound
+		    spawn_blast (self.x, self.y, 25, 30, self.owner)
 		    spawn_explosion_on_clients ("basic-explo20", self.x, self.y-6)
-		    self:set_stale ()
+
+		    self:set_update_hook (
+			100,
+			function (self)
+			    -- spew some ball bearings
+			    for i, deg in { -5, -30, -45, -75, -90, -105, -135, -150, -175 } do
+				spawn_projectile_raw ("basic-mine-projectiles",
+						      self.owner, self.x, self.y,
+						      math.rad (deg), 5)
+			    end
+
+			    self:set_stale ()
+			end
+		    )
 		end
 	    end
 	)
@@ -644,7 +658,7 @@ Standard_Projectile {
     name = "basic-mine-projectiles",
     alias = "~Mp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 10
+    damage = 20
 }
 
 
