@@ -130,10 +130,10 @@ $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 src/bindings.inc: src/bindgen.lua
-	$(LUA) $< > $@
+	$(PLAT_LUABIN) $< > $@
 
 src/objectet.inc: src/objgen.lua
-	$(LUA) $< > $@
+	$(PLAT_LUABIN) $< > $@
 
 $(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
@@ -166,10 +166,10 @@ tags: $(SOURCES)
 #----------------------------------------------------------------------
 
 doc/gui_api.html: src/gui/gui.h
-	$(LUA) -f tools/mtfm.lua $< > $@
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@
 
 doc/ug_api.html: src/ug/ug.h
-	$(LUA) -f tools/mtfm.lua $< > $@
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@
 
 mtfmdocs: doc/gui_api.html doc/ug_api.html
 
