@@ -77,6 +77,9 @@ Weapon {
 	"/basic/weapon/blaster/1arm004";
 	cx = 0, cy = 3, tics = 2
     },
+    can_fire = function (player)
+	return true
+    end,
     fire = function (player)
 	spawn_projectile ("basic-blaster-projectile", player, 10)
 	player.fire_delay = 50 * 0.1
@@ -154,9 +157,7 @@ Weapon_With_Firer {
 	"/basic/weapon/ak/2arm001",
 	"/basic/weapon/ak/2arm002",
 	"/basic/weapon/ak/2arm003",
-	"/basic/weapon/ak/2arm004",
-	"/basic/weapon/ak/2arm005",
-	"/basic/weapon/ak/2arm006";
+	"/basic/weapon/ak/2arm004";
 	cx = 0, cy = 3
     }
 }
@@ -348,7 +349,7 @@ Objtype {
 	    spawn_sparks (self.x, self.y, 30, 2)
 	    self:set_collision_flags ("pn")
 	    self.tile_collide_hook = nil
-	    return 1
+	    return true
 	end
     end
 }
@@ -369,6 +370,7 @@ Standard_Pickup {
 --  Weapon switch order
 ----------------------------------------------------------------------
 
+-- This is the order that weapons will be numbered for selection.
 weapon_order = {
     "basic-blaster",
     "basic-shotgun",
@@ -377,4 +379,13 @@ weapon_order = {
     "basic-bow",
     "basic-rpg",
     "basic-rifle"
+}
+
+-- This is the order in which weapons will be auto-selected for you.
+-- I recommend not putting in explosives.
+weapon_auto_switch_order = {
+    "basic-minigun",
+    "basic-ak",
+    "basic-shotgun",
+    "basic-blaster"
 }
