@@ -2,6 +2,9 @@
 #define __included_netmsg_h
 
 
+#define NETWORK_PROTOCOL_VERSION	0
+
+
 /* Network messages are between clients and the server.  Messages are
    distinguished by the first byte in the packet.  The rest of the
    packet contains arguments for that message, if any.  */
@@ -21,7 +24,7 @@ enum {
     /* The client sends this to the server after it joins and receives
        the MSG_SC_POST_JOIN message.
 
-       Args: long len, char name[].
+       Args: char protocol_version, long len, char name[].
      */
 
     MSG_CS_JOININFO = 'J',
@@ -123,20 +126,20 @@ enum {
 
     /* Notify server of input controls.
 
-       Args: byte input_bitmask  (1 byte).
-
-       The bitmask is as follows:
-		0x01	left
-		0x02	right
-		0x04	up
+       Args: byte input_bitmask, float aim_angle.
      */
 
     MSG_CS_GAMEINFO_CONTROLS = 'c',
+	
+	CONTROL_LEFT  = 0x01,
+	CONTROL_RIGHT = 0x02,
+	CONTROL_UP    = 0x04,
+	CONTROL_FIRE  = 0x08,
 
 
     /* Tell server to broadcast text message to all clients.
 
-       Args: long len, char text[]  (4 + len bytes).
+       Args: long len, char text[].
      */
 
     MSG_CS_GAMEINFO_TEXT = 't'
@@ -157,7 +160,8 @@ enum {
 
     /* Tell clients to create a new object.
 
-       Args: long len, char type[], long object_id, float x, float y.
+       Args: long len, char type[], long object_id, float x, float y,
+             float xv, float yv.
      */
 
     MSG_SC_GAMEINFO_OBJECT_CREATE = 'c',
@@ -173,7 +177,7 @@ enum {
 
     /* Tell clients about an object's new position and velocities.
 
-       Args: long object_id, float x, float y, float xv, float yv.
+       Args: long object_id, float x, float y, float xv, float yv
      */
 
     MSG_SC_GAMEINFO_OBJECT_UPDATE = 'u',

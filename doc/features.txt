@@ -5,8 +5,7 @@
 ** [DONE] looking feel (mouse pushes view)
 
 ** gates
-Gates are connected to objects and can send and receive pulses, or
-maybe other types of message (undecided).  Or follow real electronics,
+Gates are connected to objects and follow real electronics,
 e.g. flip-flops act on change of state, etc.  Gates are really just
 invisible objects.
 - normal logic gates: AND, OR, XOR, NOT, NAND, NOR, XNOR
@@ -28,7 +27,20 @@ objects or gates if necessary (e.g. open a door, etc.)
 
 ** base defence turrets
 
-** radar thing (player can look at any part of map)
+** radar thing
+sweeps around in a circle like a real radar, and points out players in
+those directions (temporarily, like a real radar)
+
+** tracker
+Points in direction of closest enemy.  In multiplayer, another tracker
+always point in the direction of closest ally (this tracker is given,
+you don't have to pick it up).  The needle reaches its destination
+slowly, like a compass (and "bounces" too).
+
+** beacon
+maybe something to show where a base is.  It has about six small lights
+which originate from its centre, and move outwards.  Then they go back to
+the centre and loop.
 
 ** set-able gravity for different maps
 
@@ -67,10 +79,9 @@ objects or gates if necessary (e.g. open a door, etc.)
 ** barrels spawn chunks & particles when exploded
 
 ** particles
-- different sized particles (not just single pixels)
-- translucency and lighting
-- [?] scripts control particles (movement and look)
-- [?] sprite particles (i.e. particles which are actually BITMAPs)
+- different sized particles (not just single pixels) translucency and
+- lighting [?] scripts control particles (movement and look) [?]
+- sprite particles (i.e. particles which are actually BITMAPs)
 
 ** [?] players glow like in `pandemonium'
 

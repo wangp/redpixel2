@@ -95,6 +95,7 @@ struct client {
     client_state_t state;
     int flags;
     int controls;
+    float aim_angle;
     timeout_t timeout;
     ulong_t pong_time;
     int lag;
@@ -317,7 +318,7 @@ static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, 
     while (buf != end) {
 	switch (*buf++) {
 	    case MSG_CS_GAMEINFO_CONTROLS:
-		c->controls = *buf++;
+		buf += packet_decode (buf, "cf", &c->controls, &c->aim_angle);
 		break;
 
 	    default:
@@ -334,6 +335,7 @@ static void server_poll_clients_state_joining (client_t *c)
     uchar_t buf[NET_MAX_PACKET_SIZE];
     char name[NET_MAX_PACKET_SIZE];
     long len;
+    char version;
 
     if (client_receive_rdm (c, buf, sizeof buf) <= 0)
 	return;
@@ -341,12 +343,17 @@ static void server_poll_clients_state_joining (client_t *c)
     switch (buf[0]) {
 
 	case MSG_CS_JOININFO:
-	    packet_decode (buf+1, "s", &len, &name);
+	    packet_decode (buf+1, "cs", &version, &len, &name);
 	    client_set_name (c, name);
 	    client_set_state (c, CLIENT_STATE_JOINED);
 	    if (server_state == SERVER_STATE_GAME)
 		client_set_wantfeed (c);
 	    server_log ("Client %s joined", c->name);
+	    if (version != NETWORK_PROTOCOL_VERSION) {
+		client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+		client_set_state (c, CLIENT_STATE_STALE);
+		server_log ("Client %s was disconnected for compatibility reasons", c->name);
+	    }
 	    break;
 
 	case MSG_CS_DISCONNECT_ASK:
@@ -387,9 +394,16 @@ static void server_poll_clients_state_joined (client_t *c)
 	    client_set_state (c, CLIENT_STATE_STALE);
 	    server_log ("Client %s was disconnected by request", c->name);
 
-	    clients_broadcast_rdm_encode ("ccl", MSG_SC_GAMEINFO,
-					  MSG_SC_GAMEINFO_OBJECT_DESTROY,
-					  client_object_id (c));
+	    if (server_state == SERVER_STATE_GAME) {
+		object_t *obj = map_find_object (map, client_object_id (c));
+		if (obj) {
+		    clients_broadcast_rdm_encode ("ccl", MSG_SC_GAMEINFO,
+						  MSG_SC_GAMEINFO_OBJECT_DESTROY,
+						  client_object_id (c));
+		    map_unlink_object (obj);
+		    object_destroy (obj);
+		}
+	    }
 	    break;
     }
 }
@@ -531,6 +545,18 @@ static void poll_interface_command_kick (char **last)
     client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
     client_set_state (c, CLIENT_STATE_STALE);
     server_log ("Client %s was kicked", c->name);
+    
+    /* XXX can share this */
+    if (server_state == SERVER_STATE_GAME) {
+	object_t *obj = map_find_object (map, client_object_id (c));
+	if (obj) {
+	    clients_broadcast_rdm_encode ("ccl", MSG_SC_GAMEINFO,
+					  MSG_SC_GAMEINFO_OBJECT_DESTROY,
+					  client_object_id (c));
+	    map_unlink_object (obj);
+	    object_destroy (obj);
+	}
+    }
 }
 
 static void server_poll_interface ()
@@ -691,14 +717,15 @@ static void server_feed_game_state_to (client_t *c)
 
 	    /* XXX check for packet overflow */
 	    /* XXX this is not nice */ 
-	    if ((p - buf) + 1 + 4 + strlen (typename) + 12 > sizeof buf) {
+	    if ((p - buf) + 1 + 4 + strlen (typename) + 20 > sizeof buf) {
 		client_send_rdm (c, buf, p - buf);
 		p = buf+1;
     	    }
 
-	    p += packet_encode (p, "cslff", MSG_SC_GAMEINFO_OBJECT_CREATE,
+	    p += packet_encode (p, "cslffff", MSG_SC_GAMEINFO_OBJECT_CREATE,
 				typename, object_id (obj),
-				object_x (obj), object_y (obj));
+				object_x (obj), object_y (obj),
+				object_xv (obj), object_yv (obj));
 	}
     }
 
@@ -807,19 +834,19 @@ static void server_handle_client_controls ()
 	    error ("error: server missing object\n");
 	
 	/* left */
-	if (c->controls & 0x01) {
+	if (c->controls & CONTROL_LEFT) {
 	    object_set_xv (obj, object_xv (obj) - 1.4);
 	    object_set_need_replication (obj);
 	}
 
 	/* right */
-	if (c->controls & 0x02) {
+	if (c->controls & CONTROL_RIGHT) {
 	    object_set_xv (obj, object_xv (obj) + 1.4);
 	    object_set_need_replication (obj);
 	}
 	    
 	/* up */
-	if (c->controls & 0x04) {
+	if (c->controls & CONTROL_UP) {
 	    float jump = object_jump (obj);
 
 	    if (jump > 0) {
@@ -835,6 +862,37 @@ static void server_handle_client_controls ()
 	}
 	else {
 	    object_set_jump (obj, 0);
+	}
+	
+	/* fire */
+	if (c->controls & CONTROL_FIRE) {
+	    /* XXX testing */
+	    object_t *pl;
+	    object_t *shell;
+	    
+	    pl = map_find_object (map, client_object_id (c));
+	    if (pl) {
+		shell = object_create ("arrow");
+		object_set_xy (shell, object_x (pl)+10, object_y (pl));
+		object_set_xv (shell, 25 * cos (c->aim_angle));
+		object_set_yv (shell, 25 * sin (c->aim_angle));
+		map_link_object_bottom (map, shell);
+
+		{
+		    object_t *obj = shell;
+		    char buf[NET_MAX_PACKET_SIZE];
+		    int size;
+		    size = packet_encode
+			(buf, "ccslffff", MSG_SC_GAMEINFO,
+			 MSG_SC_GAMEINFO_OBJECT_CREATE,
+			 "arrow", object_id (obj),
+			 object_x (obj), object_y (obj),
+			 object_xv (obj), object_yv (obj));
+		    clients_broadcast_rdm (buf, size);
+		}
+	    }
+	    
+	    c->controls &=~ CONTROL_FIRE;
 	}
     }
 }
@@ -953,9 +1011,10 @@ static void server_handle_wantfeeds ()
 	    map_link_object_bottom (map, obj);
 
 	    clients_broadcast_rdm_encode
-		("ccslff", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
+		("ccslffff", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
 		 objtype_name (object_type (obj)),
-		 object_id (obj), object_x (obj), object_y (obj));
+		 object_id (obj), object_x (obj), object_y (obj),
+		 object_xv (obj), object_yv (obj));
 	}
 
     	client_clear_wantfeed (c);

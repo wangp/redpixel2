@@ -22,8 +22,8 @@ void object_shutdown ();
 
 object_t *object_create (const char *type_name);
 object_t *object_create_ex (const char *type_name, objid_t id);
+object_t *object_create_proxy (const char *type_name, objid_t id);
 void object_destroy (object_t *obj);
-void object_set_proxy (object_t *obj);
 
 struct objtype *object_type (object_t *obj);
 objid_t object_id (object_t *obj);

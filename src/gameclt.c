@@ -45,6 +45,14 @@ static physics_t *physics;
 static BITMAP *bmp;
 static camera_t *cam;
 
+static BITMAP *bkgd;		/* XXX test only */
+static int parallax_x = 2;
+static int parallax_y = 2;
+
+static BITMAP *crosshair;
+static float aim_angle;
+static float last_aim_angle;
+
 #define local_object_id	(-client_id)
 
 static int pinging;
@@ -131,19 +139,24 @@ static void perform_simple_physics ()
 
 static void send_gameinfo_controls ()
 {
+    uchar_t buf[NET_MAX_PACKET_SIZE];
+    int size;
     int controls = 0;
 
-    if (key[KEY_LEFT])
-	controls |= 0x01;
-    if (key[KEY_RIGHT])
-	controls |= 0x02;
-    if (key[KEY_UP])
-	controls |= 0x04;
+    if (key[KEY_A]) controls |= CONTROL_LEFT;
+    if (key[KEY_D]) controls |= CONTROL_RIGHT;
+    if (key[KEY_W]) controls |= CONTROL_UP;
+    if (mouse_b & 1) controls |= CONTROL_FIRE;
 
-    if (controls != last_controls) {
-	uchar_t buf[] = { MSG_CS_GAMEINFO, MSG_CS_GAMEINFO_CONTROLS, controls };
-	net_send_rdm (conn, buf, sizeof buf);
+    /* XXX aim_angle and last_aim_angle should change significantly before
+     	we bother updating (e.g. 5 degrees?) */
+    if ((controls != last_controls) || (aim_angle != last_aim_angle)) {
+	size = packet_encode (buf, "cccf", MSG_CS_GAMEINFO,
+			      MSG_CS_GAMEINFO_CONTROLS, controls, aim_angle);
+	net_send_rdm (conn, buf, size);
+
 	last_controls = controls;
+	last_aim_angle = aim_angle;
     }
 }
 
@@ -182,12 +195,14 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		long len;
 		objid_t id;
 		float x, y;
+		float xv, yv;
 		object_t *obj;
 
-		buf += packet_decode (buf, "slff", &len, type, &id, &x, &y);
-		obj = object_create_ex (type, id);
-		object_set_proxy (obj);
+		buf += packet_decode (buf, "slffff", &len, type, &id, &x, &y, &xv, &yv);
+		obj = object_create_proxy (type, id);
 		object_set_real_xy (obj, x, y);
+		object_set_xv (obj, xv);
+		object_set_yv (obj, yv);
 		map_link_object (map, obj);
 		break;
 	    }
@@ -282,14 +297,38 @@ static void update_screen ()
 	return;
     
     clear (bmp);
+
+    if (bkgd) {
+	int x = -(camera_x (cam) / (3*parallax_x));
+	int y = -(camera_y (cam) / parallax_y);
+	int w = bkgd->w;
+	int h = bkgd->h;
+	
+	blit (bkgd, bmp, 0, 0, 3*x, y, w, h);
+	blit (bkgd, bmp, 0, 0, 3*x, y+h, w, h);
+	blit (bkgd, bmp, 0, 0, 3*(x+w), y, w, h);
+	blit (bkgd, bmp, 0, 0, 3*(x+w), y+h, w, h);
+    }
+
     render (bmp, map, cam);
 
-    if ((obj = map_find_object (map, local_object_id)))
-	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
-				  object_x (obj) - camera_x (cam),
-				  object_y (obj) - camera_y (cam), 0, 36,
-				  fatan2 (mouse_y - 100, mouse_x - 160));
+    if ((obj = map_find_object (map, local_object_id))) {
+	int x = object_x (obj) - camera_x (cam);
+	int y = object_y (obj) - camera_y (cam);
+	
+	aim_angle = atan2 (mouse_y - y, mouse_x - x);
 
+	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
+				  x, y, 0, 36,
+				  fatan2 (mouse_y - y, mouse_x - x));
+    }
+
+    if (crosshair) {
+	draw_lit_magic_sprite (bmp, crosshair, mouse_x, 
+			       mouse_y, 
+			       makecol24 (0xff, 0xff, 0xff));
+    }
+    
     text_mode (-1);
     trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
 		      "%d FPS", fps);
@@ -336,7 +375,8 @@ void game_client_run ()
 	    switch (buf[0]) {
 		case MSG_SC_JOININFO:
 		    packet_decode (buf+1, "l", &client_id);
-		    net_send_rdm_encode (conn, "cs", MSG_CS_JOININFO, client_name);
+		    net_send_rdm_encode (conn, "ccs", MSG_CS_JOININFO,
+					 NETWORK_PROTOCOL_VERSION, client_name);
 		    goto lobby;
 
 		case MSG_SC_DISCONNECTED:
@@ -542,7 +582,7 @@ void game_client_run ()
 
 	net_send_rdm_byte (conn, MSG_CS_DISCONNECT_ASK);
 
-	timeout_set (&timeout, 5000);
+	timeout_set (&timeout, 2000);
 
 	while (!timeout_test (&timeout)) {
 	    if (net_receive_rdm (conn, &c, 1) > 0) 
@@ -586,6 +626,28 @@ int game_client_init (const char *name, const char *addr)
 
     bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
     cam = camera_create (SCREEN_W, SCREEN_H);
+    {
+	PALETTE pal;
+	BITMAP *tmp;
+	
+	bkgd = load_bitmap ("data/bkgd/fluorescence.pcx", pal);
+	if (bkgd) {
+	    tmp = get_magic_bitmap_format (bkgd, pal);
+	    destroy_bitmap (bkgd);
+	    bkgd = tmp;
+	}
+    }
+    {
+	PALETTE pal;
+	BITMAP *tmp;
+	
+	crosshair = load_bitmap ("data/cursor.pcx", pal);
+	if (crosshair) {
+	    tmp = get_magic_bitmap_format (crosshair, pal);
+	    destroy_bitmap (crosshair);
+	    crosshair = tmp;
+	}
+    }
     map = NULL;
     physics = NULL;
     fps_init ();
@@ -618,6 +680,8 @@ void game_client_shutdown ()
 	map_destroy (map);
 	map = NULL;
     }
+    destroy_bitmap (crosshair);
+    destroy_bitmap (bkgd);
     camera_destroy (cam);
     destroy_bitmap (bmp);
     free (client_name);

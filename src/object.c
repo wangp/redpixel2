@@ -137,6 +137,18 @@ object_t *object_create_ex (const char *type_name, objid_t id)
 }
 
 
+object_t *object_create_proxy (const char *type_name, objid_t id)
+{
+    object_t *obj;
+    
+    obj = object_create_ex (type_name, id);
+    if (obj)
+	obj->is_proxy = 1;
+
+    return obj;
+}
+
+
 void object_destroy (object_t *obj)
 {
     object_remove_all_masks (obj);
@@ -144,12 +156,6 @@ void object_destroy (object_t *obj)
     object_remove_all_layers (obj);
     lua_unref (lua_state, obj->table);
     free (obj);
-}
-
-
-void object_set_proxy (object_t *obj)
-{
-    obj->is_proxy = 1;
 }
 
 
@@ -700,7 +706,10 @@ int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
 	    return -1;
 
 	obj->x += idx;
-	obj->y -= ir;
+	if (ir) {
+	    obj->y -= ir;
+	    object_set_need_replication (obj);
+	}
 
 	dx = (ABS (dx) < 1) ? 0 : SIGN (dx) * (ABS (dx) - 1);
     }

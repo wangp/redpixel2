@@ -1,7 +1,7 @@
 -- shotgun.lua
 
 shotgun_shell_init = function (self)
-    self.mass = 1
+--    self.mass = 1
 end
 
 store_load ("object/shotgun.dat", "/weapon/shotgun/")
