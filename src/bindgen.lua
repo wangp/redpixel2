@@ -229,7 +229,7 @@ generate_both {
 -- object.h --
 --------------
 
-generate_both {
+generate_server {
     cname	= "object_set_stale",
     lname	= "object_set_stale",
     args	= {{ Object, "obj" }}
