@@ -28,7 +28,8 @@ typedef struct particle {
     float xv, yv;
     int color;
     short life;
-    short weightless;
+    char weightless;
+    char death_on_impact;
 } particle_t;
 
 
@@ -47,7 +48,7 @@ static int alloc_free_particles (particles_t *part, int num)
     if (num > MAX_PARTICLES - part->total_particles)
 	num = MAX_PARTICLES - part->total_particles;
 
-    part->total_particles += num;    
+    part->total_particles += num;
     while (num--) {
 	particle_t *p = alloc (sizeof *p);
 	p->next = part->free_particles;
@@ -92,7 +93,7 @@ void particles_update (particles_t *part, map_t *map)
     particle_t *p = part->live_particles;
     particle_t *prev = NULL;
     particle_t *next;
-    
+
     while (p) {
 	p->x += p->xv;
 	p->y += p->yv;
@@ -100,9 +101,16 @@ void particles_update (particles_t *part, map_t *map)
 	    p->xv *= 0.995;
 	    p->yv += 0.05;
 	}
-	
-	if (bitmask_point (mask, p->x, p->y))
-	    p->life = 0;
+
+	if (bitmask_point (mask, p->x, p->y)) {
+	    if (p->death_on_impact)
+		p->life = 0;
+	    else {
+		p->xv = 0;
+		p->yv = 0;
+		p->life--;
+	    }
+	}
 	else
 	    p->life--;
 
@@ -129,14 +137,14 @@ static inline int rnd (int lower, int upper)
 {
     return (rand() % (upper-lower+1)) + lower;
 }
- 
+
 
 enum {
     TYPE_BLOOD,
     TYPE_SPARK,
     TYPE_RESPAWNING
 };
- 
+
 
 static void particles_spawn (particles_t *part, int type,
 			     float x, float y, long nparticles, float spread)
@@ -165,9 +173,10 @@ static void particles_spawn (particles_t *part, int type,
 		p->y = y + rnd (-3, 3);
 		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
 		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
-		p->life = 5000;
+		p->life = rnd (350, 500);
 		p->weightless = 0;
-		
+		p->death_on_impact = 0;
+
 		r = rnd (4, 9);
 		g = rnd (0, 2);
 		b = rnd (1, 3);
@@ -187,7 +196,8 @@ static void particles_spawn (particles_t *part, int type,
 		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
 		p->life = 100;
 		p->weightless = 0;
-		
+		p->death_on_impact = 1;
+
 		h = rnd (30, 60);
 		s = rnd (80, 100) / 100.;
 		v = 0.8;
@@ -203,7 +213,8 @@ static void particles_spawn (particles_t *part, int type,
 		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
 		p->life = rnd (10, 40);
 		p->weightless = 1;
-		
+		p->death_on_impact = 1;
+
 		h = rnd (180, 240);
 		s = rnd (80, 100) / 100.;
 		v = 0.8;
