@@ -21,7 +21,6 @@
 #include "render.h"
 #include "selbar.h"
 #include "store.h"
-#include "vtree.h"
 
 
 static int full_brightness = 1;
@@ -69,14 +68,14 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefi
     }
 }
 
-static void callback (const char *filename, int id)
+static void callback (const char *prefix, int id)
 {
     struct file *f;
 
     f = alloc (sizeof *f);
 
     f->list = ed_select_list_create ();
-    _add_to_list (f->list, store_file (id), VTREE_LIGHTS);
+    _add_to_list (f->list, store_file (id), prefix);
 
     list_add (file_list, f);
 }
@@ -255,29 +254,6 @@ static int event_layer (int event, struct editarea_event *d)
 
 /* Module init / shutdown.  */
 
-static BITMAP *load_light_icon ()
-{
-    char **path;
-    char tmp[1024];
-    PALETTE pal;
-    BITMAP *bmp;
-    BITMAP *icon;
-	
-    for (path = path_share; *path; path++) {
-	ustrncpy (tmp, *path, sizeof tmp);
-	ustrncat (tmp, "misc/light.bmp", sizeof tmp);
-
-	bmp = load_bitmap (tmp, pal);
-	if (bmp) {
-	    icon = get_magic_bitmap_format (bmp, pal);
-	    destroy_bitmap (bmp);
-	    return icon;
-	}
-    }
-    
-    return NULL;
-}
-
 int mode_lights_init ()
 {
     if (make_file_list () < 0)
@@ -287,8 +263,7 @@ int mode_lights_init ()
     modemgr_register (&light_mode);
     editarea_layer_register ("lights", draw_layer, event_layer, DEPTH_LIGHTS);
 
-    icon = load_light_icon ();
-    if (!icon) 
+    if (!(icon = store_dat ("/editor/light-icon")))
 	return -1;
     
     return 0;

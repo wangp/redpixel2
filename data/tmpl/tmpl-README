@@ -1,10 +1,11 @@
 Red Pixel 2 addon: Template version X.Y.Z
 
-This directory demonstrates how we think addons should be organised.  We
-recommend that you follow it to keep things simple, but you don't have to
-if you don't want to, or if it doesn't fit your addon.
+This directory demonstrates how we think addons should be organised.
+We recommend that you follow it to keep things consistent, but you
+don't have to if you don't want to, or if it doesn't fit your addon.
 
-All data files in addon `tmpl' should have the prefix "tmpl-", therefore:
+All data files in addon `tmpl' should have the prefix "tmpl-",
+therefore:
 
     tmpl-bkgd/		-- directory containing backgrounds
     tmpl-tile.dat	-- tile graphics

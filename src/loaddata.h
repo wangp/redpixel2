@@ -2,13 +2,15 @@
 #define __included_loaddata_h
 
 
-void tiles_load ();
-void tiles_unload ();
-void tiles_enumerate (void (*proc) (const char *filename, int id));
+int tiles_init ();
+int tiles_load (const char *filename, const char *prefix);
+void tiles_shutdown ();
+void tiles_enumerate (void (*proc) (const char *prefix, int id));
 
-void lights_load ();
-void lights_unload ();
-void lights_enumerate (void (*proc) (const char *filename, int id));
+int lights_init ();
+int lights_load (const char *filename, const char *prefix);
+void lights_shutdown ();
+void lights_enumerate (void (*proc) (const char *prefix, int id));
 
 
 #endif

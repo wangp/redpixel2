@@ -18,7 +18,6 @@
 #include "modes.h"
 #include "selbar.h"
 #include "store.h"
-#include "vtree.h"
 
 
 /* Lists of tiles, divided into files (packs).  */
@@ -59,14 +58,14 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefi
     }
 }
 
-static void callback (const char *filename, int id)
+static void callback (const char *prefix, int id)
 {
     struct file *f;
     
     f = alloc (sizeof *f);
 
     f->list = ed_select_list_create ();
-    _add_to_list (f->list, store_file (id), VTREE_TILES);
+    _add_to_list (f->list, store_file (id), prefix);
     
     list_add (file_list, f);
 }

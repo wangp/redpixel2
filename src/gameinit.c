@@ -36,13 +36,13 @@ void game_init ()
     mylua_open (0);
     bindings_init ();
 
-    tiles_load ();
-    lights_load ();
+    tiles_init ();
+    lights_init ();
     objtypes_init ();
 
     object_init ();
 
-    lua_dofile_path (lua_state, "script/init.lua");
+    lua_dofile_path (lua_state, "init.lua");
 
     net_init ();
     net_loadconfig (NULL);
@@ -56,8 +56,8 @@ void game_shutdown ()
     object_shutdown ();
 
     objtypes_shutdown ();
-    lights_unload ();
-    tiles_unload ();
+    lights_shutdown ();
+    tiles_shutdown ();
 
     bindings_shutdown ();
     mylua_close ();

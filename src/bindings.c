@@ -12,6 +12,7 @@
 
 #include <allegro.h>
 #include "extdata.h"
+#include "loaddata.h"
 #include "store.h"
 #include "object.h"
 #include "objtypes.h"

@@ -872,7 +872,7 @@ static void server_handle_client_controls ()
 	    
 	    pl = map_find_object (map, client_object_id (c));
 	    if (pl) {
-		shell = object_create ("arrow");
+		shell = object_create ("basic-arrow-projectile");
 		object_set_xy (shell, object_x (pl)+10, object_y (pl));
 		object_set_xv (shell, 25 * cos (c->aim_angle));
 		object_set_yv (shell, 25 * sin (c->aim_angle));
@@ -885,7 +885,7 @@ static void server_handle_client_controls ()
 		    size = packet_encode
 			(buf, "ccslffff", MSG_SC_GAMEINFO,
 			 MSG_SC_GAMEINFO_OBJECT_CREATE,
-			 "arrow", object_id (obj),
+			 "basic-arrow-projectile", object_id (obj),
 			 object_x (obj), object_y (obj),
 			 object_xv (obj), object_yv (obj));
 		    clients_broadcast_rdm (buf, size);

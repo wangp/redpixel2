@@ -318,9 +318,9 @@ static void update_screen ()
 	
 	aim_angle = atan2 (mouse_y - y, mouse_x - x);
 
-	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
-				  x, y, 0, 115/2,
-				  fatan2 (mouse_y - y, mouse_x - x));
+/*  	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"), */
+/*  				  x, y, 0, 115/2, */
+/*  				  fatan2 (mouse_y - y, mouse_x - x)); */
     }
 
     if (crosshair) {

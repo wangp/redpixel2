@@ -10,7 +10,6 @@
 #include "cursor.h"
 #include "store.h"
 #include "path.h"
-#include "vtree.h"
 
 #include "editarea.h"
 #include "menu.h"
@@ -26,27 +25,11 @@
 map_t *editor_map;
 
 
-static int load_font ()
-{
-    char **p, filename[1024];
-
-    for (p = path_share; *p; p++) {
-	ustrzcpy (filename, sizeof filename, *p);
-	ustrzcat (filename, sizeof filename, "font/font.dat");
-	if (store_load (filename, VTREE_FONTS) >= 0)
-	    return 0;
-    }
-
-    return -1;
-}
-
-
 int editor ()
 {
     FONT *f;
 
-    load_font ();
-    if ((f = store_dat (VTREE_FONTS "clean")))
+    if ((f = store_dat ("/editor/font")))
 	font = f;
 
     if ((gui_init () < 0)

@@ -212,23 +212,33 @@ function map_remap (map)
     end
 
     if map.objects and object_mappings then
+	local new = {}
 	for i,v in map.objects do
 	    if object_mappings[v.type] then
-		map.objects[i].type = object_mappings[v.type]
+		local t = map.objects[i]
+		t.type = object_mappings[v.type]
+		tinsert (new, t)
 	    else 
-	        print ("Warning: no mapping for object type: "..v.type)
+	        print ("Warning: no mapping for object "..v.type..'.  Object deleted.')
 	    end
 	end
+	new.n = nil
+	map.objects = new
     end
 
     if map.lights and light_mappings then
+	local new = {}
 	for i,v in map.lights do
 	    if light_mappings[v.type] then
-		map.lights[i] = light_mappings[v.type]
+		local t = map.lights[i]
+		t.type = light_mappings[v.type]
+		tinsert (new, t)
 	    else
-		print ("Warning: no mapping for light: "..v.type)
+		print ('Warning: no mapping for light '..v.type..'.  Light deleted.')
 	    end
 	end
+	new.n = nil
+	map.lights = new
     end
 end
 
@@ -327,6 +337,12 @@ function main (args)
 	if not map_save_0x0100 (args[5], map) then
 	    print ("Error writing map: "..args[5]); exit (1)
 	end
+
+    else
+
+	print ("Don't know what to do.  Quitting.")
+	exit (1)
+
     end
     
 end

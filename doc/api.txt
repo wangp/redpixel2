@@ -44,6 +44,25 @@ all type names start with a capital letter.
 	names with PREFIX.  Returns nil on error.
 
 
+- Function: tiles_load (String filename, String prefix)
+
+	Loads the datafile containing tiles named by FILENAME,
+	prefixing all the item names with PREFIX.  Returns nil on
+	error.
+
+
+- Function: lights_load (String filename, String prefix)
+
+	Loads the datafile containing lights named by FILENAME,
+	prefixing all the item names with PREFIX.  Returns nil on
+	error.
+
+
+- Function: store_index (String key)
+
+	Returns the store index of item with key KEY, or nil on error.
+
+
 - Function: objtype_register (String type, String name, StoreKey icon, 
 				Nil | Method initfunc)
 

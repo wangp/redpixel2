@@ -7,135 +7,115 @@
 #include <allegro.h>
 #include "alloc.h"
 #include "extdata.h"
+#include "list.h"
 #include "loaddata.h"
 #include "path.h"
 #include "store.h"
-#include "vtree.h"
 
 
-static void *loadhelp_load (void *filenames, const char *_vtree);
-static void loadhelp_unload (void *ref);
-static void loadhelp_enumerate (void *ref, void (*proc) (const char *filename, int id));
+typedef struct file_list file_list_t;
 
-
-/*------------------------------------------------------------*/
-
-
-static void *tiles;
-
-void tiles_load ()
-{
-    tiles = loadhelp_load ("tile/*.dat", VTREE_TILES);
-}
-
-void tiles_unload ()
-{
-    loadhelp_unload (tiles);
-}
-
-void tiles_enumerate (void (*proc) (const char *filename, int id))
-{
-    loadhelp_enumerate (tiles, proc);
-}
-
-
-/*------------------------------------------------------------*/
-
-
-static void *lights;
-
-void lights_load ()
-{
-    lights = loadhelp_load ("light/*.dat", VTREE_LIGHTS);
-}
-
-void lights_unload ()
-{
-    loadhelp_unload (lights);
-}
-
-void lights_enumerate (void (*proc) (const char *filename, int id))
-{
-    loadhelp_enumerate (lights, proc);
-}
-
-
-/*------------------------------------------------------------*/
-
-
-/* This is the code that actually does the work.  The weird
- * interfacing is because this used to be in a separate file, and I'm
- * too lazy to change it and explain properly why.  */
-
-
-struct file {
-    struct file *next;
-    char *filename;
+struct file_list {
+    file_list_t *next;
+    file_list_t *prev;
+    char *prefix;
     int id;
 };
 
 
-/* Not reentrant, as you can see.  */
-static struct file *file_list;
-static const char *vtree;
+/*------------------------------------------------------------*/
 
 
-static void loader (const char *filename, int attrib, int param)
+static list_head_t tiles_list;
+
+int tiles_init ()
 {
-    struct file *f;
+    list_init (tiles_list);
+    return 0;
+}
+
+int tiles_load (const char *filename, const char *prefix)
+{
+    file_list_t *f;
     int id;
-
-    id = store_load_ex (filename, vtree, load_extended_datafile);
-    if (id < 0) return;
     
+    id = store_load_ex (filename, prefix, load_extended_datafile);
+    if (id < 0)
+	return -1;
+
     f = alloc (sizeof *f);
-
-    f->filename = ustrdup (filename);
+    f->prefix = ustrdup (prefix);
     f->id = id;
-   
-    f->next = file_list->next;
-    file_list->next = f;
-}
-   
-
-static void *loadhelp_load (void *filenames, const char *_vtree)
-{
-    char **p, tmp[1024];
-
-    file_list = alloc (sizeof *file_list);
-    
-    vtree = _vtree;
-    
-    for (p = path_share; *p; p++) {
-	ustrzcpy (tmp, sizeof tmp, *p);
-	ustrzcat (tmp, sizeof tmp, filenames);
-	for_each_file (tmp, FA_RDONLY | FA_ARCH, loader, 0);
-    }
-
-    return file_list;
+    list_add (tiles_list, f);
+    return 0;
 }
 
-
-static void loadhelp_unload (void *ref)
+void tiles_shutdown ()
 {
-    struct file *file_list = ref;
-    struct file *f, *next;
+    file_list_t *f;
 
-    for (f = file_list->next; f; f = next) {
-	next = f->next;
-	free (f->filename);
+    list_for_each (f, &tiles_list) {
+	free (f->prefix);
 	store_unload (f->id);
-	free (f);
     }
 
-    free (file_list);
+    list_free (tiles_list, free);
+}
+
+void tiles_enumerate (void (*proc) (const char *prefix, int id))
+{
+    file_list_t *f;
+
+    list_for_each (f, &tiles_list)
+	proc (f->prefix, f->id);
 }
 
 
-static void loadhelp_enumerate (void *ref, void (*proc) (const char *filename, int id))
-{
-    struct file *list = ref, *f;
+/*------------------------------------------------------------*/
 
-    for (f = list->next; f; f = f->next)
-	proc (f->filename, f->id);
+
+/* s/tiles/lights/g */
+
+static list_head_t lights_list;
+
+int lights_init ()
+{
+    list_init (lights_list);
+    return 0;
+}
+
+int lights_load (const char *filename, const char *prefix)
+{
+    file_list_t *f;
+    int id;
+    
+    id = store_load_ex (filename, prefix, load_extended_datafile);
+    if (id < 0)
+	return -1;
+
+    f = alloc (sizeof *f);
+    f->prefix = ustrdup (prefix);
+    f->id = id;
+    list_add (lights_list, f);
+    return 0;
+}
+
+void lights_shutdown ()
+{
+    file_list_t *f;
+
+    list_for_each (f, &lights_list) {
+	free (f->prefix);
+	store_unload (f->id);
+    }
+
+    list_free (lights_list, free);
+}
+
+void lights_enumerate (void (*proc) (const char *prefix, int id))
+{
+    file_list_t *f;
+
+    list_for_each (f, &lights_list)
+	proc (f->prefix, f->id);
 }

@@ -147,6 +147,27 @@ generate {
 }
 
 generate {
+    cname	= "tiles_load",
+    args	= {{ String, "filename" },
+                   { String, "prefix" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
+    cname	= "lights_load",
+    args	= {{ String, "filename" },
+                   { String, "prefix" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
+    cname	= "store_index",
+    args	= {{ String, "key" }},
+    ret		= { Int, "ret", "!$" },
+    success	= "lua_pushnumber(L, ret); return 1;"
+}
+
+generate {
     lname	= "objtype_register",
     cname	= "objtypes_register",
     check	= "sss[fN-]",
