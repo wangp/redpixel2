@@ -323,7 +323,7 @@ Standard_Pickup {
     name = "basic-rocket",
     icon = "/basic/weapon/ammo/rocket",
     ammo_to_give = "basic-rocket",
-    ammo_amount = 10,
+    ammo_amount = 5,
     respawn_secs = 10,
 }
 
@@ -439,8 +439,9 @@ Objtype {
     alias = "~Rp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     nonproxy_init = function (self)
+	self.damage = 50
 	function self:collide_hook (obj)
-	    obj:receive_damage (50, self.owner)
+	    obj:receive_damage (self.damage, self.owner)
 	    self:set_stale ()
 	end
 	function self:tile_collide_hook (obj)
