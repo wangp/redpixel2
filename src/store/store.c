@@ -178,7 +178,7 @@ init_lookup_table (unsigned int size)
     unsigned int hash_mask;
     size = good_hash_size (size, &hash_mask);
 
-    lookup_table.buckets = malloc (size * sizeof (bucket_t *));
+    lookup_table.buckets = calloc (size, sizeof (bucket_t *));
     if (lookup_table.buckets) {
 	lookup_table.size = size;
 	lookup_table.hash_mask = hash_mask;
