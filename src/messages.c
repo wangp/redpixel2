@@ -107,6 +107,8 @@ static void scroll_line (void)
 	free (lines[0]);
 	memmove (lines, lines+1, (sizeof lines[0]) * (num_lines-1));
 	num_lines--;
+	if (top_line > num_lines)
+	    top_line = num_lines;
     }
 
     timeout_set (&next_scroll, SCROLL_SPEED);
