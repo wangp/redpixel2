@@ -246,6 +246,13 @@ generate_init {
 -- object.h --
 --------------
 
+generate_init {
+    cname	= "new_object_collision_tag",
+    args	= {},
+    ret		= { Int, "ret" },
+    success	= "lua_pushnumber(L, ret); return 1;"
+}
+
 generate_server {
     cname	= "object_set_stale",
     lname	= "object_set_stale",
@@ -295,6 +302,12 @@ generate_server {
     lname	= "object_set_collision_flags",
     args	= {{ Object, "obj" },
 		   { String, "flags" }}
+}
+
+generate_server {
+    cname	= "object_set_collision_tag",
+    args	= {{ Object, "obj" },
+		   { Int, "tag" }}
 }
 
 generate_server {
