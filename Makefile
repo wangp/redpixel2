@@ -122,6 +122,7 @@ MODULES_GAME :=					\
 	particle				\
 	path					\
 	render					\
+	sound					\
 	sync					\
 	timeout					\
 	timeval					\

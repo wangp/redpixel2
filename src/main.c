@@ -16,6 +16,7 @@
 #include "server.h"
 #include "sync.h"
 #include "textface.h"
+#include "timeval.h"
 
 
 /* XXX */
@@ -239,6 +240,8 @@ int main (int argc, char *argv[])
 
     game_init ();
 
+    gettimeofday_init ();
+
     if (run_editor)
 	editor ();
     else if (run_parallel)
@@ -249,6 +252,8 @@ int main (int argc, char *argv[])
 	do_run_server ();
     else
 	do_run_client (name, addr);
+
+    gettimeofday_shutdown ();
     
     game_shutdown ();
 

@@ -1,9 +1,14 @@
-head	1.36;
+head	1.37;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.37
+date	2002.02.05.04.09.22;	author tjaden;	state Exp;
+branches;
+next	1.36;
 
 1.36
 date	2002.01.29.14.57.16;	author tjaden;	state Exp;
@@ -190,9 +195,9 @@ desc
 @@
 
 
-1.36
+1.37
 log
-@Added initial (very incomplete) sound support for weapons.
+@Minor quirk.
 @
 text
 @-- basic-player.lua
@@ -513,6 +518,9 @@ local player_proxy_init = function (self)
 
     -- (called by nonproxy fire hook)
     function self:start_firing_anim ()
+	if not self.current_weapon then
+	    return
+	end
 	if not self.animate_arm then
 	    self.animate_arm = true
 	    self.arm_tics = 0
@@ -720,6 +728,15 @@ Objtype {
 	end
     end
 }
+@
+
+
+1.36
+log
+@Added initial (very incomplete) sound support for weapons.
+@
+text
+@d319 3
 @
 
 

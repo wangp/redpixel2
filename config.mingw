@@ -10,5 +10,6 @@ PLAT_LIBNET := libnet/lib/libnet.a
 PLAT_LUABIN := lua-4.1-work3/bin/lua
 PLAT_LIBLUA := lua-4.1-work3/lib/liblua.a lua-4.1-work3/lib/liblualib.a
 PLAT_LIBS := -lalleg $(PLAT_LIBNET) -lwsock32 $(PLAT_LIBLUA) \
-		win32/pdcurses/pdcurses/win32/pdcurses.a
+		win32/pdcurses/pdcurses/win32/pdcurses.a \
+		-lwinmm
 PLAT_EXE := .exe

@@ -1,9 +1,14 @@
-head	1.13;
+head	1.14;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.14
+date	2002.02.05.04.09.11;	author tjaden;	state Exp;
+branches;
+next	1.13;
 
 1.13
 date	2002.02.01.15.04.16;	author tjaden;	state Exp;
@@ -75,9 +80,10 @@ desc
 @@
 
 
-1.13
+1.14
 log
-@Minor: put prefix before date in backup archive file names.
+@Added sound panning/volume based on position of the source relative to
+the player (although it doesn't update when the player moves yet).
 @
 text
 @##
@@ -204,6 +210,7 @@ MODULES_GAME :=					\
 	particle				\
 	path					\
 	render					\
+	sound					\
 	sync					\
 	timeout					\
 	timeval					\
@@ -327,6 +334,15 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.13
+log
+@Minor: put prefix before date in backup archive file names.
+@
+text
+@d125 1
 @
 
 

@@ -1,0 +1,1001 @@
+    2002-02-05
+
+    Here are changes that made sync.c use setjmp/longjmp coroutines
+    instead of waiting on condition variables.  It worked under Linux,
+    but there were problems under Windows, and in the end they didn't
+    solve the laggy Windows port problem (n.b. it was actually low
+    resolution timers).  I'm keeping this because it's extremely cool
+    :-) and is better coded than my earlier multitask.c (samish idea,
+    but conflicted with threading packages (and was semi-generic)).
+    
+    The important file is sync.c, which can be extracted from this
+    mess with this mess:
+
+	 sed -n '/^diff.*sync.c/,/^diff.*sync.h/p' sync-coroutine.diff | 
+	     awk '/^[+ ]/ { print $0 }' | cut -b 2- | tail +2
+
+
+diff -u -rN redstone.premt/src/client.c redstone/src/client.c
+--- redstone.premt/src/client.c	Mon Feb  4 09:40:02 2002
++++ redstone/src/client.c	Tue Feb  5 16:48:55 2002
+@@ -841,9 +841,8 @@
+ 	do {
+ 	    if (key[KEY_Q])
+ 		return;
+-	    sync_client_lock ();
++	    sync_yield ();
+ 	    status = net_poll_connect (conn);
+-	    sync_client_unlock ();
+ 	} while (!status);
+ 
+ 	if (status < 1)
+@@ -857,12 +856,10 @@
+ 	temporary_message ("Having a chat with the server...", NULL);
+ 
+ 	while (1) {
+-	    sync_client_lock ();
++	    sync_yield ();
+ 
+-	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
+-		sync_client_unlock ();
++	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0)
+ 		continue;
+-	    }
+ 
+ 	    switch (buf[0]) {
+ 		case MSG_SC_JOININFO:
+@@ -871,15 +868,11 @@
+ 					 NETWORK_PROTOCOL_VERSION, client_name);
+ 		    if (client_server)
+ 			server_set_client_to_quit_with (client_id);
+-		    sync_client_unlock ();
+ 		    goto lobby;
+ 
+ 		case MSG_SC_DISCONNECTED:
+-		    sync_client_unlock ();
+ 		    goto end;
+ 	    }
+-
+-	    sync_client_unlock ();
+ 	}
+     }
+     
+@@ -903,12 +896,11 @@
+ 	/* end XXX */
+ 
+ 	while (1) {
+-	    sync_client_lock ();
++	    sync_yield ();
+ 
+ 	    if (!messages_grabbed_keyboard ()) {
+ 		if (key[KEY_Q]) {
+ 		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
+-		    sync_client_unlock ();
+ 		    goto disconnect;
+ 		}
+ 	    }
+@@ -931,24 +923,18 @@
+ 	    messages_render (bmp);
+ 	    blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
+ 
+-	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
+-		sync_client_unlock ();
++	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0)
+ 		continue;
+-	    }
+ 
+ 	    switch (buf[0]) {
+ 		case MSG_SC_GAMESTATEFEED_REQ:
+ 		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
+-		    sync_client_unlock ();
+ 		    goto receive_game_state;
+ 
+ 		case MSG_SC_DISCONNECTED:
+ 		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
+-		    sync_client_unlock ();
+ 		    goto end;
+ 	    }
+-
+-	    sync_client_unlock ();
+ 	}
+     }
+ 
+@@ -959,23 +945,17 @@
+ 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
+ 	size_t size;
+ 
+-	sync_client_lock ();
+ 	net_send_rdm_byte (conn, MSG_CS_GAMESTATEFEED_ACK);
+-	sync_client_unlock ();
+ 
+ 	while (1) {
+-	    sync_client_lock ();
++	    sync_yield ();
+ 
+-	    if (key[KEY_Q]) {
+-		sync_client_unlock ();
++	    if (key[KEY_Q])
+ 		goto disconnect;
+-	    }
+ 
+ 	    size = net_receive_rdm (conn, buf, sizeof buf);
+-	    if (size <= 0) {
+-		sync_client_unlock ();
++	    if (size <= 0)
+ 		continue;
+-	    }
+ 
+ 	    switch (buf[0]) {
+ 		case MSG_SC_GAMEINFO:
+@@ -984,15 +964,11 @@
+ 
+ 		case MSG_SC_GAMESTATEFEED_DONE:
+ 		    dbg ("game state feed done");
+-		    sync_client_unlock ();
+ 		    goto pause;
+ 
+ 		case MSG_SC_DISCONNECTED:
+-		    sync_client_unlock ();
+ 		    goto end;
+ 	    }
+-
+-	    sync_client_unlock ();
+ 	}
+     }
+ 	
+@@ -1004,22 +980,17 @@
+ 	size_t size;
+ 
+ 	while (1) {
+-	    sync_client_lock ();
++	    sync_yield ();
+ 	    
+-	    if (key[KEY_Q]) {
+-		sync_client_unlock ();
++	    if (key[KEY_Q])
+ 		goto disconnect;
+-	    }
+ 
+ 	    size = net_receive_rdm (conn, buf, sizeof buf);
+-	    if (size <= 0) {
+-		sync_client_unlock ();
++	    if (size <= 0)
+ 		continue;
+-	    }
+ 
+ 	    switch (buf[0]) {
+ 		case MSG_SC_GAMESTATEFEED_REQ:
+-		    sync_client_unlock ();
+ 		    goto receive_game_state;
+ 
+ 		case MSG_SC_GAMEINFO:
+@@ -1027,15 +998,11 @@
+ 		    break;
+ 
+ 		case MSG_SC_RESUME:
+-		    sync_client_unlock ();
+ 		    goto game;
+ 
+ 		case MSG_SC_DISCONNECTED:
+-		    sync_client_unlock ();
+ 		    goto end;
+ 	    }
+-
+-	    sync_client_unlock ();
+ 	}
+     }
+ 
+@@ -1052,12 +1019,10 @@
+ 	last_ping_time = 0;
+ 
+ 	while (1) {
+-	    sync_client_lock ();
++	    sync_yield ();
+ 
+-	    if (key[KEY_Q]) {
+-		sync_client_unlock ();
++	    if (key[KEY_Q])
+ 		goto disconnect;
+-	    }
+ 
+ 	    dbg ("process network input");
+ 	    {
+@@ -1111,10 +1076,10 @@
+ 		    }
+ 		}
+ 
+-		if (receive_game_state_later) { sync_client_unlock (); goto receive_game_state; }
+-		if (pause_later) { sync_client_unlock (); goto pause; }
+-		if (lobby_later) { sync_client_unlock (); goto lobby; }
+-		if (end_later) { sync_client_unlock (); goto end; }
++		if (receive_game_state_later) goto receive_game_state;
++		if (pause_later) goto pause;
++		if (lobby_later) goto lobby;
++		if (end_later) goto end;
+ 	    }
+ 	    
+ 	    t = ticks;
+@@ -1165,8 +1130,6 @@
+ 		last_ping_time = ticks;
+ 		net_send_rdm_byte (conn, MSG_CS_PING);
+ 	    }
+-
+-	    sync_client_unlock ();
+ 	}
+ 
+ 	ticks_shutdown ();
+@@ -1179,21 +1142,18 @@
+ 	timeout_t timeout;
+ 	uchar_t c;
+ 
+-	sync_client_lock ();
+ 	net_send_rdm_byte (conn, MSG_CS_DISCONNECT_ASK);
+-	sync_client_unlock ();
+ 
+ 	timeout_set (&timeout, 2000);
+ 
+ 	while (!timeout_test (&timeout)) {
+-	    sync_client_lock ();
+-	    if (net_receive_rdm (conn, &c, 1) > 0) 
++	    sync_yield ();
++	    if (net_receive_rdm (conn, &c, 1) > 0) {
+ 		if (c == MSG_SC_DISCONNECTED) {
+ 		    dbg ("server confirmed disconnect");
+-		    sync_client_unlock ();
+ 		    break;
+ 		}
+-	    sync_client_unlock ();
++	    }
+ 	}
+ 
+ 	goto end;
+diff -u -rN redstone.premt/src/explo.c redstone/src/explo.c
+--- redstone.premt/src/explo.c	Mon Feb  4 09:11:02 2002
++++ redstone/src/explo.c	Tue Feb  5 15:32:00 2002
+@@ -117,7 +117,7 @@
+     e->tics = t->tics;
+ 
+     if (t->sound)
+-	sound_play_once (t->sound, 255, e->x, e->y);
++	sound_play_once (t->sound, e->x, e->y);
+     
+     return e;
+ }
+diff -u -rN redstone.premt/src/main.c redstone/src/main.c
+--- redstone.premt/src/main.c	Thu Jan 31 12:23:42 2002
++++ redstone/src/main.c	Tue Feb  5 15:42:53 2002
+@@ -16,6 +16,7 @@
+ #include "server.h"
+ #include "sync.h"
+ #include "textface.h"
++#include "yield.h"
+ 
+ 
+ /* XXX */
+@@ -83,10 +84,15 @@
+ }
+ 
+ 
+-static void *server_thread (void *arg)
++static void client_run_non_client_server (void)
+ {
+-    server_run ();
+-    return NULL;
++    client_run (0);
++}
++
++
++static void client_run_client_server (void)
++{
++    client_run (1);
+ }
+ 
+ 
+@@ -102,9 +108,7 @@
+     } else {
+ 	server_enable_single_hack ();
+ 
+-	sync_init (server_thread);
+-	client_run (0);
+-	sync_shutdown ();
++	sync_run (server_run, client_run_non_client_server);
+ 
+ 	client_shutdown ();
+ 	server_shutdown ();
+@@ -128,10 +132,7 @@
+ 	    "Error initialising game server or client.  Perhaps another\n"
+ 	    "game server is already running on the same port?\n");
+     } else {
+-	sync_init (server_thread);
+-	client_run (1);
+-	sync_server_stop_requested ();
+-	sync_shutdown ();
++	sync_run (server_run, client_run_client_server);
+ 
+ 	client_shutdown ();
+ 	server_shutdown ();
+@@ -149,9 +150,7 @@
+ 	allegro_message ("Error initialising game server.  Perhaps another\n"
+ 			 "game server is already running on the same port?\n");
+     } else {
+-	sync_init (NULL);
+-	server_run ();
+-	sync_shutdown ();
++	sync_run (server_run, NULL);
+ 	server_shutdown ();
+     }
+ }
+@@ -161,9 +160,7 @@
+ {
+     messages_init ();
+     if (client_init (name, INET_DRIVER, addr) == 0) {
+-	sync_init (NULL);
+-	client_run (0);
+-	sync_shutdown ();
++	sync_run (client_run_non_client_server, NULL);
+ 	client_shutdown ();
+     }
+     messages_shutdown ();
+diff -u -rN redstone.premt/src/server/server.c redstone/src/server/server.c
+--- redstone.premt/src/server/server.c	Sat Feb  2 01:56:50 2002
++++ redstone/src/server/server.c	Tue Feb  5 20:56:33 2002
+@@ -398,8 +398,6 @@
+     next_state = SERVER_STATE_LOBBY;
+ 
+     do {
+-	sync_server_lock ();
+-
+ 	while (curr_state != next_state) {
+ 	    p = (*server_state_procs[next_state]);
+ 	    if ((p->init) && (p->init () < 0))
+@@ -454,9 +461,8 @@
+ 		p->shutdown ();
+ 	}
+ 
+-	sync_server_unlock ();
+-    } while ((next_state != SERVER_STATE_QUIT) && 
+-	     (!sync_server_stop_requested ()));
++	sync_yield ();
++    } while (next_state != SERVER_STATE_QUIT);
+ }
+ 
+ 
+diff -u -rN redstone.premt/src/server/svgame.c redstone/src/server/svgame.c
+--- redstone.premt/src/server/svgame.c	Sat Feb  2 01:53:27 2002
++++ redstone/src/server/svgame.c	Tue Feb  5 15:13:43 2002
+@@ -370,9 +370,8 @@
+ 	}
+     }
+ 
+-    sync_server_unlock ();
+     do {
+-	sync_server_lock ();
++	sync_yield ();
+ 
+ 	done = 1;
+ 	for_each_svclient (c) {
+@@ -400,10 +399,7 @@
+ 		svclient_clear_cantimeout (c);
+ 	    }
+ 	}
+-
+-	sync_server_unlock ();
+     } while (!done);
+-    sync_server_lock ();
+ 
+     list_for_each (obj, map_object_list (map))
+ 	object_clear_replication_flags (obj);
+@@ -421,19 +417,16 @@
+     svclient_set_cantimeout (c);
+     svclient_set_timeout (c, 5);
+ 
+-    sync_server_unlock ();
+     while (1) {
+-	sync_server_lock ();
++	sync_yield ();
+ 
+ 	if (svclient_timed_out (c)) {
+ 	    svclient_set_state (c, SVCLIENT_STATE_STALE);
+ 	    server_log ("Client %s timed out during game state feed", c->name);
+-	    sync_server_unlock ();
+ 	    break;
+ 	}
+ 
+ 	if (svclient_receive_rdm (c, &byte, 1) <= 0) {
+-	    sync_server_unlock ();
+ 	    continue;
+ 	}
+ 
+@@ -441,13 +434,9 @@
+ 	    feed_game_state_to (c);
+ 	    svclient_set_ready (c);
+ 	    svclient_clear_cantimeout (c);
+-	    sync_server_unlock ();
+ 	    break;
+ 	}
+-
+-	sync_server_unlock ();
+     }
+-    sync_server_lock ();
+ }
+ 
+ 
+diff -u -rN redstone.premt/src/sync.c redstone/src/sync.c
+--- redstone.premt/src/sync.c	Mon Feb  4 09:45:36 2002
++++ redstone/src/sync.c	Tue Feb  5 16:48:45 2002
+@@ -1,426 +1,173 @@
+-/* sync.c - client and server thread synchronisation
++/* sync.c
++ *
++ * This module lets the client and server run in different threads,
++ * synchronously (i.e. as coroutines).  When one is ready to give up
++ * the CPU to the other, it calls sync_yield which switches the
++ * execution context.  This is not a generic implementation.
+  *
+  * Peter Wang <tjaden@users.sourceforge.net>
+  */
+ 
+ 
+-#include <allegro.h>
++#include <setjmp.h>
++#include <allegro.h>		/* for ALLEGRO_I386 */
+ #include "sync.h"
+ #include "yield.h"
+ 
+ 
+-#ifdef THREADS_PTHREAD
+-
+-
+-#include <pthread.h>
+-
+-
+-static int threaded;
+-static pthread_t thread;
+-static pthread_mutex_t mutex;
+-static pthread_cond_t cond;
+-
+-
+-void sync_init (void *(*server_thread)(void *))
+-{
+-    if (server_thread) {
+-	threaded = 1;
+-	pthread_mutex_init (&mutex, NULL);
+-	pthread_cond_init (&cond, NULL);
+-	pthread_create (&thread, NULL, server_thread, NULL);
+-    }
+-}
+-
+-
+-void sync_shutdown (void)
+-{
+-    if (threaded) {
+-	pthread_join (thread, NULL);
+-	pthread_cond_destroy (&cond);
+-	pthread_mutex_destroy (&mutex);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-	threaded = 0;
+-    }
+-}
+-
+-
+-void sync_server_lock (void)
+-{
+-    if (threaded) {
+-	pthread_mutex_lock (&mutex);
+-	pthread_cond_wait (&cond, &mutex);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
+-
+-
+-int sync_server_stop_requested (void)
+-{
+-    return 0;
+-}
+-
+-
+-void sync_server_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	pthread_mutex_unlock (&mutex);
+-}
+-
+-
+-void sync_client_lock (void)
+-{
+-    if (threaded) {
+-	pthread_mutex_lock (&mutex);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
+-
+-
+-void sync_client_unlock (void)
+-{
+-    if (threaded) {
+-	pthread_cond_signal (&cond);
+-	pthread_mutex_unlock (&mutex);
+-    }
+-}
+-
+-
+-#endif
+-
+-
+-
+-/* Win32 code based on fibres. 
+-   Doesn't exit properly yet, and I'm not sure it's any better than critical sections.
+- */
+-#if 0
+-
+-
+-#include <winalleg.h>
+-#include <process.h>
+-
+-
+-static int threaded;
+-static int stop_requested;
+-static void *server_fiber;
+-static void *client_fiber;
+-
+-
+-void sync_init (void *(*server_thread)(void *))
+-{
+-    if (server_thread) {
+-	threaded = 1;
+-	ConvertThreadToFiber (NULL);
+-	stop_requested = 0;
+-	client_fiber = GetCurrentFiber ();
+-	server_fiber = CreateFiber (1024, (LPFIBER_START_ROUTINE) server_thread, NULL);
+-    }
+-}
+-
+-
+-void sync_shutdown (void)
+-{
+-    if (threaded) {
+-	stop_requested = 1;
+-	WaitForSingleObject (server_fiber, INFINITE);
+-// XXX non-proper cleanup
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-	threaded = 0;
+-    }
+-}
+-
+-
+-void sync_server_lock (void)
+-{
+-    if (threaded) {
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
++#define STACK_SIZE	2048	/* in longs */
+ 
+ 
+-void sync_server_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	SwitchToFiber (client_fiber);
+-}
++typedef struct {
++    jmp_buf jmp;
++    int stopped;
++} thread_t;
+ 
+ 
+-int sync_server_stop_requested (void)
+-{
+-    return stop_requested;
+-}
++static thread_t thread_1;
++static thread_t thread_2;
++static thread_t *current_thread;
+ 
+ 
+-void sync_client_lock (void)
+-{
+-    if (threaded) {
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
++#if (defined ALLEGRO_I386) && (defined ALLEGRO_GCC)
+ 
++/* Set the stack pointer to a user supplied value.  The stack on Intel
++ * machines grows top down, so we start at the back of the buffer.  */
++# define SET_STACK(buf, size)			\
++    asm ("movl %0, %%esp"			\
++	 : /* no output */			\
++	 : "r" (buf + size - 1));
+ 
+-void sync_client_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	SwitchToFiber (server_fiber);
+-}
++#else
+ 
++# error SET_STACK needs defining for your platform
+ 
+ #endif
+ 
+ 
+-
+-/* Win32 code based on critical sections. */
+-#ifdef THREADS_WIN32
+-
+-
+-#include <winalleg.h>
+-#include <process.h>
+-
+-
+-static int threaded;
+-static HANDLE thread;
+-static int stop_requested;
+-static CRITICAL_SECTION cs;
+-
+-
+-void sync_init (void *(*server_thread)(void *))
+-{
+-    if (server_thread) {
+-	threaded = 1;
+-	InitializeCriticalSection (&cs);
+-	stop_requested = 0;
+-	thread = (HANDLE) _beginthread ((void (*) (void*)) server_thread, 0, NULL);
++/* Start two threads to run in parallel.  As a special case, `f2' may
++ * be NULL so that only `f1' will be used.  This allows execution of
++ * code with sync_yield calls in it in single-thread mode.  */
++void sync_run (void (*f1_)(void), void (*f2_)(void))
++{
++    static void (*f1)(void);
++    static void (*f2)(void);
++    static jmp_buf break_out;
++
++    /* The local variables in this function will disappear once we
++     * start mangling the stack pointer, so save them in the heap.  */
++    f1 = f1_;
++    f2 = f2_;
++	
++    /* Single-thread case.  */
++    if (!f2) {
++	thread_1.stopped = 0;
++	thread_2.stopped = 1;
++	current_thread = &thread_1;
++	f1 ();
++	return;
++    }
++
++    /* Two-thread case.  */
++    if (setjmp (break_out) == 0) {
++	
++	/* Allocate some space on the stack for our threads to use.
++	 * We can't do this in the heap because both Windows threads
++	 * and Linux-Threads don't like it.  */
++	long stack_1[STACK_SIZE];
++	long stack_2[STACK_SIZE];
++
++	if (setjmp (thread_2.jmp) == 0) {
++	    /* Just entered this routine, so start the first thread.  */
++	    SET_STACK (stack_1, STACK_SIZE);
++	    current_thread = &thread_1;
++	    current_thread->stopped = 0;
++	    f1 ();
++	    current_thread->stopped = 1;
++	}
++	else {
++	    /* The first thread yield'd for the first time, so it's
++	     * time to start the second thread.  */
++	    SET_STACK (stack_2, STACK_SIZE);
++	    current_thread = &thread_2;
++	    current_thread->stopped = 0;
++	    f2 ();
++	    current_thread->stopped = 1;
++	}
++
++	/* Reaching this point means one of the threads has finished,
++	 * but the other may still be running.  We call sync_yield to
++	 * resume execution of the other thread.  If it's already
++	 * stopped this call will just return.  */
++	sync_yield ();
++
++	/* We're done.  Not using break_out like this causes problems,
++	 * so we'll just use it :-)  */
++	longjmp (break_out, 1);
++    }
++}
++
++
++/* Pause the calling thread and resume execution of the other thread.
++ * If the other thread is already finished, return to the calling
++ * thread immediately.  */
++void sync_yield (void)
++{
++    static thread_t *next_thread; /* static to calm down gcc */
++    
++    next_thread = ((current_thread == &thread_1) ? &thread_2 : &thread_1);
++
++    if (next_thread->stopped) {
++	yield ();
++	return;
++    }
++
++    if (setjmp (current_thread->jmp) == 0) {
++	current_thread = next_thread;
++	longjmp (current_thread->jmp, 1);
+     }
+ }
+ 
+ 
+-void sync_shutdown (void)
+-{
+-    if (threaded) {
+-	stop_requested = 1;
+-	WaitForSingleObject (thread, INFINITE);
+-	DeleteCriticalSection (&cs);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-	threaded = 0;
+-    }
+-}
+-
+ 
+-void sync_server_lock (void)
+-{
+-    if (threaded) {
+-	EnterCriticalSection (&cs);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
++/* Test.  */
+ 
++#ifdef TEST
+ 
+-void sync_server_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	LeaveCriticalSection (&cs);
+-}
+-
+-
+-int sync_server_stop_requested (void)
+-{
+-    return stop_requested;
+-}
+-
+-
+-void sync_client_lock (void)
+-{
+-    if (threaded) {
+-	EnterCriticalSection (&cs);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
+-
+-
+-void sync_client_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	LeaveCriticalSection (&cs);
+-}
+-
+-
+-#endif
+-
+-
+-
+-/* Win32 code based on events. */
+-#if 0
+-
+-
+-#include <winalleg.h>
+-#include <process.h>
+-
+-
+-static int threaded;
+-static HANDLE thread;
+-static int stop_requested;
+-static HANDLE server_event;
+-static HANDLE client_event;
+-
+-
+-void sync_init (void *(*server_thread)(void *))
+-{
+-    if (server_thread) {
+-	threaded = 1;
+-	server_event = CreateEvent (NULL, FALSE, FALSE, NULL);
+-	client_event = CreateEvent (NULL, FALSE, FALSE, NULL);	
+-	stop_requested = 0;
+-	thread = (HANDLE) _beginthread ((void (*) (void*)) server_thread, 0, NULL);
+-    }
+-}
+-
+-
+-void sync_shutdown (void)
+-{
+-    if (threaded) {
+-	stop_requested = 1;
+-	WaitForSingleObject (thread, INFINITE);
+-	CloseHandle (server_event);
+-	CloseHandle (client_event);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-	threaded = 0;
+-    }
+-}
+-
+-
+-void sync_server_lock (void)
+-{
+-    if (threaded) {
+-	SignalObjectAndWait (client_event, server_event, INFINITE, FALSE);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
+-
+-
+-void sync_server_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-}
+-
+-
+-int sync_server_stop_requested (void)
+-{
+-    return stop_requested;
+-}
+-
+-
+-void sync_client_lock (void)
+-{
+-    if (threaded) {
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
+-
+-
+-void sync_client_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	SignalObjectAndWait (server_event, client_event, INFINITE, FALSE);
+-}
+-
+-
+-#endif
+-
+-
+-
+-/* Win32 code based on semaphores.  */
+-#if 0
+-
+-
+-#include <winalleg.h>
+-#include <process.h>
+-
+-
+-static int threaded;
+-static HANDLE thread;
+-static int stop_requested;
+-static HANDLE semaphore;
+-
+-
+-#define SEM_VALUE_MAX   ((int) ((~0u) >> 1))
+-
+-
+-void sync_init (void *(*server_thread)(void *))
+-{
+-    if (server_thread) {
+-	threaded = 1;
+-	semaphore = CreateSemaphore (NULL, 1, 1, NULL);
+-	stop_requested = 0;
+-	thread = (HANDLE) _beginthread ((void (*) (void*)) server_thread, 0, NULL);
+-    }
+-}
+-
++#include <allegro.h>
+ 
+-void sync_shutdown (void)
++void f1 (void)
+ {
+-    if (threaded) {
+-	stop_requested = 1;
+-	WaitForSingleObject (thread, INFINITE);
+-	CloseHandle (semaphore);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-	threaded = 0;
++    int c = 10;
++    while (c--) {
++	clear_to_color (screen, makecol (255, 0, 0));
++	textprintf (screen, font, 0, 0, makecol (255, 255, 255), "A: %d", c);
++	rest (300);
++	sync_yield ();
+     }
+ }
+ 
+-
+-void sync_server_lock (void)
++void f2 (void)
+ {
+-    if (threaded) {
+-	WaitForSingleObject (semaphore, INFINITE);
+-	allegro_errno = &errno;	/* errno is thread-specific */
++    int c = 6;
++    while (c--) {
++	clear_to_color (screen, makecol (0, 0, 255));
++	textprintf (screen, font, 0, 0, makecol (255, 255, 255), "B: %d", c);
++	rest (300);
++	sync_yield ();
+     }
+ }
+ 
+-
+-void sync_server_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	ReleaseSemaphore (semaphore, 1, NULL);
+-}
+-
+-
+-int sync_server_stop_requested (void)
++int main (void)
+ {
+-    return stop_requested;
+-}
+-
+-
+-void sync_client_lock (void)
+-{
+-    if (threaded) {
+-	WaitForSingleObject (semaphore, INFINITE);
+-	allegro_errno = &errno;	/* errno is thread-specific */
+-    }
+-}
+-
+-
+-void sync_client_unlock (void)
+-{
+-    if (!threaded)
+-	yield ();
+-    else
+-	ReleaseSemaphore (semaphore, 1, NULL);
++    allegro_init ();
++    install_timer ();
++    if (set_gfx_mode (GFX_AUTODETECT_WINDOWED, 320, 200, 0, 0) < 0)
++	return 1;
++    sync_run (f1, f2);
++    return 0;
+ }
+ 
++END_OF_MAIN ();
+ 
+ #endif
+diff -u -rN redstone.premt/src/sync.h redstone/src/sync.h
+--- redstone.premt/src/sync.h	Thu Jan 24 04:28:56 2002
++++ redstone/src/sync.h	Tue Feb  5 16:33:00 2002
+@@ -2,13 +2,8 @@
+ #define __included_sync_h
+ 
+ 
+-void sync_init (void *(*server_thread)(void *));
+-void sync_shutdown (void);
+-void sync_server_lock (void);
+-void sync_server_unlock (void);
+-int sync_server_stop_requested (void);
+-void sync_client_lock (void);
+-void sync_client_unlock (void);
++void sync_run (void (*f1)(void), void (*f2)(void));
++void sync_yield (void);
+ 
+ 
+ #endif

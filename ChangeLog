@@ -1,3 +1,12 @@
+2002-02-05  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* main.c, timeval.h, timeval.c:
+	Use higher-precision timer under Windows (it was really bad before).
+
+	* sound.h, sound.c, client.c, explo.c: Added sound panning/volume
+	based on position of the source relative to the player (although
+	it doesn't update when the player moves yet).
+
 2002-02-02  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* client.c: Added how to abort connection in temp message.

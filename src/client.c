@@ -25,6 +25,7 @@
 #include "particle.h"
 #include "render.h"
 #include "server.h"
+#include "sound.h"
 #include "store.h"
 #include "sync.h"
 #include "timeout.h"
@@ -674,18 +675,7 @@ void client_play_sound (object_t *obj, const char *sample)
     SAMPLE *spl = store_dat (sample);
     
     if (spl)
-	play_sample (spl, 255, 128, 1000, FALSE); /* XXX */
-	/*
-	  what's really supposed to happen is that we allocate a voice
-	  and update the panning/volume with respect to the position
-	  between the client object and obj
-
-	  also, we need to be able to let lua code control
-	  start/stop/loop of the voices
-
-	  voices are released when they are stopped, or the owner
-	  object is destroyed
-	*/
+	sound_play_once (spl, object_x (obj), object_y (obj));
 }
 
 
@@ -1160,6 +1150,11 @@ void client_run (int client_server)
 
 		dbg ("update screen");
 		update_screen ();
+
+		dbg ("update sound reference point");
+		if (local_object)
+		    sound_update_reference_point (object_x (local_object),
+						  object_y (local_object));
 
 		last_ticks = t;
 	    }

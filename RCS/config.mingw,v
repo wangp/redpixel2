@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.4
+date	2002.02.05.12.18.37;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.02.01.14.51.57;	author tjaden;	state Exp;
@@ -25,9 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Updated mingw port.
+@Use higher-precision timer under Windows (it was really bad before).
 @
 text
 @# Configuration for Mingw Win32 build.  -*- makefile -*-
@@ -42,8 +47,20 @@ PLAT_LIBNET := libnet/lib/libnet.a
 PLAT_LUABIN := lua-4.1-work3/bin/lua
 PLAT_LIBLUA := lua-4.1-work3/lib/liblua.a lua-4.1-work3/lib/liblualib.a
 PLAT_LIBS := -lalleg $(PLAT_LIBNET) -lwsock32 $(PLAT_LIBLUA) \
-		win32/pdcurses/pdcurses/win32/pdcurses.a
+		win32/pdcurses/pdcurses/win32/pdcurses.a \
+		-lwinmm
 PLAT_EXE := .exe
+@
+
+
+1.3
+log
+@Updated mingw port.
+@
+text
+@d13 2
+a14 1
+		win32/pdcurses/pdcurses/win32/pdcurses.a
 @
 
 
