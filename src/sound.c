@@ -9,6 +9,9 @@
 #include "sound.h"
 
 
+float sound_volume_factor = 1.0;
+
+
 /* XXX
   what's supposed to happen is that we allocate voices
   and update the panning/volume with respect to the position
@@ -50,5 +53,5 @@ void sound_play_once (SAMPLE *spl, int origin_x, int origin_y)
     pan = dx / 8 + 128;
     pan = MID (0, pan, 255);
     
-    play_sample (spl, vol, pan, 1000, FALSE);
+    play_sample (spl, vol * sound_volume_factor, pan, 1000, FALSE);
 }
