@@ -66,7 +66,7 @@ Item {
 		if self.frame > getn (bloodlust_anim) then
 		    self.frame = 1
 		end
-		self:replace_layer (0, bloodlust_anim[self.frame], 7, 3)
+		self:replace_layer (0, bloodlust_anim[self.frame], 7, 8)
 	    end
 	)
     end
