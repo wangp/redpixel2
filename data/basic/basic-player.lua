@@ -284,6 +284,12 @@ local animate_player_proxy_lighting = function (self)
 	self.restore_lighting_tics = self.restore_lighting_tics - 1
 	if self.restore_lighting_tics == 0 then
 	    self:replace_light (0, "/basic/light/white-64", 0, 0)
+	end
+    end
+
+    if self.restore_unhighlighting_tics > 0 then
+	self.restore_unhighlighting_tics = self.restore_unhighlighting_tics - 1
+	if self.restore_unhighlighting_tics == 0 then
 	    self:set_highlighted (false)
 	end
     end
@@ -358,15 +364,36 @@ local player_proxy_init = function (self)
 	end
     end
 
-    -- (called by nonproxy receive damage function)
+    -- lighting (and highlighting) stuff
     self.restore_lighting_tics = 0
+    self.current_light_priority = 0
+
+    self.restore_unhighlighting_tics = 0
+
+    function self:change_light (light, timeout, priority)
+	if self.is_local then
+	    if priority >= self.current_light_priority then
+		self:replace_light (0, light, 0, 0)
+		self.current_light_priority = priority
+		self.restore_lighting_tics = timeout
+	    end
+	end
+    end
+
+    -- (called by nonproxy receive damage function)
     function self:get_hurt_hook ()
 	if self.is_local then
-	    self:replace_light (0, "/basic/light/red-64", 0, 0)
-	    self.restore_lighting_tics = 38
+	    self:change_light ("/basic/light/red-64", 38, 10)
 	else
 	    self:set_highlighted (true)
-	    self.restore_lighting_tics = 10
+	    self.restore_unhighlighting_tics = 10
+	end
+    end
+
+    -- (called by server when player gets lightamp)
+    function self:get_lightamp_hook ()
+	if self.is_local then
+	    self:change_light ('/basic/powerup/lightamp/light', 3000, 20)
 	end
     end
 end
