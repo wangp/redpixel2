@@ -62,6 +62,9 @@ static int parallax_x = 2;
 static int parallax_y = 2;
 
 static BITMAP *crosshair;
+static BITMAP *health_icon;
+static BITMAP *armour_icon;
+static BITMAP *ammo_icon;
 
 /* the game state */
 static map_t *map;
@@ -953,16 +956,19 @@ static void draw_status (BITMAP *bmp)
     FONT *f = store_get_dat ("/basic/font/ugly");
     int col = makecol24 (0xfb, 0xf8, 0xf8);
 
+    int w = bmp->w/3;
+    int y = bmp->h - text_height (f);
+    
     text_mode (-1);
-    textprintf_right_trans_magic (
-	bmp, f, bmp->w/3 - 80, bmp->h - text_height (f) - 2, col,
-	"%d", display_values.health);
-    textprintf_right_trans_magic (
-	bmp, f, bmp->w/3 - 40, bmp->h - text_height (f) - 2, col,
-	"%d", display_values.armour);
-    textprintf_right_trans_magic (
-	bmp, f, bmp->w/3 - 2, bmp->h - text_height (f) - 2, col,
-	"%d", display_values.ammo);
+
+    draw_trans_magic_sprite (bmp, health_icon, w-95, y);
+    textprintf_right_trans_magic (bmp, f, w-90, y, col, "%d", display_values.health);
+
+    draw_trans_magic_sprite (bmp, armour_icon, w-65, y);
+    textprintf_right_trans_magic (bmp, f, w-60, y, col, "%d", display_values.armour);
+
+    draw_trans_magic_sprite (bmp, armour_icon, w-20, y);
+    textprintf_right_trans_magic (bmp, f, w-15, y, col, "%d", display_values.ammo);
 }
 
 
@@ -1529,6 +1535,13 @@ int client_init (const char *name, int net_driver, const char *addr)
     }
 
     crosshair = store_get_dat ("/basic/crosshair/000");
+
+    health_icon = store_get_dat ("/basic/player/status/health");
+    armour_icon = store_get_dat ("/basic/player/status/armour");
+    ammo_icon = store_get_dat ("/basic/player/status/ammo");
+    set_magic_bitmap_brightness_skipping_black (health_icon, 15, 15, 15);
+    set_magic_bitmap_brightness_skipping_black (armour_icon, 15, 15, 15);
+    set_magic_bitmap_brightness_skipping_black (ammo_icon, 15, 15, 15);
 
     map = NULL;
     local_object = NULL;
