@@ -118,7 +118,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
     end
 
     -- success clause
-    str = str..tab..(success or "lua_pushnumber(L, 1); return 1;").."\n"
+    str = str..tab..(success or "lua_pushboolean(L, 1); return 1;").."\n"
 
     -- bad args clause
     str = str..
@@ -126,7 +126,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
 	tab.."goto error; /* shut up the compiler about unused labels */\n"
 
     -- error clause
-    str = str.."error:\n"..tab..(error or "lua_pushnil(L); return 1;").."\n"
+    str = str.."error:\n"..tab..(error or "lua_pushboolean(L, 0); return 1;").."\n"
 
     str = str.."}\n"
     print (str)
@@ -566,6 +566,20 @@ generate_server {
     lname	= "play_sound_on_clients",
     args	= {{ Object, "obj" },
 		   { String, "sample" }}
+}
+
+generate_server {
+    cname	= "svgame_get_client_name",
+    lname	= "get_client_name",
+    args	= {{ Int, "clientid" }},
+    ret		= { String, "ret", "!$" },
+    success	= "lua_pushstring(L, ret); return 1;"
+}
+
+generate_server {
+    cname	= "svgame_broadcast_text_message",
+    lname	= "broadcast_text_message",
+    args	= {{ String, "message" }}
 }
 
 
