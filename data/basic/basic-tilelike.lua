@@ -19,6 +19,7 @@ local Crate = function (t)
 		if self.health <= 0 then
 		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
 		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
+		    self.health = t.health
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
 		else
@@ -111,6 +112,7 @@ local Barrel = function (t)
 			end
 		    end
 
+		    self.health = t.health
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
 		else
