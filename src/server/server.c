@@ -831,6 +831,7 @@ static void gameinfo_packet_queue_flush (void)
 static size_t make_object_creation_packet (object_t *obj, char *buf)
 {
     char *p;
+    list_head_t *list;
     creation_field_t *f;
     
     p = buf + packet_encode (buf, "cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
@@ -842,7 +843,8 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 
     /* creation fields */
     /* XXX this only supports fields of type float right now */
-    list_for_each (f, object_creation_fields (obj))
+    list = object_creation_fields (obj);
+    list_for_each (f, list)
 	p += packet_encode (p, "csf", 'f', f->name,
 			    object_get_number (obj, f->name));
 
@@ -1049,6 +1051,19 @@ static void server_perform_physics ()
 }
 
 
+/* Poll objects' update hooks.  */
+
+static void server_poll_update_hooks (int elapsed_msecs)
+{
+    list_head_t *list;
+    object_t *obj;
+
+    list = map_object_list (map);
+    list_for_each (obj, list)
+	object_poll_update_hook (obj, elapsed_msecs);
+}
+
+
 /* Sending important object changes to clients. */
 
 static void server_send_object_updates ()
@@ -1082,18 +1097,6 @@ static void server_send_object_updates ()
 
 	object_clear_replication_flags (obj);
     }
-}
-
-
-/* Poll client objects' update hooks.  */
-
-static void server_poll_client_update_hooks ()
-{
-    client_t *c;
-
-    for_each_client (c)
-	if ((c->client_object) && (!object_stale (c->client_object)))
-	    object_call (c->client_object, "_client_update_hook");
 }
 
 
@@ -1197,7 +1200,7 @@ static void server_purge_stale_objects ()
 static void server_state_game_poll ()
 {
     ulong_t t = ticks;
-    long dt;
+    long dt, i;
     
     if (!ticks_poll ())
 	return;
@@ -1205,11 +1208,11 @@ static void server_state_game_poll ()
 	return;
     
     server_handle_wantfeeds ();
-    
-    while (dt--) {
+
+    for (i = 0; i < dt; i++)
 	server_perform_physics ();
-	server_poll_client_update_hooks ();
-    }
+
+    server_poll_update_hooks (MSECS_PER_TICK * dt);
 
     start_gameinfo_packet (NULL);
     server_send_object_updates ();
