@@ -1,0 +1,17 @@
+Not much you can do.  You can try to compile it, with
+
+	make dos
+	
+or if you're using X, 
+	
+	make X
+	
+You will need these libraries: Allegro / XWinAllegro, SeeR.  Much more to be
+added.	
+	
+Inside the map editor you can scroll around with W A S D.  If you move the
+pointer to the right side of the screen (where the tiles are), you can
+scroll this with W S.  
+
+Left click to place a tile.  Right click to erase.  Hold down Shift, then
+drag with either button to "block edit".
