@@ -237,7 +237,9 @@ cleaner: clean
 ChangeLog:
 	( echo '	This ChangeLog is automatically produced from RCS logs.'; \
 	  echo '	See the Makefile for details.'; echo; \
-	  find -path '*/RCS*/*,v' -exec rlog {} \; | \
+	  find . -path '*/RCS*/*,v' -print | \
+		sed -e 's:^\./\(.*\),v$$:\1: ; s:RCS/::' | \
+		xargs rlog | \
 		tools/cvs2cl.pl --stdin --stdout ) > ChangeLog
 
 EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
