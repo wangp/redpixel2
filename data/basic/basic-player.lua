@@ -50,14 +50,30 @@ local player_nonproxy_init = function (self)
     function self:receive_weapon (name)
 	if weapons[name] and not self.have_weapon[name] then
 	    self.have_weapon[name] = true
-	    if contains (weapon_auto_switch_order, name) then
-		if ((not self.current_weapon) or
-		    (not self.current_weapon.can_fire (self)) or
-		    (index_of (weapon_auto_switch_order, name) < 
-		     index_of (weapon_auto_switch_order, self.current_weapon.name)))
-		then
-		    self:switch_weapon (name)
-		end
+
+	    -- check the new weapon is auto-switchable
+	    if not contains (weapon_auto_switch_order, name) then
+		return
+	    end
+
+	    -- if we're not holding a weapon currently, use the new one
+	    if not self.current_weapon then
+		self:switch_weapon (name)
+		return
+	    end
+
+	    -- don't switch if our current weapon is not auto-switchable
+	    if not contains (weapon_auto_switch_order, self.current_weapon.name) then
+		return
+	    end
+
+	    -- if our current weapon is out of ammo, switch
+	    -- if the new weapon is better than the current weapon, switch
+	    if not self.current_weapon.can_fire (self) or
+	       (index_of (weapon_auto_switch_order, name) < 
+		index_of (weapon_auto_switch_order, self.current_weapon.name))
+	    then
+		self:switch_weapon (name)
 	    end
 	end
     end
