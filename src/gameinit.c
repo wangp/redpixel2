@@ -36,7 +36,7 @@ void game_init (void)
     register_aud_file_type ();
 
     path_init ();
-    store_init (1023);  /* (2^n)-1 or primes are supposed to be good */
+    store_init (1024);
     bitmask_ref_init ();
  
     mylua_open ();
