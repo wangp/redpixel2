@@ -840,9 +840,9 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
     list_head_t *list;
     creation_field_t *f;
     
-    p = buf + packet_encode (buf, "cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+    p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
 			     objtype_name (object_type (obj)), 
-			     object_id (obj),
+			     object_id (obj), object_hidden (obj),
 			     object_x (obj), object_y (obj),
 			     object_xv (obj), object_yv (obj),
 			     object_collision_tag (obj));
@@ -1113,14 +1113,16 @@ static void server_send_object_updates ()
 	    add_to_gameinfo_packet_raw (buf, size);
 	}
 
-	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE)) {
+	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE))
 	    add_to_gameinfo_packet ("clffffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
 				    object_xv (obj), object_yv (obj),
 				    object_xa (obj), object_ya (obj));
-/*  	    server_log ("replicated %d\n", random()%100); */
-	}
+
+	if (object_need_replication (obj, OBJECT_REPLICATE_HIDDEN))
+	    add_to_gameinfo_packet ("clc", MSG_SC_GAMEINFO_OBJECT_HIDDEN,
+				    object_id (obj), object_hidden (obj));
 
 	object_clear_replication_flags (obj);
     }

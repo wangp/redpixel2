@@ -232,15 +232,21 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		char type[NETWORK_MAX_PACKET_SIZE];
 		long len;
 		objid_t id;
+		char hidden;
 		float x, y;
 		float xv, yv;
 		int ctag;
 		object_t *obj;
 
-		buf += packet_decode (buf, "slffffc", &len, type, &id, &x, &y, &xv, &yv, &ctag);
+		buf += packet_decode (buf, "slcffffc", &len, type, &id, &hidden,
+				      &x, &y, &xv, &yv, &ctag);
 		obj = object_create_proxy (type, id);
 		if (!obj)
 		    error ("error: unable to create a proxy object (unknown type?)");
+		if (hidden)
+		    object_hide (obj);
+		else
+		    object_show (obj);
 		object_set_auth_info (obj, ticks - lag, x, y, xv, yv, 0, 0);
 		object_set_xy (obj, x, y);
 		object_set_collision_tag (obj, ctag);
@@ -298,6 +304,22 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		buf += packet_decode (buf, "lffffff", &id, &x, &y, &xv, &yv, &xa, &ya);
 		if ((obj = map_find_object (map, id)))
 		    object_set_auth_info (obj, ticks - lag, x, y, xv, yv, xa, ya);
+		break;
+	    }
+
+	    case MSG_SC_GAMEINFO_OBJECT_HIDDEN:
+	    {
+		objid_t id;
+		char hidden;
+		object_t *obj;
+
+		buf += packet_decode (buf, "lc", &id, &hidden);
+		if ((obj = map_find_object (map, id))) {
+		    if (hidden)
+			object_hide (obj);
+		    else
+			object_show (obj);
+		}
 		break;
 	    }
 

@@ -173,8 +173,8 @@ enum {
 
     /* Tell clients to create a new object.
 
-       Args: long len, char type[], long object_id, float x, float y,
-             float xv, float yv, byte collision_tag.
+       Args: long len, char type[], long object_id, byte hidden_or_not,
+	     float x, float y, float xv, float yv, byte collision_tag.
 
        This is followed by extra fields for the proxy object.
        Each field is of the following format:
@@ -203,6 +203,14 @@ enum {
 
     MSG_SC_GAMEINFO_OBJECT_UPDATE = 'u',
 
+
+    /* Tell clients about an object's new hidden status.
+
+       Args: long object_id, byte hidden_or_not.
+     */
+
+    MSG_SC_GAMEINFO_OBJECT_HIDDEN = 'h',
+    
 
     /* Tell clients about a client's new aim angle.  Note: these
        angles are only approximate.

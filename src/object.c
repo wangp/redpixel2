@@ -48,6 +48,9 @@ struct object {
     objid_t id;
     char is_proxy;
     char is_stale;
+    /* Hidden objects are invisible and do not collide, but their
+     * update hooks are called. */
+    char is_hidden;
 
     float x, y;
     float xv_decay, yv_decay;	/* not replicated */
@@ -276,6 +279,30 @@ inline int object_stale (object_t *obj)
 void object_set_stale (object_t *obj)
 {
     obj->is_stale = 1;
+}
+
+
+inline int object_hidden (object_t *obj)
+{
+    return obj->is_hidden;
+}
+
+
+void object_hide (object_t *obj)
+{
+    if (!obj->is_hidden) {
+	obj->is_hidden = 1;
+	object_set_replication_flag (obj, OBJECT_REPLICATE_HIDDEN);
+    }
+}
+
+
+void object_show (object_t *obj)
+{
+    if (obj->is_hidden) {
+	obj->is_hidden = 0;
+	object_set_replication_flag (obj, OBJECT_REPLICATE_HIDDEN);
+    }
 }
 
 
@@ -917,7 +944,7 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
     objmask_t *mask;
     object_t *p;
 
-    if (object_stale (obj) || !touch_objects (obj))
+    if (!touch_objects (obj))
 	return 0;
 
     mask = obj->mask;
@@ -926,7 +953,10 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 
     list = map_object_list (map);
     list_for_each (p, list) {
-	if ((p == obj) || (object_stale (p)) || (!p->mask[0].ref))
+	if ((p == obj) || (object_stale (p)) || (object_hidden (p)))
+	    continue;
+
+	if (!p->mask[0].ref)
 	    continue;
 	
 	if ((p->collision_tag) && (p->collision_tag == obj->collision_tag))
@@ -948,10 +978,14 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 	call_collide_hook (p, obj);
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
+	if (object_hidden (p)) continue;
+	if (object_hidden (obj)) return 0;
 
 	call_collide_hook (obj, p);
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
+	if (object_hidden (p)) continue;
+	if (object_hidden (obj)) return 0;
 
 	return 1;
     }
@@ -963,8 +997,9 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 static inline int check_collision (object_t *obj, int mask_num, map_t *map,
 				   float x, float y)
 {
-    return (check_collision_with_tiles (obj, mask_num, map, x, y) ||
-	    check_collision_with_objects (obj, mask_num, map, x, y));
+    return ((!object_stale (obj)) && (!object_hidden (obj)) &&
+	    (check_collision_with_tiles (obj, mask_num, map, x, y) ||
+	     check_collision_with_objects (obj, mask_num, map, x, y)));
 }
 
 
@@ -1265,6 +1300,9 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
+    if (object_hidden (obj))
+	return;
+
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
 	if (layer->angle == 0) {
@@ -1298,6 +1336,9 @@ void object_draw_lit_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
+    if (object_hidden (obj))
+	return;
+
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
 	if ((layer->angle != 0) && (!layer->hflip))
@@ -1323,6 +1364,9 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
 {
     objlight_t *light;
     BITMAP *bmp;
+
+    if (object_hidden (obj))
+	return;
 
     list_for_each (light, &obj->lights) {
 	bmp = light->bmp;

@@ -184,6 +184,16 @@ generate {
     args	= {{ Object, "obj" }}
 }
 
+generate {
+    cname	= "object_hide",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_show",
+    args	= {{ Object, "obj" }}
+}
+
 -- little hack for player walking animation code in basic-player.lua
 -- don't use it!
 generate {
