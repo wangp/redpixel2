@@ -82,6 +82,7 @@ local player_nonproxy_init = function (self)
 
     -- health stuff
     self.health = 100
+
     function self:receive_damage (damage)
 	spawn_blood (self.x + cx, self.y + cy, 100, 2)
 	spawn_blod (self.x, self.y, 10)
@@ -96,6 +97,10 @@ local player_nonproxy_init = function (self)
 	    end
 	    self:destroy ()
 	end
+    end
+
+    function self:receive_health (amount)
+	self.health = min (100, self.health + amount)
     end
 
     -- update hook (fire delay and blood trails)
