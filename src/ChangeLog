@@ -1,3 +1,7 @@
+2001-07-11  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Continued work on network stuff.
+
 2001-07-10  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* physics.c: New module to contain simple physics code, which is

@@ -31,19 +31,28 @@ struct object {
     object_t *prev;
     objtype_t *type;
     objid_t id;
-    int check_collision_with_objects;
 
-    /* C variables.  */
+    /* server/client */
     float x, y;
-    float xv, yv;
-    float mass;
-    float ramp;
-    float jump;
-    struct list_head layers;
-    struct list_head lights;
+    float xv;
+    float yv;			/* on client this is mixed in with mass * gravity */
+    list_head_t layers;
+    list_head_t lights;
     objmask_t mask[5];
 
-    /* Lua table ref.  */
+    /* server */
+    float client_yv;		/* this is the yv that the client will receive */
+    float mass;
+    int ramp;
+    int jump;
+    int need_replication;
+
+    /* client */
+    int is_proxy;		/* if true, proxy values shadow real values */
+    unsigned long proxy_time;	/* time when real values were last updated */
+    float proxy_x, proxy_y;
+
+    /* lua table */
     lua_ref_t table;
 };
 
@@ -76,7 +85,7 @@ object_t *object_create (const char *type_name)
 {
     object_t *obj;
 
-    obj = object_create_ex (type_name, next_id, 1);
+    obj = object_create_ex (type_name, next_id);
     if (obj)
 	next_id++;
 
@@ -86,7 +95,7 @@ object_t *object_create (const char *type_name)
 
 /* Only use this when you know what you are doing.  If you mix this
  * with `object_create', two objects may end up with the same id.  */
-object_t *object_create_ex (const char *type_name, objid_t id, int check_collision_with_objects)
+object_t *object_create_ex (const char *type_name, objid_t id)
 {
     lua_State *L = lua_state;
     objtype_t *type;
@@ -99,7 +108,6 @@ object_t *object_create_ex (const char *type_name, objid_t id, int check_collisi
 
     obj->type = type;
     obj->id = id;
-    obj->check_collision_with_objects = check_collision_with_objects;
 
     /* C object references Lua table.  */
     lua_newtable (L);
@@ -139,11 +147,16 @@ void object_destroy (object_t *obj)
 }
 
 
+void object_set_proxy (object_t *obj)
+{
+    obj->is_proxy = 1;
+}
+
+
 objtype_t *object_type (object_t *obj)
 {
     return obj->type;
 }
-
 
 objid_t object_id (object_t *obj)
 {
@@ -151,22 +164,45 @@ objid_t object_id (object_t *obj)
 }
 
 
-float object_x (object_t *obj)
+inline float object_x (object_t *obj)
 {
-    return obj->x;
+    return obj->is_proxy ? obj->proxy_x : obj->x;
 }
 
 
-float object_y (object_t *obj)
+inline float object_y (object_t *obj)
 {
-    return obj->y;
+    return obj->is_proxy ? obj->proxy_y : obj->y;
 }
 
 
 void object_set_xy (object_t *obj, float x, float y)
 {
-    obj->x = x;
-    obj->y = y;
+    if (!obj->is_proxy)
+	object_set_real_xy (obj, x, y);
+    else {
+	obj->proxy_x = x;
+	obj->proxy_y = y;
+    }
+}
+
+
+float object_real_x (object_t *obj)
+{
+    return obj->x;
+}
+
+
+float object_real_y (object_t *obj)
+{
+    return obj->y;
+}
+
+
+void object_set_real_xy (object_t *obj, float x, float y)
+{
+    obj->proxy_x = obj->x = x;
+    obj->proxy_y = obj->y = y;
 }
 
 
@@ -194,6 +230,18 @@ void object_set_yv (object_t *obj, float yv)
 }
 
 
+float object_client_yv (object_t *obj)
+{
+    return obj->client_yv;
+}
+
+
+void object_set_client_yv (object_t *obj, float yv)
+{
+    obj->client_yv = yv;
+}
+
+
 float object_mass (object_t *obj)
 {
     return obj->mass;
@@ -206,27 +254,57 @@ void object_set_mass (object_t *obj, float mass)
 }
 
 
-float object_ramp (object_t *obj)
+int object_ramp (object_t *obj)
 {
     return obj->ramp;
 }
 
 
-void object_set_ramp (object_t *obj, float ramp)
+void object_set_ramp (object_t *obj, int ramp)
 {
     obj->ramp = ramp;
 }
 
 
-float object_jump (object_t *obj)
+int object_jump (object_t *obj)
 {
     return obj->jump;
 }
 
 
-void object_set_jump (object_t *obj, float jump)
+void object_set_jump (object_t *obj, int jump)
 {
     obj->jump = jump;
+}
+
+
+int object_need_replication (object_t *obj)
+{
+    return obj->need_replication;
+}
+
+
+void object_set_need_replication (object_t *obj)
+{
+    obj->need_replication = 1;
+}
+
+
+void object_clear_need_replication (object_t *obj)
+{
+    obj->need_replication = 0;
+}
+
+
+unsigned long object_proxy_time (object_t *obj)
+{
+    return obj->proxy_time;
+}
+
+
+void object_set_proxy_time (object_t *obj, unsigned long proxy_time)
+{
+    obj->proxy_time = proxy_time;
 }
 
 
@@ -517,8 +595,7 @@ static void set_default_masks (object_t *obj)
 /* Collisions.  */
 
 
-static int check_collision_with_tiles (object_t *obj, int mask_num,
-				       map_t *map, int x, int y)
+static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, int x, int y)
 {
     objmask_t *mask;
 
@@ -537,7 +614,7 @@ static int check_collision_with_tiles (object_t *obj, int mask_num,
 static int check_collision_with_objects (object_t *obj, int mask_num,
 					 map_t *map, int x, int y)
 {
-    struct list_head *list;
+    list_head_t *list;
     objmask_t *mask;
     object_t *p;
 
@@ -563,8 +640,7 @@ static inline int check_collision (object_t *obj, int mask_num, map_t *map,
 				   float x, float y)
 {
     return (check_collision_with_tiles (obj, mask_num, map, x, y) ||
-	    (obj->check_collision_with_objects &&
-	     check_collision_with_objects (obj, mask_num, map, x, y)));
+	    check_collision_with_objects (obj, mask_num, map, x, y));
 }
 
 
@@ -594,7 +670,7 @@ int object_move (object_t *obj, int mask_num, map_t *map, float dx, float dy)
 	idx = (ABS (dx) < 1) ? dx : SIGN (dx);
 	idy = (ABS (dy) < 1) ? dy : SIGN (dy);
 
-	if (check_collision (obj, mask_num, map, obj->x + idx, obj->y + idy))
+	if (map && check_collision (obj, mask_num, map, obj->x + idx, obj->y + idy))
 	    return -1;
 
 	obj->x += idx;
@@ -609,9 +685,10 @@ int object_move (object_t *obj, int mask_num, map_t *map, float dx, float dy)
 
 
 int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
-			     float dx, float ramp)
+			     float dx, int ramp)
 {
-    float idx, ir;
+    float idx;
+    int ir;
 
     while (dx) {
 	idx = (ABS (dx) < 1) ? dx : SIGN (dx);
@@ -732,8 +809,8 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
 	bmp = layer->bmp;
 	draw_magic_sprite
 	    (dest, bmp,
-	     obj->x - offset_x + layer->offset_x - bmp->w/3/2,
-	     obj->y - offset_y + layer->offset_y - bmp->h/2);
+	     object_x (obj) - offset_x + layer->offset_x - bmp->w/3/2,
+	     object_y (obj) - offset_y + layer->offset_y - bmp->h/2);
     }
 }
 
@@ -748,8 +825,8 @@ void object_draw_lit_layers (BITMAP *dest, object_t *obj,
 	bmp = layer->bmp;
 	draw_lit_magic_sprite
 	    (dest, bmp,
-	     obj->x - offset_x + layer->offset_x - bmp->w/3/2,
-	     obj->y - offset_y + layer->offset_y - bmp->h/2,
+	     object_x (obj) - offset_x + layer->offset_x - bmp->w/3/2,
+	     object_y (obj) - offset_y + layer->offset_y - bmp->h/2,
 	     color);
     }
 }
@@ -765,8 +842,8 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
 	bmp = light->bmp;
 	draw_trans_magic_sprite
 	    (dest, bmp,
-	     obj->x - offset_x + light->offset_x - bmp->w/3/2,
-	     obj->y - offset_y + light->offset_y - bmp->h/2);
+	     object_x (obj) - offset_x + light->offset_x - bmp->w/3/2,
+	     object_y (obj) - offset_y + light->offset_y - bmp->h/2);
     }
 }
 

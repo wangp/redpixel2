@@ -273,7 +273,7 @@ static object_t *highlighted;
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
-    struct list_head *list;
+    list_head_t *list;
     object_t *p;
 
     offx *= 16;
@@ -293,7 +293,7 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
 
 static object_t *find_object (int x, int y)
 {
-    struct list_head *list;
+    list_head_t *list;
     object_t *p, *last = NULL;
     int x1, y1, x2, y2;
 

@@ -12,7 +12,7 @@ enum {
     /* The server sends this to a client right after it joins to
        notify it of its registration details.
        
-       Args: long client_id  (4 bytes).
+       Args: long client_id.
      */
 
     MSG_SC_JOININFO = 'j',
@@ -21,7 +21,7 @@ enum {
     /* The client sends this to the server after it joins and receives
        the MSG_SC_POST_JOIN message.
 
-       Args: long len, char name[]  (4 + len bytes).
+       Args: long len, char name[].
      */
 
     MSG_CS_JOININFO = 'J',
@@ -76,6 +76,25 @@ enum {
        the lobby.  */
 
     MSG_SC_LOBBY = 'l',
+
+
+    /* The client sends this to the server to initiate the ping
+       sequence.  We use it to calculate the amount of lag between
+       server and client.  */
+
+    MSG_CS_PING = '?',
+
+
+    /* The server sends this back to the client in response to a ping.
+       It then waits for a boing.  */
+
+    MSG_SC_PONG = '!',
+
+    
+    /* The client sends this back to the server in response to a pong.
+       The ping sequence is then complete.  */
+
+    MSG_CS_BOING = '@',
     
 
     /* The client sends this when it wants to politely disconnect from
@@ -98,10 +117,9 @@ enum {
    arguments.  The next sub-message then follows behind that, etc.  */
 
 
+/* Client to Server. */
+
 enum {
-
-    /* ---------- Client to Server ---------- */
-
 
     /* Notify server of input controls.
 
@@ -121,15 +139,17 @@ enum {
        Args: long len, char text[]  (4 + len bytes).
      */
 
-    MSG_CS_GAMEINFO_TEXT = 't',
+    MSG_CS_GAMEINFO_TEXT = 't'
+};
 
 
-    /* ---------- Server to Client ---------- */
+/* Server to Client. */
 
+enum {
     
     /* Tell clients to load a map.
 
-       Args: long len, string filename  (4 + len bytes).
+       Args: long len, string filename.
      */
 
     MSG_SC_GAMEINFO_MAPLOAD = 'l',
@@ -137,40 +157,31 @@ enum {
 
     /* Tell clients to create a new object.
 
-       Args: long len, char type[], long object_id, float x, float y
-       (16 + len bytes).
+       Args: long len, char type[], long object_id, float x, float y.
      */
 
-    MSG_SC_GAMEINFO_OBJECTCREATE = 'c',
+    MSG_SC_GAMEINFO_OBJECT_CREATE = 'c',
 
 
     /* Tell clients to destroy an object.
 
-       Args: long object_id  (4 bytes).
+       Args: long object_id.
      */
 
-    MSG_SC_GAMEINFO_OBJECTDESTROY = 'd',
+    MSG_SC_GAMEINFO_OBJECT_DESTROY = 'd',
 
 
-    /* Tell clients that an object's velocities has changed.
+    /* Tell clients about an object's new position and velocities.
 
-       Args: long object_id, float xv, float yv  (12 bytes).
+       Args: long object_id, float x, float y, float xv, float yv.
      */
 
-    MSG_SC_GAMEINFO_OBJECTSETVEL = 'v',
-
-
-    /* Tell clients that an object has been moved.
-     
-       Args: long object_id, float x, float y  (12 bytes).
-     */
-    
-    MSG_SC_GAMEINFO_OBJECTMOVE = 'm',
+    MSG_SC_GAMEINFO_OBJECT_UPDATE = 'u',
 
 
     /* Tell clients to display a text message.
 
-       Args: long len, byte text[]  (4 + len bytes).
+       Args: long len, byte text[].
      */
 
     MSG_SC_GAMEINFO_TEXT = 't',

@@ -67,7 +67,7 @@ static struct editmode start_mode = {
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
-    struct list_head *list;
+    list_head_t *list;
     start_t *p;
 
     offx *= 16;
@@ -82,7 +82,7 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
 
 static start_t *find_start (int x, int y)
 {
-    struct list_head *list;
+    list_head_t *list;
     start_t *p, *last = NULL;
 
     list = map_start_list (editor_map);

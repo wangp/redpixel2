@@ -173,7 +173,7 @@ static struct editmode light_mode = {
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
-    struct list_head *list;
+    list_head_t *list;
     light_t *p;
 
     offx *= 16;
@@ -193,7 +193,7 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
 
 static light_t *find_light (int x, int y)
 {
-    struct list_head *list;
+    list_head_t *list;
     light_t *p, *last = 0;
 
     list = map_light_list (editor_map);

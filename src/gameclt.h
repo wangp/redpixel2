@@ -2,8 +2,8 @@
 #define __included_gameclt_h
 
 
-int game_client_init (const char *addr);
-void game_client ();
+int game_client_init (const char *name, const char *addr);
+void game_client_run ();
 void game_client_shutdown ();
 
 

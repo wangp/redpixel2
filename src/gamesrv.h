@@ -11,9 +11,9 @@ typedef struct {
 } game_server_interface_t;
 
 
-int ng_game_server_init (game_server_interface_t *);
-void ng_game_server ();
-void ng_game_server_shutdown ();
+int game_server_init (game_server_interface_t *);
+void game_server_run ();
+void game_server_shutdown ();
 
 
 #endif

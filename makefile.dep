@@ -15,18 +15,20 @@ $(OBJDIR)/fps.o: src/fps.c src/fps.h
 $(OBJDIR)/gameclt.o: src/gameclt.c src/camera.h src/error.h src/fps.h \
  src/gameclt.h src/list.h src/magic/magic4x4.h src/magic/magicrt.h \
  src/map.h src/mapfile.h src/netmsg.h src/object.h src/mylua.h \
- src/packet.h src/render.h src/store/store.h src/yield.h
+ src/packet.h src/physics.h src/render.h src/store/store.h \
+ src/timeout.h src/yield.h
 $(OBJDIR)/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h \
  src/fastsqrt/fastsqrt.h src/gameinit.h src/loaddata.h \
  src/magic/magic4x4.h src/mylua.h src/object.h src/objtypes.h \
  src/path.h src/store/store.h
 $(OBJDIR)/gamesrv.o: src/gamesrv.c src/alloc.h src/error.h src/gamesrv.h \
  src/list.h src/map.h src/mapfile.h src/netmsg.h src/object.h \
- src/mylua.h src/objtypes.h src/packet.h src/yield.h
+ src/mylua.h src/objtypes.h src/packet.h src/physics.h src/timeout.h \
+ src/yield.h
 $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/loaddata.h \
  src/path.h src/store/store.h src/vtree.h
 $(OBJDIR)/main.o: src/main.c src/editor/editor.h src/gameinit.h src/gameclt.h \
- src/gamesrv.h
+ src/gamesrv.h src/textface.h
 $(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/list.h src/map.h \
  src/object.h src/mylua.h src/store/store.h
 $(OBJDIR)/mapfile.o: src/mapfile.c src/list.h src/map.h src/mapfile.h \
@@ -39,8 +41,12 @@ $(OBJDIR)/objtypes.o: src/objtypes.c src/alloc.h src/bitmask.h src/bitmaskg.h \
  src/mylua.h src/objtypes.h src/store/store.h
 $(OBJDIR)/packet.o: src/packet.c src/packet.h src/error.h
 $(OBJDIR)/path.o: src/path.c src/path.h
+$(OBJDIR)/physics.o: src/physics.c src/alloc.h src/map.h src/object.h \
+ src/mylua.h src/physics.h
 $(OBJDIR)/render.o: src/render.c src/camera.h src/list.h src/magic/magic4x4.h \
  src/map.h src/object.h src/mylua.h src/store/store.h src/render.h
+$(OBJDIR)/textface.o: src/textface.c src/gamesrv.h src/textface.h
+$(OBJDIR)/timeout.o: src/timeout.c src/alloc.h src/timeout.h
 $(OBJDIR)/yield.o: src/yield.c src/yield.h
 $(OBJDIR)/example.o: src/store/example.c src/store/store.h
 $(OBJDIR)/hash.o: src/store/hash.c src/store/hash.h

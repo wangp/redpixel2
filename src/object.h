@@ -21,24 +21,35 @@ void object_shutdown ();
 
 
 object_t *object_create (const char *type_name);
-object_t *object_create_ex (const char *type_name, objid_t id, int check_collision_with_objects);
+object_t *object_create_ex (const char *type_name, objid_t id);
 void object_destroy (object_t *obj);
+void object_set_proxy (object_t *obj);
 
 struct objtype *object_type (object_t *obj);
 objid_t object_id (object_t *obj);
 float object_x (object_t *obj);
 float object_y (object_t *obj);
 void object_set_xy (object_t *obj, float x, float y);
+float object_real_x (object_t *obj);
+float object_real_y (object_t *obj);
+void object_set_real_xy (object_t *obj, float x, float y);
 float object_xv (object_t *obj);
 float object_yv (object_t *obj);
 void object_set_xv (object_t *obj, float xv);
 void object_set_yv (object_t *obj, float yv);
+float object_client_yv (object_t *obj);
+void object_set_client_yv (object_t *obj, float yv);
 float object_mass (object_t *obj);
 void object_set_mass (object_t *obj, float mass);
-float object_ramp (object_t *obj);
-void object_set_ramp (object_t *obj, float ramp);
-float object_jump (object_t *obj);
-void object_set_jump (object_t *obj, float jump);
+int object_ramp (object_t *obj);
+void object_set_ramp (object_t *obj, int ramp);
+int object_jump (object_t *obj);
+void object_set_jump (object_t *obj, int jump);
+int object_need_replication (object_t *obj);
+void object_set_need_replication (object_t *obj);
+void object_clear_need_replication (object_t *obj);
+unsigned long object_proxy_time (object_t *obj);
+void object_set_proxy_time (object_t *obj, unsigned long proxy_time);
 
 
 /* Layers.  */
@@ -83,7 +94,7 @@ int object_supported_at (object_t *obj, struct map *map, float x, float y);
 
 int object_move (object_t *obj, int mask_num, struct map *map, float xv, float yv);
 int object_move_x_with_ramp (object_t *obj, int mask_num, struct map *map,
-			     float dx, float ramp_amount);
+			     float dx, int ramp_amount);
 
 
 /* Lua table operations.  */

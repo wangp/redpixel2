@@ -27,7 +27,7 @@ struct bitmask_ref {
 };
 
 
-static struct list_head ref_list;
+static list_head_t ref_list;
 
 
 static bitmask_ref_t *create (bitmask_t *mask, int free)

@@ -1,12 +1,18 @@
 -- objgen.lua -- generate game object field accessors
 
 
--- supported types (currently only floats)
+-- supported types
 
 Float = 'Float'
+Int = 'Int'
 
 types = {
     Float = { 
+	predicate = 'lua_isnumber',
+	get = 'lua_pushnumber',
+	set = '@VAR@ = lua_tonumber(@LUA@);'
+    },
+    Int = {
 	predicate = 'lua_isnumber',
 	get = 'lua_pushnumber',
 	set = '@VAR@ = lua_tonumber(@LUA@);'
@@ -21,8 +27,7 @@ cvars = {{ Float, 'x' },
 	 { Float, 'xv' },
 	 { Float, 'yv' },
 	 { Float, 'mass' },
-	 { Float, 'ramp' },
-	 { Float, 'jump' }}
+	 { Int, 'ramp' }}
 
 
 -- helpers

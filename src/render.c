@@ -37,7 +37,7 @@ static void render_tiles (BITMAP *bmp, map_t *map, int offx, int offy,
 
 void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    struct list_head *list;
+    list_head_t *list;
     light_t *l;
     BITMAP *b;
     
@@ -53,7 +53,7 @@ void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 
 static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    struct list_head *list;
+    list_head_t *list;
     object_t *obj;
 
     list = map_object_list (map);
@@ -64,7 +64,7 @@ static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
 
 static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    struct list_head *list;
+    list_head_t *list;
     object_t *obj;
 
     list = map_object_list (map);

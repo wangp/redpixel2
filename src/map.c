@@ -17,9 +17,9 @@ struct map {
     int width, height;
     int **tile;
     bitmask_t *tile_mask;
-    struct list_head lights;
-    struct list_head objects;
-    struct list_head starts;
+    list_head_t lights;
+    list_head_t objects;
+    list_head_t starts;
 };
 
 
@@ -176,7 +176,7 @@ object_t *map_find_object (map_t *map, int id)
 }
 
 
-struct list_head *map_object_list (map_t *map)
+list_head_t *map_object_list (map_t *map)
 {
     return &map->objects;
 }
@@ -239,7 +239,7 @@ void map_light_move (light_t *light, int x, int y)
 }
 
 
-struct list_head *map_light_list (map_t *map)
+list_head_t *map_light_list (map_t *map)
 {
     return &map->lights;
 }
@@ -295,7 +295,7 @@ void map_start_move (start_t *start, int x, int y)
 }
 
 
-struct list_head *map_start_list (map_t *map)
+list_head_t *map_start_list (map_t *map)
 {
     return &map->starts;
 }

@@ -32,11 +32,13 @@
 #endif
 
 
-/*----------------------------------------------------------------------*/
+typedef unsigned char uchar_t;
+typedef unsigned long ulong_t;
 
 
 static NET_CONN *conn;
 static int client_id;
+static char *client_name;
 
 static map_t *map;
 static physics_t *physics;
@@ -44,6 +46,10 @@ static BITMAP *bmp;
 static camera_t *cam;
 
 #define local_object_id	(-client_id)
+
+static int pinging;
+static ulong_t last_ping_time;
+static int lag;
 
 static int last_controls;
 
@@ -53,7 +59,40 @@ static int backgrounded;
 /*----------------------------------------------------------------------*/
 
 
-static int net_send_rdm_byte (NET_CONN *conn, unsigned char c)
+/* keep in sync with gamesrv.c */
+#define TICKS_PER_SECOND	(50)
+
+
+static volatile ulong_t ticks;
+
+
+static void ticker ()
+{
+    ticks++;
+}
+
+END_OF_STATIC_FUNCTION (ticker);
+
+
+static void ticks_init ()
+{
+    LOCK_VARIABLE (ticks);
+    LOCK_FUNCTION (ticker);
+    install_int_ex (ticker, BPS_TO_TIMER (TICKS_PER_SECOND));
+    ticks = 0;
+}
+
+
+static void ticks_shutdown ()
+{
+    remove_int (ticker);
+}
+
+
+/*----------------------------------------------------------------------*/
+
+
+static int net_send_rdm_byte (NET_CONN *conn, uchar_t c)
 {
     return net_send_rdm (conn, &c, 1);
 }
@@ -62,7 +101,7 @@ static int net_send_rdm_byte (NET_CONN *conn, unsigned char c)
 static int net_send_rdm_encode (NET_CONN *conn, const char *fmt, ...)
 {
     va_list ap;
-    char buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NET_MAX_PACKET_SIZE];
     int size;
 
     va_start (ap, fmt);
@@ -79,10 +118,11 @@ static void perform_simple_physics ()
 {
     list_head_t *object_list;
     object_t *obj;
-
+    ulong_t t = ticks;
+    
     object_list = map_object_list (map);
     list_for_each (obj, object_list)
-	physics_move_object (physics, obj);
+	physics_interpolate_object (physics, obj, t - object_proxy_time (obj));
 }
 
 
@@ -101,7 +141,7 @@ static void send_gameinfo_controls ()
 	controls |= 0x04;
 
     if (controls != last_controls) {
-	char buf[] = { MSG_CS_GAMEINFO, MSG_CS_GAMEINFO_CONTROLS, controls };
+	uchar_t buf[] = { MSG_CS_GAMEINFO, MSG_CS_GAMEINFO_CONTROLS, controls };
 	net_send_rdm (conn, buf, sizeof buf);
 	last_controls = controls;
     }
@@ -111,7 +151,7 @@ static void send_gameinfo_controls ()
 /*----------------------------------------------------------------------*/
 
 
-static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
+static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 {
     const void *end = buf + size;
 
@@ -132,11 +172,11 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		if (map)
 		    map_destroy (map);
 		map = map_load (filename, 0, NULL);
-		physics = physics_create (map);
+		physics = physics_create (NULL);
 		break;
 	    }
 
-	    case MSG_SC_GAMEINFO_OBJECTCREATE:
+	    case MSG_SC_GAMEINFO_OBJECT_CREATE:
 	    {
 		char type[NET_MAX_PACKET_SIZE];
 		long len;
@@ -145,13 +185,14 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		object_t *obj;
 
 		buf += packet_decode (buf, "slff", &len, type, &id, &x, &y);
-		obj = object_create_ex (type, id, 0);
-		object_set_xy (obj, x, y);
+		obj = object_create_ex (type, id);
+		object_set_proxy (obj);
+		object_set_real_xy (obj, x, y);
 		map_link_object (map, obj);
 		break;
 	    }
 
-	    case MSG_SC_GAMEINFO_OBJECTDESTROY:
+	    case MSG_SC_GAMEINFO_OBJECT_DESTROY:
 	    {
 		objid_t id;
 		object_t *obj;
@@ -164,15 +205,20 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		break;
 	    }
 
-	    case MSG_SC_GAMEINFO_OBJECTMOVE:
+	    case MSG_SC_GAMEINFO_OBJECT_UPDATE:
 	    {
 		objid_t id;
 		float x, y;
+		float xv, yv;
 		object_t *obj;
 
-		buf += packet_decode (buf, "lff", &id, &x, &y);
-		if ((obj = map_find_object (map, id)))
-		    object_set_xy (obj, x, y);
+		buf += packet_decode (buf, "lffff", &id, &x, &y, &xv, &yv);
+		if ((obj = map_find_object (map, id))) {
+		    object_set_real_xy (obj, x, y);
+		    object_set_xv (obj, xv);
+		    object_set_yv (obj, yv);
+		    object_set_proxy_time (obj, ticks - lag);
+		}
 		break;
 	    }
 
@@ -180,6 +226,8 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		error ("error: unknown code in gameinfo packet (client)\n");
 	}
     }
+
+    dbg ("done process gameinfo packet");
 }
 
 
@@ -273,40 +321,11 @@ static void switch_out_callback ()
 /*----------------------------------------------------------------------*/
 
 
-static volatile int ticks;
-
-
-static void ticker ()
-{
-    ticks++;
-}
-
-END_OF_STATIC_FUNCTION (ticker);
-
-
-static void init_ticker ()
-{
-    LOCK_VARIABLE (ticks);
-    LOCK_FUNCTION (ticker);
-    install_int_ex (ticker, BPS_TO_TIMER (50));
-    ticks = 0;
-}
-
-
-static void shutdown_ticker ()
-{
-    remove_int (ticker);
-}
-
-
-/*----------------------------------------------------------------------*/
-
-
-void game_client ()
+void game_client_run ()
 {
     dbg ("connecting");
     {
-	char buf[NET_MAX_PACKET_SIZE];
+	uchar_t buf[NET_MAX_PACKET_SIZE];
 
 	while (1) {
 	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
@@ -317,7 +336,7 @@ void game_client ()
 	    switch (buf[0]) {
 		case MSG_SC_JOININFO:
 		    packet_decode (buf+1, "l", &client_id);
-		    net_send_rdm_encode (conn, "cs", MSG_CS_JOININFO, "SomeGuy");
+		    net_send_rdm_encode (conn, "cs", MSG_CS_JOININFO, client_name);
 		    goto lobby;
 
 		case MSG_SC_DISCONNECTED:
@@ -330,7 +349,7 @@ void game_client ()
     
     dbg ("lobby");
     {
-	char buf[NET_MAX_PACKET_SIZE];
+	uchar_t buf[NET_MAX_PACKET_SIZE];
 
 	while (1) {
 	    if (key[KEY_Q])
@@ -355,13 +374,14 @@ void game_client ()
 
     dbg ("receive game state");
     {
-	char buf[NET_MAX_PACKET_SIZE];
+	uchar_t buf[NET_MAX_PACKET_SIZE];
 	int size;
 
 	net_send_rdm_byte (conn, MSG_CS_GAMESTATEFEED_ACK);
 
 	while (1) {
-	    if ((size = net_receive_rdm (conn, buf, sizeof buf)) <= 0) {
+	    size = net_receive_rdm (conn, buf, sizeof buf);
+	    if (size <= 0) {
 		yield ();
 		continue;
 	    }
@@ -384,20 +404,26 @@ void game_client ()
         
     dbg ("pause");
     {
-	unsigned char c;
+	uchar_t buf[NET_MAX_PACKET_SIZE];
+	int size;
 
 	while (1) {
 	    if (key[KEY_Q])
 		goto disconnect;
 
-	    if (net_receive_rdm (conn, &c, 1) <= 0) {
+	    size = net_receive_rdm (conn, buf, sizeof buf);
+	    if (size <= 0) {
 		yield ();
 		continue;
 	    }
 
-	    switch (c) {
+	    switch (buf[0]) {
 		case MSG_SC_GAMESTATEFEED_REQ:
 		    goto receive_game_state;
+
+		case MSG_SC_GAMEINFO:
+		    process_sc_gameinfo_packet (buf+1, size-1);
+		    break;
 
 		case MSG_SC_RESUME:
 		    goto game;
@@ -412,28 +438,32 @@ void game_client ()
     
     dbg ("game");
     {
+	ulong_t last_ticks = 0;
 	int redraw = 1;
 
-	init_ticker ();
+	ticks_init ();
+
+	pinging = 0;
+	last_ping_time = 0;
 
 	while (1) {
 	    if (key[KEY_Q])
 		goto disconnect;
     
-	    while (ticks > 0) {
+	    if (ticks != last_ticks) {
 		dbg ("perform simple physics");
 		perform_simple_physics ();
 
 		dbg ("send gameinfo");
 		send_gameinfo_controls ();
 
-		ticks--;
+		last_ticks = ticks;
 		redraw = 1;
 	    }
 
 	    dbg ("process network input");
 	    {
-		char buf[NET_MAX_PACKET_SIZE];
+		uchar_t buf[NET_MAX_PACKET_SIZE];
 		int size;
 		int receive_game_state_later = 0;
 		int pause_later = 0;
@@ -463,6 +493,12 @@ void game_client ()
 			    lobby_later = 1;
 			    break;
 
+			case MSG_SC_PONG:
+			    pinging = 0;
+			    lag = (ticks - last_ping_time) / 2;
+			    net_send_rdm_byte (conn, MSG_CS_BOING);
+			    break;
+
 			case MSG_SC_DISCONNECTED:
 			    end_later = 1;
 			    break;
@@ -473,6 +509,13 @@ void game_client ()
 		if (pause_later) goto pause;
 		if (lobby_later) goto lobby;
 		if (end_later) goto end;
+	    }
+
+	    dbg ("handling pinging");
+	    if ((!pinging) && (ticks > last_ping_time + (2 * TICKS_PER_SECOND))) {
+		pinging = 1;
+		last_ping_time = ticks;
+		net_send_rdm_byte (conn, MSG_CS_PING);
 	    }
 
 	    if (update_camera ())
@@ -487,7 +530,7 @@ void game_client ()
 	    yield ();
 	}
 
-	shutdown_ticker ();
+	ticks_shutdown ();
     }
     
   disconnect:
@@ -495,7 +538,7 @@ void game_client ()
     dbg ("disconnect");
     {
 	timeout_t timeout;
-	unsigned char c;
+	uchar_t c;
 
 	net_send_rdm_byte (conn, MSG_CS_DISCONNECT_ASK);
 
@@ -522,7 +565,7 @@ void game_client ()
 /*----------------------------------------------------------------------*/
 
 
-int game_client_init (const char *addr)
+int game_client_init (const char *name, const char *addr)
 {
     int status;
 
@@ -538,6 +581,8 @@ int game_client_init (const char *addr)
 
     if (status < 1)
 	goto error;
+
+    client_name = ustrdup (name);
 
     bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
     cam = camera_create (SCREEN_W, SCREEN_H);
@@ -575,5 +620,6 @@ void game_client_shutdown ()
     }
     camera_destroy (cam);
     destroy_bitmap (bmp);
+    free (client_name);
     net_closeconn (conn);
 }

@@ -73,18 +73,22 @@ int main (int argc, char *argv[])
     int w = 320, h = 200, d = -1;
     int run_editor = 0;
     int run_server = 0;
+    const char *name = "noname";
     const char *addr = "127.0.0.1";
     int c;
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, "sa:ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, "sa:n:ew:h:d:")) != -1) {
 	switch (c) {
 	    case 's':
 		run_server = 1;
 		break;
 	    case 'a':
 		addr = optarg;
+		break;
+	    case 'n':
+		name = optarg;
 		break;
 	    case 'e':
 		run_editor = 1;
@@ -124,14 +128,17 @@ int main (int argc, char *argv[])
 	editor ();
     }
     else if (run_server) {
-	if (ng_game_server_init (&game_server_text_interface) == 0) {
-	    ng_game_server ();
-	    ng_game_server_shutdown ();
+	if (game_server_init (&game_server_text_interface) < 0) {
+	    allegro_message ("Error initialising game server.  Perhaps another\n"
+			     "game server is already running on the same port?\n");
+	} else {
+	    game_server_run ();
+	    game_server_shutdown ();
 	}
     }
     else {
-	if (game_client_init (addr) == 0) {
-	    game_client (addr);
+	if (game_client_init (name, addr) == 0) {
+	    game_client_run ();
 	    game_client_shutdown ();
 	}
     }

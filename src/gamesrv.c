@@ -21,7 +21,8 @@
 #include "yield.h"
 
 
-/* Pseudo-string stuff. */
+typedef unsigned char uchar_t;
+typedef unsigned long ulong_t;
 
 typedef char *string_t;
 #define string_init(var)	(var = NULL)
@@ -29,63 +30,108 @@ typedef char *string_t;
 #define string_free(var)	({ free (var); var = NULL; })
 
 
-/* Client nodes. */
+/*----------------------------------------------------------------------*/
+/*			          Ticker	      			*/
+/*----------------------------------------------------------------------*/
 
-typedef struct clt clt_t;
+/* keep in sync with gameclt.c */
+#define TICKS_PER_SECOND	(50)
+#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
+
+static ulong_t ticks;
+static struct timeval ticks_last_update;
+
+static void ticks_init ()
+{
+    ticks = 0;
+    gettimeofday (&ticks_last_update, NULL);
+}
+
+static int ticks_poll ()
+{
+    struct timeval now;
+    ulong_t elapsed_msec;
+
+    gettimeofday (&now, NULL);
+
+    elapsed_msec = (((now.tv_sec * 1000) + (now.tv_usec / 1000)) -
+		    ((ticks_last_update.tv_sec * 1000) +
+		     (ticks_last_update.tv_usec / 1000)));
+
+    if (elapsed_msec > MSECS_PER_TICK) {
+	ticks += (elapsed_msec / MSECS_PER_TICK);
+	/* XXX this isn't completely accurate */
+	ticks_last_update = now;
+	return 1;
+    }
+
+    return 0;
+}
+
+static void ticks_shutdown ()
+{
+}
+
+
+/*----------------------------------------------------------------------*/
+/*			          Client nodes	      			*/
+/*----------------------------------------------------------------------*/
+
+typedef struct client client_t;
 
 typedef enum {
-    CLT_STATE_NONE = 0,
-    CLT_STATE_JOINING,
-    CLT_STATE_JOININGQUEUE,
-    CLT_STATE_JOINED,
-    CLT_STATE_STALE,
-} clt_state_t;
+    CLIENT_STATE_NONE = 0,
+    CLIENT_STATE_JOINING,
+    CLIENT_STATE_JOINED,
+    CLIENT_STATE_STALE,
+} client_state_t;
 
-struct clt {
-    clt_t *next;
-    clt_t *prev;
+struct client {
+    client_t *next;
+    client_t *prev;
     NET_CONN *conn;
     int id;
     string_t name;
-    clt_state_t state;
+    client_state_t state;
     int flags;
     int controls;
     timeout_t timeout;
+    ulong_t pong_time;
+    int lag;
 };
 
-#define clt_object_id(c)	(- (c)->id)
+#define client_object_id(c)	(- (c)->id)
 
-#define clt_state(c)		((c)->state)
-#define clt_set_state(c,s)	((c)->state = (s))
+#define client_set_state(c,s)	((c)->state = (s))
 
-#define CLT_FLAG_READY		0x02
-#define CLT_FLAG_CANTIMEOUT	0x04
+#define CLIENT_FLAG_READY	0x01
+#define CLIENT_FLAG_WANTFEED	0x02
+#define CLIENT_FLAG_CANTIMEOUT	0x04
 
-#define clt_test_flag(c,f)	((c)->flags & (f))
-#define clt_set_flag(c,f)	((c)->flags |= (f))
-#define clt_clear_flag(c,f)	((c)->flags &=~ (f))
-
-#define clt_ready(c)		(clt_test_flag (c, CLT_FLAG_READY))
-#define clt_set_ready(c)	(clt_set_flag (c, CLT_FLAG_READY))
-#define clt_clear_ready(c)	(clt_clear_flag (c, CLT_FLAG_READY))
-
-#define clt_cantimeout(c)	(clt_test_flag (c, CLT_FLAG_CANTIMEOUT))
-#define clt_set_cantimeout(c)	(clt_set_flag (c, CLT_FLAG_CANTIMEOUT))
-#define clt_clear_cantimeout(c)	(clt_clear_flag (c, CLT_FLAG_CANTIMEOUT))
+#define client_ready(c)             ((c)->flags &   CLIENT_FLAG_READY)
+#define client_set_ready(c)         ((c)->flags |=  CLIENT_FLAG_READY)
+#define client_clear_ready(c)       ((c)->flags &=~ CLIENT_FLAG_READY)
+#define client_wantfeed(c)          ((c)->flags &   CLIENT_FLAG_WANTFEED)
+#define client_set_wantfeed(c)      ((c)->flags |=  CLIENT_FLAG_WANTFEED)
+#define client_clear_wantfeed(c)    ((c)->flags &=~ CLIENT_FLAG_WANTFEED)
+#define client_cantimeout(c)        ((c)->flags &   CLIENT_FLAG_CANTIMEOUT)
+#define client_set_cantimeout(c)    ((c)->flags |=  CLIENT_FLAG_CANTIMEOUT)
+#define client_clear_cantimeout(c)  ((c)->flags &=~ CLIENT_FLAG_CANTIMEOUT)
 
 static list_head_t clients;
-static int clt_next_id;
+static int clients_next_id;
 
-static clt_t *clt_create (NET_CONN *conn)
+static client_t *client_create (NET_CONN *conn)
 {
-    clt_t *c = alloc (sizeof *c);
+    client_t *c = alloc (sizeof *c);
     c->conn = conn;
-    c->id = clt_next_id++;
+    c->id = clients_next_id++;
+    c->name = ustrdup ("(unknown)");
     list_append (clients, c);
     return c;
 }
 
-static void clt_destroy (clt_t *c)
+static void client_destroy (client_t *c)
 {
     if (c) {
 	list_remove (c);
@@ -95,137 +141,137 @@ static void clt_destroy (clt_t *c)
     }
 }
 
-static const char *clt_name (clt_t *c)
-{
-    return c->name;
-}
-
-static void clt_set_name (clt_t *c, const char *name)
+static void client_set_name (client_t *c, const char *name)
 {
     string_set (c->name, name);
 }
 
-static void clt_set_timeout (clt_t *c, int secs)
+static void client_set_timeout (client_t *c, int secs)
 {
     timeout_set (&c->timeout, secs * 1000);
 }
 
-static int clt_timed_out (clt_t *c)
+static int client_timed_out (client_t *c)
 {
-    return clt_cantimeout (c) && timeout_test (&c->timeout);
+    return client_cantimeout (c) && timeout_test (&c->timeout);
 }
 
-static int clt_send_rdm (clt_t *c, const void *buf, int size)
+static int client_send_rdm (client_t *c, const void *buf, int size)
 {
-    return net_send_rdm (c->conn, buf, size);
+    int x = net_send_rdm (c->conn, buf, size);
+    if (x < 0)
+	error ("internal error: exceeded conn outqueue\n");
+    return x;
 }
 
-static int clt_send_rdm_byte (clt_t *c, char byte)
+static int client_send_rdm_byte (client_t *c, uchar_t byte)
 {
-    return net_send_rdm (c->conn, &byte, 1);
+    return client_send_rdm (c, &byte, 1);
 }
 
-static int clt_send_rdm_encode (clt_t *c, const char *fmt, ...)
+static int client_send_rdm_encode (client_t *c, const char *fmt, ...)
 {
     va_list ap;
-    char buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NET_MAX_PACKET_SIZE];
     int size;
 
     va_start (ap, fmt);
     size = packet_encode_v (buf, fmt, ap);
     va_end (ap);
-    return net_send_rdm (c->conn, buf, size);
+    return client_send_rdm (c, buf, size);
 }
 
-static int clt_receive_rdm (clt_t *c, void *buf, int size)
+static int client_receive_rdm (client_t *c, void *buf, int size)
 {
     if (!net_query_rdm (c->conn))
 	return 0;
     return net_receive_rdm (c->conn, buf, size);
 }
 
-static void clt_init ()
+#define for_each_client(c)		list_for_each(c, &clients)
+
+static void clients_broadcast_rdm (const void *buf, int size)
 {
-    list_init (clients);
-    clt_next_id = 1;  /* not zero! (see clt_object_id) */
+    client_t *c;
+
+    for_each_client (c)
+	if (c->state != CLIENT_STATE_STALE)
+	    client_send_rdm (c, buf, size);
 }
 
-static void clt_shutdown ()
+static void clients_broadcast_rdm_byte (uchar_t c)
 {
-    list_free (clients, clt_destroy);
+    clients_broadcast_rdm (&c, 1);
 }
 
-#define for_each_clt(c)		list_for_each(c, &clients)
-
-static void clt_broadcast_rdm (const void *buf, int size)
-{
-    clt_t *c;
-
-    for_each_clt (c)
-	if (clt_state (c) != CLT_STATE_STALE)
-	    clt_send_rdm (c, buf, size);
-}
-
-static void clt_broadcast_rdm_byte (char c)
-{
-    clt_broadcast_rdm (&c, 1);
-}
-
-static void clt_broadcast_rdm_encode (const char *fmt, ...)
+static void clients_broadcast_rdm_encode (const char *fmt, ...)
 {
     va_list ap;
-    char buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NET_MAX_PACKET_SIZE];
     int size;
 
     va_start (ap, fmt);
     size = packet_encode_v (buf, fmt, ap);
-    clt_broadcast_rdm (buf, size);
+    clients_broadcast_rdm (buf, size);
     va_end (ap);
 }
 
-static int clt_count ()
+static int clients_count ()
 {
-    clt_t *c;
+    client_t *c;
     int n = 0;
-    for_each_clt (c) n++;
+    for_each_client (c) n++;
     return n;
 }
 
-static clt_t *clt_find (int id)
+static client_t *clients_find_by_id (int id)
 {
-    clt_t *c;
+    client_t *c;
 
-    for_each_clt (c)
+    for_each_client (c)
 	if (c->id == id) return c;
 
     return NULL;
 }
 
+static void clients_remove_stale ()
+{
+    client_t *c, *next;
+    
+    for (c = clients.next; list_neq (c, &clients); c = next) {
+	next = list_next (c);
+	if (c->state == CLIENT_STATE_STALE)
+	    client_destroy (c);
+    }
+}
+
+static void clients_init ()
+{
+    list_init (clients);
+    clients_next_id = 1;  /* not zero! (see client_object_id) */
+}
+
+static void clients_shutdown ()
+{
+    list_free (clients, client_destroy);
+}
+
 
 /*----------------------------------------------------------------------*/
-/*			Next generation game server			*/
+/*			          Game server      			*/
 /*----------------------------------------------------------------------*/
 
 
-/* XXX not happy with this system.  Too much duplicated code in the
-   transition states, and possible problems can occur during the
-   transitions (e.g. client joins during the transition) */
 typedef enum {
-    SRV_STATE_LOBBY,
-    SRV_STATE_LOBBY_TO_GAME,
-    SRV_STATE_LOBBY_TO_QUIT,
-    SRV_STATE_GAME,
-    SRV_STATE_FEEDNEWCLIENT,
-    SRV_STATE_GAME_TO_GAME,
-    SRV_STATE_GAME_TO_LOBBY,
-    SRV_STATE_GAME_TO_QUIT,
-    SRV_STATE_QUIT
-} srv_state_t;
+    /* Keep this in sync with server_state_procs. */
+    SERVER_STATE_LOBBY,
+    SERVER_STATE_GAME,
+    SERVER_STATE_QUIT
+} server_state_t;
 
-static srv_state_t srv_state;
+static server_state_t server_state;
 static game_server_interface_t *interface;
 static NET_CONN *listen;
-static clt_t *client_to_feed;
 static map_t *map;
 static physics_t *physics;
 static string_t current_map_file;
@@ -234,7 +280,7 @@ static string_t next_map_file;
 
 /* Helper for logging things. */
 
-static void srv_log (const char *fmt, ...)
+static void server_log (const char *fmt, ...)
 {
     char buf[1024];
     va_list ap;
@@ -248,23 +294,23 @@ static void srv_log (const char *fmt, ...)
 
 /* Check new connections on the listening conn. */
 
-static void ng_check_new_connections ()
+static void server_check_new_connections ()
 {
     NET_CONN *conn;
-    clt_t *c;
+    client_t *c;
 
     conn = net_poll_listen (listen);
     if (!conn)
 	return;
-    c = clt_create (conn);
-    clt_set_state (c, CLT_STATE_JOINING);
-    clt_send_rdm_encode (c, "cl", MSG_SC_JOININFO, c->id);
+    c = client_create (conn);
+    client_set_state (c, CLIENT_STATE_JOINING);
+    client_send_rdm_encode (c, "cl", MSG_SC_JOININFO, c->id);
 }
 
 
 /* Handling complex incoming network packets. */
 
-static void process_cs_gameinfo_packet (clt_t *c, const unsigned char *buf, int size)
+static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, int size)
 {
     const void *end = buf + size;
 
@@ -283,118 +329,90 @@ static void process_cs_gameinfo_packet (clt_t *c, const unsigned char *buf, int 
 
 /* Handle incoming network traffic from clients. */
 
-static void ng_poll_clients_state_joining (clt_t *c)
+static void server_poll_clients_state_joining (client_t *c)
 {
-    char buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NET_MAX_PACKET_SIZE];
     char name[NET_MAX_PACKET_SIZE];
     long len;
 
-    if (clt_receive_rdm (c, buf, sizeof buf) <= 0)
+    if (client_receive_rdm (c, buf, sizeof buf) <= 0)
 	return;
 	    
     switch (buf[0]) {
 
 	case MSG_CS_JOININFO:
 	    packet_decode (buf+1, "s", &len, &name);
-	    clt_set_name (c, name);
-	    srv_log ("Client %s joined\n", clt_name (c));
-	    switch (srv_state) {
-		case SRV_STATE_GAME:
-		    client_to_feed = c;
-		    srv_state = SRV_STATE_FEEDNEWCLIENT;
-		    break;
-		case SRV_STATE_FEEDNEWCLIENT:
-		    clt_set_state (c, CLT_STATE_JOININGQUEUE);
-		    break;
-		default:
-		    clt_set_state (c, CLT_STATE_JOINED);
-		    break;
-	    }
+	    client_set_name (c, name);
+	    client_set_state (c, CLIENT_STATE_JOINED);
+	    if (server_state == SERVER_STATE_GAME)
+		client_set_wantfeed (c);
+	    server_log ("Client %s joined", c->name);
 	    break;
 
 	case MSG_CS_DISCONNECT_ASK:
-	    clt_send_rdm_byte (c, MSG_SC_DISCONNECTED);
-	    clt_set_state (c, CLT_STATE_STALE);
-	    srv_log ("Client %s was disconnected by request", clt_name (c));
+	    client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+	    client_set_state (c, CLIENT_STATE_STALE);
+	    server_log ("Client %s was disconnected by request", c->name);
 	    break;
     }
 }
 
-static void ng_poll_clients_state_joined (clt_t *c)
+static void server_poll_clients_state_joined (client_t *c)
 {
-    char buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NET_MAX_PACKET_SIZE];
     int size;
 
-    size = clt_receive_rdm (c, buf, sizeof buf);
+    size = client_receive_rdm (c, buf, sizeof buf);
     if (size <= 0)
 	return;
 
     switch (buf[0]) {
 
 	case MSG_CS_GAMEINFO:
-	    if (srv_state == SRV_STATE_GAME)
-		process_cs_gameinfo_packet (c, buf+1, size-1);
+	    if (server_state == SERVER_STATE_GAME)
+		server_process_cs_gameinfo_packet (c, buf+1, size-1);
+	    break;
+
+	case MSG_CS_PING:
+	    c->pong_time = ticks;
+	    client_send_rdm_byte (c, MSG_SC_PONG);
+	    break;
+
+	case MSG_CS_BOING:
+	    c->lag = (ticks - c->pong_time) / 2;
 	    break;
 
 	case MSG_CS_DISCONNECT_ASK:
-	    clt_send_rdm_byte (c, MSG_SC_DISCONNECTED);
-	    clt_set_state (c, CLT_STATE_STALE);
-	    srv_log ("Client %s was disconnected by request", clt_name (c));
+	    client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+	    client_set_state (c, CLIENT_STATE_STALE);
+	    server_log ("Client %s was disconnected by request", c->name);
 
-	    clt_broadcast_rdm_encode ("ccl", MSG_SC_GAMEINFO,
-				      MSG_SC_GAMEINFO_OBJECTDESTROY,
-				      clt_object_id (c));
+	    clients_broadcast_rdm_encode ("ccl", MSG_SC_GAMEINFO,
+					  MSG_SC_GAMEINFO_OBJECT_DESTROY,
+					  client_object_id (c));
 	    break;
     }
 }
 
-static void ng_poll_clients ()
+static void server_poll_clients ()
 {
-    clt_t *c;
+    client_t *c;
 
-    for_each_clt (c) switch (clt_state (c)) {
+    for_each_client (c) switch (c->state) {
 
-	case CLT_STATE_NONE:
-	    error ("internal error: clt should never be set to CLT_STATE_NONE\n");
+	case CLIENT_STATE_NONE:
+	    error ("internal error: client should never be set to CLIENT_STATE_NONE\n");
 
-	case CLT_STATE_JOINING:
-	    ng_poll_clients_state_joining (c);
+	case CLIENT_STATE_JOINING:
+	    server_poll_clients_state_joining (c);
 	    break;
 
-	case CLT_STATE_JOININGQUEUE:
-	    switch (srv_state) {
-		case SRV_STATE_GAME:
-		    client_to_feed = c;
-		    srv_state = SRV_STATE_FEEDNEWCLIENT;
-		    break;
-		case SRV_STATE_FEEDNEWCLIENT:
-		    break;
-		default:
-		    clt_set_state (c, CLT_STATE_JOINED);
-		    break;
-	    }
+	case CLIENT_STATE_JOINED:
+	    server_poll_clients_state_joined (c);
 	    break;
 
-	case CLT_STATE_JOINED:
-	    ng_poll_clients_state_joined (c);
+	case CLIENT_STATE_STALE:
 	    break;
-
-	case CLT_STATE_STALE:
-	    break;
-    }
-}
-
-
-/* Remove stale clients from the client list. */
-
-static void ng_remove_stale_clients ()
-{
-    clt_t *c, *next;
-    
-    for (c = clients.next; list_neq (c, &clients); c = next) {
-	next = list_next (c);
-	if (clt_state (c) == CLT_STATE_STALE)
-	    clt_destroy (c);
     }
 }
 
@@ -462,41 +480,60 @@ static char *ustrtok_r(char *s, AL_CONST char *set, char **last)
    }
 }
 
-static void ng_poll_interface_kick (char **last)
+static void poll_interface_command_list (char **last)
+{
+    int n = clients_count ();
+    client_t *c;	
+
+    server_log ("Clients: %d", n);
+
+    for_each_client (c) {
+	switch (c->state) {
+	    case CLIENT_STATE_STALE:
+		server_log ("%4d  %s (stale)", c->id, c->name);
+		break;
+	    default:
+		server_log ("%4d  %s (lag: %d)", c->id, c->name, c->lag);
+		break;
+	}
+    }
+}
+
+static void poll_interface_command_kick (char **last)
 {
     char *word;
     int id;
-    clt_t *c;
+    client_t *c;
 
     word = ustrtok_r (NULL, whitespace, last);
     if (!word) {
-	srv_log ("KICK requires an argument");
+	server_log ("KICK requires an argument");
 	return;
     }
     
     id = ustrtol (word, NULL, 10);
     if (!id) {
-	srv_log ("Invalid argument to KICK");
+	server_log ("Invalid argument to KICK");
 	return;
     }
 
-    c = clt_find (id);
+    c = clients_find_by_id (id);
     if (!c) {
-	srv_log ("No client with id %d", id);
+	server_log ("No client with id %d", id);
 	return;
     }
 
-    if (clt_state (c) == CLT_STATE_STALE) {
-	srv_log ("Client %s already disconnected", clt_name (c));
+    if (c->state == CLIENT_STATE_STALE) {
+	server_log ("Client %s already disconnected", c->name);
 	return;
     }
 
-    clt_send_rdm_byte (c, MSG_SC_DISCONNECTED);
-    clt_set_state (c, CLT_STATE_STALE);
-    srv_log ("Client %s was kicked", clt_name (c));
+    client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+    client_set_state (c, CLIENT_STATE_STALE);
+    server_log ("Client %s was kicked", c->name);
 }
 
-static void ng_poll_interface ()
+static void server_poll_interface ()
 {
 #define wordis(test)	(0 == ustricmp (word, test))
 
@@ -511,79 +548,59 @@ static void ng_poll_interface ()
 
     if (word) {
 	if (wordis ("help") || wordis ("?")) {
-	    srv_log ("Commands:");
-	    srv_log ("  MAP <filename>           - select a map");
-	    srv_log ("  MAP                      - display current map");
-	    srv_log ("  START                    - enter game mode");
-	    srv_log ("  STOP                     - return to the lobby");
-	    srv_log ("  RESTART                  - restart game mode (with new map)");
-	    srv_log ("  QUIT                     - quit completely");
-	    srv_log ("  LIST                     - list clients");
-	    srv_log ("  KICK <clientid>          - forcefully disconnect a client");
+	    server_log ("Commands:");
+	    server_log ("  MAP <filename>           - select a map");
+	    server_log ("  MAP                      - display current map");
+	    server_log ("  START                    - enter game mode");
+	    server_log ("  STOP                     - return to the lobby");
+	    server_log ("  RESTART                  - restart game mode (with new map)");
+	    server_log ("  QUIT                     - quit completely");
+	    server_log ("  LIST                     - list clients");
+	    server_log ("  KICK <clientid>          - forcefully disconnect a client");
 	    /* XXX 'kick' needs to take an optional 'reason' argument */
-	    srv_log ("  MSG <message>            - broadcast text message to clients");
-	    srv_log ("  CONTEXT                  - show current context");
+	    server_log ("  MSG <message>            - broadcast text message to clients");
+	    server_log ("  CONTEXT                  - show current context");
 	}
 
 	else if (wordis ("map")) {
 	    word = ustrtok_r (NULL, whitespace, &last);
 	    if (!word) {
-		srv_log ("Current map: %s", current_map_file);
-		srv_log ("Selected map: %s", next_map_file);
+		server_log ("Current map: %s", current_map_file);
+		server_log ("Selected map: %s", next_map_file);
 	    } else {
 		string_set (next_map_file, word);
-		srv_log ("Setting map to %s", next_map_file);
+		server_log ("Setting map to %s", next_map_file);
 	    }
 	}
 	
 	else if (wordis ("start")) {
-	    if (srv_state == SRV_STATE_LOBBY)
-		srv_state = SRV_STATE_LOBBY_TO_GAME;
-	    else
-		srv_log ("START not available in this context");
+	    server_state = SERVER_STATE_GAME;
 	}
 
 	else if (wordis ("stop")) {
-	    if (srv_state == SRV_STATE_GAME)
-		srv_state = SRV_STATE_GAME_TO_LOBBY;
-	    else
-		srv_log ("STOP not available in this context");
-	}
-
-	else if (wordis ("restart")) {
-	    if (srv_state == SRV_STATE_GAME)
-		srv_state = SRV_STATE_GAME_TO_GAME;
-	    else
-		srv_log ("RESTART not available in this context");
+	    server_state = SERVER_STATE_LOBBY;
 	}
 
 	else if (wordis ("quit")) {
-	    if (srv_state == SRV_STATE_LOBBY)
-		srv_state = SRV_STATE_LOBBY_TO_QUIT;
-	    else if (srv_state == SRV_STATE_GAME)
-		srv_state = SRV_STATE_GAME_TO_QUIT;
-	    else
-		srv_log ("QUIT not available in this context");
+	    server_state = SERVER_STATE_QUIT;
 	}
 
 	else if (wordis ("list")) {
-	    clt_t *c;
-	    srv_log ("Number of clients: %d", clt_count ());
-	    for_each_clt (c) srv_log ("%4d  %s", c->id, clt_name (c));
+	    poll_interface_command_list (&last);
 	}
 
 	else if (wordis ("kick")) {
-	    ng_poll_interface_kick (&last);
+	    poll_interface_command_kick (&last);
 	}
 
 	else if (wordis ("context")) {
-	    srv_log ((srv_state == SRV_STATE_LOBBY) ? "In the lobby" :
-		     (srv_state == SRV_STATE_GAME) ? "Playing a game" :
+	    server_log ((server_state == SERVER_STATE_LOBBY) ? "In the lobby" :
+		     (server_state == SERVER_STATE_GAME) ? "Playing a game" :
 		     "Unknown context (probably in a transition)");
 	}
 
 	else {
-	    srv_log ("Unrecognised command: %s\n", word);
+	    server_log ("Unrecognised command: %s", word);
 	}
     }
 
@@ -595,29 +612,38 @@ static void ng_poll_interface ()
 
 /* Create and free the game state. */
 
-static int ng_init_game_state ()
+static start_t *server_pick_random_start ()
 {
     start_t *start;
-    object_t *obj;
-    clt_t *c;
+    int n = random () % 32;	/* XXX temp */
+
+    start = map_start_list (map)->next;
+    while (n--) {
+	start = list_next (start);
+	if (list_eq (start, map_start_list (map)))
+	    start = list_next (start);
+    }
+
+    return start;
+}
+
+static int server_init_game_state ()
+{
+    client_t *c;
 
     map = map_load (next_map_file, 1, 0);
     if (!map)
 	return -1;
     string_set (current_map_file, next_map_file);
 
-    start = map_start_list (map)->next;
+    for_each_client (c) if (c->state == CLIENT_STATE_JOINED) {
+	start_t *start;
+	object_t *obj;
 
-    for_each_clt (c) {
-	if (clt_state (c) == CLT_STATE_JOINED) {
-	    obj = object_create_ex ("player", clt_object_id (c), 1);
-	    object_set_xy (obj, map_start_x (start), map_start_y (start));
-	    map_link_object_bottom (map, obj);
-
-	    start = list_next (start);
-	    if (list_eq (start, map_start_list (map)))
-		start = list_next (start);
-	}
+	start = server_pick_random_start ();
+	obj = object_create_ex ("player", client_object_id (c));
+	object_set_xy (obj, map_start_x (start), map_start_y (start));
+	map_link_object_bottom (map, obj);
     }
 
     physics = physics_create (map);
@@ -629,7 +655,7 @@ static int ng_init_game_state ()
     return 0;
 }
 
-static void ng_shutdown_game_state ()
+static void server_free_game_state ()
 {
     if (physics) {
 	physics_destroy (physics);
@@ -645,17 +671,17 @@ static void ng_shutdown_game_state ()
 
 /* Feeding the game state to clients. */
 
-static void ng_feed_game_state_to (clt_t *c)
+static void server_feed_game_state_to (client_t *c)
 {
-    char buf[NET_MAX_PACKET_SIZE] = { MSG_SC_GAMEINFO };
-    char *p = buf+1;
+    uchar_t buf[NET_MAX_PACKET_SIZE] = { MSG_SC_GAMEINFO };
+    uchar_t *p = buf+1;
 
     /* map */
     p += packet_encode (p, "cs", MSG_SC_GAMEINFO_MAPLOAD, current_map_file);
 
     /* objects */
     {
-	struct list_head *list;
+	list_head_t *list;
 	object_t *obj;
 	const char *typename;
 
@@ -663,41 +689,41 @@ static void ng_feed_game_state_to (clt_t *c)
 	list_for_each (obj, list) {
 	    typename = objtype_name (object_type (obj));
 
-	    /* check for packet overflow */
+	    /* XXX check for packet overflow */
 	    /* XXX this is not nice */ 
-	    if ((p - buf) + 16 + strlen (typename) > sizeof buf) {
-		clt_send_rdm (c, buf, p - buf);
+	    if ((p - buf) + 1 + 4 + strlen (typename) + 12 > sizeof buf) {
+		client_send_rdm (c, buf, p - buf);
 		p = buf+1;
     	    }
 
-	    p += packet_encode (p, "cslff", MSG_SC_GAMEINFO_OBJECTCREATE,
-				typename, object_id (obj), object_x (obj),
-				object_y (obj));
+	    p += packet_encode (p, "cslff", MSG_SC_GAMEINFO_OBJECT_CREATE,
+				typename, object_id (obj),
+				object_x (obj), object_y (obj));
 	}
     }
 
     if (p - buf > 1)
-	clt_send_rdm (c, buf, p - buf);
-    
-    clt_send_rdm_byte (c, MSG_SC_GAMESTATEFEED_DONE);
+	client_send_rdm (c, buf, p - buf);
+
+    client_send_rdm_byte (c, MSG_SC_GAMESTATEFEED_DONE);
 
     /* After the client receives the game state, it will automatically
      * switch to 'paused' mode. */
 }
 
-static void ng_perform_mass_game_state_feed ()
+static void server_perform_mass_game_state_feed ()
 {
-    clt_t *c;
+    client_t *c;
     int done;
-    char byte;
+    uchar_t byte;
 
-    clt_broadcast_rdm_byte (MSG_SC_GAMESTATEFEED_REQ);
+    clients_broadcast_rdm_byte (MSG_SC_GAMESTATEFEED_REQ);
 
-    for_each_clt (c) {
-	if (clt_state (c) == CLT_STATE_JOINED) {
-	    clt_clear_ready (c);
-	    clt_set_cantimeout (c);
-	    clt_set_timeout (c, 10);
+    for_each_client (c) {
+	if (c->state == CLIENT_STATE_JOINED) {
+	    client_clear_ready (c);
+	    client_set_cantimeout (c);
+	    client_set_timeout (c, 5);
 	}
     }
 
@@ -705,91 +731,92 @@ static void ng_perform_mass_game_state_feed ()
 	yield ();
 
 	done = 1;
-	for_each_clt (c) {
-	    if (clt_state (c) != CLT_STATE_JOINED)
+	for_each_client (c) {
+	    if (c->state != CLIENT_STATE_JOINED)
 		continue;
 	    
-	    if (clt_ready (c))
+	    if (client_ready (c))
 		continue;
 
-	    if (clt_timed_out (c)) {
-		clt_set_state (c, CLT_STATE_STALE);
-		srv_log ("Client %s timed out during game state feed", clt_name (c));
+	    if (client_timed_out (c)) {
+		client_set_state (c, CLIENT_STATE_STALE);
+		server_log ("Client %s timed out during game state feed", c->name);
 		continue;
 	    }
 	    
-	    if (clt_receive_rdm (c, &byte, 1) <= 0) {
+	    if (client_receive_rdm (c, &byte, 1) <= 0) {
 		done = 0;
 		continue;
 	    }
 
 	    if (byte == MSG_CS_GAMESTATEFEED_ACK) {
-		ng_feed_game_state_to (c);
-		clt_set_ready (c);
-		clt_clear_cantimeout (c);
-		continue;
+		server_feed_game_state_to (c);
+		client_set_ready (c);
+		client_clear_cantimeout (c);
 	    }
 	}
     } while (!done);
 
-    clt_broadcast_rdm_byte (MSG_SC_RESUME);
+    clients_broadcast_rdm_byte (MSG_SC_RESUME);
 }
 
-static void ng_perform_single_game_state_feed (clt_t *c)
+static void server_perform_single_game_state_feed (client_t *c)
 {
-    char byte;
+    uchar_t byte;
 
-    clt_broadcast_rdm_byte (MSG_SC_PAUSE);
-    clt_send_rdm_byte (c, MSG_SC_GAMESTATEFEED_REQ);
+    client_send_rdm_byte (c, MSG_SC_GAMESTATEFEED_REQ);
 
-    clt_set_cantimeout (c);
-    clt_set_timeout (c, 10);
+    client_set_cantimeout (c);
+    client_set_timeout (c, 5);
 
     while (1) {
 	yield ();
 
-	if (clt_timed_out (c)) {
-	    clt_set_state (c, CLT_STATE_STALE);
-	    srv_log ("Client %s timed out during game state feed", clt_name (c));
+	if (client_timed_out (c)) {
+	    client_set_state (c, CLIENT_STATE_STALE);
+	    server_log ("Client %s timed out during game state feed", c->name);
 	    continue;
 	}
 
-	if (clt_receive_rdm (c, &byte, 1) <= 0)
+	if (client_receive_rdm (c, &byte, 1) <= 0)
 	    continue;
 
 	if (byte == MSG_CS_GAMESTATEFEED_ACK) {
-	    ng_feed_game_state_to (c);
-	    clt_clear_cantimeout (c);
+	    server_feed_game_state_to (c);
+	    client_set_ready (c);
+	    client_clear_cantimeout (c);
 	    break;
 	}
     }
-
-    clt_broadcast_rdm_byte (MSG_SC_RESUME);
 }
 
 
 /* Handling game physics. */
 
-static void handle_client_controls ()
+static void server_handle_client_controls ()
 {
-    clt_t *c;
+    client_t *c;
     object_t *obj;
 
-    for_each_clt (c) {
-	if (clt_state (c) != CLT_STATE_JOINED)
+    for_each_client (c) {
+	if (c->state != CLIENT_STATE_JOINED)
 	    continue;
 
-	obj = map_find_object (map, clt_object_id (c));
+	obj = map_find_object (map, client_object_id (c));
 	if (!obj)
 	    error ("error: server missing object\n");
 	
 	/* left */
-	if (c->controls & 0x01)
+	if (c->controls & 0x01) {
 	    object_set_xv (obj, object_xv (obj) - 1.4);
+	    object_set_need_replication (obj);
+	}
 
 	/* right */
-	if (c->controls & 0x02)
+	if (c->controls & 0x02) {
 	    object_set_xv (obj, object_xv (obj) + 1.4);
+	    object_set_need_replication (obj);
+	}
 	    
 	/* up */
 	if (c->controls & 0x04) {
@@ -798,10 +825,12 @@ static void handle_client_controls ()
 	    if (jump > 0) {
 		object_set_yv (obj, object_yv (obj) - MIN (8, 20 / jump));
 		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
+		object_set_need_replication (obj);
 	    }
 	    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
 		object_set_yv (obj, object_yv (obj) - 4);
 		object_set_jump (obj, 1);
+		object_set_need_replication (obj);
 	    }
 	}
 	else {
@@ -810,200 +839,209 @@ static void handle_client_controls ()
     }
 }
 
-static void ng_perform_physics ()
+static void server_perform_physics ()
 {
-    char buf[NET_MAX_PACKET_SIZE] = { MSG_SC_GAMEINFO };
-    char *p = buf+1;
     list_head_t *object_list;
     object_t *obj;
 
-    handle_client_controls ();
+    server_handle_client_controls ();
+
+    object_list = map_object_list (map);
+    list_for_each (obj, object_list)
+	physics_move_object (physics, obj);
+}
+
+
+/* Sending important object changes to clients. */
+
+static void server_send_object_updates ()
+{
+    uchar_t buf[NET_MAX_PACKET_SIZE] = { MSG_SC_GAMEINFO };
+    uchar_t *p = buf+1;
+    list_head_t *object_list;
+    object_t *obj;
 
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
-	if (physics_move_object (physics, obj)) {
-/* The client should be able to do this itself soon.  */
-/*  	    p += packet_encode (p, "clff", MSG_SC_GAMEINFO_OBJECTMOVE, */
-/*  				object_id (obj), object_x (obj), */
-/*  				object_y (obj)); */
+	if (object_need_replication (obj)) {
+	    /* XXX check for packet overflow */
+	    /* XXX this is not nice */ 
+	    if ((p - buf) + 1 + 20 > sizeof buf) {
+		clients_broadcast_rdm (buf, p - buf);
+		p = buf+1;
+    	    }
+
+	    p += packet_encode (p, "clffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
+				object_id (obj), object_x (obj), object_y (obj),
+				object_xv (obj), object_client_yv (obj));
+
+	    object_clear_need_replication (obj);
 	}
     }
 
     if ((p - buf) > 1)
-	clt_broadcast_rdm (buf, p - buf);
+	clients_broadcast_rdm (buf, p - buf);
 }
 
 
-/* Sending important game state changes to clients. */
+/* Lobby state. */
+  
+static int server_state_lobby_init ()
+{
+    /*	Let's all go to the lobby,
+	Let's all go to the lobby,
+	Let's all go to the lobbiie,
+	Get ourselves some snacks.   */
 
-static void ng_send_game_updates ()
+    server_log ("Entering lobby");
+    clients_broadcast_rdm_byte (MSG_SC_LOBBY);
+    return 0;
+}
+
+static void server_state_lobby_poll ()
 {
 }
 
-
-/* Finishing up before the game server quits for good. */
-
-static void ng_finalise ()
+static void server_state_lobby_shutdown ()
 {
-    if (clt_count () > 0) {
-	srv_log ("Disconnecting clients");
-	clt_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
+    server_log ("Leaving lobby");
+}
+
+
+/* Game state. */
+
+static int server_state_game_init ()
+{
+    server_log ("Entering game");
+
+    if (server_init_game_state () < 0) {
+	server_state = SERVER_STATE_LOBBY;
+	return -1;
     }
+
+    server_perform_mass_game_state_feed ();
+    ticks_init ();
+    return 0;
 }
 
-
-/* Count number of ticks we need to perform.  We use `gettimeofday'
- * instead of Allegro timers because we might be using SYSTEM_NONE. */
-
-#define TICKS_PER_SECOND  50
-
-static unsigned long ticks_interval;
-static struct timeval ticks_lasttime;
-static int ticks_remaining;
-
-static void ng_init_ticks ()
+static void server_handle_wantfeeds ()
 {
-    ticks_interval = 1000 / TICKS_PER_SECOND;
-    gettimeofday (&ticks_lasttime, NULL);
-    ticks_remaining = 0;
-}
+    client_t *c;
 
-static int ng_update_ticks ()
-{
-    struct timeval now;
-    unsigned long elapsed;
+    for_each_client (c)
+	if (client_wantfeed (c))
+	    goto need_feeding;
 
-    if (ticks_remaining == 0) {
-	gettimeofday (&now, NULL);
-	elapsed = (((now.tv_sec * 1000) + (now.tv_usec / 1000)) -
-		   ((ticks_lasttime.tv_sec * 1000) + (ticks_lasttime.tv_usec / 1000)));
-	if (elapsed > ticks_interval) {
-	    ticks_remaining = elapsed / ticks_interval;
-	    /* XXX this isn't completely accurate */
-	    ticks_lasttime = now;
+    return;
+
+  need_feeding:
+
+    clients_broadcast_rdm_byte (MSG_SC_PAUSE);
+
+    for_each_client (c) if (client_wantfeed (c)) {
+	server_log ("Feeding new client %s", c->name);
+	server_perform_single_game_state_feed (c);
+
+	/* XXX */
+	{
+	    object_t *obj;
+	    start_t *start;
+	    
+	    start = server_pick_random_start ();
+	    obj = object_create_ex ("player", client_object_id (c));
+	    object_set_xy (obj, map_start_x (start), map_start_y (start));
+	    map_link_object_bottom (map, obj);
+
+	    clients_broadcast_rdm_encode
+		("ccslff", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
+		 objtype_name (object_type (obj)),
+		 object_id (obj), object_x (obj), object_y (obj));
 	}
+
+    	client_clear_wantfeed (c);
     }
 
-    return ticks_remaining;
+    clients_broadcast_rdm_byte (MSG_SC_RESUME);
 }
 
-static void ng_done_tick ()
+static void server_state_game_poll ()
 {
-    --ticks_remaining;
-    if (ticks_remaining < 0)
-	error ("internal error: ticks_remaining less than zero\n");
+    if (!ticks_poll ())
+	return;
+    server_handle_wantfeeds ();
+    server_perform_physics ();
+    server_send_object_updates ();
 }
 
-static void ng_shutdown_ticks ()
+static void server_state_game_shutdown ()
 {
+    server_log ("Leaving game");
+    ticks_shutdown ();
+    server_free_game_state ();
 }
 
 
 /* The main loop of the game server. */
 
-void ng_game_server ()
+typedef struct {
+    int (*init) ();
+    void (*poll) ();
+    void (*shutdown) ();
+} server_state_procs_t;
+
+static server_state_procs_t server_state_procs[] =
 {
-    while (1) {
+    /* Keep this in sync with server_state_t. */
+    { server_state_lobby_init,
+      server_state_lobby_poll,
+      server_state_lobby_shutdown },
+    { server_state_game_init,
+      server_state_game_poll,
+      server_state_game_shutdown },
+    { NULL, NULL, NULL } /* quit */
+};
+
+void game_server_run ()
+{
+    server_state_t curr_state = -1;
+    server_state_procs_t *p = NULL;
+
+    while (curr_state != SERVER_STATE_QUIT) {
 	yield ();
-	ng_check_new_connections ();
-	ng_poll_clients ();
-	ng_remove_stale_clients ();
-	ng_poll_interface ();
 
-	switch (srv_state) {
+	while (curr_state != server_state) {
+	    p = server_state_procs + server_state;
+	    if ((p->init) && (p->init () < 0))
+		curr_state = -1;
+	    else
+		curr_state = server_state;
+	}
 
-	    case SRV_STATE_LOBBY:
-		break;
+	if (p->poll)
+	    p->poll ();
 
-	    case SRV_STATE_LOBBY_TO_GAME:
-		srv_log ("Entering game");
-		if (ng_init_game_state () < 0)
-		    srv_state = SRV_STATE_LOBBY;
-		else {
-		    ng_perform_mass_game_state_feed ();
-		    ng_init_ticks ();
-		    srv_state = SRV_STATE_GAME;
-		}
-		break;
+	if (curr_state == server_state) {
+	    server_check_new_connections ();
+	    server_poll_clients ();
+	    clients_remove_stale ();
+	    server_poll_interface ();
+	}
 
-	    case SRV_STATE_LOBBY_TO_QUIT:
-		srv_state = SRV_STATE_QUIT;
-		break;
-
-	    case SRV_STATE_GAME:
-		while (ng_update_ticks ()) {
-		    ng_perform_physics ();
-		    ng_send_game_updates ();
-		    ng_done_tick ();
-		}
-		break;
-
-	    case SRV_STATE_FEEDNEWCLIENT:
-		srv_log ("Feeding new client %s", client_to_feed->name);
-		ng_perform_single_game_state_feed (client_to_feed);
-
-		/* XXX temp */
-		{
-		    object_t *obj;
-		    start_t *start;
-		    clt_t *c = client_to_feed;
-
-		    start = map_start_list (map)->next;
-		    obj = object_create_ex ("player", clt_object_id (c), 1);
-		    object_set_xy (obj, map_start_x (start), map_start_y (start));
-		    map_link_object_bottom (map, obj);
-
-		    clt_broadcast_rdm_encode ("ccslff", MSG_SC_GAMEINFO,
-					  MSG_SC_GAMEINFO_OBJECTCREATE,
-					  objtype_name (object_type (obj)),
-					  object_id (obj), object_x (obj), object_y (obj));
-		}
-
-		clt_set_state (client_to_feed, CLT_STATE_JOINED);
-		client_to_feed = NULL;
-		srv_state = SRV_STATE_GAME;
-		break;
-
-	    case SRV_STATE_GAME_TO_GAME:
-		srv_log ("Leaving game");
-		ng_shutdown_ticks ();
-		ng_shutdown_game_state ();
-		clt_broadcast_rdm_byte (MSG_SC_LOBBY);
-		srv_state = SRV_STATE_LOBBY_TO_GAME;
-		break;
-
-	    case SRV_STATE_GAME_TO_LOBBY:
-		/* Let's all go to the lobby,
-		   Let's all go to the lobby,
-		   Let's all go to the lobbiie,
-		   Get ourselves some snacks. */
-		srv_log ("Leaving game");
-		ng_shutdown_ticks ();
-		ng_shutdown_game_state ();
-		clt_broadcast_rdm_byte (MSG_SC_LOBBY);
-		srv_state = SRV_STATE_LOBBY;
-		break;
-
-	    case SRV_STATE_GAME_TO_QUIT:
-		/* XXX too much duplicated */
-		srv_log ("Leaving game");
-		ng_shutdown_ticks ();
-		ng_shutdown_game_state ();
-		srv_state = SRV_STATE_QUIT;
-		break;
-
-	    case SRV_STATE_QUIT:
-		ng_finalise ();
-		srv_log ("Quitting");
-		return;
+	if (curr_state != server_state) {
+	    if (p->shutdown)
+		p->shutdown ();
 	}
     }
+
+    server_log ("Disconnecting clients");
+    clients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
+    server_log ("Quitting");
 }
 
 
 /* Initialisation and shutdown. */
 
-int ng_game_server_init (game_server_interface_t *iface)
+int game_server_init (game_server_interface_t *iface)
 {
     listen = net_openconn (NET_DRIVER_SOCKETS, "");
     if (!listen)
@@ -1013,23 +1051,23 @@ int ng_game_server_init (game_server_interface_t *iface)
     interface = iface;
     interface->init ();
 
-    clt_init ();
-    client_to_feed = NULL;
+    clients_init ();
 
     string_init (current_map_file);
     string_init (next_map_file);
     string_set (current_map_file, "test.pit");
     string_set (next_map_file,  "test.pit");
-    srv_state = SRV_STATE_LOBBY;
+    server_state = SERVER_STATE_LOBBY;
 
     return 0;    
 }
 
-void ng_game_server_shutdown ()
+void game_server_shutdown ()
 {
     string_free (next_map_file);
     string_free (current_map_file);
-    clt_shutdown ();
+    clients_shutdown ();
     interface->shutdown ();
     net_closeconn (listen);
 }
+
