@@ -101,7 +101,6 @@ MODULES_SERVER :=				\
 
 MODULES_GAME :=					\
 	alloc					\
-	bindings				\
 	bitmask					\
 	bitmaskg				\
 	bitmaskr				\

@@ -6,7 +6,6 @@
 
 #include <allegro.h>
 #include "libnet.h"
-#include "bindings.h"
 #include "bitmaskr.h"
 #include "blod.h"
 #include "explo.h"
