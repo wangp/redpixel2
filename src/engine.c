@@ -1,5 +1,5 @@
 /* engine.c:
- *  The game engine. (test only)
+ *  The game engine - very ugly hack. (test only)
  */
 
 #include <allegro.h>
@@ -26,6 +26,8 @@ DATAFILE *deathseq;
 int local_player = 0;
 
 int mx, my;
+
+int double_size = 0;
 
 
 
@@ -56,6 +58,7 @@ seq[] =
     { "a000", 16 },
     { "b000", 18 },
     { "c000", 17 },
+    { "d000", 21 },
     { NULL, 0 }
 };
       
@@ -73,7 +76,7 @@ void create_corpse(int x, int y)
 {
     int i, r;
     
-    r = random() % 4;
+    r = random() % 5;
     
     for (i=0; i<MAX_CORPSES; i++)
     {
@@ -209,6 +212,26 @@ int check_player_tile_collision(BITMAP *pl, int x, int y)
 }
 
 
+void move_player_legs(player_t *pl)
+{
+    if (++pl->legtics > 2)
+    {
+	pl->legtics = 0;
+	if (++pl->legframe > 7)
+	  pl->legframe = 0;
+    }
+}
+
+
+void build_player(player_t *pl)
+{
+    clear_to_color(pl->bmp, makecol(255,0,255));   /* only for 16bit */
+    draw_sprite(pl->bmp, playerdat[0].dat, 0, 0);
+    draw_sprite(pl->bmp, playerdat[df_get_item_num(playerdat, "walkie_000") + pl->legframe].dat, 0, 0);
+    //printf("here!\n");
+}
+
+
 	
 /* quality_seconds:
  *  I think this describes the game quite well (yeah right)
@@ -226,17 +249,28 @@ void quality_seconds()
 	while (speed_counter > 0)
 	{
 	    if (key[KEY_A]) pl->x--;
-	    if (key[KEY_S]) pl->y++;
+	    //if (key[KEY_S]) pl->y++;
 	    if (key[KEY_D]) pl->x++;
-	    if (key[KEY_W]) pl->y--;
+	    if (key[KEY_W]) {
+		if (pl->vy == 0)
+		  pl->vy = -10;
+	    }
+	    if (pl->vy < 0)
+	      pl->vy++;
 	    if (key[KEY_SPACE]) {
 		create_corpse(pl->x, pl->y);
 		while (key[KEY_SPACE]);
 	    }
 	    
-	    if (!check_player_tile_collision(playerdat[0].dat, pl->x, pl->y)) {   /* crap gravity */
-		pl->y++;
+	    move_player_legs(pl);
+	    
+	    pl->y++;
+	    if (check_player_tile_collision(pl->bmp, pl->x, pl->y)) {   /* crap gravity */
+		pl->y--;
 	    }
+	    
+	    pl->y += pl->vy;
+	    pl->x += pl->vx;
 	    
 	    animate_corpses();
 	    
@@ -260,8 +294,12 @@ void quality_seconds()
 	    
 	    draw_tiles(dbuf, offsetx, offsety);
 	    draw_corpses(dbuf);
-	    draw_sprite(dbuf, playerdat[0].dat, pl->x - mx, pl->y - my);
-	    blit(dbuf, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+	    build_player(pl);
+	    draw_sprite(dbuf, pl->bmp, pl->x - mx, pl->y - my);
+	    if (!double_size)
+	      blit(dbuf, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+	    else
+	      stretch_blit(dbuf, screen, 0, 0, SCREEN_W/2, SCREEN_H/2, 0, 0, SCREEN_W, SCREEN_H);
 	    
 	    update = 0;
 	}
@@ -293,6 +331,12 @@ int main(int argc, char **argv)
     install_int_ex(speed_timer, BPS_TO_TIMER(GAME_SPEED));
 
     set_color_depth(bpp);
+    
+    if (double_size) {
+	w *= 2;
+	h *= 2;
+    }
+    
     if (set_gfx_mode(GFX_AUTODETECT, w, h, 0, 0) < 0) {
 	consoleprintf("Couldn't set video mode %dx%dx%dbpp\n", w, h, bpp);
 	return 1;
@@ -310,9 +354,10 @@ int main(int argc, char **argv)
     
     load_rpx(TEST_MAP);
     
-    player[local_player].x = 0;
-    player[local_player].y = 0;
-    
+    player[local_player].x = player[local_player].y = 
+      player[local_player].vx = player[local_player].vy = 0;
+    player[local_player].bmp = create_bitmap(16, 32);
+        
     quality_seconds();
     
     destroy_tiles_table();
@@ -321,6 +366,8 @@ int main(int argc, char **argv)
     
     unload_datafile(playerdat);
     unload_datafile(deathseq);
+    
+    destroy_bitmap(player[local_player].bmp);
     
     free_scripts();
     scClose_Debug();            
