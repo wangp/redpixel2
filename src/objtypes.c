@@ -60,7 +60,7 @@ static void destroy_all (void)
 
     for (i = 0; i < num; i++) {
 	bitmask_destroy (types[i]->icon_mask);
-	lua_unref (lua_state, types[i]->init_func);
+	lua_unref (the_lua_state, types[i]->init_func);
 	free (types[i]->icon);
 	free (types[i]->name);
 	free (types[i]->type);

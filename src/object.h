@@ -18,6 +18,7 @@ typedef unsigned long objid_t;
 /* Zero is reserved for objects which the server doesn't care about
  * and only exist on game clients (e.g. blods).  Before thinking about
  * using these, read the warnings in client.c.  */
+/* This also gets use as a dummy owner of blasts.  */
 #define OBJID_CLIENT_PROCESSED	0
 
 /* Numbers less than OBJID_PLAYER_MAX are reserved for use by objects
@@ -172,7 +173,7 @@ void object_do_simulation (object_t *, unsigned long curr_time);
 
 void lua_pushobject (struct lua_State *, object_t *);
 object_t *lua_toobject (struct lua_State *, int index);
-void object_call (object_t *, const char *method, int nargs);
+void object_call (struct lua_State *, object_t *, const char *method, int nargs);
 int object_get_var_type (object_t *, const char *var);
 float object_get_number (object_t *, const char *var);
 void object_set_number (object_t *, const char *var, float value);

@@ -37,13 +37,12 @@ struct blast {
     int max_damage;
     float r;
     int owner;
-    int visual_only;
     vector_t *already_hit;
 };
 
 
-blast_t *blast_create (float x, float y, float radius, int damage,
-		       int owner, int visual_only)
+/* The client should pass OBJID_CLIENT_PROCESSED as the owner.  */
+blast_t *blast_create (float x, float y, float radius, int damage, int owner)
 {
     blast_t *b = alloc (sizeof *b);
 
@@ -52,8 +51,7 @@ blast_t *blast_create (float x, float y, float radius, int damage,
     b->max_radius = radius;
     b->max_damage = damage;
     b->owner = owner;
-    b->visual_only = visual_only;
-    if (!visual_only)
+    if (b->owner != OBJID_CLIENT_PROCESSED)
 	b->already_hit = create_vector (10);
 
     return b;
@@ -62,7 +60,7 @@ blast_t *blast_create (float x, float y, float radius, int damage,
 
 void blast_destroy (blast_t *blast)
 {
-    if (!blast->visual_only)
+    if (blast->already_hit)
 	free_vector (blast->already_hit);
     free (blast);
 }
@@ -90,9 +88,9 @@ static inline void do_blast_check (blast_t *blast, list_head_t *object_list)
 	    dmg = blast->max_damage * (1.5 - dist/blast->max_radius);
 	    dmg = MIN (dmg, blast->max_damage);
 	    if (dmg > 0) {
-		lua_pushnumber (lua_state, dmg);
-		lua_pushnumber (lua_state, blast->owner);
-		object_call (obj, "receive_damage", 2);
+		lua_pushnumber (server_lua_namespace, dmg);
+		lua_pushnumber (server_lua_namespace, blast->owner);
+		object_call (server_lua_namespace, obj, "receive_damage", 2);
 	    }
 
 	    add_to_vector (blast->already_hit, obj);
@@ -101,13 +99,19 @@ static inline void do_blast_check (blast_t *blast, list_head_t *object_list)
 }
 
 
-int blast_update (blast_t *blast, list_head_t *object_list)
+/* This is for servers.  Keep in sync with below.  */
+int blast_update_with_collisions (blast_t *blast, list_head_t *object_list)
 {
     blast->r += SPREAD_SPEED;
+    do_blast_check (blast, object_list);
+    return (blast->r >= blast->max_radius) ? -1 : 0;
+}
 
-    if (!blast->visual_only)
-	do_blast_check (blast, object_list);
 
+/* This is for clients.  Keep in sync with above.  */
+int blast_update_visually_only (blast_t *blast)
+{
+    blast->r += SPREAD_SPEED;
     return (blast->r >= blast->max_radius) ? -1 : 0;
 }
 
