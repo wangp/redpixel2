@@ -168,7 +168,8 @@ static void send_gameinfo_controls ()
 	    update = ((controls & CONTROL_FIRE)
 		      ? (ABS (aim_angle - last_aim_angle) > (M_PI/256))
 		      : (ABS (aim_angle - last_aim_angle) > (M_PI/8)));
-	object_set_number (local_object, "aim_angle", aim_angle);
+	if (local_object)
+	    object_set_number (local_object, "aim_angle", aim_angle);
     }
 
     if (update) {
