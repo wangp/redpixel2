@@ -1,0 +1,98 @@
+/* JSGUI provides a number of things:
+ * 1) a main GUI Object, containing constants and a few methods
+ 	This is called GUIRoot
+	
+ * 2) a bunch of widgets, prefixed with GUI_foobar()
+ * 3) an update routine to be called by your C program
+ * 4) a Javascript 'module' to be included in your .js programs
+ 	 * 
+ * It provides a default window manager, but that is overridable.
+ */
+
+
+
+
+After
+
+
+    f = new GUIWindow("New dialog", GUIRootWindow, .5, .5);
+    f.input("lb", "label", "Name: ");
+    f.input("txt", "textbox");
+    f.br();
+    f.input("ok", "pushbutton", "Ok");
+    f.input("cancel", "pushbutton", "Cancel");
+    f.commit();
+    f.children.ok.setSlot("clicked", okClicked);
+    f.children.cancel.setSlot("clicked", cancelClicked);
+
+
+f = GUIRoot.NewWindow(.5, .5);
+	f.input("lb", "label", "Name: ");
+	f.input("txt", "textbox");
+	f.br();
+    f.input("ok", "pushbutton", "Ok");
+    f.input("cancel", "pushbutton", "Cancel");
+    f.commit();
+    f.children.ok.setSlot("clicked", okClicked);
+    f.children.cancel.setSlot("clicked", cancelClicked);
+	
+
+
+
+Although very Allegro-centric, I designed it trying to keep allegro code
+separated from main code.  If this was to be ported to some other graphics
+library, it *should* only be necessary to reimplement the drawing routines
+in jsgmain.c (or simply #define), and a bit of the window manager code.
+
+
+
+GUIROOT -------------
+
+
+
+
+
+	GUIRoot
+		+ internal
+			+ DrawPushButton
+			+ etc.
+		+ (normal stuff, such as)
+			x, y, w, h, 
+			etc
+		+ 
+		
+		
+		
+		API
+			+ api function
+			+ guiROOT
+			+ window manager
+			+ widget drawing
+				+ jsghelp
+				
+
+
+PROBLEMS
+------------------
+
+
+Window manger is actually doing too much.  Its more like a SCreen manager.
+
+Too much jumping back and forth between C <--> JS when updating graphics.
+		e.g
+			
+wm->update()
+{
+    loop and find dirty()
+    {
+	if (dirty) {
+	    call-c-routine for each client
+	    {
+		call JS function to go through each child and
+		  call-C-function-that draws;
+	    }
+	}
+    }
+}
+    
+			
