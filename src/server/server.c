@@ -748,8 +748,21 @@ void game_server_spawn_blood (float x, float y, long nparticles, float spread)
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
-    size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
-			  x, y, nparticles, spread);
+    size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
+			  'b', x, y, nparticles, spread);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+/* Spawn some sparks (Lua binding). */
+
+void game_server_spawn_sparks (float x, float y, long nparticles, float spread)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+    
+    size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
+			  's', x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
 }
 

@@ -8,7 +8,6 @@
 #include <allegro.h>
 #include <libnet.h>
 #include "blod.h"
-#include "blood.h"
 #include "camera.h"
 #include "error.h"
 #include "fps.h"
@@ -21,6 +20,7 @@
 #include "netmsg.h"
 #include "object.h"
 #include "packet.h"
+#include "particle.h"
 #include "render.h"
 #include "store.h"
 #include "sync.h"
@@ -163,8 +163,8 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
 	    object_do_physics (obj, map);
     }
 
-    for (i = 0; i < delta_ticks; i++) 
-	blood_particles_update (map_blood_particles (map), map);
+    for (i = 0; i < delta_ticks; i++)
+	particles_update (map_particles (map), map);
 }
 
 
@@ -426,15 +426,25 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 		break;
 	    }
 
-	    case MSG_SC_GAMEINFO_BLOOD_CREATE:
+	    case MSG_SC_GAMEINFO_PARTICLES_CREATE:
 	    {
+		char type;
 		float x;
 		float y;
 		long nparticles;
 		float spread;
 
-		buf += packet_decode (buf, "fflf", &x, &y, &nparticles, &spread);
-		blood_particles_spawn (map_blood_particles (map), x, y, nparticles, spread);
+		buf += packet_decode (buf, "cfflf", &type, &x, &y, &nparticles, &spread);
+		switch (type) {
+		    case 'b':
+			particles_spawn_blood (map_particles (map), x, y, nparticles, spread);
+			break;
+		    case 's':
+			particles_spawn_spark (map_particles (map), x, y, nparticles, spread);
+			break;
+		    default:
+			error ("error: unknown particle type in gameinfo packet (client)\n");
+		}
 		break;
 	    }
 

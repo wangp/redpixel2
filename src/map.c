@@ -8,10 +8,10 @@
 #include <string.h>
 #include "alloc.h"
 #include "bitmask.h"
-#include "blood.h"
 #include "list.h"
 #include "map.h"
 #include "object.h"
+#include "particle.h"
 #include "store.h"
 
 
@@ -22,7 +22,7 @@ struct map {
     list_head_t lights;
     list_head_t objects;
     list_head_t starts;
-    blood_particles_t *blood_particles;
+    particles_t *particles;
 };
 
 
@@ -37,7 +37,7 @@ map_t *map_create (int is_client)
     list_init (map->starts);
 
     if (is_client)
-	map->blood_particles = blood_particles_create ();
+	map->particles = particles_create ();
 
     return map;
 }
@@ -58,7 +58,7 @@ void map_destroy (map_t *map)
     list_free (map->objects, object_destroy);
     list_free (map->starts, map_start_destroy);
 
-    blood_particles_destroy (map->blood_particles);
+    particles_destroy (map->particles);
     
     free (map);
 }
@@ -325,10 +325,10 @@ list_head_t *map_start_list (map_t *map)
 
 
 
-/* Blood.  */
+/* Particles.  */
 
 
-blood_particles_t *map_blood_particles (map_t *map)
+particles_t *map_particles (map_t *map)
 {
-    return map->blood_particles;
+    return map->particles;
 }
