@@ -1,9 +1,24 @@
-head	1.5;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.07.10.04.55.29;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.07.09.15.19.17;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.07.03.07.49.40;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.31.12.21.18;	author tjaden;	state Exp;
@@ -35,9 +50,9 @@ desc
 @@
 
 
-1.5
+1.8
 log
-@Changes for client-server mode.
+@Refactored textout.c and completed missing functions for completeness.
 @
 text
 @/* messages.c - client message interface
@@ -52,6 +67,7 @@ text
 #include "magic4x4.h"
 #include "messages.h"
 #include "store.h"
+#include "textout.h"
 #include "timeout.h"
 
 
@@ -88,7 +104,7 @@ static const char *ucs16_to_utf8 (const ucs16_t *text)
 
 int messages_init (void)
 {
-    if (!(fnt = store_dat ("/basic/font/mini")))
+    if (!(fnt = store_get_dat ("/basic/font/mini")))
 	return -1;
     
     text_colour = makecol24 (0xaf, 0xdf, 0xaf);
@@ -114,23 +130,6 @@ void messages_shutdown (void)
 #define YMARGIN	2
 
 
-static void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf,
-				 int x, int y, int color)
-{
-    int len = text_length (font, buf);
-    int rtm = text_mode (-1);
-    BITMAP *tmp;
-
-    tmp = create_magic_bitmap (len, text_height (font));
-    clear_bitmap (tmp);
-    textout (tmp, font, buf, 0, 0, color);
-    draw_magic_sprite (bmp, tmp, x - len, y);
-    destroy_bitmap (tmp);
-
-    text_mode (rtm);
-}
-
-
 void messages_render (BITMAP *bmp)
 {
     int i, y, h;
@@ -138,17 +137,22 @@ void messages_render (BITMAP *bmp)
     y = YMARGIN;
     h = text_height (fnt);
 
+    text_mode (-1);
+
     for (i = top_line; i < num_lines; i++, y += h)
-	textout_right_magic (bmp, fnt, lines[i], bmp->w/3 - XMARGIN, y,
-			     text_colour);
+	textout_right_trans_magic (bmp, fnt, lines[i],
+				   bmp->w/3 - XMARGIN, y,
+				   text_colour);
 
     if (input_enabled) {
-	textout_right_magic (bmp, fnt, ucs16_to_utf8 (input_line),
-			     bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
-			     input_colour);
+	textout_right_trans_magic (bmp, fnt, ucs16_to_utf8 (input_line),
+				   bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
+				   input_colour);
+
 	if (input_blink & 0x8)
-	    textout_right_magic (bmp, fnt, "_", bmp->w/3 - XMARGIN, y,
-				 input_colour);
+	    textout_right_trans_magic (bmp, fnt, "_",
+				       bmp->w/3 - XMARGIN, y,
+				       input_colour);
 	input_blink = (input_blink+1) & 0xf;
     }
 }
@@ -260,6 +264,66 @@ int messages_grabbed_keyboard (void)
 {
     return input_enabled;
 }
+@
+
+
+1.7
+log
+@Moved textout_right_magic to textout.c, and made messages translucent.
+@
+text
+@d86 3
+a88 2
+	textout_right_magic (bmp, fnt, lines[i], bmp->w/3 - XMARGIN, y,
+			     text_colour);
+d91 4
+a94 3
+	textout_right_magic (bmp, fnt, ucs16_to_utf8 (input_line),
+			     bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
+			     input_colour);
+d96 3
+a98 2
+	    textout_right_magic (bmp, fnt, "_", bmp->w/3 - XMARGIN, y,
+				 input_colour);
+@
+
+
+1.6
+log
+@Updated for new Store
+@
+text
+@d13 1
+a75 17
+static void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf,
+				 int x, int y, int color)
+{
+    int len = text_length (font, buf);
+    int rtm = text_mode (-1);
+    BITMAP *tmp;
+
+    tmp = create_magic_bitmap (len, text_height (font));
+    clear_bitmap (tmp);
+    textout (tmp, font, buf, 0, 0, color);
+    draw_magic_sprite (bmp, tmp, x - len, y);
+    destroy_bitmap (tmp);
+
+    text_mode (rtm);
+}
+
+
+d82 2
+@
+
+
+1.5
+log
+@Changes for client-server mode.
+@
+text
+@d49 1
+a49 1
+    if (!(fnt = store_dat ("/basic/font/mini")))
 @
 
 

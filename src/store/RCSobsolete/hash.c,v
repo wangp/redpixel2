@@ -1,4 +1,32 @@
-/* Hash table functions, taken from Snippets.
+head	1.2;
+access;
+symbols;
+locks
+	tjaden:1.2; strict;
+comment	@ * @;
+
+
+1.2
+date	2002.01.18.15.43.17;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.12.20.15.41;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Reverted to the libc string functions and only support ASCII/UTF-8.
+@
+text
+@/* Hash table functions, taken from Snippets.
  * Public domain code by Jerry Coffin, with improvements by HenkJan Wolthuis.
  *
  * Hacked to pieces by Peter Wang, June 1999.
@@ -203,3 +231,38 @@ void hash_free(struct hash_table *table, void (*func)(void *))
     the_table = NULL;
     function = NULL;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d9 2
+a33 12
+/* scmp:
+ *  We can get a little more speed in string comparisons by comparing
+ *  the first character before calling a comparison function.  Returns
+ *  zero if the strings are equal, non-zero otherwise (no ordering).
+ */
+static inline int scmp(const char *s1, const char *s2)
+{
+    return (*s1 != *s2) || (ustrcmp(s1, s2));
+}
+
+
+
+d72 1
+a72 1
+	if (0 == scmp(key, ptr->key)) {
+d88 1
+a88 1
+    ptr->key = ustrdup(key);
+d107 1
+a107 1
+	if (0 == scmp(key, ptr->key))
+d126 1
+a126 1
+	if (0 == scmp(key, ptr->key)) {
+@

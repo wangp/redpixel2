@@ -10,9 +10,18 @@
 #include "magic4x4.h"
 #include "menu.h"
 #include "store.h"
+#include "textout.h"
+
+
+typedef enum {
+    M_END,
+    M_PROC,
+    M_TEXT
+} menu_type_t;
 
 
 typedef struct menu {
+    menu_type_t type;
     char *label;
     int (*proc)(void);
 } menu_t;
@@ -21,7 +30,7 @@ typedef struct menu {
 static void run_menu (menu_t *menu);
 
 
-static int store_id;
+static store_file_t menu_data_file;
 static BITMAP *background;
 static FONT *fnt;
 static BITMAP *dbuf;
@@ -87,7 +96,8 @@ static int mp_client_server (void)
     return 0;
 }
 
-static int mp_client (void)
+
+static int mp_client_go (void)
 {
     const char *name = "tjaden";
     const char *addr = "192.168.0.1";
@@ -104,12 +114,31 @@ static int mp_client (void)
 }
 
 
+static char client_connect_address[64] = "192.168.0.1";
+
+
+static menu_t mp_client_menu[] =
+{
+    { M_TEXT, client_connect_address, 0 },
+    { M_PROC, "Go!", mp_client_go },
+    { M_PROC, "Back", generic_back },
+    { M_END, 0, 0 }
+};
+
+
+static int mp_client (void)
+{
+    run_menu (mp_client_menu);
+    return 0;
+}
+
+
 static menu_t mp_menu[] =
 {
-    { "Client-Server", mp_client_server },
-    { "Client", mp_client },
-    { "Back", generic_back },
-    { 0, 0 }
+    { M_PROC, "Client-Server", mp_client_server },
+    { M_PROC, "Client", mp_client },
+    { M_PROC, "Back", generic_back },
+    { M_END, 0, 0 }
 };
 
 
@@ -123,12 +152,12 @@ static menu_t mp_menu[] =
 
 static menu_t opt_menu[] =
 {
-    { "Video", 0 },
-    { "Audio", 0 },
-    { "Control", 0 },
-    { "Network", 0 },
-    { "Back", generic_back },
-    { 0, 0 }
+    { M_PROC, "Video", 0 },
+    { M_PROC, "Audio", 0 },
+    { M_PROC, "Control", 0 },
+    { M_PROC, "Network", 0 },
+    { M_PROC, "Back", generic_back },
+    { M_END, 0, 0 }
 };
 
 
@@ -166,12 +195,12 @@ static int root_opt (void)
 
 static menu_t root_menu[] =
 {
-    { "Multiplayer", root_mp },
-    { "Options", root_opt },
-    { "Editor", root_editor },
-    { "Credits", 0 },
-    { "Exit", generic_back },
-    { 0, 0 }
+    { M_PROC, "Multiplayer", root_mp },
+    { M_PROC, "Options", root_opt },
+    { M_PROC, "Editor", root_editor },
+    { M_PROC, "Credits", 0 },
+    { M_PROC, "Exit", generic_back },
+    { M_END, 0, 0 }
 };
 
 
@@ -181,23 +210,6 @@ static menu_t root_menu[] =
  *	Menu system
  *----------------------------------------------------------------------
  */
-
-
-static void textout_magic (BITMAP *bmp, FONT *font, const char *buf,
-			   int x, int y, int color)
-{
-    int len = text_length (font, buf);
-    int rtm = text_mode (-1);
-    BITMAP *tmp;
-
-    tmp = create_magic_bitmap (len, text_height (font));
-    clear_bitmap (tmp);
-    textout (tmp, font, buf, 0, 0, color);
-    draw_magic_sprite (bmp, tmp, x, y);
-    destroy_bitmap (tmp);
-
-    text_mode (rtm);
-}
 
 
 #define X_CENTRE	(SCREEN_W/2)
@@ -214,21 +226,27 @@ static void draw_menu (menu_t *menu, int selected)
     blit (background, dbuf, 0, 0, 0, 0, background->w, background->h);
 
     /* the cursor */
-    len = text_length (fnt, menu[selected].label);
+    if (menu[selected].label)
+	len = text_length (fnt, menu[selected].label);
+    else
+	len = 100;
     x = X_CENTRE - len/2;
     y = Y_START + (selected * Y_SPACING);
-	
+
     set_add_blender (0, 0, 0, 5);
     drawing_mode (DRAW_MODE_TRANS, 0, 0, 0);
     rectfill (dbuf, x-20, y-5, x+len+20, y+h+5, makecol24 (0xbf, 0x8f, 0x3f));
     drawing_mode (DRAW_MODE_SOLID,0,0,0);
 
     /* the text */
-    for (i = 0; menu[i].label; i++) {
-	textout_magic (dbuf, fnt, menu[i].label,
-		       X_CENTRE - text_length (fnt, menu[i].label)/2,
-		       Y_START + (i * Y_SPACING),
-		       makecol24 (0xef, 0xef, 0xef));
+    for (i = 0; menu[i].type != M_END; i++) {
+	if (menu[i].label) {
+	    text_mode (-1);
+	    textout_magic (dbuf, fnt, menu[i].label,
+			   X_CENTRE - text_length (fnt, menu[i].label)/2,
+			   Y_START + (i * Y_SPACING),
+			   makecol24 (0xef, 0xef, 0xef));
+	}
     }
 
     /* blit to screen */
@@ -288,15 +306,15 @@ void gamemenu_run (void)
 
 int gamemenu_init (void)
 {
-    store_id = store_load_ex ("data/frontend/frontend-menu.dat",
-			      "/frontend/menu/", load_extended_datafile);
-    if (store_id < 0)
+    menu_data_file = store_load_ex ("data/frontend/frontend-menu.dat",
+				    "/frontend/menu/", load_extended_datafile);
+    if (!menu_data_file)
 	return -1;
     
-    background = store_dat ("/frontend/menu/background");
+    background = store_get_dat ("/frontend/menu/background");
     set_magic_bitmap_brightness (background, 0xf, 0xf, 0xf);
 
-    fnt = store_dat ("/frontend/menu/font");
+    fnt = store_get_dat ("/frontend/menu/font");
 
     dbuf = create_magic_bitmap (SCREEN_W, SCREEN_H);
 
@@ -307,5 +325,5 @@ int gamemenu_init (void)
 void gamemenu_shutdown (void)
 {
     destroy_bitmap (dbuf);
-    store_unload (store_id);
+    store_unload (menu_data_file);
 }

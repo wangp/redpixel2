@@ -1,9 +1,19 @@
-head	1.3;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.03.07.49.05;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.04.14.06.43.08;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.02.07.07.25.36;	author tjaden;	state Exp;
@@ -25,9 +35,9 @@ desc
 @@
 
 
-1.3
+1.5
 log
-@Don't destroy bitmaps inside store.
+@Updated for new Store
 @
 text
 @/* mdlights.c
@@ -53,6 +63,9 @@ text
 #include "render.h"
 #include "selbar.h"
 #include "store.h"
+
+
+#define DAT_INFO  DAT_ID('i','n','f','o')
 
 
 static int full_brightness = 1;
@@ -81,9 +94,11 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d,
     int i;
 
     for (i = 0; d[i].type != DAT_END; i++) {
+	if (d[i].type == DAT_INFO)
+	    continue;
+
 	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!ustrcmp (name, empty_string)
-	    || !ustrcmp (name, "GrabberInfo"))
+	if (!name[0])
 	    continue;
 
 	ustrzcpy (path, sizeof path, prefix);
@@ -101,14 +116,14 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d,
     }
 }
 
-static void callback (const char *prefix, int id)
+static void callback (const char *prefix, store_file_t handle)
 {
     struct file *f;
 
     f = alloc (sizeof *f);
 
     f->list = ed_select_list_create ();
-    _add_to_list (f->list, store_file (id), prefix);
+    _add_to_list (f->list, store_get_file (handle), prefix);
 
     list_add (file_list, f);
 }
@@ -259,7 +274,7 @@ static int event_layer (int event, struct editarea_event *d)
 		if (p)
 		    old = p;
 		else {
-		    old = map_light_create (editor_map, x, y, store_index (selectbar_selected_name ()) - 1);
+		    old = map_light_create (editor_map, x, y, store_get_index (selectbar_selected_name ()) - 1);
 		    return 1;
 		}
 	    }
@@ -296,7 +311,7 @@ int mode_lights_init (void)
     modemgr_register (&light_mode);
     editarea_layer_register ("lights", draw_layer, event_layer, DEPTH_LIGHTS);
 
-    if (!(icon = store_dat ("/editor/light-icon")))
+    if (!(icon = store_get_dat ("/editor/light-icon")))
 	return -1;
     
     return 0;
@@ -311,6 +326,40 @@ void mode_lights_toggle (void)
 {
     full_brightness = !full_brightness;
 }
+@
+
+
+1.4
+log
+@Test against DAT_INFO instead of GrabberInfo.
+@
+text
+@d77 1
+a77 1
+static void callback (const char *prefix, int id)
+d84 1
+a84 1
+    _add_to_list (f->list, store_file (id), prefix);
+d235 1
+a235 1
+		    old = map_light_create (editor_map, x, y, store_index (selectbar_selected_name ()) - 1);
+d272 1
+a272 1
+    if (!(icon = store_dat ("/editor/light-icon")))
+@
+
+
+1.3
+log
+@Don't destroy bitmaps inside store.
+@
+text
+@d26 3
+d55 3
+d59 1
+a59 2
+	if (!ustrcmp (name, empty_string)
+	    || !ustrcmp (name, "GrabberInfo"))
 @
 
 

@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.07.10.10.10.04;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.02.16.14.15.20;	author tjaden;	state Exp;
@@ -45,9 +50,9 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Updated to Lua 4.1-work4.
+@Init store with size 1024 rather than 1023 (new store uses powers of two).
 @
 text
 @/* gameinit.c - main init and shutdown
@@ -88,7 +93,7 @@ void game_init (void)
     register_aud_file_type ();
 
     path_init ();
-    store_init (1023);  /* (2^n)-1 or primes are supposed to be good */
+    store_init (1024);
     bitmask_ref_init ();
  
     mylua_open ();
@@ -134,6 +139,17 @@ void game_shutdown (void)
 
     free_magic_color_map ();
 }
+@
+
+
+1.7
+log
+@Updated to Lua 4.1-work4.
+@
+text
+@d39 1
+a39 1
+    store_init (1023);  /* (2^n)-1 or primes are supposed to be good */
 @
 
 

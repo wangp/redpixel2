@@ -167,6 +167,7 @@ void object_do_simulation (object_t *, unsigned long curr_time);
 void lua_pushobject (struct lua_State *, object_t *);
 object_t *lua_toobject (struct lua_State *, int index);
 void object_call (object_t *, const char *method, int nargs);
+int object_get_var_type (object_t *, const char *var);
 float object_get_number (object_t *, const char *var);
 void object_set_number (object_t *, const char *var, float value);
 const char *object_get_string (object_t *, const char *var);
@@ -176,6 +177,7 @@ void object_set_string (object_t *, const char *var, const char *value);
 /* Drawing.  */
 
 void object_draw_layers (struct BITMAP *, object_t *, int offset_x, int offset_y);
+void object_draw_trans_name (struct BITMAP *, object_t *, int offset_x, int offset_y);
 void object_draw_lit_layers (struct BITMAP *, object_t *, int offset_x, int offset_y, int color);
 void object_draw_lights (struct BITMAP *, object_t *, int offset_x, int offset_y);
 

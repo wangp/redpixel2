@@ -82,15 +82,34 @@ static void poll_client_joining (svclient_t *c)
 	case MSG_CS_JOININFO:
 	    packet_decode (buf+1, "cs", &version, &len, &name);
 	    svclient_set_name (c, name);
-	    svclient_set_state (c, SVCLIENT_STATE_JOINED);
-	    if (curr_state == SERVER_STATE_GAME)
-		svclient_set_wantfeed (c);
-	    server_log ("Client %s joined", c->name);
 	    if (version != NETWORK_PROTOCOL_VERSION) {
 		svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
 		svclient_set_state (c, SVCLIENT_STATE_STALE);
-		server_log ("Client %s was disconnected for compatibility "
-			    "reasons", c->name);
+		server_log ("Client %s joined but was disconnected for "
+			    "compatibility reasons", c->name);
+	    }
+	    else {
+		svclient_t *other;
+			
+		/* Tell existing clients about this new client.  */
+		for_each_svclient (other)
+		    if (other->state == SVCLIENT_STATE_JOINED)
+			svclient_send_rdm_encode (
+			    other, "clss", MSG_SC_CLIENT_ADD,
+			    c->id, c->name, c->score);
+
+		svclient_set_state (c, SVCLIENT_STATE_JOINED);
+
+		/* Tell the new client about existing clients.  */
+		for_each_svclient (other)
+		    if (other->state == SVCLIENT_STATE_JOINED)
+			svclient_send_rdm_encode (
+			    c, "clss", MSG_SC_CLIENT_ADD,
+			    other->id, other->name, other->score);
+
+		if (curr_state == SERVER_STATE_GAME)
+		    svclient_set_wantfeed (c);
+		server_log ("Client %s joined", c->name);
 	    }
 	    break;
 
@@ -386,6 +405,7 @@ static void handle_bit_off_clients (void)
 	if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
 	    object_set_stale (c->client_object);
 	svclient_set_state (c, SVCLIENT_STATE_STALE);
+	svclients_broadcast_rdm_encode ("cl", MSG_SC_CLIENT_REMOVE, c->id);
     }
 }
 

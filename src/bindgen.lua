@@ -142,8 +142,8 @@ generate {
     lname	= "store_load",
     args	= {{ String, "filename" },
 		   { String, "prefix" }},
-    ret		= { Int, "ret", "$ < 0",
-		    "$ = store_load_ex(filename, prefix, load_extended_datafile);" }
+    ret		= { Int, "ret", "$",
+		    "$ = !store_load_ex(filename, prefix, load_extended_datafile);" }
 }
 
 generate {
@@ -161,7 +161,8 @@ generate {
 }
 
 generate {
-    cname	= "store_index",
+    cname	= "store_get_index",
+    lname	= "store_index", -- XXX: temporary
     args	= {{ String, "key" }},
     ret		= { Int, "ret", "!$" },
     success	= "lua_pushnumber(L, ret); return 1;"
@@ -489,6 +490,20 @@ generate {
     lname	= "_internal_tell_ammo",
     args	= {{ Object, "obj" },
 		   { Int, "ammo" }}
+}
+
+generate {
+    cname	= "svgame_set_score",
+    lname	= "set_score",
+    args	= {{ Int, "clientid" },
+		   { String, "score" }}
+}
+
+generate {
+    cname	= "svgame_play_sound_on_clients",
+    lname	= "play_sound_on_clients",
+    args	= {{ Object, "obj" },
+		   { String, "sample" }}
 }
 
 generate {

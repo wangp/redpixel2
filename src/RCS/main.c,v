@@ -1,10 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
-locks
-	tjaden:1.6; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.03.11.08.35;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.02.11.04.29.49;	author tjaden;	state Exp;
@@ -41,9 +45,11 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Initial menu system.
+@Some work on the menu frontend from a *long* time ago, which I didn't
+commit before because it wasn't the design that was intended, but I
+only remembered after writing it...
 @
 text
 @/* main.c
@@ -166,33 +172,6 @@ static void do_run_parallel (const char *name)
 }
 
 
-static void do_run_client_server (const char *name)
-{
-    messages_init ();
-	
-    /* XXX should make server support multiple network types
-       then use NET_DRIVER_LOCAL for the client */
-    if ((server_init (client_server_interface, INET_DRIVER) < 0) ||
-	(client_init (name, INET_DRIVER, "127.0.0.1") < 0)) {
-	allegro_message (
-	    "Error initialising game server or client.  Perhaps another\n"
-	    "game server is already running on the same port?\n");
-    } else {
-	sync_init (server_thread);
-	client_run (1);
-	sync_server_stop_requested ();
-	sync_shutdown ();
-
-	client_shutdown ();
-	server_shutdown ();
-
-	allegro_errno = &errno;	/* errno is thread-specific */
-    }
-
-    messages_shutdown ();
-}
-
-
 static void do_run_server (void)
 {
     if (server_init (server_text_interface, INET_DRIVER) < 0) {
@@ -207,24 +186,10 @@ static void do_run_server (void)
 }
 
 
-static void do_run_client (const char *name, const char *addr)
-{
-    messages_init ();
-    if (client_init (name, INET_DRIVER, addr) == 0) {
-	sync_init (NULL);
-	client_run (0);
-	sync_shutdown ();
-	client_shutdown ();
-    }
-    messages_shutdown ();
-}
-
-
 int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1;
     int run_server = 0;
-    int run_client_server = 0;
     int run_parallel = 0;
     int run_editor = 0;
     const char *name = "noname";
@@ -233,13 +198,10 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":scpa:n:ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":spa:n:ew:h:d:")) != -1) {
 	switch (c) {
 	    case 's':
 		run_server = 1;
-		break;
-	    case 'c':
-		run_client_server = 1;
 		break;
 	    case 'p':
 		run_parallel = 1;
@@ -277,7 +239,7 @@ int main (int argc, char *argv[])
 	}
     }
 
-    if ((run_server + run_client_server + run_parallel + run_editor) > 1) {
+    if ((run_server + run_parallel + run_editor) > 1) {
 	fprintf (stderr, "Incompatible operation modes.\n");
 	return 1;
     }
@@ -289,7 +251,19 @@ int main (int argc, char *argv[])
 
     game_init ();
 
-    /* XXX testing menu */ if (1) {
+    if (run_server) {
+	do_run_server ();
+    }
+    else if (run_parallel) {
+	do_run_parallel (name);
+    }
+    else if (run_editor) {
+	if (editor_init () == 0) {
+	    editor_run ();
+	    editor_shutdown ();
+	}
+    }
+    else {
 	if (gamemenu_init () == 0) {
 	    gamemenu_run ();
 	    gamemenu_shutdown ();
@@ -302,6 +276,78 @@ int main (int argc, char *argv[])
 	}
     }
 
+    game_shutdown ();
+
+    return 0;
+}
+
+END_OF_MAIN();
+@
+
+
+1.6
+log
+@Initial menu system.
+@
+text
+@a120 27
+static void do_run_client_server (const char *name)
+{
+    messages_init ();
+	
+    /* XXX should make server support multiple network types
+       then use NET_DRIVER_LOCAL for the client */
+    if ((server_init (client_server_interface, INET_DRIVER) < 0) ||
+	(client_init (name, INET_DRIVER, "127.0.0.1") < 0)) {
+	allegro_message (
+	    "Error initialising game server or client.  Perhaps another\n"
+	    "game server is already running on the same port?\n");
+    } else {
+	sync_init (server_thread);
+	client_run (1);
+	sync_server_stop_requested ();
+	sync_shutdown ();
+
+	client_shutdown ();
+	server_shutdown ();
+
+	allegro_errno = &errno;	/* errno is thread-specific */
+    }
+
+    messages_shutdown ();
+}
+
+
+a134 13
+static void do_run_client (const char *name, const char *addr)
+{
+    messages_init ();
+    if (client_init (name, INET_DRIVER, addr) == 0) {
+	sync_init (NULL);
+	client_run (0);
+	sync_shutdown ();
+	client_shutdown ();
+    }
+    messages_shutdown ();
+}
+
+
+a138 1
+    int run_client_server = 0;
+d147 1
+a147 1
+    while ((c = getopt (argc, argv, ":scpa:n:ew:h:d:")) != -1) {
+a151 3
+	    case 'c':
+		run_client_server = 1;
+		break;
+d188 1
+a188 1
+    if ((run_server + run_client_server + run_parallel + run_editor) > 1) {
+d200 13
+a212 1
+    /* XXX testing menu */ if (1) {
+a224 19
     gettimeofday_init ();
 
     if (run_editor) {
@@ -321,12 +367,6 @@ int main (int argc, char *argv[])
 
     gettimeofday_shutdown ();
     
-    game_shutdown ();
-
-    return 0;
-}
-
-END_OF_MAIN();
 @
 
 

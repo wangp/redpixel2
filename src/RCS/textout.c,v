@@ -1,0 +1,188 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	2002.07.10.03.53.40;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.07.09.15.18.04;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Refactor textout.c and completed missing functions for completeness.
+@
+text
+@/* textout.c -- text routines for magic bitmaps
+ * 
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+#include <allegro.h>
+#include "magic4x4.h"
+#include "textout.h"
+
+
+enum { LEFT, RIGHT, CENTRE };
+
+static void _do_it (
+    BITMAP *bmp, FONT *font, const char *buf,
+    int x, int y, int color,
+    void (*drawer) (BITMAP *, BITMAP *, int, int),
+    int align)
+{
+    int len;
+    BITMAP *tmp;
+
+    len = text_length (font, buf);
+    tmp = create_magic_bitmap (len, text_height (font));
+    clear_bitmap (tmp);
+    textout (tmp, font, buf, 0, 0, color);
+
+    switch (align) {
+	case LEFT:   drawer (bmp, tmp, x, y); break;
+	case RIGHT:  drawer (bmp, tmp, x - len, y); break;
+	case CENTRE: drawer (bmp, tmp, x - tmp->w/3/2, y); break;
+    }
+
+    destroy_bitmap (tmp);
+}
+
+
+/* plain string */
+
+#define MK_THINGO(NAME, DRAWER, ALIGN)				\
+void NAME (BITMAP *bmp, FONT *font, const char *buf,		\
+	   int x, int y, int color)				\
+{								\
+    _do_it (bmp, font, buf, x, y, color, DRAWER, ALIGN);	\
+}
+
+MK_THINGO(textout_magic, draw_magic_sprite, LEFT)
+MK_THINGO(textout_right_magic, draw_magic_sprite, RIGHT)
+MK_THINGO(textout_centre_magic, draw_magic_sprite, CENTRE)
+
+MK_THINGO(textout_trans_magic, draw_trans_magic_sprite, LEFT)
+MK_THINGO(textout_right_trans_magic, draw_trans_magic_sprite, RIGHT)
+MK_THINGO(textout_centre_trans_magic, draw_trans_magic_sprite, CENTRE)
+
+
+/* format string */
+
+#define MK_THINGO_F(NAME, DRAWER, ALIGN)			\
+void NAME (BITMAP *bmp, FONT *font, int x, int y,		\
+	   int color, const char *fmt, ...)			\
+{								\
+    va_list ap;							\
+    char buf[1024];						\
+								\
+    va_start (ap, fmt);						\
+    uvszprintf (buf, sizeof buf, fmt, ap);			\
+    va_end (ap);						\
+								\
+    _do_it (bmp, font, buf, x, y, color, DRAWER, ALIGN);	\
+}
+
+MK_THINGO_F (textprintf_trans_magic, draw_trans_magic_sprite, LEFT)
+MK_THINGO_F (textprintf_right_trans_magic, draw_trans_magic_sprite, RIGHT)
+MK_THINGO_F (textprintf_centre_trans_magic, draw_trans_magic_sprite, CENTRE)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+/* textout.c
+d12 7
+a18 2
+void textout_magic (BITMAP *bmp, FONT *font, const char *buf,
+		    int x, int y, int color)
+d20 2
+a21 8
+    int len = text_length (font, buf);
+    BITMAP *tmp = create_magic_bitmap (len, text_height (font));
+    clear_bitmap (tmp);
+    textout (tmp, font, buf, 0, 0, color);
+    draw_magic_sprite (bmp, tmp, x, y);
+    destroy_bitmap (tmp);
+}
+
+d23 2
+a24 5
+void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf,
+			  int x, int y, int color)
+{
+    int len = text_length (font, buf);
+    BITMAP *tmp = create_magic_bitmap (len, text_height (font));
+a26 3
+    draw_trans_magic_sprite (bmp, tmp, x - len, y);
+    destroy_bitmap (tmp);
+}
+d28 5
+a33 8
+void textout_centre_trans_magic (BITMAP *bmp, FONT *font, const char *s,
+				 int x, int y, int color)
+{
+    BITMAP *tmp = create_magic_bitmap (text_length (font, s),
+				       text_height (font));
+    clear_bitmap (tmp);
+    textout (tmp, font, s, 0, 0, color);
+    draw_trans_magic_sprite (bmp, tmp, x - tmp->w/3/2, y);
+d38 1
+a38 6
+void textprintf_trans_magic (BITMAP *bmp, FONT *font, int x, int y,
+			     int color, const char *fmt, ...)
+{
+    va_list ap;
+    BITMAP *tmp;
+    char buf[1024];
+d40 6
+a45 3
+    va_start (ap, fmt);
+    uvszprintf (buf, sizeof buf, fmt, ap);
+    va_end (ap);
+d47 23
+a69 5
+    tmp = create_magic_bitmap (text_length (font, buf), text_height (font));
+    clear_bitmap (tmp);
+    textout (tmp, font, buf, 0, 0, color);
+    draw_trans_magic_sprite (bmp, tmp, x, y);
+    destroy_bitmap (tmp);
+d72 3
+a74 18
+
+void textprintf_right_trans_magic (BITMAP *bmp, FONT *font, int x, int y,
+				   int color, const char *fmt, ...)
+{
+    va_list ap;
+    BITMAP *tmp;
+    char buf[1024];
+
+    va_start (ap, fmt);
+    uvszprintf (buf, sizeof buf, fmt, ap);
+    va_end (ap);
+
+    tmp = create_magic_bitmap (text_length (font, buf), text_height (font));
+    clear_bitmap (tmp);
+    textout (tmp, font, buf, 0, 0, color);
+    draw_trans_magic_sprite (bmp, tmp, x - tmp->w/3, y);
+    destroy_bitmap (tmp);
+}
+@

@@ -1,9 +1,19 @@
-head	1.1;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.07.03.07.45.59;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.07.03.07.43.37;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.41;	author tjaden;	state Exp;
@@ -15,9 +25,9 @@ desc
 @@
 
 
-1.1
+1.3
 log
-@Initial revision
+@(oops)
 @
 text
 @#ifndef __included_store_h
@@ -31,12 +41,63 @@ extern "C" {
 #include <allegro.h>
 
 
+typedef struct store_file *store_file_t;
+
+typedef int store_index_t;
+#define STORE_INDEX_NONEXISTANT (-1)
+
 extern DATAFILE **store;
 
-
-int store_init (int size);
+int store_init (unsigned int size);
 void store_shutdown (void);
 
+store_file_t store_load (AL_CONST char *filename, AL_CONST char *prefix);
+store_file_t store_load_ex (AL_CONST char *filename, AL_CONST char *prefix,
+			    DATAFILE *(*loader) (AL_CONST char *));
+void store_unload (store_file_t f);
+
+store_index_t store_get_index (AL_CONST char *key);
+AL_CONST char *store_get_key (store_index_t index);
+DATAFILE *store_get_datafile (AL_CONST char *key);
+void *store_get_dat (AL_CONST char *key);
+
+DATAFILE *store_get_file (store_file_t f);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __included_store_h */
+@
+
+
+1.2
+log
+@Changed API, new implementation
+@
+text
+@d25 1
+a25 1
+void store_unload (store_file_t id);
+d32 1
+a32 1
+DATAFILE *store_get_file (store_file_t id);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 5
+d19 2
+d22 4
+a25 2
+int store_init (int size);
+void store_shutdown (void);
+d27 4
+a30 9
 int store_load (AL_CONST char *filename, AL_CONST char *prefix);
 int store_load_ex (AL_CONST char *filename, AL_CONST char *prefix,
 		   DATAFILE *(*loader) (AL_CONST char *));
@@ -46,13 +107,8 @@ int store_index (AL_CONST char *key);
 char *store_key (int index);
 DATAFILE *store_datafile (AL_CONST char *key);
 void *store_dat (AL_CONST char *key);
-
+d32 1
+a32 2
 DATAFILE *store_file (int id);
     
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __included_store_h */
 @

@@ -1,9 +1,14 @@
-head	1.10;
+head	1.11;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.11
+date	2002.07.09.14.36.52;	author tjaden;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2002.02.11.04.26.36;	author tjaden;	state Exp;
@@ -60,9 +65,9 @@ desc
 @@
 
 
-1.10
+1.11
 log
-@No need to set the vtable in this file anymore.
+@Use shared #definition of M_PI.
 @
 text
 @/* particle.c
@@ -81,12 +86,8 @@ text
 #include "alloc.h"
 #include "bitmask.h"
 #include "map.h"
+#include "mathcnst.h"
 #include "particle.h"
-
-
-#ifndef M_PI
-# define M_PI   3.14159265358979323846
-#endif
 
 
 #define INITIAL_PARTICLES	1024
@@ -326,6 +327,21 @@ void particles_draw (BITMAP *bmp, particles_t *part, int offset_x, int offset_y)
     bmp->cl = old_cl;
     bmp->cr = old_cr;
 }
+@
+
+
+1.10
+log
+@No need to set the vtable in this file anymore.
+@
+text
+@d17 1
+a18 5
+
+
+#ifndef M_PI
+# define M_PI   3.14159265358979323846
+#endif
 @
 
 

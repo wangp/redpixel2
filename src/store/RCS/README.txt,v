@@ -1,0 +1,278 @@
+head	1.5;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.5
+date	2002.07.09.15.41.27;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.07.03.07.45.31;	author tjaden;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2002.02.07.07.24.00;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.18.15.43.59;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.12.20.15.41;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.5
+log
+@Updated the bit about Wumpus.
+@
+text
+@
+    Store, an access-datafiles-via-strings extension for Allegro.
+
+
+Introduction
+
+    Store is an abstraction layer for Allegro datafiles that allows
+    you to access the items via their names, rather than their index
+    numbers.  While this is not new, and can be easily done without
+    using an external library, Store uses hash tables to quickly find
+    the item you want.
+
+    The idea behind Store is to load many separate datafiles together
+    and use them as a single unit.  This one unit is like one huge
+    datafile.
+
+    Store does not work with encodings other than ASCII and UTF-8 (for
+    speed reasons).  Use only one encoding for all your strings.
+
+
+Compiling
+
+    Store is small enough to be plugged straight into your project's
+    source directory, rather than being linked in as an external
+    library (more convenient for end users).  Therefore, no makefile
+    is provided -- compile it as if it were your own code.
+
+    The files you need are: store.c store.h bjhash.inc
+
+
+API
+
+    Look inside `example.c' for usage.
+
+    int store_init (unsigned int size);
+
+	Call this at the start of your program to set the size of the
+	main hash table.  A larger hash table requires more memory, but
+	reduces the chances of a key collision (which will slow down
+	retrieval times).  Returns zero on success.
+
+	Note: the actual size used will not necessarily be exactly the
+	size you requested.  In the current implementation, it is
+	rounded up to the next power of two, for speed reasons.
+
+    void store_shutdown (void);
+
+	Free all resources, including loaded datafiles.  You must call
+	this at the end of your program (will NOT be done automatically).
+
+    typedef ... store_file_t;
+
+        This is the handle for a loaded file.
+
+    store_file_t store_load (const char *filename, const char *prefix);
+
+	Load a datafile named FILENAME into memory, with a prefix for
+	the item names.  Returns a file handle on success, or NULL on
+	failure.
+
+    store_file_t store_load_ex (const char *filename, const char *prefix,
+			        DATAFILE *(*loader) (const char *filename));
+
+	Same as above, but allows you to provide an alternative
+	datafile loading function.
+
+    void store_unload (store_file_t file);
+
+	Unload the datafile using the file handle.  Entries in the
+	`store' array which pointed to items in the datafile being
+	unloaded get cleared to NULL; all other items remain
+	unchanged.
+
+    DATAFILE **store;
+
+	All the datafiles you load will be concatenated together into
+	a big array, called `store'.  This increases in size for each
+	datafile you load.
+
+    typedef ... store_index_t;
+
+	This represents an index into `store' and is used instead of a
+	bare integer for readability reasons.
+
+    store_index_t store_get_index (const char *key);
+
+	Returns an index into the `store' data structure for an item
+	with key KEY, or STORE_INDEX_NONEXISTANT on error.
+
+    const char *store_get_key (store_index_t index);
+
+	Returns the key for a given index, or NULL if not found.
+	This function is slow.
+
+    DATAFILE *store_get_datafile (const char *key);
+
+	Returns a pointer to the datafile structure for an item
+	with key KEY, or NULL on error.
+	           
+    void *store_get_dat (const char *key);
+
+	Returns a pointer to the datafile structure `dat' field for an
+	item with key KEY, or NULL on error.
+
+    DATAFILE *store_get_file (store_file_t f);
+    
+	Returns a pointer to the DATAFILE structure of a file, as if
+	you had loaded it yourself with `load_datafile', or NULL on
+	error.  You will probably not use this function.
+	
+
+See also
+
+    Store is based partly off Wumpus, a similar library I wrote in
+    June 1999.  You might want to take a look at that if Store does
+    not do things the way you want.  Actually, you can't, as I never
+    released it.  Just edit the source code.
+
+
+Credits
+
+    Peter Wang mashed this together.
+
+    Jerry Coffin and HenkJan Wolthuis wrote the hash table code,
+    which was put in the Snippets collection (public domain).
+    {Note that it isn't used anymore.}
+
+    Bob Jenkins is the author of the hashing function in bjhash.inc.
+
+	
+Contact
+
+    Email:	tjaden@@users.sourceforge.net
+    WWW: 	http://www.alphalink.com.au/~tjaden/
+@
+
+
+1.4
+log
+@Changed API, new implementation
+@
+text
+@d44 1
+a44 1
+	round up to the next power of two, for speed reasons.
+d114 4
+a117 4
+    Store is based partly off Wumpus, a similar library I wrote last
+    year (June 1999).  You might want to take a look at that if Store
+    does not do things the way you want.  Or you could just edit the
+    source code.
+@
+
+
+1.3
+log
+@Updated for new store_unload() semantics.
+@
+text
+@d28 1
+a28 1
+    The files you need are: hash.c hash.h store.c store.h
+d35 1
+a35 1
+    int store_init (int);
+d42 5
+a46 1
+    void store_shutdown ();
+d51 5
+a55 1
+    int store_load (const char *filename, const char *prefix);
+d57 3
+a59 3
+	Load a datafile named FILENAME into core, with a prefix for
+	the item names.  Returns a file id on success, or a negative
+	number on error.
+d61 2
+a62 2
+    int store_load_ex (const char *filename, const char *prefix,
+			DATAFILE *(*loader) (const char *filename));
+d67 1
+a67 1
+    void store_unload (int id);
+d69 4
+a72 3
+	Unload the datafile using the file id.  Entries in the `store'
+	array which pointed to items in the datafile being unloaded
+	get cleared to NULL; all other items remain unchanged.
+d77 2
+a78 1
+	a big array, called `store'.
+d80 6
+a85 1
+    int store_index (const char *key);
+d88 1
+a88 1
+	with key KEY, or zero on error.
+d90 1
+a90 1
+    char *store_key (int index);
+d95 1
+a95 1
+    DATAFILE *store_datafile (const char *key);
+d100 1
+a100 1
+    void *store_dat (const char *key);
+d105 1
+a105 1
+    DATAFILE *store_file (int id);
+d107 1
+a107 1
+	Returns a pointer to the DATAFILE structure of file ID, as if
+d126 3
+@
+
+
+1.2
+log
+@Reverted to the libc string functions and only support ASCII/UTF-8.
+@
+text
+@d61 3
+a63 1
+	 Unload the datafile using the file id.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d17 2
+a18 1
+    Store aims to be Unicode-aware, but I don't think it's there yet.
+@

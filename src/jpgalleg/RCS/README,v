@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.05.04.00.22.10;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.23;	author tjaden;	state Exp;
@@ -15,24 +20,23 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Upgraded to JPGalleg 1.2
 @
 text
 @
                  JEGalleg: JPG Decoding Routines for Allegro
 
 
-                 version 1.1 by Angelo Mottola, May/June 2000
+                 version 1.2 by Angelo Mottola, Mar 2002
 
 
 Thanks for downloading the JPGalleg! This package contains source code to
 decode standard jpg image files, into normal Allegro bitmaps.
 In order to make it working, you'll need a platform and a C compiler actually
-supported by the Allegro game programming library; to code it, I've used
-Allegro WIP 3.9.32 under Linux, and it works both under X and console
-(tested with fbcon).
+supported by the Allegro game programming library; the library has been tested
+on Linux and Windows, using Allegro 4.0.
 
 The zip file holds the following files:
 
@@ -52,11 +56,19 @@ File:              Description:
 
  
 Now, if your platform supports the "make" tool, all you have to do to compile
-the library and its examples, is to run "make" from the program directory.
-Beware of the executables, as the makefile by default outputs them in
-Linux/Unix format, i.e. without extension; if you're under DOS/Windows, you
-should modify the makefile file to generate the right filenames for your
-platform...
+the library and its examples, is to run:
+
+make
+
+from the program directory. The makefile should work on almost any platform
+supported by Allegro; it'll autodetect the host system by looking for the HOME
+environmental variable, which is commonly defined under Unices (and Unix-like
+systems, like BeOS and QNX) and not under Windows. If you experiment problems
+with the makefile under DOS/Win32, try running the following:
+
+make HOME=
+
+Now it should work and the library should compile successfully.
 
 
 FEATURES ____________________________________________________________________
@@ -119,8 +131,23 @@ Here I suppose "bmp" is a pointer to a BITMAP, "data" is an already loaded
 datafile, and "JPG_DATA" is the name of your JPG object into the datafile.
 If all goes ok, you should now have your JPG image decoded into bmp.
 
+A sidenote: usually storing JPG images into Allegro datafiles, using global or
+per-object datafile compression actually causes the compression ratio to
+decrease; this is because JPG files use a stronger compression than the LZSS
+compression used by Allegro, so attempting to compress the JPG image into a
+datafile will result in a bigger size. So unless you like to have all your
+images into an unique datafile to have a clean directory, you should store
+your JPG images as individual files; if you want them into a datafile,
+remember to store them without using compression on the corresponding datafile
+DATA objects.
+
 
 HISTORY _____________________________________________________________________
+
+Version 1.2 (March, the 8th 2002):
+                 Speeded up a bit the loader by using fixed point math in
+                 pixel colorspace conversion, fixed C++ compatibility and
+                 modified the makefile to support different platforms.
 
 Version 1.1 (June, the 2nd 2000):
                  Added support to load JPG from memory; new examples have been
@@ -151,4 +178,29 @@ The Independent JPEG Group: the fast IDCT algorithm used here comes from their
    great jpeg codec package.
 Cristi Cuturicu for his JPEG compression and file format FAQ. Without your
    document, my work would have never been possible.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 1
+a5 1
+                 version 1.1 by Angelo Mottola, May/June 2000
+d11 2
+a12 3
+supported by the Allegro game programming library; to code it, I've used
+Allegro WIP 3.9.32 under Linux, and it works both under X and console
+(tested with fbcon).
+d32 13
+a44 5
+the library and its examples, is to run "make" from the program directory.
+Beware of the executables, as the makefile by default outputs them in
+Linux/Unix format, i.e. without extension; if you're under DOS/Windows, you
+should modify the makefile file to generate the right filenames for your
+platform...
+d107 10
+d119 5
 @

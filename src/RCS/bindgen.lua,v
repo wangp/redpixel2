@@ -1,9 +1,19 @@
-head	1.28;
+head	1.30;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.30
+date	2002.07.10.10.29.56;	author tjaden;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	2002.07.03.07.50.46;	author tjaden;	state Exp;
+branches;
+next	1.28;
 
 1.28
 date	2002.01.29.14.57.43;	author tjaden;	state Exp;
@@ -150,9 +160,9 @@ desc
 @@
 
 
-1.28
+1.30
 log
-@Added initial (very incomplete) sound support for weapons.
+@Added bindings for svgame_set_score and svgame_play_sound_on_clients.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -299,8 +309,8 @@ generate {
     lname	= "store_load",
     args	= {{ String, "filename" },
 		   { String, "prefix" }},
-    ret		= { Int, "ret", "$ < 0",
-		    "$ = store_load_ex(filename, prefix, load_extended_datafile);" }
+    ret		= { Int, "ret", "$",
+		    "$ = !store_load_ex(filename, prefix, load_extended_datafile);" }
 }
 
 generate {
@@ -318,7 +328,8 @@ generate {
 }
 
 generate {
-    cname	= "store_index",
+    cname	= "store_get_index",
+    lname	= "store_index", -- XXX: temporary
     args	= {{ String, "key" }},
     ret		= { Int, "ret", "!$" },
     success	= "lua_pushnumber(L, ret); return 1;"
@@ -649,6 +660,20 @@ generate {
 }
 
 generate {
+    cname	= "svgame_set_score",
+    lname	= "set_score",
+    args	= {{ Int, "clientid" },
+		   { String, "score" }}
+}
+
+generate {
+    cname	= "svgame_play_sound_on_clients",
+    lname	= "play_sound_on_clients",
+    args	= {{ Object, "obj" },
+		   { String, "sample" }}
+}
+
+generate {
     cname	= "client_play_sound",
     lname	= "play_sound",
     args	= {{ Object, "obj" },
@@ -666,6 +691,30 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.29
+log
+@Updated for new Store
+@
+text
+@d496 14
+@
+
+
+1.28
+log
+@Added initial (very incomplete) sound support for weapons.
+@
+text
+@d145 2
+a146 2
+    ret		= { Int, "ret", "$ < 0",
+		    "$ = store_load_ex(filename, prefix, load_extended_datafile);" }
+d164 2
+a165 1
+    cname	= "store_index",
 @
 
 

@@ -25,7 +25,7 @@ static int in_vector_p (vector_t *vec, void *p);
 
 
 
-#define SPREAD_SPEED  4
+#define SPREAD_SPEED  2.2
 
 
 struct blast {

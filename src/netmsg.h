@@ -27,7 +27,7 @@ enum {
 
 
     /* The client sends this to the server after it joins and receives
-       the MSG_SC_POST_JOIN message.
+       the MSG_SC_JOININFO message.
 
        Args: char protocol_version, string name.
      */
@@ -52,6 +52,27 @@ enum {
        state.  */
 
     MSG_SC_GAMESTATEFEED_DONE = '*',
+
+
+    /* The server sends this to a client to tell it about a client
+       that exists (possibly itself).  This is sent once when a new
+       client is connected.
+
+       Args: long client_id, string name, string score.
+       Score maybe be 0-length.
+     */
+
+    MSG_SC_CLIENT_ADD = '+',
+
+
+    /* The server sends this to a client to tell it that another
+       client is no more.  This is sent once when a client is
+       disconnected.
+
+       Args: long client_id.
+     */
+
+    MSG_SC_CLIENT_REMOVE = '-',
 
 
     /* The server broadcasts this to clients to notify that the game
@@ -133,7 +154,7 @@ enum {
        disconnected (for whatever reason).  After this is sent, the
        server expects no more messages from the client.  */
 
-    MSG_SC_DISCONNECTED = 'D',
+    MSG_SC_DISCONNECTED = 'D'
 };
 
 
@@ -181,7 +202,36 @@ enum {
      */
 
     MSG_SC_GAMEINFO_MAPLOAD = 'l',
-    
+
+
+    /* Tell clients about a client's new aim angle.  Note: these
+       angles are only approximate.
+
+       Args: long client_id, float aim_angle.
+     */
+
+    MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE = 'a',
+
+
+    /* Tell clients about their status.
+
+       Args: long client_id, byte prop, long value.
+       where prop is 'h' for health, 'a' for ammo
+     */
+
+    MSG_SC_GAMEINFO_CLIENT_STATUS = 's',
+
+
+    /* Tell clients about theirs or other client's scores.
+
+       Args: long client_id, string score.
+
+       The score is a string for displaying only.  As such, it could
+       be anything (but usually it would be dealing in death).
+     */
+
+    MSG_SC_GAMEINFO_CLIENT_SCORE = '$',
+
 
     /* Tell clients to create a new object.
 
@@ -191,7 +241,8 @@ enum {
        This is followed by extra fields for the proxy object.
        Each field is of the following format:
 
-       For a float: 'f', string name, float value
+       For a float:  'f', string name, float value
+       For a string: 's', string name, string value
 
        The packet is terminated with a null character.
      */
@@ -232,15 +283,6 @@ enum {
     MSG_SC_GAMEINFO_OBJECT_CALL = 'C',
 
 
-    /* Tell clients about a client's new aim angle.  Note: these
-       angles are only approximate.
-
-       Args: long client_id, float aim_angle.
-     */
-
-    MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE = 'a',
-
-
     /* Tell clients to create some particles.
 
        Args: char type, float x, float y, long nparticles, float spread.
@@ -274,13 +316,12 @@ enum {
     MSG_SC_GAMEINFO_BLAST_CREATE = 'b',
 
 
-    /* Tell clients about their status.
+    /* Tell client to play a sound.
 
-       Args: long client_id, byte prop, long value.
-       where prop is 'h' for health, 'a' for ammo
+       Args: float x, float y, string sound;
      */
 
-    MSG_SC_GAMEINFO_CLIENT_STATUS = 's',
+    MSG_SC_GAMEINFO_SOUND_PLAY = 'S'
 };
 
 

@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.07.03.07.50.23;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.02.06.10.07.08;	author tjaden;	state Exp;
@@ -35,9 +40,9 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@(oops, some old code)
+@Updated for new Store
 @
 text
 @/* explo.c
@@ -110,7 +115,7 @@ int explosion_type_register (const char *name, const char *first_frame,
     DATAFILE *d;
     etype_t *t;
 
-    d = store_datafile (first_frame);
+    d = store_get_datafile (first_frame);
     if (!d)
 	return -1;
 
@@ -121,8 +126,8 @@ int explosion_type_register (const char *name, const char *first_frame,
     t->tics = tics;
     t->centre_x = ((BITMAP *) d->dat)->w/3/2;
     t->centre_y = ((BITMAP *) d->dat)->h/2;
-    t->light = light ? store_dat (light) : NULL;
-    t->sound = sound ? store_dat (sound) : NULL;
+    t->light = light ? store_get_dat (light) : NULL;
+    t->sound = sound ? store_get_dat (sound) : NULL;
     
     list_add (etypes, t);
     
@@ -207,6 +212,21 @@ void explosion_draw_lights (BITMAP *dest, explosion_t *explo,
 				 explo->x - offset_x - bmp->w/3/2,
 				 explo->y - offset_y - bmp->h/2);
 }
+@
+
+
+1.5
+log
+@(oops, some old code)
+@
+text
+@d71 1
+a71 1
+    d = store_datafile (first_frame);
+d82 2
+a83 2
+    t->light = light ? store_dat (light) : NULL;
+    t->sound = sound ? store_dat (sound) : NULL;
 @
 
 

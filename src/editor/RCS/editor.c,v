@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.03.07.49.14;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.02.11.04.28.42;	author tjaden;	state Exp;
@@ -30,9 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Made editor more friendly to being run more than once in a process.
+@Updated for new Store
 @
 text
 @/* editor.c
@@ -60,21 +65,21 @@ text
 #include "map.h"
 
 
-static int store_id;
+static store_file_t support_file;
 map_t *editor_map;
 
 
 int editor_init (void)
 {
-    store_id = store_load_ex ("data/editor/editor-support.dat", "/editor/",
-			      load_extended_datafile);
-    return (store_id < 0) ? -1 : 0;
+    support_file = store_load_ex ("data/editor/editor-support.dat", "/editor/",
+				  load_extended_datafile);
+    return (support_file) ? 0 : -1;
 }
 
 
 void editor_shutdown (void)
 {
-    store_unload (store_id);
+    store_unload (support_file);
 }
 
 
@@ -82,7 +87,7 @@ int editor_run (void)
 {
     FONT *old_font = font;
 
-    font = store_dat ("/editor/font");
+    font = store_get_dat ("/editor/font");
 
     if ((gui_init () < 0)
 	|| (ug_init () < 0)
@@ -132,6 +137,28 @@ int editor_run (void)
     font = old_font;
     return 1;
 }
+@
+
+
+1.4
+log
+@Made editor more friendly to being run more than once in a process.
+@
+text
+@d26 1
+a26 1
+static int store_id;
+d32 3
+a34 3
+    store_id = store_load_ex ("data/editor/editor-support.dat", "/editor/",
+			      load_extended_datafile);
+    return (store_id < 0) ? -1 : 0;
+d40 1
+a40 1
+    store_unload (store_id);
+d48 1
+a48 1
+    font = store_dat ("/editor/font");
 @
 
 

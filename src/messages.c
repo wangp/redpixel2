@@ -10,6 +10,7 @@
 #include "magic4x4.h"
 #include "messages.h"
 #include "store.h"
+#include "textout.h"
 #include "timeout.h"
 
 
@@ -46,7 +47,7 @@ static const char *ucs16_to_utf8 (const ucs16_t *text)
 
 int messages_init (void)
 {
-    if (!(fnt = store_dat ("/basic/font/mini")))
+    if (!(fnt = store_get_dat ("/basic/font/mini")))
 	return -1;
     
     text_colour = makecol24 (0xaf, 0xdf, 0xaf);
@@ -72,23 +73,6 @@ void messages_shutdown (void)
 #define YMARGIN	2
 
 
-static void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf,
-				 int x, int y, int color)
-{
-    int len = text_length (font, buf);
-    int rtm = text_mode (-1);
-    BITMAP *tmp;
-
-    tmp = create_magic_bitmap (len, text_height (font));
-    clear_bitmap (tmp);
-    textout (tmp, font, buf, 0, 0, color);
-    draw_magic_sprite (bmp, tmp, x - len, y);
-    destroy_bitmap (tmp);
-
-    text_mode (rtm);
-}
-
-
 void messages_render (BITMAP *bmp)
 {
     int i, y, h;
@@ -96,17 +80,22 @@ void messages_render (BITMAP *bmp)
     y = YMARGIN;
     h = text_height (fnt);
 
+    text_mode (-1);
+
     for (i = top_line; i < num_lines; i++, y += h)
-	textout_right_magic (bmp, fnt, lines[i], bmp->w/3 - XMARGIN, y,
-			     text_colour);
+	textout_right_trans_magic (bmp, fnt, lines[i],
+				   bmp->w/3 - XMARGIN, y,
+				   text_colour);
 
     if (input_enabled) {
-	textout_right_magic (bmp, fnt, ucs16_to_utf8 (input_line),
-			     bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
-			     input_colour);
+	textout_right_trans_magic (bmp, fnt, ucs16_to_utf8 (input_line),
+				   bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
+				   input_colour);
+
 	if (input_blink & 0x8)
-	    textout_right_magic (bmp, fnt, "_", bmp->w/3 - XMARGIN, y,
-				 input_colour);
+	    textout_right_trans_magic (bmp, fnt, "_",
+				       bmp->w/3 - XMARGIN, y,
+				       input_colour);
 	input_blink = (input_blink+1) & 0xf;
     }
 }

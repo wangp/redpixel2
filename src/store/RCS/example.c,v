@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.07.03.07.45.37;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.41;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed API, new implementation
 @
 text
 @/* example for Store (does not do anything) */
@@ -29,13 +34,13 @@ text
 
 int main ()
 {
-    int idx;
+    store_index_t idx;
     BITMAP *bmp;
-    
+
     allegro_init ();
-    if (set_gfx_mode (GFX_AUTODETECT, 320, 200, 0, 0) < 0)
+    if (set_gfx_mode (GFX_AUTODETECT, 320, 200, 0, 0) != 0)
 	return 1;
-    
+
     /* Initialise Store, passing it the size of the hash table you
      * want to use.  */
     store_init (200);
@@ -48,26 +53,26 @@ int main ()
      *
      * Error checking has been omitted.
      */
-    store_load ("tiles1.dat", "/tiles/"); 
+    store_load ("tiles1.dat", "/tiles/");
     store_load ("tiles2.dat", "/tiles/");
     store_load ("chars.dat", "/characters/");
 
     /* Get an index into the `store' data structure, which you can use
      * as shown.  */
-    idx = store_index ("/tiles/bricks/001");
+    idx = store_get_index ("/tiles/bricks/001");
     if (idx)
 	draw_sprite (screen, store[idx]->dat, 0, 0);
- 
+
     /* ... another way to do it.  */
-    bmp = store_datafile ("/tiles/bricks/002")->dat;
+    bmp = store_get_datafile ("/tiles/bricks/002")->dat;
     if (bmp)
 	draw_sprite (screen, bmp, 0, 0);
- 
+
     /* .. and another.  */
-    bmp = store_dat ("/tiles/bricks/003");
+    bmp = store_get_dat ("/tiles/bricks/003");
     if (bmp)
 	draw_sprite (screen, bmp, 0, 0);
- 
+
     /* Shutdown and unload datafiles.  */
     store_shutdown ();
 
@@ -80,4 +85,45 @@ END_OF_MAIN ();
 /*
  * end of example.c
  */
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d10 1
+a10 1
+    int idx;
+d12 1
+a12 1
+    
+d14 1
+a14 1
+    if (set_gfx_mode (GFX_AUTODETECT, 320, 200, 0, 0) < 0)
+d16 1
+a16 1
+    
+d29 1
+a29 1
+    store_load ("tiles1.dat", "/tiles/"); 
+d35 1
+a35 1
+    idx = store_index ("/tiles/bricks/001");
+d38 1
+a38 1
+ 
+d40 1
+a40 1
+    bmp = store_datafile ("/tiles/bricks/002")->dat;
+d43 1
+a43 1
+ 
+d45 1
+a45 1
+    bmp = store_dat ("/tiles/bricks/003");
+d48 1
+a48 1
+ 
 @

@@ -1,0 +1,70 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	2002.07.10.03.53.51;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.07.09.15.18.01;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Refactored textout.c and completed missing functions for completeness.
+@
+text
+@#ifndef __included_textout_h
+#define __included_textout_h
+
+
+struct BITMAP;
+struct FONT;
+
+
+void textout_magic (
+    struct BITMAP *, struct FONT *, const char *, int x, int y, int color);
+void textout_right_magic (
+    struct BITMAP *, struct FONT *, const char *, int x, int y, int color);
+void textout_centre_magic (
+    struct BITMAP *, struct FONT *, const char *, int x, int y, int color);
+
+void textout_trans_magic (
+    struct BITMAP *, struct FONT *, const char *, int x, int y, int color);
+void textout_right_trans_magic (
+    struct BITMAP *, struct FONT *, const char *, int x, int y, int color);
+void textout_centre_trans_magic (
+    struct BITMAP *, struct FONT *, const char *, int x, int y, int color);
+
+void textprintf_trans_magic (
+    struct BITMAP *, struct FONT *, int x, int y, int col, const char *, ...);
+void textprintf_right_trans_magic (
+    struct BITMAP *, struct FONT *, int x, int y, int col, const char *, ...);
+void textprintf_centre_trans_magic (
+    struct BITMAP *, struct FONT *, int x, int y, int col, const char *, ...);
+
+
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 7
+d22 1
+d26 2
+@

@@ -23,6 +23,8 @@ void svgame_call_method_on_clients (struct object *obj, const char *method, cons
 int svgame_object_would_collide_with_objects (struct object *obj);
 int svgame_tell_health (struct object *obj, int health);
 int svgame_tell_ammo (struct object *obj, int ammo);
+void svgame_set_score (int client_id, const char *score);
+void svgame_play_sound_on_clients (struct object *obj, const char *sound);
 
 
 extern struct server_state_procs *svgame_procs;

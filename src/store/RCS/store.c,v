@@ -1,9 +1,29 @@
-head	1.4;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.07.10.07.48.00;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.07.03.11.59.16;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.07.03.07.43.29;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.04.14.06.43.16;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.02.07.07.21.52;	author tjaden;	state Exp;
@@ -30,12 +50,10 @@ desc
 @@
 
 
-1.4
+1.8
 log
-@Fixed a major memory leak.  Also, fixed the semantics of store_unload
-(entries in the `store' array which pointed to items in the datafile
-being unloaded get cleared to NULL; all other items keep their
-indices).
+@Use calloc instead of malloc to create buckets array (forgot to clear
+to zero previously...)
 @
 text
 @/* store.c
@@ -47,166 +65,590 @@ text
 #include <stdlib.h>
 #include <string.h>
 #include <allegro.h>
-#include "hash.h"
 #include "store.h"
 
 
-struct file {
-    int id;
+/*----------------------------------------------------------------------*/
+
+/*
+ * This tracks the list of files that are currently loaded.
+ */
+
+struct store_file {
+    store_file_t next;
     char *prefix;
     DATAFILE *dat;
-    struct file *next;
 };
 
-static int file_id;
-static struct file file_list;
+static struct store_file file_list_head;
 
-static void list_init (void)
+static void
+init_file_list (void)
 {
-    file_list.next = 0;
-    file_id = 0;
+    file_list_head.next = NULL;
 }
 
-static int list_add (DATAFILE *dat, AL_CONST char *prefix)
+static store_file_t
+add_to_file_list (DATAFILE *dat, AL_CONST char *prefix)
 {
-    struct file *p, *f = malloc (sizeof *f);
+    store_file_t f = malloc (sizeof *f);
 
     if (f) {
-	f->id = file_id++;
 	f->prefix = strdup (prefix);
 	f->dat = dat;
+	f->next = file_list_head.next;
+	file_list_head.next = f;
+	return f;
+    }
+    else
+	return NULL;
+}
+
+static void
+remove_from_file_list (store_file_t f)
+{
+    store_file_t prev;
+
+    for (prev = &file_list_head; prev != NULL; prev = prev->next) {
+	if (prev->next == f) {
+	    prev->next = f->next;
+	    free (f->prefix);
+	    free (f);
+	    return;
+	}
+    }
+}
+
+static void
+free_file_list (void)
+{
+    while (file_list_head.next)
+	remove_from_file_list (file_list_head.next);
+}
+
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * This maintains a big array (called "the store") of all the datafile
+ * items that have been loaded.
+ */
+
+DATAFILE **store;		/* PUBLIC SYMBOL */
+
+#define the_store store		/* for less confusion, internally */
+static store_index_t the_store_size;
+
+static void
+init_the_store (void)
+{
+    the_store = NULL;
+    the_store_size = 0;
+}
+
+static void
+free_the_store (void)
+{
+    free (the_store);
+}
+
+static store_index_t
+add_item_to_the_store (DATAFILE *item)
+{
+    store_index_t i;
+    void *p;
+
+    /* If we are refreshing after a store_unload() call, item may
+     * already exist.  */
+    for (i = 0; i < the_store_size; i++)
+	if (the_store[i] == item)
+	    return i;
+
+    /* Otherwise it's a new item.  */
+    p = realloc (the_store, (the_store_size + 1) * sizeof (DATAFILE *));
+    if (p) {
+	store_index_t n = the_store_size;
+	the_store_size++;
+	the_store = p;
+	the_store[n] = item;
+	return n;
+    }
+
+    /* Out of memory? */
+    return STORE_INDEX_NONEXISTANT;
+}
+
+/* Clear any addresses in `store' which are in `d', and its children
+ * if `d' is a sub-datafile. */
+static void
+clear_from_the_store (DATAFILE *d)
+{
+    int i;
+    store_index_t j;
+
+    for (i = 0; d[i].type != DAT_END; i++) {
+	for (j = 0; j < the_store_size; j++) {
+	    if (the_store[j] == &d[i]) {
+		the_store[j] = NULL;
+		break;
+	    }
+	}
+
+	if (d[i].type == DAT_FILE)
+	    clear_from_the_store (d[i].dat);
+    }
+}
+
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * This maintains a hash table for fast lookup of datafile items in
+ * the store.
+ */
+
+#include "bjhash.inc"
+
+typedef struct bucket {
+    struct bucket *next;
+    char *key;
+    store_index_t value;
+}  bucket_t;
+
+static struct {
+    unsigned int size;
+    unsigned int hash_mask;
+    bucket_t **buckets;
+} lookup_table;
+
+static unsigned int
+good_hash_size (unsigned int k, unsigned int *maskret)
+{
+    unsigned int n = 1;
+    while (k > hashsize (n)) n++;
+    *maskret = hashmask (n);
+    return hashsize (n);
+}
+
+static int
+init_lookup_table (unsigned int size)
+{
+    unsigned int hash_mask;
+    size = good_hash_size (size, &hash_mask);
+
+    lookup_table.buckets = calloc (size, sizeof (bucket_t *));
+    if (lookup_table.buckets) {
+	lookup_table.size = size;
+	lookup_table.hash_mask = hash_mask;
+	return 0;
+    }
+    else
+	return -1;
+}
+
+static void
+clear_lookup_table (void)
+{
+    unsigned int i;
+    bucket_t *bkt;
+    bucket_t *next;
+
+    for (i = 0; i < lookup_table.size; i++) {
+	for (bkt = lookup_table.buckets[i]; bkt != NULL; bkt = next) {
+	    next = bkt->next;
+	    free (bkt->key);
+	    free (bkt);
+	}
+	lookup_table.buckets[i] = NULL;
+    }
+}
+
+static void
+free_lookup_table (void)
+{
+    if (lookup_table.size) {
+	clear_lookup_table ();
+	free (lookup_table.buckets);
+	lookup_table.size = 0;
+    }
+}
+
+#define hash_string(s)	(hash(s, strlen(s), 1))
+
+static void
+really_add_to_lookup_table (AL_CONST char *key, store_index_t value)
+{
+    unsigned int i = hash_string(key) & lookup_table.hash_mask;
+    bucket_t *bkt;
+
+    /* Check if key already exists.  */
+    for (bkt = lookup_table.buckets[i]; bkt != NULL; bkt = bkt->next)
+	if (strcmp(key, bkt->key) == 0)
+	    return;
+
+    /* Add new bucket.  */
+    bkt = malloc(sizeof *bkt);
+    bkt->key = strdup(key);
+    bkt->value = value;
+    bkt->next = lookup_table.buckets[i];
+    lookup_table.buckets[i] = bkt;
+}
+
+#define DAT_INFO  DAT_ID('i','n','f','o')
+
+static void
+add_to_lookup_table (DATAFILE *d, AL_CONST char *prefix)
+{
+    AL_CONST char *name;
+    char path[1024];
+    unsigned int i;
+    store_index_t k;
+
+    for (i = 0; d[i].type != DAT_END; i++) {
+	if (d[i].type == DAT_INFO)
+	    continue;
+
+	name = get_datafile_property (&d[i], DAT_NAME);
+	if (!name[0])
+	    continue;
+
+	strncpy (path, prefix, sizeof path); path[(sizeof path) - 1] = '\0';
+	strncat (path, name, sizeof path - strlen (path) - 1);
+
+	k = add_item_to_the_store (&d[i]);
+	if (k != STORE_INDEX_NONEXISTANT) {
+	    really_add_to_lookup_table (path, k);
+
+	    if (d[i].type == DAT_FILE) {
+		strncat (path, "/", sizeof path - strlen (path) - 1);
+		add_to_lookup_table (d[i].dat, path);
+	    }
+	}
+    }
+}
+
+static store_index_t
+find_in_lookup_table (const char *key)
+{
+    unsigned int i = hash_string(key) & lookup_table.hash_mask;
+    bucket_t *bkt;
+
+    for (bkt = lookup_table.buckets[i]; bkt != NULL; bkt = bkt->next)
+	if (strcmp(key, bkt->key) == 0)
+	    return bkt->value;
+
+    return STORE_INDEX_NONEXISTANT;
+}
+
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * This is the public interface.
+ */
+
+int
+store_init (unsigned int size)
+{
+    init_file_list ();
+    init_the_store ();
+    if (init_lookup_table (size) == 0)
+	return 0;
+    else
+	return -1;
+}
+
+void
+store_shutdown (void)
+{
+    store_file_t p;
+
+    free_lookup_table ();
+    free_the_store ();
+    for (p = file_list_head.next; p; p = p->next)
+	unload_datafile (p->dat);
+    free_file_list ();
+}
+
+store_file_t
+store_load_ex (AL_CONST char *filename, AL_CONST char *prefix,
+	       DATAFILE *(*loader) (AL_CONST char *))
+{
+    DATAFILE *d = loader (filename);
+
+    if (d) {
+	store_file_t f = add_to_file_list (d, prefix);
+	if (f)
+	    add_to_lookup_table (d, prefix);
+	else
+	    unload_datafile (d);
+	return f;
+    }
+    else
+	return NULL;
+}
+
+store_file_t
+store_load (AL_CONST char *filename, AL_CONST char *prefix)
+{
+    return store_load_ex (filename, prefix, load_datafile);
+}
+
+void
+store_unload (store_file_t f)
+{
+    store_file_t p;
+
+    clear_from_the_store (f->dat);
+    unload_datafile (f->dat);
+    remove_from_file_list (f);
+
+    clear_lookup_table ();
+    for (p = file_list_head.next; p != NULL; p = p->next)
+	add_to_lookup_table (p->dat, p->prefix);
+}
+
+inline store_index_t
+store_get_index (AL_CONST char *key)
+{
+    return find_in_lookup_table (key);
+}
+
+AL_CONST char *
+store_get_key (store_index_t index)
+{
+    unsigned int i;
+    bucket_t *bkt;
+
+    for (i = 0; i < lookup_table.size; i++)
+	for (bkt = lookup_table.buckets[i]; bkt != NULL; bkt = bkt->next)
+	    if (bkt->value == index)
+		return bkt->key;
+
+    return NULL;
+}
+
+inline DATAFILE *
+store_get_datafile (AL_CONST char *key)
+{
+    store_index_t n = store_get_index (key);
+    return (n != STORE_INDEX_NONEXISTANT) ? store[n] : NULL;
+}
+
+void *
+store_get_dat (AL_CONST char *key)
+{
+    DATAFILE *d = store_get_datafile (key);
+    return (d) ? d->dat : NULL;
+}
+
+DATAFILE *
+store_get_file (store_file_t f)
+{
+    return f->dat;
+}
+@
+
+
+1.7
+log
+@Formatting only
+@
+text
+@d181 1
+a181 1
+    lookup_table.buckets = malloc (size * sizeof (bucket_t *));
+@
+
+
+1.6
+log
+@Changed API, new implementation
+@
+text
+@d13 2
+d72 2
+d286 2
+d347 1
+a347 1
+    
+@
+
+
+1.5
+log
+@Test against DAT_INFO instead of GrabberInfo.
+@
+text
+@a9 1
+#include "hash.h"
+d13 3
+a15 2
+#define DAT_INFO  DAT_ID('i','n','f','o')
+
+d17 2
+a18 2
+struct file {
+    int id;
+a20 1
+    struct file *next;
+d23 1
+a23 2
+static int file_id;
+static struct file file_list;
+d25 2
+a26 1
+static void list_init (void)
+d28 1
+a28 2
+    file_list.next = 0;
+    file_id = 0;
+d31 2
+a32 1
+static int list_add (DATAFILE *dat, AL_CONST char *prefix)
+d34 1
+a34 1
+    struct file *p, *f = malloc (sizeof *f);
+a36 1
+	f->id = file_id++;
+d39 3
+a41 5
 	f->next = 0;
 
 	for (p = &file_list; p->next; p = p->next)
 	    ;
 	p->next = f;
-    }
+d43 2
+a44 2
 
     return (f) ? (f->id) : -1;
-}
-
+d47 2
+a48 1
 static struct file *list_find (int id, struct file **prevret)
-{
+d50 1
+a50 1
     struct file *p;
-
+d52 6
+a57 5
     for (p = &file_list; p->next; p = p->next)
 	if (p->next->id == id) {
 	    if (prevret)
 		*prevret = p;
 	    return p->next;
-	}
+d59 1
+a59 2
 
     return 0;
-}
-
+d62 2
+a63 1
 static void list_remove (int id)
-{
+d65 3
+a67 3
     struct file *p, *prev;
 
     p = list_find (id, &prev);
-
+a68 6
     if (p) {
 	prev->next = p->next;
 	free (p->prefix);
 	free (p);
     }
 }
-
+d70 4
+a73 5
 static void list_shutdown (void)
 {
     while (file_list.next)
 	list_remove (file_list.next->id);
 }
-
+d75 1
+a75 1
 /*----------------------------------------------------------------------*/
-
+d77 2
+a78 2
 static int idx;
 DATAFILE **store;
-
+d80 2
+a81 1
 static void data_init (void)
-{
+d83 2
+a84 2
     store = 0;
     idx = 1;
-}
-
+d87 2
+a88 1
 static void data_shutdown (void)
-{
+d90 1
+a90 1
     free (store);
-}
-
+d93 2
+a94 1
 static int data_append (DATAFILE *item)
-{
+d96 1
+a96 1
     int i;
-    void *p;
+d98 5
+a102 5
     
     /* if we are refreshing after a store_unload() call, item may
      * already exist */
     for (i = 1; i < idx; i++)
 	if (store[i] == item)
-	    return i;
-
+d105 2
+a106 3
     /* otherwise it's a new item */
     p = realloc (store, (idx + 1) * sizeof (DATAFILE *));
 
-    if (p) {
+d108 4
+a111 3
 	int n = idx++;
 	store = p;
 	store[n] = item;
-	return n;
-    }
+d114 3
+a116 2
     
     return 0;
-}
-
+d119 4
+a122 2
 /* clear any addresses in `store' which are in `d' and its children */
 static void data_clear (DATAFILE *d)
-{
+d124 2
+a125 1
     int i, j;
-
-    for (i = 0; d[i].type != DAT_END; i++) {
+d128 3
+a130 3
 	for (j = 1; j < idx; j++) {
 	    if (store[j] == &d[i]) {
 		store[j] = NULL;
-		break;
-	    }
-	}
-
-	if (d[i].type == DAT_FILE)
+d136 1
+a136 1
 	    data_clear (d[i].dat);
-    }
-}
-
-/*----------------------------------------------------------------------*/
-
+d140 1
+d143 43
+a185 1
 static struct hash_table table;
-
+d187 2
+a188 1
 static int table_init (int size)
-{
+d190 12
+a201 1
     return !hash_construct (&table, size) ? (-1) : 0;
-}
-
+d204 2
+a205 1
 static void table_shutdown (void)
-{
+d207 5
+a211 3
     if (table.size)
 	hash_free (&table, 0);
     table.size = 0;
-}
-
+d214 25
+a238 1
 static void table_add (DATAFILE *d, AL_CONST char *prefix)
-{
-    AL_CONST char *name;
-    char path[1024];
+d242 2
+a243 1
     int i, n;
-
-    for (i = 0; d[i].type != DAT_END; i++) {
-	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!strcmp (name, empty_string)
-	    || !strcmp (name, "GrabberInfo"))
-	    continue;
-
-	strncpy (path, prefix, sizeof path); path[(sizeof path) - 1] = '\0';
-	strncat (path, name, sizeof path - strlen (path) - 1);
-
+d256 8
+a263 7
 	n = data_append (&d[i]);
 	if (n)
 	    hash_insert (path, (void *) n, &table);
@@ -214,23 +656,24 @@ static void table_add (DATAFILE *d, AL_CONST char *prefix)
 	if (d[i].type == DAT_FILE) {
 	    strncat (path, "/", sizeof path - strlen (path) - 1);
 	    table_add (d[i].dat, path);
-	}
-    }
-}
-
+d268 17
+a284 1
 /*----------------------------------------------------------------------*/
-
+d286 2
+a287 1
 int store_init (int size)
-{
+d289 5
+a293 3
     list_init ();
     data_init ();
     if (table_init (size) < 0)
-	return -1;
+a294 1
     return 0;
-}
-
+d297 15
+a311 1
 void store_shutdown (void)
-{
+d313 7
+a319 20
     struct file *p;
     
     table_shutdown ();
@@ -251,26 +694,28 @@ int store_load_ex (AL_CONST char *filename, AL_CONST char *prefix, DATAFILE *(*l
 	id = list_add (d, prefix);
 	
 	if (id < 0)
-	    unload_datafile (d);
+d321 1
+a321 4
 	else
 	    table_add (d, prefix);
 	
 	return id;
-    }
+d323 2
+a324 2
    
     return -1;
-}
-
+d327 2
+a328 1
 int store_load (AL_CONST char *filename, AL_CONST char *prefix)
-{
-    return store_load_ex (filename, prefix, load_datafile);
-}
-
+d333 2
+a334 1
 static void refresh (void)
-{
+d336 1
+a336 2
     int size;
     struct file *p;
-
+d338 3
+a340 11
     size = table.size;
     table_shutdown ();
     table_init (size);
@@ -282,52 +727,78 @@ static void refresh (void)
 void store_unload (int id)
 {
     struct file *p = list_find (id, 0);
-    
+d342 3
+a344 6
     if (p) {
     	data_clear (p->dat);
 	unload_datafile (p->dat);
 	list_remove (id);
 	refresh ();
     }
-}
-
+d347 2
+a348 1
 inline int store_index (AL_CONST char *key)
-{
+d350 1
+a350 2
     int n = (int) hash_lookup (key, &table);
     return n;
-}
-
+d353 2
+a354 1
 char *store_key (int index)
-{
+d356 2
+a357 2
     int i;
     struct bucket *p;
-
+d359 4
+a362 5
     /* easier to walk it ourselves than to use `hash_enumerate' */
     for (i = 0; i < table.size; i++) 
 	for (p = table.table[i]; p; p = p->next) 
 	    if ((int) p->data == index)
 		return p->key;
-
+d364 1
+a364 1
     return 0;
-}
+d366 3
+a368 2
     
 inline DATAFILE *store_datafile (AL_CONST char *key)
-{
+d370 2
+a371 2
     int n = store_index (key);
     return (n) ? store[n] : 0;
-}
+d373 3
+a375 2
  
 void *store_dat (AL_CONST char *key)
-{
+d377 2
+a378 2
     DATAFILE *d = store_datafile (key);
     return (d) ? d->dat : 0;
-}
-
+d381 2
+a382 1
 DATAFILE *store_file (int id)
-{
+d384 1
+a384 2
     struct file *f = list_find (id, 0);
     return (f) ? (f->dat) : 0;
-}
+@
+
+
+1.4
+log
+@Fixed a major memory leak.  Also, fixed the semantics of store_unload
+(entries in the `store' array which pointed to items in the datafile
+being unloaded get cleared to NULL; all other items keep their
+indices).
+@
+text
+@d14 3
+d165 3
+d169 1
+a169 2
+	if (!strcmp (name, empty_string)
+	    || !strcmp (name, "GrabberInfo"))
 @
 
 

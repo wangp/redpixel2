@@ -14,12 +14,8 @@
 #include "alloc.h"
 #include "bitmask.h"
 #include "map.h"
+#include "mathcnst.h"
 #include "particle.h"
-
-
-#ifndef M_PI
-# define M_PI   3.14159265358979323846
-#endif
 
 
 #define INITIAL_PARTICLES	1024

@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.09.14.27.14;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.02.11.04.27.23;	author tjaden;	state Exp;
@@ -30,9 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@No need to set the vtable in this file anymore.
+@Slowed down the blast spreading speed.
 @
 text
 @/* blast.c
@@ -62,7 +67,7 @@ static int in_vector_p (vector_t *vec, void *p);
 
 
 
-#define SPREAD_SPEED  4
+#define SPREAD_SPEED  2.2
 
 
 struct blast {
@@ -231,6 +236,17 @@ static int in_vector_p (vector_t *vec, void *p)
 
     return 0;
 }
+@
+
+
+1.4
+log
+@No need to set the vtable in this file anymore.
+@
+text
+@d28 1
+a28 1
+#define SPREAD_SPEED  4
 @
 
 

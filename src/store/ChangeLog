@@ -1,0 +1,54 @@
+2002-07-10  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.4.
+
+	* store.c: Use calloc instead of malloc to create buckets array
+	(forgot to clear to zero previously...)
+
+2002-07-03  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Slapped on standard LICENCE.txt (zlib).
+
+	* Improved the API and almost rewrote the whole thing.  No longer
+	uses the generic hash table implementation.  Also switched to a
+	different (supposed to be good) hashing function.
+	
+	* Merged the old ad-hoc CHANGES and VERSIONS files into this file.
+
+2002-02-01  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Fixed a major memory leak.  Also, fixed the semantics of
+	store_unload.
+
+2002-01-19  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* The Allegro unicode string functions are about 3 times slower
+	than libc string functions (by my tests), so I decided to revert
+	to the libc functions and only support ASCII/UTF-8.
+
+2001-07-17  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.3.
+
+2001-07-02  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Updated for new Allegro Unicode API (although it's still not
+	properly Unicode-enabled).
+
+2001-06-01  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Use AL_CONST instead of const.
+
+2001-04-28  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.2.
+
+	* Some changes in the hash table implementation.
+
+2001-02-12  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.1.
+
+2000-06-??  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Initial version, for Red Pixel II.

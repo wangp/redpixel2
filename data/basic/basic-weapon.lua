@@ -35,6 +35,7 @@ local Standard_Pickup = function (t)
 	    if t.ammo_to_give then
 		player:receive_ammo (t.ammo_to_give, t.ammo_amount)
 	    end
+	    play_sound_on_clients (self, t.sound or "/basic/weapon/generic-pickup-sound")
 	end
     })
 end
@@ -47,7 +48,7 @@ local Standard_Projectile = function (t)
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
 	    function self:collide_hook (obj)
-		obj:receive_damage (t.damage)
+		obj:receive_damage (t.damage, self.owner)
 		self:destroy ()
 	    end
 	    function self:tile_collide_hook ()
@@ -406,7 +407,7 @@ Objtype {
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     nonproxy_init = function (self)
 	function self:collide_hook (obj)
-	    obj:receive_damage (50)
+	    obj:receive_damage (50, self.owner)
 	    self:destroy ()
 	end
 	function self:tile_collide_hook (obj)

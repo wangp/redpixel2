@@ -53,14 +53,17 @@ void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 }
 
 
-static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
+static void render_object_layers_and_names (BITMAP *bmp, map_t *map,
+					    int offx, int offy)
 {
     list_head_t *list;
     object_t *obj;
 
     list = map_object_list (map);
-    list_for_each (obj, list)
+    list_for_each (obj, list) {
 	object_draw_layers (bmp, obj, offx, offy);
+	object_draw_trans_name (bmp, obj, offx, offy);
+    }
 }
 
 
@@ -89,7 +92,7 @@ void render (BITMAP *bmp, map_t *map, camera_t *cam)
     int h = camera_view_height (cam);
 
     render_tiles (bmp, map, x, y, w, h);
-    render_object_layers (bmp, map, x, y);
+    render_object_layers_and_names (bmp, map, x, y);
     render_particles (bmp, map, x, y);
     map_explosions_draw (map, bmp, x, y);
     map_blasts_draw (map, bmp, x, y);

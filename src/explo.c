@@ -68,7 +68,7 @@ int explosion_type_register (const char *name, const char *first_frame,
     DATAFILE *d;
     etype_t *t;
 
-    d = store_datafile (first_frame);
+    d = store_get_datafile (first_frame);
     if (!d)
 	return -1;
 
@@ -79,8 +79,8 @@ int explosion_type_register (const char *name, const char *first_frame,
     t->tics = tics;
     t->centre_x = ((BITMAP *) d->dat)->w/3/2;
     t->centre_y = ((BITMAP *) d->dat)->h/2;
-    t->light = light ? store_dat (light) : NULL;
-    t->sound = sound ? store_dat (sound) : NULL;
+    t->light = light ? store_get_dat (light) : NULL;
+    t->sound = sound ? store_get_dat (sound) : NULL;
     
     list_add (etypes, t);
     

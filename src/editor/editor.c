@@ -23,21 +23,21 @@
 #include "map.h"
 
 
-static int store_id;
+static store_file_t support_file;
 map_t *editor_map;
 
 
 int editor_init (void)
 {
-    store_id = store_load_ex ("data/editor/editor-support.dat", "/editor/",
-			      load_extended_datafile);
-    return (store_id < 0) ? -1 : 0;
+    support_file = store_load_ex ("data/editor/editor-support.dat", "/editor/",
+				  load_extended_datafile);
+    return (support_file) ? 0 : -1;
 }
 
 
 void editor_shutdown (void)
 {
-    store_unload (store_id);
+    store_unload (support_file);
 }
 
 
@@ -45,7 +45,7 @@ int editor_run (void)
 {
     FONT *old_font = font;
 
-    font = store_dat ("/editor/font");
+    font = store_get_dat ("/editor/font");
 
     if ((gui_init () < 0)
 	|| (ug_init () < 0)

@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.10.10.34.05;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.28.13.01.00;	author tjaden;	state Exp;
@@ -30,9 +35,13 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Added client health and ammo displays.
+@Lots of intermingled changes for:
+- initial game types support
+- notifying clients about new and quitting clients
+- scoring
+- allowing the server to play a sound on clients in a simple way
 @
 text
 @#ifndef __included_svgame_h
@@ -60,12 +69,23 @@ void svgame_call_method_on_clients (struct object *obj, const char *method, cons
 int svgame_object_would_collide_with_objects (struct object *obj);
 int svgame_tell_health (struct object *obj, int health);
 int svgame_tell_ammo (struct object *obj, int ammo);
+void svgame_set_score (int client_id, const char *score);
+void svgame_play_sound_on_clients (struct object *obj, const char *sound);
 
 
 extern struct server_state_procs *svgame_procs;
 
 
 #endif
+@
+
+
+1.4
+log
+@Added client health and ammo displays.
+@
+text
+@d26 2
 @
 
 

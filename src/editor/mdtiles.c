@@ -20,6 +20,9 @@
 #include "store.h"
 
 
+#define DAT_INFO  DAT_ID('i','n','f','o')
+
+
 /* Lists of tiles, divided into files (packs).  */
 
 struct file {
@@ -41,9 +44,11 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefi
     int i;
 
     for (i = 0; d[i].type != DAT_END; i++) {
+	if (d[i].type == DAT_INFO)
+	    continue;
+
 	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!ustrcmp (name, empty_string)
-	    || !ustrcmp (name, "GrabberInfo"))
+	if (!name[0])
 	    continue;
 
 	ustrzcpy (path, sizeof path, prefix);
@@ -58,14 +63,14 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefi
     }
 }
 
-static void callback (const char *prefix, int id)
+static void callback (const char *prefix, store_file_t handle)
 {
     struct file *f;
     
     f = alloc (sizeof *f);
 
     f->list = ed_select_list_create ();
-    _add_to_list (f->list, store_file (id), prefix);
+    _add_to_list (f->list, store_get_file (handle), prefix);
     
     list_add (file_list, f);
 }
@@ -190,10 +195,10 @@ static int do_tile_set (int x, int y, int tile)
 
 static void do_tile_pickup (int x, int y)
 {
-    char *key;
+    const char *key;
     struct file *f;
 
-    key = store_key (map_tile (editor_map, x, y));
+    key = store_get_key (map_tile (editor_map, x, y));
     if (!key) return;
     
     list_for_each (f, &file_list) {
@@ -214,7 +219,7 @@ static int event_layer (int event, struct editarea_event *d)
     x = d->offx + (d->mouse.x / 16);
     y = d->offy + (d->mouse.y / 16);
 
-#define selected  (store_index (selectbar_selected_name ()))
+#define selected  (store_get_index (selectbar_selected_name ()))
     
     switch (event) {
 	case EDITAREA_EVENT_MOUSE_MOVE:

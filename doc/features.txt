@@ -66,28 +66,33 @@ the centre and loop.
 
 ** [DONE] environmental lights
 
-** explosion circles like in `rtl'
+** [DONE] explosion circles like in `rtl'
 
 ** [DONE] torch light
 
-** respawning-ball glows and shoots out sparks
+** [DONE] respawning-ball glows and shoots out sparks
 
 ** smoke puffs
+.. I forgot what these were meant to be
 
 ** small flash when a player w/ shields is shot (like in StarCraft)
 
-** barrels spawn chunks & particles when exploded
+** [DONE] barrels spawn chunks & particles when exploded
 
 ** particles
 - different sized particles (not just single pixels) translucency and
 - lighting [?] scripts control particles (movement and look) [?]
 - sprite particles (i.e. particles which are actually BITMAPs)
 
+** [?] monkey bars
+Really tough physics-wise, not sure if very useful either.  Non-square
+tiles was hard enough...
+
 ** [?] players glow like in `pandemonium'
 
 ** [?] glows used to separate teams (red, green, blue, purple)
 
-** [?] light-amp tints the screen (0x182b65 at 50%)
+** [DONE] light-amp tints the screen (0x182b65 at 50%)
 
 ** [?] bloodlusted-bullets glows red
 
@@ -133,6 +138,7 @@ the centre and loop.
 ** grates can have diffent size holes, letting different sized bullets through
 
 ** force-field thingy allows slow things through (like in Dune)
+idea from James Lewis?
 
 ** portals
 
@@ -154,11 +160,13 @@ the centre and loop.
 
 ** frags per minute
 
-** handicaps
+** [HOLD] handicaps
 damage multipliers.  e.g. newbie vs. veteran does 125% damage; veteran
 vs. newbie does 75% damage
+{Will not have enough players to warrant}
 
-** spectators
+** [HOLD] spectators
+{Will not have enough players to warrant}
 
 ** demos
 
@@ -166,23 +174,30 @@ vs. newbie does 75% damage
 
 ** proper chat screen (maybe in-game)
 
-** pass server
+** [NO] pass server
+{This is impossible given scripting}
 
-** swap to another server executable
+** [NO] swap to another server executable
 good during development
+{This is impossible given scripting}
 
 ** [?] person with `flag' has a cow head sticking out of backpack
 
-** [?] single player mode
+** [ART/HOLD] single player mode
+Requires much artwork.  Encourage some artist to do it once
+multiplayer version properly released.
 
 ** [?] up to 8 players in deathmatches
 
-** [?] microphone chat
+** [NO] microphone chat
+Not worth the effort.
 
 ** [?] rp1 and rp2 differences
 
-** [?] intro movie
+** [ART] intro movie
+Ask if some artist is willing to do it.
 
-** [?] name of player above/below their icon, colours shows the team
+** [DONE] name of player above/below their icon
+** [?] colours shows the team of player
 
 ** [NO] arrow points at person w/ flag (colour depends on flags owner)

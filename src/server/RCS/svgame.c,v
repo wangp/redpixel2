@@ -1,9 +1,34 @@
-head	1.9;
+head	1.14;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.14
+date	2002.07.10.10.34.52;	author tjaden;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2002.07.10.00.27.34;	author tjaden;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2002.07.09.14.37.03;	author tjaden;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2002.07.09.10.17.14;	author tjaden;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2002.07.09.10.00.13;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.02.11.04.31.53;	author tjaden;	state Exp;
@@ -55,11 +80,13 @@ desc
 @@
 
 
-1.9
+1.14
 log
-@Some Lua bindings can't be run while we are in the editor or it will
-crash.  This used to be enforced by replacing such functions with
-stubs, but we can't do that now, so we do the enforcing in here.
+@Lots of intermingled changes for:
+- initial game types support
+- notifying clients about new and quitting clients
+- scoring
+- allowing the server to play a sound on clients in a simple way
 @
 text
 @/* svgame.c
@@ -76,6 +103,7 @@ text
 #include "list.h"
 #include "map.h"
 #include "mapfile.h"
+#include "mathcnst.h"
 #include "netmsg.h"
 #include "object.h"
 #include "objtypes.h"
@@ -88,11 +116,6 @@ text
 #include "svticker.h"
 
 
-#ifndef M_PI
-# define M_PI   3.14159265358979323846
-#endif
-
-
 /* Keep this in sync with the client. */
 #define TICKS_PER_SECOND	(50)
 #define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
@@ -100,6 +123,10 @@ text
 
 static map_t *map;
 static svticker_t *ticker;
+
+
+
+#define L lua_state
 
 
 
@@ -142,8 +169,17 @@ static object_t *spawn_player (objid_t id)
     map_link_object (map, obj);
     object_run_init_func (obj);
 
-    if ((c = svclients_find_by_id (id)))
+    if ((c = svclients_find_by_id (id))) {
+	/* Call the player spawned hook.  */
+	lua_getglobal (L, "_internal_player_spawned_hook");
+	if (!lua_isfunction (L, -1))
+	    error ("Missing _internal_player_spawned_hook\n");
+	lua_pushnumber (L, id);
+	lua_call (L, 1, 0);
+
+	/* Reset network stuff.  */
 	c->last_sent_aim_angle = 0;
+    } 
     
     return obj;
 }
@@ -176,7 +212,7 @@ void svgame_process_cs_gameinfo_packet (svclient_t *c, const char *buf,
 		
 		buf += packet_decode (buf, "s", &len, name);
 		if (c->client_object) {
-		    lua_pushstring (lua_state, name);
+		    lua_pushstring (L, name);
 		    object_call (c->client_object, "switch_weapon", 1);
 		}
 		break;
@@ -340,7 +376,6 @@ static void gameinfo_packet_queue_flush (void)
 /* XXX lots of potention buffer overflows */
 static size_t make_object_creation_packet (object_t *obj, char *buf)
 {
-    lua_State *L = lua_state;
     int top = lua_gettop (L);
     const char *type;
     list_head_t *list;
@@ -364,11 +399,23 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 			     object_collision_tag (obj));
 
     /* creation fields */
-    /* XXX this only supports fields of type float right now */
     list = object_creation_fields (obj);
-    list_for_each (f, list)
-	p += packet_encode (p, "csf", 'f', f->name,
-			    object_get_number (obj, f->name));
+    list_for_each (f, list) {
+	int type = object_get_var_type (obj, f->name);
+	
+	switch (type) {
+	    case LUA_TNUMBER:
+		p += packet_encode (p, "csf", 'f', f->name,
+				    object_get_number (obj, f->name));
+		break;
+	    case LUA_TSTRING:
+		p += packet_encode (p, "css", 's', f->name,
+				    object_get_string (obj, f->name));
+		break;
+	    default:
+		error ("error: unsupported type for creation field (server)\n");
+	}
+    }
 
     p += packet_encode (p, "c", 0); /* terminator */
 
@@ -733,7 +780,8 @@ object_t *svgame_spawn_projectile (const char *typename, object_t *owner,
     svclient_t *c;
     object_t *obj;
     float angle;
-    float xv, yv;
+    float cos_angle;
+    float sin_angle;
 
     if (!(c = svclients_find_by_id (object_id (owner))))
 	return NULL;
@@ -742,16 +790,20 @@ object_t *svgame_spawn_projectile (const char *typename, object_t *owner,
 	return NULL;
 
     angle = c->aim_angle + delta_angle;
-    
-    xv = speed * cos (angle);
-    yv = speed * sin (angle);
+    cos_angle = cos (angle);
+    sin_angle = sin (angle);
 
-    object_set_xy (obj, object_x (owner), object_y (owner));
-    object_set_xvyv (obj, xv, yv);
+    object_set_xy (obj,
+		   /* This is a bit cheap and may need to be
+		    * adjustable on a per-weapon basis.  */
+		   object_x (owner) + 5 * cos_angle, 
+		   object_y (owner) + 5 * sin_angle);
+    object_set_xvyv (obj, speed * cos_angle, speed * sin_angle);
     object_set_collision_tag (obj, object_collision_tag (owner));
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_set_number (obj, "angle", angle);
     object_add_creation_field (obj, "angle");
+    object_set_number (obj, "owner", object_id (owner));
     map_link_object (map, obj);
     object_run_init_func (obj);
     return obj;
@@ -879,6 +931,34 @@ void svgame_tell_ammo (object_t *obj, int ammo)
 }
 
 
+void svgame_set_score (int client_id, const char *score)
+{
+    svclient_t *c;
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!(c = svclients_find_by_id (client_id)))
+	return;
+
+    svclient_set_score (c, score);
+
+    size = packet_encode (buf, "cls", MSG_SC_GAMEINFO_CLIENT_SCORE,
+			  client_id, score);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+void svgame_play_sound_on_clients (object_t *obj, const char *sound)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    size = packet_encode (buf, "cffs", MSG_SC_GAMEINFO_SOUND_PLAY,
+			  object_x (obj), object_y (obj), sound);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -905,25 +985,15 @@ static void handle_new_svclient_feeds (void)
 	server_log ("Feeding new client %s", c->name);
 	perform_single_game_state_feed (c);
 
-	/* XXX */
 	{
-	    object_t *obj;
-	    start_t *start;
-	    
-	    start = pick_random_start ();
-	    obj = object_create_ex ("player", c->id);
-	    object_set_xy (obj, map_start_x (start), map_start_y (start));
-	    object_set_collision_tag (obj, c->id); /* XXX temp */
-	    map_link_object (map, obj);
-	    object_run_init_func (obj);
+	    object_t *obj = spawn_player (c->id);
+	    c->client_object = obj;
 
 	    {
 		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
 		size_t size = make_object_creation_packet (obj, buf+1);
 		svclients_broadcast_rdm (buf, size+1);
 	    }
-
-	    c->client_object = obj;
 	}
 
     	svclient_clear_wantfeed (c);
@@ -993,6 +1063,7 @@ static int init_game_state (void)
 {
     svclient_t *c;
 
+    /* Load map.  */
     map = map_load (server_next_map_file, 0, 0);
     if (!map) {
 	server_log ("Couldn't load map %s", server_next_map_file);
@@ -1000,6 +1071,15 @@ static int init_game_state (void)
     }
     string_set (server_current_map_file, server_next_map_file);
 
+    /* Init game type.  Should be extensible in future, currently
+     * hard-wired to Game_Type_Deathmatch.  */
+    lua_getglobal (L, "_internal_start_game_type");
+    if (!lua_isfunction (L, -1))
+	error ("Missing _internal_start_game_type\n");
+    lua_getglobal (L, "Game_Type_Deathmatch");
+    lua_call (L, 1, 0);
+
+    /* Spawn a bunch of players.  */
     for_each_svclient (c)
 	if (c->state == SVCLIENT_STATE_JOINED)
 	    c->client_object = spawn_player (c->id);
@@ -1010,6 +1090,11 @@ static int init_game_state (void)
 
 static void free_game_state (void)
 {
+    lua_getglobal (L, "_internal_end_game_type");
+    if (!lua_isfunction (L, -1))
+	error ("Missing _internal_end_game_type\n");
+    lua_call (L, 0, 0);
+
     if (map) {
 	map_destroy (map);
 	map = NULL;
@@ -1061,6 +1146,115 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.13
+log
+@Made projectiles spawn a bit away from the centre of the player.
+@
+text
+@d38 4
+d82 8
+a89 3
+	object_set_string (obj, "name", c->name);
+	object_add_creation_field (obj, "name");
+	
+d124 1
+a124 1
+		    lua_pushstring (lua_state, name);
+a287 1
+    lua_State *L = lua_state;
+d715 1
+d843 28
+a896 1
+	/* XXX */
+d898 2
+a899 12
+	    object_t *obj;
+	    start_t *start;
+	    
+	    start = pick_random_start ();
+	    obj = object_create_ex ("player", c->id);
+	    object_set_xy (obj, map_start_x (start), map_start_y (start));
+	    object_set_collision_tag (obj, c->id); /* XXX temp */
+	    map_link_object (map, obj);
+	    object_run_init_func (obj);
+
+	    object_set_string (obj, "name", c->name);
+	    object_add_creation_field (obj, "name");
+a905 2
+
+	    c->client_object = obj;
+d975 1
+d983 9
+d1002 5
+@
+
+
+1.12
+log
+@Use shared #definition of M_PI.
+@
+text
+@d684 2
+a685 1
+    float xv, yv;
+d694 2
+a695 3
+    
+    xv = speed * cos (angle);
+    yv = speed * sin (angle);
+d697 6
+a702 2
+    object_set_xy (obj, object_x (owner), object_y (owner));
+    object_set_xvyv (obj, xv, yv);
+@
+
+
+1.11
+log
+@Forgot to set the client name on player objects that are created for
+clients that join in the middle of a game.
+@
+text
+@d15 1
+a25 5
+
+
+#ifndef M_PI
+# define M_PI   3.14159265358979323846
+#endif
+@
+
+
+1.10
+log
+@Allow strings as creation fields
+@
+text
+@d872 3
+@
+
+
+1.9
+log
+@Some Lua bindings can't be run while we are in the editor or it will
+crash.  This used to be enforced by replacing such functions with
+stubs, but we can't do that now, so we do the enforcing in here.
+@
+text
+@d81 4
+a84 1
+    if ((c = svclients_find_by_id (id)))
+d86 1
+a306 1
+    /* XXX this only supports fields of type float right now */
+d308 16
+a323 3
+    list_for_each (f, list)
+	p += packet_encode (p, "csf", 'f', f->name,
+			    object_get_number (obj, f->name));
 @
 
 

@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.07.10.10.28.53;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.24.15.34.53;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@(go back to using Allegro's unicode string routines)
+@Track client scores.
 @
 text
 @/* svclient.c - the server's list of clients
@@ -73,7 +78,8 @@ void svclient_destroy (svclient_t *c)
     if (c) {
 	list_remove (c);
 	net_closeconn (c->conn);
-	string_free (c);
+	string_free (c->score);
+	string_free (c->name);
 	free (c);
     }
 }
@@ -82,6 +88,12 @@ void svclient_destroy (svclient_t *c)
 void svclient_set_name (svclient_t *c, const char *name)
 {
     string_set (c->name, name);
+}
+
+
+void svclient_set_score (svclient_t *c, const char *score)
+{
+    string_set (c->score, score);
 }
 
 
@@ -256,6 +268,18 @@ void svclients_shutdown (void)
 {
     list_free (svclients, svclient_destroy);
 }
+@
+
+
+1.2
+log
+@(go back to using Allegro's unicode string routines)
+@
+text
+@d49 2
+a50 1
+	string_free (c);
+d59 6
 @
 
 

@@ -1,3 +1,48 @@
+2002-07-10  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* client.c, bindgen.lua, netmsg.h:
+	* server.c, svgame.c, svclient.c:
+	* basic-weapon.lua, basic-player.lua, basic-gametype.lua:
+	Lots of intermingled changes for:
+	- initial game types support
+	- notifying clients about new and quitting clients
+	- scoring
+	- allowing the server to play a sound on clients in a simple way
+
+	* packet.c: Assume that NULL is a zero-length string when encoding
+	packets.
+
+	* textout.c: Refactored and completed missing functions for
+	completeness.
+
+	* messages.c: Made messages translucent.
+	* textout.c: Moved scattered text output functions in here.
+
+	* svgame.c: Made projectiles spawn a bit away from the centre of
+	the player.
+
+	* blast.c: Slowed down the blast spreading speed.
+
+2002-07-09  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* render.c, object.c: Render object names if they have one.
+	* svgame.c: Client objects have names.
+
+	* client.c, netmsg.h, object.c: Allow strings as creation fields.
+
+2002-07-03  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* main.c, gamemenu.c: Some work on the menu frontend from a *long*
+	time ago, which I didn't commit before because it wasn't the
+	design that was intended, but I only remembered after writing
+	it...
+
+	* New Store.
+
+2002-05-04  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Upgraded to JPGalleg 1.2.
+
 2002-02-17  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* objgen.lua, object.c, mylua.h, mylua.c, gameinit.c:
@@ -16,17 +61,17 @@
 
 	* editor.h, editor.c: Made editor more friendly to being run more
 	than once in a process.
-	
+
 	* main.c, gamemenu.h, gamemenu.c: Initial menu system.
 
 	* basic-tilelike.lua: Centre of barrel chunks is closer to 2,2
 	than 0,0.
 
 	* client.c: Crosshair is a store bitmap, don't destroy_bitmap it.
-	
+
 	* magic4x4.c: Set a few vtable entries for magic bitmaps.
 	* blast.c, particle.c: No need to set the vtable here anymore.
-	
+
 	* gameinit.c: Bump up the size of store hash table.
 
 	* sync.c:
@@ -141,7 +186,7 @@
 
 	* basic-tilelike.lua, basic-weapon.lua, svgame.h, svgame.c,
 	* render.c, netmsg.h, map.h, map.c, client.c, bindgen.lua,
-	* blast.h, blast.c: 
+	* blast.h, blast.c:
 	Added blasts.
 
 	* basic-player.lua: When picking up a new weapon, don't switch to
@@ -184,7 +229,7 @@
 	* mylibnet.c, mylibnet.h: Moved some functions here.
 
 	* server.c, server.h, svticker.h, svticker.c, svstats.h,
-	* svstats.c, svlobby.h, svlobby.c, svintern.h, svgame.h, 
+	* svstats.c, svlobby.h, svlobby.c, svintern.h, svgame.h,
 	* svgame.c, svclient.h, svclient.c:
 	Overhauled the server code and split into multiple files.
 	These files used to be gamesrv.c.
@@ -204,7 +249,7 @@
 	* basic-player.lua: (minor syntax change)
 
 	* basic-base.lua, gamesrv.c, bindgen.lua, gameclt.c, gamesrv.h,
-	* netmsg.h, particle.h, particle.c: 
+	* netmsg.h, particle.h, particle.c:
 	Added particles for respawning ball.
 
 	* basic-weapon.lua, basic-player.lua:
@@ -276,7 +321,7 @@
 	* editor-init.lua:
 	Some functions cannot be run while in the editor or it will crash, so
 	we make them into dummy functions.
-	
+
 	* init.lua, editor/editor.c:
 	Only run editor-init.lua when actually running the editor.
 	This allows us to put in editor-specific code in there.
@@ -463,7 +508,7 @@
 	file a bit.
 
 	* basic-player.lua, blood.h, blood.c, gamesrv.h,
-	* bindgen.lua, netmsg.h, gameclt.c, gamesrv.c: 
+	* bindgen.lua, netmsg.h, gameclt.c, gamesrv.c:
 	Made the spread parameter to spawn blood a float (instead of int).
 
 	* basic-player.lua: Added a light for the test corpse, which
@@ -505,7 +550,7 @@
 
 	* basic-player.lua: Flip and rotate remote clients' arms depending
 	on the aim angle.
-	
+
 	* netmsg.h, gamesrv.c, gameclt.c: Send and receive remote player's
 	aim angles.
 
@@ -517,7 +562,7 @@
 	draw_magic_sprite_h_flip().
 
 	* basic-player.lua: Put in playing walking animation.
-	
+
 	* object.h, object.c, bindgen.lua:
 	Added `object_moving_horizontally' function, which is a hack for
 	the player walking animation.
@@ -558,7 +603,7 @@
 	Libnet has a maximum packet size of 512 bytes, for channels.
 	Conns take up some of those bytes (too lazy to check how many), so
 	we impose our own limit (NETWORK_MAX_PACKET_SIZE).
-	
+
 2002-01-13  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* gamesrv.c, gameclt.c, bindgen.lua, gamesrv.h:
@@ -572,4 +617,3 @@
 	* Started using RCS.  Note to self: to update this file
 	semi-automatically in Emacs, run C-x v a.  Strip the src, data,
 	tools prefixes as they are plain noise.
-

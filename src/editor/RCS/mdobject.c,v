@@ -1,9 +1,15 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.7; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.03.07.48.52;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.01.24.07.15.16;	author tjaden;	state Exp;
@@ -40,9 +46,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Changed all "()" declarations to "(void)".
+@Updated for new Store
 @
 text
 @/* mdobject.c
@@ -115,7 +121,7 @@ static void callback (objtype_t *objtype)
     if (!objtype_type (objtype))
 	return;
 
-    bmp = store_dat (objtype_icon (objtype));
+    bmp = store_get_dat (objtype_icon (objtype));
     if (!bmp) return;
     
     p = find_type (objtype_type (objtype));
@@ -156,7 +162,7 @@ static void cursor_set_selected (void)
 {
     BITMAP *bmp;
 
-    bmp = store_dat (objtype_icon (objtypes_lookup (selectbar_selected_name ())));
+    bmp = store_get_dat (objtype_icon (objtypes_lookup (selectbar_selected_name ())));
     if (bmp) {
 	cursor_set_magic_bitmap (bmp, 0, 0);
 	cursor_offset_x = bmp->w/3/2;
@@ -187,16 +193,16 @@ static void set_cursor_for_action (void)
 	    cursor_set_selected ();
 	    break;
 	case ACTION_DEL:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/delete"), 7, 7);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/delete"), 7, 7);
 	    break;
 	case ACTION_RAISE:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/raise"), 3, 0);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/raise"), 3, 0);
 	    break;
 	case ACTION_LOWER:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/lower"), 3, 15);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/lower"), 3, 15);
 	    break;
 	case ACTION_EDIT:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/edit"), 0, 6);
+	    cursor_set_magic_bitmap (store_get_dat ("/editor/cursor/edit"), 0, 6);
 	    break;
     }
 }
@@ -464,7 +470,7 @@ static int event_layer (int event, struct editarea_event *d)
 			else if (p) {
 			    move = p;
 			    if (snap_to_grid) {
-				BITMAP *icon = store_dat (objtype_icon (object_type (p)));
+				BITMAP *icon = store_get_dat (objtype_icon (object_type (p)));
 				move_offx = -icon->w/3/2;
 				move_offy = -icon->h/2;
 			    }
@@ -578,6 +584,35 @@ void mode_objects_shutdown (void)
     destroy_actions_box ();
     free_type_list ();
 }
+@
+
+
+1.6
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d71 1
+a71 1
+    bmp = store_dat (objtype_icon (objtype));
+d112 1
+a112 1
+    bmp = store_dat (objtype_icon (objtypes_lookup (selectbar_selected_name ())));
+d143 1
+a143 1
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/delete"), 7, 7);
+d146 1
+a146 1
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/raise"), 3, 0);
+d149 1
+a149 1
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/lower"), 3, 15);
+d152 1
+a152 1
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/edit"), 0, 6);
+d420 1
+a420 1
+				BITMAP *icon = store_dat (objtype_icon (object_type (p)));
 @
 
 

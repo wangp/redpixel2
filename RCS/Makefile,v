@@ -1,9 +1,24 @@
-head	1.18;
+head	1.21;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.21
+date	2002.07.10.01.51.39;	author tjaden;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	2002.07.09.09.58.42;	author tjaden;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	2002.07.03.07.51.27;	author tjaden;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	2002.02.23.03.37.37;	author tjaden;	state Exp;
@@ -100,9 +115,9 @@ desc
 @@
 
 
-1.18
+1.21
 log
-@Some changes.
+@Added textout to object list.
 @
 text
 @##
@@ -127,7 +142,7 @@ LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
 ifndef DEBUG
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -ffast-math -march=pentium
 else
 CFLAGS += -O2 -g
 endif
@@ -142,7 +157,6 @@ OBJDIR := $(PLAT_OBJDIR)
 #----------------------------------------------------------------------
 
 MODULES_STORE :=				\
-	hash					\
 	store
 
 MODULES_MAGIC :=				\
@@ -236,6 +250,7 @@ MODULES_GAME :=					\
 	render					\
 	sound					\
 	sync					\
+	textout					\
 	timeout					\
 	timeval					\
 	yield
@@ -358,6 +373,36 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.20
+log
+@Used -ffast-math
+@
+text
+@d131 1
+@
+
+
+1.19
+log
+@Updated for new Store
+@
+text
+@d23 1
+a23 1
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
+@
+
+
+1.18
+log
+@Some changes.
+@
+text
+@a37 1
+	hash					\
 @
 
 

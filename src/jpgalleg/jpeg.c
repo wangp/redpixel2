@@ -13,7 +13,7 @@
  *
  *      game programming library.
  *
- *      Version 1.1, by Angelo Mottola, May/June 2000
+ *      Version 1.2, by Angelo Mottola, Mar 2002.
  *
  *      See README file for instructions on using this package in your own
  *      programs.
@@ -23,7 +23,6 @@
 #include <allegro.h>
 #include <allegro/internal/aintern.h>
 #include <stdio.h>
-#include <string.h>
 #include <math.h>
 
 
@@ -611,17 +610,13 @@ static int decode_block(DECODER_DATA *dec, int *dat, int dc, int ac, int qt, int
 /* putpixel_lc:
  *  Draws a pixel onto a 24bit bitmap, given its luminance and chrominance.
  */
-static void putpixel_lc(BITMAP *bmp, int xx, int yy, int y, int cb, int cr)
+static inline void putpixel_lc(BITMAP *bmp, int xx, int yy, int y, int cb, int cr)
 {
    int r, g, b;
-
-   r = (int)((double)y + 1.402 * ((double)cr - 128.0));
-   g = (int)((double)y - 0.34414 * ((double)cb - 128.0) - 0.71414 * ((double)cr - 128.0));
-   b = (int)((double)y + 1.772 * ((double)cb - 128.0));
-
-   r = MID(0, r, 255);
-   g = MID(0, g, 255);
-   b = MID(0, b, 255);
+   
+   r = MID(0, ((y << 16) + (91881 * (cr - 128))) >> 16, 255);
+   g = MID(0, ((y << 16) - (22553 * (cb - 128)) - (46802 * (cr - 128))) >> 16, 255);
+   b = MID(0, ((y << 16) + (116130 * (cb - 128))) >> 16, 255);
    
    putpixel(bmp, xx, yy, makecol24(r, g, b));
 }
