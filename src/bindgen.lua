@@ -197,6 +197,12 @@ generate {
 }
 
 generate {
+    cname	= "object_add_creation_field",
+    args	= {{ Object, "obj" },
+		   { String, "name" }}
+}
+
+generate {
     cname 	= "object_add_layer",
     args  	= {{ Object, "obj" },
                    { StoreKey, "image" },
