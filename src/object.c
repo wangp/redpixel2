@@ -143,16 +143,19 @@ static lua_ref_t object_metatable;
  */
 
 
+#define L lua_state
+
+
 int object_init (void)
 {
     next_id = OBJID_PLAYER_MAX;
 
     /* Metatable for objects.  */
-    lua_newtable (lua_state);
-    object_metatable = lua_ref (lua_state, 1);
-    lua_getref (lua_state, object_metatable);
-    REGISTER_OBJECT_METATABLE_METHODS (lua_state);
-    lua_pop (lua_state, 1); /* pop the metatable */
+    lua_newtable (L);
+    object_metatable = lua_ref (L, 1);
+    lua_getref (L, object_metatable);
+    REGISTER_OBJECT_METATABLE_METHODS (L);
+    lua_pop (L, 1); /* pop the metatable */
 
     return 0;
 }
@@ -160,7 +163,7 @@ int object_init (void)
 
 void object_shutdown (void)
 {
-    lua_unref (lua_state, object_metatable);
+    lua_unref (L, object_metatable);
 }
 
 
@@ -186,7 +189,6 @@ object_t *object_create (const char *type_name)
  * with `object_create', two objects may end up with the same id.  */
 object_t *object_create_ex (const char *type_name, objid_t id)
 {
-    lua_State *L = lua_state;
     objtype_t *type;
     object_t *obj;
     BITMAP *icon;
@@ -238,8 +240,6 @@ object_t *object_create_proxy (const char *type_name, objid_t id)
 
 void object_run_init_func (object_t *obj)
 {
-    lua_State *L = lua_state;
-
     /* Call base object init hook.  */
     lua_getglobal (L, "_internal_object_init_hook");
     lua_pushobject (L, obj);
@@ -261,7 +261,7 @@ void object_destroy (object_t *obj)
     object_remove_all_lights (obj);
     object_remove_all_layers (obj);
     object_remove_update_hook (obj);
-    lua_unref (lua_state, obj->table);
+    lua_unref (L, obj->table);
     free (obj);
 }
 
@@ -570,7 +570,7 @@ void object_set_update_hook (object_t *obj, int msecs, lua_ref_t hook)
 void object_remove_update_hook (object_t *obj)
 {
     if (obj->update_hook != LUA_NOREF) {
-	lua_unref (lua_state, obj->update_hook);
+	lua_unref (L, obj->update_hook);
 	obj->update_hook = LUA_NOREF;
     }
 }
@@ -584,9 +584,9 @@ void object_poll_update_hook (object_t *obj, int elapsed_msecs)
     elapsed_msecs += obj->update_hook_unused_msecs;
 
     while (elapsed_msecs > obj->update_hook_msecs) {
-	lua_getref (lua_state, obj->update_hook);
-	lua_pushobject (lua_state, obj);
-	lua_call (lua_state, 1, 0);
+	lua_getref (L, obj->update_hook);
+	lua_pushobject (L, obj);
+	lua_call (L, 1, 0);
 	elapsed_msecs -= obj->update_hook_msecs;
     }
 
@@ -955,8 +955,8 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 				 map_tile_mask (map),
 				 x - mask[mask_num].centre_x,
 				 y - mask[mask_num].centre_y,
-				 0, 0)) {
-	lua_State *L = lua_state;
+				 0, 0))
+    {
 	int top = lua_gettop (L);
 	int collide = 1;
 
@@ -981,7 +981,7 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 
 static void call_collide_hook (object_t *obj, object_t *touched_obj)
 {
-    lua_pushobject (lua_state, touched_obj);
+    lua_pushobject (L, touched_obj);
     object_call (obj, "collide_hook", 1);
 }
 
@@ -1409,7 +1409,6 @@ object_t *lua_toobject (lua_State *L, int index)
 
 void object_call (object_t *obj, const char *method, int nargs)
 {
-    lua_State *L = lua_state;
     int top = lua_gettop (L);
     int i;
 
@@ -1429,7 +1428,6 @@ void object_call (object_t *obj, const char *method, int nargs)
 
 int object_get_var_type (object_t *obj, const char *var)
 {
-    lua_State *L = lua_state;
     int type;
 
     lua_getref (L, obj->table);
@@ -1444,7 +1442,6 @@ int object_get_var_type (object_t *obj, const char *var)
 
 float object_get_number (object_t *obj, const char *var)
 {
-    lua_State *L = lua_state;
     float val = 0.0;
 
     lua_getref (L, obj->table);
@@ -1460,8 +1457,6 @@ float object_get_number (object_t *obj, const char *var)
 
 void object_set_number (object_t *obj, const char *var, float value)
 {
-    lua_State *L = lua_state;
-
     lua_getref (L, obj->table);
     lua_pushstring (L, var);
     lua_pushnumber (L, value);
@@ -1472,7 +1467,6 @@ void object_set_number (object_t *obj, const char *var, float value)
 
 const char *object_get_string (object_t *obj, const char *var)
 {
-    lua_State *L = lua_state;
     const char *str = NULL;
 
     lua_getref (L, obj->table);
@@ -1488,8 +1482,6 @@ const char *object_get_string (object_t *obj, const char *var)
 
 void object_set_string (object_t *obj, const char *var, const char *value)
 {
-    lua_State *L = lua_state;
-
     lua_getref (L, obj->table);
     lua_pushstring (L, var);
     lua_pushstring (L, value);
