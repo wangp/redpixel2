@@ -108,8 +108,10 @@ static void sel_destroy (ug_widget_t *p)
 
 /*----------------------------------------------------------------------*/
 
+
 #define PAGE(s)		(((struct sel *) s)->cols * ((struct sel *) s)->rows)
-#define STEP(s)		(PAGE (s) / 8)
+#define STEP(s)		(PAGE (s) / 4)
+
 
 static void sel_scroll_up (struct sel *s, int count)
 {
@@ -131,7 +133,7 @@ static void sel_scroll_down (struct sel *s, int count)
     if (!s->list) return;
     
     while (count > 0) {
-	if (s->top + PAGE(s) > s->list->num)
+	if (s->top + PAGE(s) >= s->list->num)
 	    break;
 	s->top += s->cols;
 	count -= s->cols;
@@ -139,39 +141,46 @@ static void sel_scroll_down (struct sel *s, int count)
 }
 
 
+static void draw_magic_max_stretch (BITMAP *dest, BITMAP *src, int x, int y, int w, int h)
+{
+    BITMAP *tmp;
+    float ww, hh;
+
+    tmp = unget_magic_bitmap_format (src);
+	
+    if (tmp->w > tmp->h) {
+	ww = 1.0;
+	hh = (float) tmp->h / (float) tmp->w;
+    }
+    else {
+	ww = (float) tmp->w / (float) tmp->h;
+	hh = 1.0;
+    }
+
+    stretch_sprite (dest, tmp, x, y, ww * w, hh * h);
+    destroy_bitmap (tmp);
+}
+
 static void dottify (BITMAP *b, int x1, int y1, int x2, int y2, int c)
 {
     int x;
     for (; y1 <= y2; y1++)
-	for (x = x1 + (y1 % 3); x <= x2; x += 3)
+	for (x = x1 + (y1 % 6); x <= x2; x += 6)
 	    putpixel (b, x, y1, c);
 }    
-
 
 static void sel_draw (struct sel *s, BITMAP *bmp, int x, int y, int w, int h)
 {
     int xx, yy, i;
     item_t *p;
-    BITMAP *tmp = 0, *norm;
 
     if (!s->list)
 	return;
 
-    /* XXX */
-    tmp = create_magic_bitmap (s->icon_w, s->icon_h);
-    norm = create_bitmap (s->icon_w, s->icon_h);
-    /* end XXX */
-
     for (i = s->top, xx = x, yy = y; (i < s->list->num) && (yy + s->icon_h - 1 < y + h); i++) {
 	p = s->list->item + i;
 
-	/* XXX start */
-	blit (p->bmp, tmp, 0, 0, 0, 0, tmp->w, tmp->h);
-	set_magic_bitmap_brightness (tmp, 0xf, 0xf, 0xf);
-
-	blit_magic_format (tmp, norm);
-	draw_sprite (bmp, norm, xx, yy);
-	/* END XXX */
+	draw_magic_max_stretch (bmp, p->bmp, xx, yy, s->icon_w, s->icon_h);
 
 	if (i == s->selected)
 	    dottify (bmp, xx, yy, xx + s->icon_w - 1, yy + s->icon_h - 1, pink);
@@ -181,15 +190,12 @@ static void sel_draw (struct sel *s, BITMAP *bmp, int x, int y, int w, int h)
 	else
 	    xx += s->icon_w;
     }
-
-    /* XXX */
-    destroy_bitmap (tmp);
-    destroy_bitmap (norm);
 }
 
 
-static int sel_select (struct sel *p, int mx, int my)
+static int sel_select (ug_widget_t *widget, int mx, int my)
 {
+    struct sel *p = widget->private;
     int u, v, i;
 
     if (!p->list) return 0;
@@ -197,12 +203,12 @@ static int sel_select (struct sel *p, int mx, int my)
     for (v = 0, i = p->top; v < p->rows; v++)
 	for (u = 0; (u < p->cols) && (i < p->list->num); u++, i++)
 	    if (in_rect (mx, my, (u * p->icon_w), (v * p->icon_h), p->icon_w, p->icon_h)) {
-		if (p->selected != i) {
-		    p->selected = i;
-		    return 1;
-		}
-		else
+		if (p->selected == i)
 		    return 0;
+		
+		p->selected = i;
+		ug_widget_emit_signal (widget, ED_SELECT_SIGNAL_SELECTED);
+		return 1;
 	    }
 
     return 0;
@@ -229,9 +235,7 @@ static void sel_event (ug_widget_t *p, int event, void *d)
  
 	case UG_EVENT_MOUSE_DOWN:
         select:
-	    if (sel_select (p->private,
-			    ug_event_mouse_rel_x (d),
-			    ug_event_mouse_rel_y (d)))
+	    if (sel_select (p, ug_event_mouse_rel_x (d), ug_event_mouse_rel_y (d)))
 		ug_widget_dirty (p);
 	    break;
 
@@ -250,10 +254,6 @@ static void sel_event (ug_widget_t *p, int event, void *d)
 	    break;
     }
 }
-
-
-/*----------------------------------------------------------------------*/
-
 
 ug_widget_class_t ed_select = {
     sel_create,
@@ -275,14 +275,12 @@ static void calc (ug_widget_t *w)
     p->rows = ug_widget_h (w) / p->icon_h;
 }
 
-
 void ed_select_set_list (ug_widget_t *p, list_t *list)
 {
     private (p)->list = list;
     calc (p);
     ug_widget_dirty (p);
 }
-
 
 void ed_select_set_icon_size (ug_widget_t *p, int w, int h)
 {
@@ -291,7 +289,6 @@ void ed_select_set_icon_size (ug_widget_t *p, int w, int h)
     calc (p);
     ug_widget_dirty (p);
 }
-
 
 void ed_select_scroll_page_up (ug_widget_t *p)
 {
@@ -304,9 +301,6 @@ void ed_select_scroll_page_down (ug_widget_t *p)
     sel_scroll_down (p->private, PAGE (p->private) / 2);
     ug_widget_dirty (p);
 }
-
-
-
 
 void ed_select_set_top (ug_widget_t *p, int top)
 {

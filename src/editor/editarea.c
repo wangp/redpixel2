@@ -9,6 +9,7 @@
 #include "editarea.h"
 #include "alloc.h"
 #include "magic4x4.h"
+#include "modes.h"
 
 
 static gui_window_t *window;
@@ -80,8 +81,7 @@ static void draw (void *p, BITMAP *bmp)
 {
     clear (magic);
     draw_layers (magic);
-//    set_magic_bitmap_brightness (magic, 0xf, 0xf, 0xf);	/* XXX */
-    blit_magic_format (magic, bmp);
+    blit_magic_format (magic, bmp, bmp->w, bmp->h);
 
     if (grid)
 	dot_grid (bmp, 0, 0, gridx, gridy, makecol (0x20, 0xf0, 0xa0));
@@ -93,6 +93,8 @@ static void draw (void *p, BITMAP *bmp)
 
 static void event (void *p, int event, int d)
 {
+    static int panning = 0;
+    static int old_x, old_y;
     struct editarea_event data;
     int dirty = 0;
 
@@ -102,6 +104,13 @@ static void event (void *p, int event, int d)
     switch (event) {
 	/*  XXX: map boundaries.  */
 	case GUI_EVENT_KEY_DOWN:
+	    if (d == KEY_SPACE) {
+		mode_lights_toggle ();
+		dirty = 1;
+		goto skip_layer;
+	    }
+	    /* fall through */
+	    
 	case GUI_EVENT_KEY_HOLD: {
 	    if (d == KEY_UP)         offsety--, dirty = 1;
 	    else if (d == KEY_DOWN)  offsety++, dirty = 1;
@@ -112,6 +121,44 @@ static void event (void *p, int event, int d)
 	    offsety = MAX (0, offsety);
 	    goto skip_layer;
 	}
+
+	case GUI_EVENT_MOUSE_DOWN:
+	    if (d == 2) {	/* middle */
+		panning = 1;
+		old_x = gui_mouse.x;
+		old_y = gui_mouse.y;
+		goto skip_layer;
+	    }
+	    break;
+
+	case GUI_EVENT_MOUSE_MOVE:
+	    if (panning) {
+		int dx = (gui_mouse.x - old_x) / 16;
+		int dy = (gui_mouse.y - old_y) / 16;
+
+		if (dx || dy) {
+		    offsetx -= dx;
+		    offsety -= dy;
+		    offsetx = MAX (0, offsetx);
+		    offsety = MAX (0, offsety);
+		    dirty = 1;
+		    old_x = gui_mouse.x;
+		    old_y = gui_mouse.y;
+		}
+		
+		goto skip_layer;
+	    }
+	    break;
+
+	case GUI_EVENT_MOUSE_UP:
+	    if (d == 2) {	/* middle */
+		panning = 0;
+		goto skip_layer;
+	    }
+	    break;
+
+	default:
+	    break;
     }    
 
     /*
@@ -160,8 +207,8 @@ void editarea_install (int x, int y, int w, int h)
     gui_window_set_event_proc (window, event);
 
     magic = create_magic_bitmap (w, h);
-    
-    offsetx = offsety = 0;
+
+    editarea_reset_offset ();
 
     layers.next = 0;
     active = 0;
@@ -173,6 +220,13 @@ void editarea_uninstall ()
     unlink_and_free_all_layers ();
     destroy_bitmap (magic);
     gui_window_destroy (window);
+}
+
+
+void editarea_reset_offset ()
+{
+    offsetx = offsety = 0;
+    gui_window_dirty (window);
 }
 
 

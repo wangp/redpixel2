@@ -31,9 +31,22 @@ void ug_widget_send_event (ug_widget_t *w, int event)
     do_event (w, event, 0);
 }
 
-void ug_widget_signal_event (ug_widget_t *w, int event)
+void ug_widget_emit_signal (ug_widget_t *w, int event)
 {
     do_signal (w, event, 0);
+}
+
+
+/*----------------------------------------------------------------------*/
+
+void ug_widget_send_event_ex (ug_widget_t *w, int event, void *d)
+{
+    do_event (w, event, d);
+}
+
+void ug_widget_emit_signal_ex (ug_widget_t *w, int event, void *d)
+{
+    do_signal (w, event, d);
 }
 
 

@@ -5,16 +5,17 @@
 
 
 #include <stdio.h>
-#include <unistd.h>
 #include <allegro.h>
-
-
-int editor (int argc, char *argv[]);
+#include <lua.h>
+#include <luadebug.h>
+#include "editor.h"
+#include "game.h"
+#include "luastack.h"
 
 
 static int setup_video (int w, int h, int d)
 {
-    int depths[] = { 16, 15, 32, 24, 0 }, *i;
+    int depths[] = { 16, 15, 0 }, *i;
     
     set_color_conversion (COLORCONV_NONE);
    
@@ -51,14 +52,26 @@ static void setup_allegro (int w, int h, int d)
 }
 
 
+static void setup_lua ()
+{
+    lua_open ();
+    lua_setdebug (lua_state, 1);
+    luastack_init (lua_state);
+}
+
+
 int main (int argc, char *argv[])
 {
-    int w = 640, h = 480, d = -1, c;
+    int w = 320, h = 200, d = -1, c;
+    int edit = 0;
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":w:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":ew:h:d:")) != -1) {
 	switch (c) {
+	    case 'e':
+		edit = 1;
+		break;
 	    case 'w':
 		w = atoi (optarg);
 		break;
@@ -67,6 +80,10 @@ int main (int argc, char *argv[])
 		break;
 	    case 'd':
 		d = atoi (optarg);
+		if ((d != 15) && (d != 16)) {
+		    fprintf (stderr, "Only 15 and 16 bpp are valid.\n");
+		    return 1;
+		}
 		break;
 	    case ':':
 	    	fprintf (stderr, "Option `%c' missing argument.\n", optopt);
@@ -78,10 +95,15 @@ int main (int argc, char *argv[])
 	    	abort ();
 	}
     }
-            
+
     setup_allegro (w, h, d);
 
-    return editor (argc, argv);
+    setup_lua ();
+
+    if (edit)
+	return editor (argc, argv);
+    else
+	return game (argc, argv);
 }
 
 END_OF_MAIN();

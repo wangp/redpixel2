@@ -12,16 +12,6 @@ static int fg, bg, textcol;
 static BITMAP *tile;
 
 
-static int colour (int type)
-{
-    switch (type) {
-	case UG_THEME_BG: return bg;
-	case UG_THEME_FG: return fg;
-	default: return fg;
-    }
-}
-
-
 static int theme_init ()
 {
     fg = makecol (0xa0, 0xa0, 0xa0);

@@ -29,5 +29,7 @@ void ug_theme_bevel (BITMAP *, int x, int y, int w, int h, int invert);
 void ug_theme_arrow (BITMAP *, int x, int y, int w, int h, int type);
 void ug_theme_text_centre (BITMAP *, int x, int y, int w, int h, int type, const char *fmt, ...);
 
+FONT *ug_theme_font (int type);
+
 
 #endif

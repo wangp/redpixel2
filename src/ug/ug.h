@@ -20,18 +20,35 @@
 #define UG_EVENT_WIDGET_UNFOCUSED	24
 #define UG_EVENT_WIDGET_DRAW		99
 
+#define UG_SIGNAL_CLICKED		200
+
 
 /* widget classes */
 
 typedef struct ug_widget_class ug_widget_class_t;
+typedef struct ug_widget ug_widget_t;
 
 extern ug_widget_class_t ug_blank;
+
 extern ug_widget_class_t ug_button;
+
+void ug_button_set_extra (ug_widget_t *p, void *extra);
+void *ug_button_extra (ug_widget_t *p);
+
+extern ug_widget_class_t ug_menu;
+
+typedef struct ug_menu_item {
+    char *label;
+    void *data;
+} ug_menu_item_t;
+
+typedef struct ug_menu_root {
+    char *label;
+    ug_menu_item_t *item;
+} ug_menu_root_t;
 
 
 /* ugwidget.c */
-
-typedef struct ug_widget ug_widget_t;
 
 ug_widget_t *ug_widget_create (ug_widget_class_t *, void *, const char *);
 void ug_widget_destroy (ug_widget_t *);
@@ -49,6 +66,9 @@ char *ug_widget_id (ug_widget_t *);
 
 void ug_widget_send_event (ug_widget_t *w, int event);
 void ug_widget_emit_signal (ug_widget_t *w, int event);
+
+void ug_widget_send_event_ex (ug_widget_t *w, int event, void *d);
+void ug_widget_emit_signal_ex (ug_widget_t *w, int event, void *d);
 
 void ug_widget_send_event_key (ug_widget_t *w, int event, int key);
 void ug_widget_emit_signal_key (ug_widget_t *w, int event, int key);

@@ -18,6 +18,7 @@ struct editarea_event {
 
 void editarea_install (int x, int y, int w, int h);
 void editarea_uninstall ();
+void editarea_reset_offset ();
 
 void editarea_layer_register (const char *name, void (*draw) (BITMAP *, int offx, int offy),
 			      int (*event) (int event, struct editarea_event *), int depth);

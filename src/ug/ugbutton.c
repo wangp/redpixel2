@@ -15,6 +15,8 @@
 struct button {
     char *label;
     int down;
+    
+    void *extra;
 };
 
 #define private(x)	((struct button *) (x)->private)
@@ -73,7 +75,7 @@ static void button_event (ug_widget_t *p, int event, void *d)
 		private (p)->down = 0;
 		ug_widget_dirty (p);
 
-		ug_widget_emit_signal_mouse (p, event,
+		ug_widget_emit_signal_mouse (p, UG_SIGNAL_CLICKED,
 					     ug_event_mouse_x (d),
 					     ug_event_mouse_y (d),
 					     ug_event_mouse_b (d),
@@ -89,3 +91,16 @@ ug_widget_class_t ug_button = {
     button_destroy,
     button_event
 };
+
+
+/* Help out `ug_menu' widget, and possibly other widgets.  */
+
+void ug_button_set_extra (ug_widget_t *p, void *extra)
+{
+    private (p)->extra = extra;
+}
+
+void *ug_button_extra (ug_widget_t *p)
+{
+    return private (p)->extra;
+}

@@ -1,49 +1,104 @@
+2000-06-29  Peter Wang  <tjaden@psynet.net>
+
+	* luastack.c: New file (function extracted from Lua sources) to
+	provide a stack traceback for Lua scripts fail.
+
+	* magicld.c: Modified so only converts datafile bitmaps if missing
+	'MAGK' datafile id.
+
+	* Removed resource.c, replaced with simpler path.c.
+
+	* loaddata.c, loadhelp.c: New module, so that the game and editor
+	share tile and light loading code.
+
+	* editor/mdobject.c: Sets mouse cursor to selected object type.
+
+	* editor/cursor.c: New module for helping to set mouse cursors.
+
+	* Prefixed editing mode filenames with `md'.
+
+	* render.c: Tile and light rendering at pixel offsets.
+
+2000-06-28  Peter Wang  <tjaden@psynet.net>
+
+	* Beginnings of game engine.
+
+	* Rearranged directory structure a little (files that could be
+	used in engine moved out of editor).
+
+	* editor/mapfile.c: Really basic map loading and saving.
+
+	* editor/menu.c: The first menu (new, load, save, quit items).
+
+	* ug/ugbutton.c: Added `extra' helpers, for ug_menu.
+
+	* ug/ugmenu.c: New widget.
+
+	* editor/magic4x4.c (unget_magic_bitmap_format): New function
+	(makes some code in edselect.c much cleaner).
+
+	* editor/editarea.c (event): Added panning.
+
+	* editor/objects.c: Added object pick up.
+
 2000-06-27  Peter Wang  <tjaden@psynet.net>
 
-	* lights.c: Added light selecting.
+	* editor/objects.c: New module.  A lot of code was copied from
+	lights.c, suggesting it's possible that lights would work well as
+	an object type.
 
-	* Merge lightgen.c into luadata.c
+	* Started embedding Lua into editor.
 
-	* Embedded Lua into gendata.c (renamed to luadata.c).  No more
+	* editor/lights.c (lights_toggle): Toggles between showing and not
+	showing lighting effects.
+	* editor/editarea.c (event): Function bound to space bar.
+
+	* Removed usage of Stonewheel.
+
+	* editor/lights.c: Added light selecting.
+
+	* Merged lightgen.c into rpxutil.c
+
+	* Embedded Lua into gendata.c (renamed to rpxutil.c).  No more
 	silly script parsing.
 
 2000-06-26  Peter Wang  <tjaden@psynet.net>
 
 	* Wrote lightgen.c utility to generate light maps.
 
-	* lights.c (event_layer): Right click to remove light, click-drag
-	to move existing light.
+	* editor/lights.c (event_layer): Right click to remove light,
+	click-drag to move existing light.
 
-	* gui.c (gui_main): Added event GUI_EVENT_KEY_HOLD.
+	* gui/gui.c (gui_main): Added event GUI_EVENT_KEY_HOLD.
 
-	* magicld.c (load_magic_datafile): New function to load in
+	* editor/magicld.c (load_magic_datafile): New function to load in
 	datafiles and automatically convert bitmaps into "magic" format.
-	store.c (store_load_ex): New function to cope with custom loaders,
-	like the above.
+	* store/store.c (store_load_ex): New function to cope with custom
+	loaders, like the above.
 
-	* lights.c: Hackishly put in some test lighting code.  Really,
-	really slow, but looks cool!
+	* editor/lights.c: Hackishly put in some test lighting code.
+	Really, really slow, but looks cool!
 
 2000-06-25  Peter Wang  <tjaden@psynet.net>
 
-	* map.c: Added lights related stuff.
+	* editor/map.c: Added lights related stuff.
 
-	* lights.c: New editing mode.
+	* editor/lights.c: New editing mode.
 
-	* editarea.c (event): Scroll map with arrow keys.
+	* editor/editarea.c (event): Scroll map with arrow keys.
 
-	* map.c (map_resize): Fixed problems with `realloc'd areas not
-	being cleared.
+	* editor/map.c (map_resize): Fixed problems with `realloc'd areas
+	not being cleared.
 
 2000-06-24  Peter Wang  <tjaden@psynet.net>
 
-	* tiles.c (event_layer): Added tile picking.
+	* editor/tiles.c (event_layer): Added tile picking.
 
 2000-06-23  Peter Wang  <tjaden@psynet.net>
 
-	* Made tile inserting operational (barely).
+	* editor/tiles.c: Made tile inserting operational (barely).
 
-	* map.c: New module (handle map structures).
+	* editor/map.c: New module (handle map structures).
 
 	* Made most files use Allegro's Unicode string functions.
 
@@ -51,55 +106,55 @@
 
 2000-06-20  Peter Wang  <tjaden@psynet.net>
 
-	* editarea.c: New module.
+	* editor/editarea.c: New module.
 
 2000-06-19  Peter Wang  <tjaden@psynet.net>
 
-	* tiles.c: Made tile lists see the selectbar state individually
-	(i.e. each remembers how far down the list you have scrolled, and
-	which tile is selected)
+	* editor/tiles.c: Made tile lists see the selectbar state
+	individually (i.e. each remembers how far down the list you have
+	scrolled, and which tile is selected)
 
-	* selbar.c: Made selection list support multiple lists
+	* editor/selbar.c: Made selection list support multiple lists
 	(via left/right arrows on top).
 
-	* modemgr.c: Added editing mode management.
+	* editor/modemgr.c: Added editing mode management.
 
-	* uglayout.c: Added routines for dynamic building dialog layouts.
+	* ug/uglayout.c: Added routines for dynamic building dialog layouts.
 
-	* panelsel.c renamed to selbar.c (selectbar)
+	* editor/panelsel.c renamed to selbar.c (selectbar)
 
 2000-06-18  Peter Wang  <tjaden@psynet.net>
 
-	* Wrote gendata.c utility, to do a "grab from grid" operation in
-	batch mode.
+	* Wrote tools/gendata.c utility, to do a "grab from grid"
+	operation in batch mode.
 
-	* selector.c: Made selector functional, then separated selector.c
-	into panelsel.c and edsel.c (widget type), so maybe can reuse the
-	widget later.
+	* editor/selector.c: Made selector functional, then separated
+	selector.c into panelsel.c and edsel.c (widget type), so maybe can
+	reuse the widget later.
 
-	* ugwidget.c: Added widget introspection routines.
+	* ug/ugwidget.c: Added widget introspection routines.
 
-	* ugdialog.c (ug_dialog_widget): Allowed dialog to look for its
+	* ug/ugdialog.c (ug_dialog_widget): Allowed dialog to look for its
 	widgets by an id.
 
-	* ugwidget.c (ug_widget_create): Gave widgets an id ability.
+	* ug/ugwidget.c (ug_widget_create): Gave widgets an id ability.
 	
-	* ugdialog.c: Added dialog introspection routines (x, y, w, h).
+	* ug/ugdialog.c: Added dialog introspection routines (x, y, w, h).
 
-	* guiwmdef.c, gui.h: Removed GUI_EVENT_MOUSE_OVER and added
+	* gui/guiwmdef.c, gui.h: Removed GUI_EVENT_MOUSE_OVER and added
 	GUI_HINT_STEALFOCUS (grabs focus if mouse is over the window).
 
 	* Imported Wumpus from an old Red Pixel II code base and started
 	making tiles.c use it.
 
-	* resource.c: Start of resources module.
+	* editor/resource.c: Start of resources module.
 
 	* Improved UG's ideas of events and signals, but still not perfect
 	(e.g. too much code duplication in ug_event.c)
 
 2000-06-17  Peter Wang  <tjaden@psynet.net>
 
-	* selector.c: Started selector module.
+	* editor/selector.c: Started selector module.
 
 	* Reorganised directory structure.
 

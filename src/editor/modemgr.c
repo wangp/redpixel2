@@ -99,7 +99,7 @@ static void modebar_make ()
 
     /* each mode gets a button */
     for (i = 0; i < num; i++) {
-	ug_dialog_layout_t widget = { &ug_button, 64, -100, modes[i]->name, slot, modes[i]->name };
+	ug_dialog_layout_t widget = { &ug_button, 48, -100, modes[i]->name, slot, modes[i]->name };
 	lay = ug_dialog_layout_insert (lay, &widget);
     }
 
@@ -116,13 +116,11 @@ static void slot (ug_widget_t *p, int signal, void *d)
     char *id = ug_widget_id (p);
     int i;
 
-    if (signal != UG_EVENT_MOUSE_UP)
-	return;
-
-    for (i = 0; i < num; i++)
-	if (!ustrcmp (modes[i]->name, id)) {
-	    if (num != current)
-		modemgr_select (id);
-	    break;
-	}
+    if (signal == UG_SIGNAL_CLICKED)
+	for (i = 0; i < num; i++)
+	    if (!ustrcmp (modes[i]->name, id)) {
+		if (num != current)
+		    modemgr_select (id);
+		break;
+	    }
 }

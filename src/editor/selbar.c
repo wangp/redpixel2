@@ -18,6 +18,7 @@ static ed_select_list_t *list;
 
 static void (*left_proc) ();
 static void (*right_proc) ();
+static void (*selected_proc) ();
 
 
 static void up_slot (ug_widget_t *p, int signal, void *data)
@@ -40,13 +41,17 @@ static void right_slot (ug_widget_t *p, int signal, void *data)
     if (right_proc) right_proc ();
 }
 
+static void select_slot (ug_widget_t *p, int signal, void *data)
+{
+    if (selected_proc) selected_proc ();
+}    
 
 static ug_dialog_layout_t layout[] = {
     { &ug_button, -50,    16, "<",    left_slot,  0 },
     { &ug_button, -50,    16, ">",    right_slot, 0 },		{ UG_DIALOG_LAYOUT_BR },
     { &ug_button, -100,   16, "Up",   up_slot,    0 },		{ UG_DIALOG_LAYOUT_BR },
     { &ug_button, -100,   16, "Down", down_slot,  0 },	 	{ UG_DIALOG_LAYOUT_BR },
-    { &ed_select, -100, -100, 0,      0, 	  "sel" },	{ UG_DIALOG_LAYOUT_BR },
+    { &ed_select, -100, -100, 0,      select_slot, "sel" },	{ UG_DIALOG_LAYOUT_BR },
     { &ug_button, -100,   16, "Up",   up_slot,    0 },		{ UG_DIALOG_LAYOUT_BR },
     { &ug_button, -100,   16, "Down", down_slot,  0 },		{ UG_DIALOG_LAYOUT_END }
 };
@@ -62,13 +67,11 @@ void selectbar_install (int x, int y, int w, int h)
     left_proc = right_proc = 0;
 }
 
-
 void selectbar_uninstall ()
 {
     ug_dialog_destroy (dialog);
     gui_window_destroy (window);
 }
-
 
 void selectbar_set_list (ed_select_list_t *newlist)
 {
@@ -85,6 +88,11 @@ void selectbar_set_change_set_proc (void (*_left) (), void (*_right) ())
 {
     left_proc = _left;
     right_proc = _right;
+}
+
+void selectbar_set_selected_proc (void (*proc) ())
+{
+    selected_proc = proc;
 }
 
 void selectbar_set_top (int top)

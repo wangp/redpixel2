@@ -15,6 +15,8 @@ char *ed_select_list_item_name (ed_select_list_t *, int);
 int ed_select_list_item_index (ed_select_list_t *, const char *name);
 
 
+#define ED_SELECT_SIGNAL_SELECTED	-1
+
 extern ug_widget_class_t ed_select;
 
 void ed_select_set_list (ug_widget_t *, ed_select_list_t *);

@@ -72,7 +72,7 @@ void ug_theme_text_centre (BITMAP *bmp, int x, int y, int w, int h, int type, co
     vsnprintf (str, sizeof str, fmt, ap); /* XXX: Allegro needs uvsnprintf */
     va_end (ap);
 
-    f = theme->font (type);
+    f = ug_theme_font (type);
 
     save_clip (bmp, &clip);
     set_clip (bmp, x + 1, y + 1, x + w - 2, y + h - 2);
@@ -86,3 +86,8 @@ void ug_theme_text_centre (BITMAP *bmp, int x, int y, int w, int h, int type, co
     restore_clip (bmp, &clip);
 }
 
+
+FONT *ug_theme_font (int type)
+{
+    return theme->font (type);
+}
