@@ -13,7 +13,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include -I lua-4.1-work4/include \
+	  -I libnet/include -I lua-5.0-alpha/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -179,7 +179,7 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work4
+	$(MAKE) -C lua-5.0-alpha
 
 endif
 
@@ -190,9 +190,9 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work4/src
-	$(MAKE) -C lua-4.1-work4/src/lib
-	$(MAKE) -C lua-4.1-work4/src/lua
+	$(MAKE) -C lua-5.0-alpha/src
+	$(MAKE) -C lua-5.0-alpha/src/lib
+	$(MAKE) -C lua-5.0-alpha/src/lua
 endif
 
 #----------------------------------------------------------------------
@@ -257,7 +257,7 @@ prepare-dist: cleaner
 	$(MAKE) depend
 	$(MAKE) -C libnet cleaner
 	rm libnet/port.mak
-	$(MAKE) -C lua-4.1-work4 clean
+	$(MAKE) -C lua-5.0-alpha clean
 
 .PHONY: clean cleaner backup suidroot prepare-dist
 

@@ -7,6 +7,7 @@
 #include <allegro.h>
 #include "lua.h"
 #include "lualib.h"
+#include "lauxlib.h"
 
 
 /*----------------------------------------------------------------------*/
@@ -123,7 +124,7 @@ static int bind_pack_fopen(lua_State *L)
 	mode = lua_tostring(L, 2);
 	ret = pack_fopen(filename, mode);
 	if (!ret) goto error;
-	lua_newuserdatabox(L, ret); return 1;
+	lua_boxpointer(L, ret); return 1;
 error:
 	lua_pushnil(L); return 1;
 }
@@ -132,7 +133,7 @@ static int bind_pack_fclose(lua_State *L)
 {
 	PACKFILE * f;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	pack_fclose(f);
 	lua_pushnumber(L, 1); return 1;
 error:
@@ -144,7 +145,7 @@ static int bind_pack_feof(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_feof(f);
 	if (!ret) goto error;
 	lua_pushnumber(L, 1); return 1;
@@ -157,7 +158,7 @@ static int bind_pack_getc(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_getc(f);
 	lua_pushnumber(L, ret); return 1;
 error:
@@ -171,7 +172,7 @@ static int bind_pack_putc(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "nu")) goto error;
 	c = lua_tonumber(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_putc(c, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, 1); return 1;
@@ -184,7 +185,7 @@ static int bind_pack_igetw(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_igetw(f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -197,7 +198,7 @@ static int bind_pack_igetl(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_igetl(f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -212,7 +213,7 @@ static int bind_pack_iputw(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "nu")) goto error;
 	w = lua_tonumber(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_iputw(w, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -227,7 +228,7 @@ static int bind_pack_iputl(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "nu")) goto error;
 	w = lua_tonumber(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_iputl(w, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -241,7 +242,7 @@ static int bind_pack_fgets(lua_State *L)
 	char buf[4096];
     	const char *ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_fgets(buf, sizeof buf, f);
 	if (!ret) goto error;
 	lua_pushstring(L, buf); return 1;
@@ -256,7 +257,7 @@ static int bind_pack_fputs(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "su")) goto error;
 	p = lua_tostring(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_fputs(p, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;

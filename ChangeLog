@@ -1,6 +1,22 @@
 	This ChangeLog is automatically produced from RCS logs.
 	See the Makefile for details.
 
+2002-08-17 13:33  tjaden
+
+	* Makefile, config.linux, config.mingw, data/init.lua,
+	data/basic/basic-base.lua, data/basic/basic-player.lua,
+	data/basic/basic-powerup.lua, data/basic/basic-tilelike.lua,
+	data/basic/basic-weapon.lua, src/gameinit.c, src/main.c,
+	src/mylua.c, src/mylua.h, src/object.c, src/objgen.lua,
+	tools/remap/Makefile, tools/remap/remap.c, tools/rpxutil/Makefile,
+	tools/rpxutil/rpxutil.c: Updated to Lua 5.0 alpha.
+
+2002-08-10 23:18  tjaden
+
+	* Makefile, src/client.c, src/gamemenu.c, src/messages.c,
+	src/messages.h: Incomplete temporary lobby/frontend code using
+	Allegro GUI (from ~3 weeks ago).
+
 2002-07-16 23:03  tjaden
 
 	* data/basic/basic-player.lua: Gave backpack a bottom mask.

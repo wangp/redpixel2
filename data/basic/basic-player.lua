@@ -30,7 +30,7 @@ function install_multiple_update_hook_system (obj, speed)
 	    enabled = enabled,
 	    proc = proc
 	}
-	tinsert (self._update_hooks, t)
+	table.insert (self._update_hooks, t)
 	return t
     end
 
@@ -227,7 +227,7 @@ local player_nonproxy_init = function (self)
     end
 
     function self:deduct_ammo (ammo_type, amount)
-	local v = max (0, (self._ammo[ammo_type] or 0) - (amount or 1))
+	local v = math.max (0, (self._ammo[ammo_type] or 0) - (amount or 1))
 	self._ammo[ammo_type] = v
 	_internal_tell_ammo (self, v)
     end
@@ -379,8 +379,8 @@ local player_nonproxy_init = function (self)
 	    end
 
 	    -- spawn a corpse
-	    local corpse = spawn_object (corpses[random (getn (corpses))],
-					 self.x, self.y)
+	    local i = math.random (table.getn (corpses))
+	    local corpse = spawn_object (corpses[i], self.x, self.y)
 	    if corpse then
 		-- this makes the client track the corpse
 		corpse._internal_stalk_me = self.id
@@ -408,7 +408,7 @@ local player_nonproxy_init = function (self)
     end
 
     function self:receive_health (amount)
-	local h = min (100, self.health + amount)
+	local h = math.min (100, self.health + amount)
 	if h ~= self.health then
 	    self.health = h
 	    _internal_tell_health (self, self.health)
@@ -419,7 +419,7 @@ local player_nonproxy_init = function (self)
     end
 
     function self:receive_armour (amount)
-	local a = min (50, self.armour + amount)
+	local a = math.min (50, self.armour + amount)
 	if a ~= self.armour then
 	    self.armour = a
 	    _internal_tell_armour (self, self.armour)
@@ -560,7 +560,7 @@ local player_proxy_init = function (self)
 	    -- walking
 	    if _internal_object_moving_horizontally (self) then
 		self.walk_frame = self.walk_frame + 1
-		if self.walk_frame > getn (walk_anim) then
+		if self.walk_frame > table.getn (walk_anim) then
 		    self.walk_frame = 1
 		end
 		self:replace_layer (0, walk_anim[self.walk_frame], cx, cy)
@@ -594,7 +594,7 @@ local player_proxy_init = function (self)
 
 	    local anim = self.current_weapon.arm_anim
 	    self.arm_frame = self.arm_frame + 1
-	    if self.arm_frame > getn (self.current_weapon.arm_anim) then
+	    if self.arm_frame > table.getn (self.current_weapon.arm_anim) then
 		self.arm_frame = 1
 		self:replace_layer (self.arm_layer, anim[self.arm_frame], anim.cx, anim.cy)
 		return false  -- end of animation
@@ -670,7 +670,7 @@ local Corpse = function (t)
 
     local anim = {}
     for i = 0, t.frames do
-	anim[i] = format (t.fmt, i)
+	anim[i] = string.format (t.fmt, i)
     end
 
     -- Note: both proxy and nonproxy have to update self.frames.
@@ -714,7 +714,7 @@ local Corpse = function (t)
 	t.speed = 1000/8
     end
 
-    tinsert (corpses, t.name)
+    table.insert (corpses, t.name)
 
     return Objtype (t, {
     

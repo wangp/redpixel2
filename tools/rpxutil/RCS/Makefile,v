@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.4
+date	2002.08.17.03.36.08;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.07.15.14.13.54;	author tjaden;	state Exp;
@@ -25,18 +30,19 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Some paths changed.
+@Updated to Lua 5.0 alpha.
 @
 text
 @ALLEGRODIR := $(HOME)/cvs/allegro40/allegro
-LUADIR := ../../lua-4.1-work4
+LUADIR := ../../lua-5.0-alpha
 
 CC := gcc
 CFLAGS := -Wall -g -I$(ALLEGRODIR)/tools -I$(LUADIR)/include
 SOURCES := rpxutil.c
-LDLIBS := $(ALLEGRODIR)/lib/unix/libaldat.a `allegro-config --libs` $(LUADIR)/lib/liblua.a
+LDLIBS := $(ALLEGRODIR)/lib/unix/libaldat.a `allegro-config --libs` \
+	$(LUADIR)/lib/liblua.a $(LUADIR)/lib/liblualib.a
 
 ifdef NO_LOADPNG
 	CFLAGS += -DNO_LOADPNG
@@ -48,6 +54,20 @@ endif
 
 rpxutil: $(SOURCES)
 	$(CC) $(CFLAGS) -o rpxutil $(SOURCES) $(LDLIBS)
+@
+
+
+1.3
+log
+@Some paths changed.
+@
+text
+@d2 1
+a2 1
+LUADIR := ../../lua-4.1-work4
+d7 2
+a8 1
+LDLIBS := $(ALLEGRODIR)/lib/unix/libaldat.a `allegro-config --libs` $(LUADIR)/lib/liblua.a
 @
 
 

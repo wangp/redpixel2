@@ -10,6 +10,7 @@
 #include "client.h"
 #include "clsvface.h"
 #include "editor.h"
+#include "error.h"
 #include "gameinit.h"
 #include "gamemenu.h"
 #include "getoptc.h"
@@ -54,23 +55,22 @@ static int setup_video (int w, int h, int d)
 
 static void setup_allegro (int w, int h, int d, int stretch_method)
 {
-    allegro_init ();
+    if (allegro_init () != 0) {
+        puts ("Error initialising Allegro.");
+	exit (1);
+    }
     install_timer ();
     install_keyboard ();
 
-    if (install_mouse () < 0) {
-        allegro_message ("Error initialising mouse.\n");
-	exit (1);
-    }
+    if (install_mouse () < 0)
+        error ("Error initialising mouse.\n");
 
     install_sound (DIGI_AUTODETECT, MIDI_NONE, 0);
 
     set_window_title ("Red Pixel II");
 
-    if (setup_video (w, h, d) < 0) {
-        allegro_message ("Error setting video mode.\n%s\n", allegro_error);
-	exit (1);
-    }
+    if (setup_video (w, h, d) < 0)
+        errorv ("Error setting video mode.\n%s\n", allegro_error);
 
     screen_blitter_init (stretch_method, d);
     
@@ -87,7 +87,10 @@ static void unsetup_allegro (void)
 
 static void setup_minimal_allegro (void)
 {
-    install_allegro (SYSTEM_NONE, &errno, atexit);
+    if (install_allegro (SYSTEM_NONE, &errno, atexit) != 0) {
+        allegro_message ("Error initialising Allegro.\n");
+	exit (1);
+    }
 
     set_color_conversion (COLORCONV_NONE);
     set_color_depth (16);
@@ -107,9 +110,8 @@ static void do_run_parallel (const char *name)
 
     if ((server_init (NULL, NET_DRIVER_LOCAL) < 0) ||
 	(client_init (name, NET_DRIVER_LOCAL, "0") < 0)) {
-	allegro_message (
-	    "Error initialising game server or client.  Perhaps another\n"
-	    "game server is already running on the same port?\n");
+	error ("Error initialising game server or client.  Perhaps another\n"
+	       "game server is already running on the same port?\n");
     } else {
 	server_enable_single_hack ();
 
@@ -130,8 +132,8 @@ static void do_run_parallel (const char *name)
 static void do_run_server (void)
 {
     if (server_init (server_text_interface, INET_DRIVER) < 0) {
-	allegro_message ("Error initialising game server.  Perhaps another\n"
-			 "game server is already running on the same port?\n");
+	error ("Error initialising game server.  Perhaps another\n"
+	       "game server is already running on the same port?\n");
     } else {
 	sync_init (NULL);
 	server_run ();
@@ -232,8 +234,7 @@ int main (int argc, char *argv[])
 	    gamemenu_shutdown ();
 	}
 	else {
-	    allegro_message ("Cannot load data files.  Did you download them?\n");
-	    return 1;
+	    error ("Cannot load data files.  Did you download them?\n");
 	}
     }
 

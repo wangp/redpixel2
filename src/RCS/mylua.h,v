@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.08.17.03.35.45;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.07.11.12.23.59;	author tjaden;	state Exp;
@@ -35,11 +40,9 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Updated to Lua 5.0 alpha.
 @
 text
 @#ifndef __included_mylua_h
@@ -60,11 +63,23 @@ int mylua_open (void);
 void mylua_open_server_and_client_namespaces (void);
 void mylua_close (void);
 
+int lua_call_with_error (lua_State *L, int nargs, int nresults);
 int lua_dofile_path (lua_State *L, const char *filename);
 int lua_checkargs (lua_State *L, const char *argtypes);
 
 
 #endif
+@
+
+
+1.5
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d19 1
 @
 
 

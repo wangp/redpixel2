@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.4
+date	2002.08.17.03.34.03;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.02.16.14.15.13;	author tjaden;	state Exp;
@@ -25,9 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Updated to Lua 4.1-work4.
+@Updated to Lua 5.0 alpha.
 @
 text
 @# Configuration for Linux (x86) build.  -*- makefile -*-
@@ -37,10 +42,22 @@ PLAT_TARGET := -DTARGET_LINUX
 PLAT_CFLAGS := -DHAVE_GETOPT -DTHREADS_PTHREAD
 PLAT_OBJDIR := obj/linux
 PLAT_LIBNET := libnet/lib/libnet.a
-PLAT_LUABIN := lua-4.1-work4/bin/lua
-PLAT_LIBLUA := lua-4.1-work4/lib/liblua.a lua-4.1-work4/lib/liblualib.a
+PLAT_LUABIN := lua-5.0-alpha/bin/lua
+PLAT_LIBLUA := lua-5.0-alpha/lib/liblua.a lua-5.0-alpha/lib/liblualib.a
 PLAT_LIBS := `allegro-config --libs` $(PLAT_LIBNET) $(PLAT_LIBLUA) \
 	     -lpthread -lcurses
+@
+
+
+1.3
+log
+@Updated to Lua 4.1-work4.
+@
+text
+@d8 2
+a9 2
+PLAT_LUABIN := lua-4.1-work4/bin/lua
+PLAT_LIBLUA := lua-4.1-work4/lib/liblua.a lua-4.1-work4/lib/liblualib.a
 @
 
 

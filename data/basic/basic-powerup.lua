@@ -60,10 +60,10 @@ Item {
     proxy_init = function (self)
 	self.frame = 1
 	self:set_update_hook (
-	    150 + random (50),
+	    150 + math.random (50),
 	    function (self)
 		self.frame = self.frame + 1
-		if self.frame > getn (bloodlust_anim) then
+		if self.frame > table.getn (bloodlust_anim) then
 		    self.frame = 1
 		end
 		self:replace_layer (0, bloodlust_anim[self.frame], 7, 8)
@@ -100,10 +100,10 @@ Item {
 
 	self.frame = 1
 	self:set_update_hook (
-	    250 + random (50),
+	    250 + math.random (50),
 	    function (self)
 		self.frame = self.frame + 1
-		if self.frame > getn (lightamp_anim) then
+		if self.frame > table.getn (lightamp_anim) then
 		    self.frame = 1
 		end
 		self:replace_layer (0, lightamp_anim[self.frame], 7, 3)

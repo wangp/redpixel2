@@ -1,9 +1,14 @@
-head	1.46;
+head	1.47;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.47
+date	2002.08.17.03.35.12;	author tjaden;	state Exp;
+branches;
+next	1.46;
 
 1.46
 date	2002.07.16.12.29.58;	author tjaden;	state Exp;
@@ -240,11 +245,9 @@ desc
 @@
 
 
-1.46
+1.47
 log
-@receive_damage now takes four arguments.  The final two arguments
-(new) provide an idea of where the collision occurred, which is where
-blood should be spawned, etc.
+@Updated to Lua 5.0 alpha.
 @
 text
 @-- basic-weapon.lua
@@ -418,8 +421,8 @@ Weapon {
     name = "basic-bow",
     ammo_type = "basic-arrow",
     fire = function (player)
-	local proj = spawn_projectile ("basic-arrow-projectile", player, 12,
-				       ((random(10) - 5) / 10) * (PI/48))
+	local proj = spawn_projectile ("basic-arrow-projectile", player, 12, 
+				   ((math.random(10) - 5) / 10) * (math.pi/48))
 	player:set_fire_delay (0.3)
 	player:deduct_ammo ("basic-arrow")
 	return proj
@@ -519,7 +522,7 @@ Weapon {
     ammo_type = "basic-bullet",
     fire = function (player)
 	local proj = spawn_projectile ("basic-minigun-projectile", player, 12,
-				       ((random(10) - 5) / 10) * (PI/48))
+				       ((math.random(10) - 5) / 10) * (math.pi/48))
 	player:set_fire_delay (0.06)
 	player:deduct_ammo ("basic-bullet")
 	return proj
@@ -625,7 +628,7 @@ Weapon {
     name = "basic-shotgun",
     ammo_type = "basic-shell",
     fire = function (player)
-	local spread = PI / 96
+	local spread = math.pi / 96
 	local proj = {
 	    spawn_projectile ("basic-shotgun-projectile", player, 10, -2 * spread),
 	    spawn_projectile ("basic-shotgun-projectile", player, 10, -spread),
@@ -836,10 +839,9 @@ Objtype {
 		function self:die ()
 		    -- spew some ball bearings, a blast and play a sound
 		    for i, deg in { 30, 50, 70, 90, 110, 130, 150 } do
-			local rad = (deg + 180) * 3.141592 / 180
 			spawn_projectile_raw ("basic-mine-projectiles",
 					      self.owner, self.x, self.y,
-					      rad, 5)
+					      math.rad (deg), 5)
 		    end
 		    spawn_blast (self.x, self.y, 25, 20, self.owner)
 		    spawn_explosion_on_clients ("basic-explo20", self.x, self.y-6)
@@ -861,7 +863,7 @@ Objtype {
 	    function (self)
 		-- animation
 		self.frame = self.frame + 1
-		if self.frame > getn (mine_anim) then
+		if self.frame > table.getn (mine_anim) then
 		    self.frame = 1
 		end
 		self:replace_layer (0, mine_anim[self.frame], 3, 1)
@@ -923,6 +925,34 @@ weapon_auto_switch_order = {
     "basic-shotgun",
     "basic-blaster"
 }
+@
+
+
+1.46
+log
+@receive_damage now takes four arguments.  The final two arguments
+(new) provide an idea of where the collision occurred, which is where
+blood should be spawned, etc.
+@
+text
+@d172 2
+a173 2
+	local proj = spawn_projectile ("basic-arrow-projectile", player, 12,
+				       ((random(10) - 5) / 10) * (PI/48))
+d273 1
+a273 1
+				       ((random(10) - 5) / 10) * (PI/48))
+d379 1
+a379 1
+	local spread = PI / 96
+a589 1
+			local rad = (deg + 180) * 3.141592 / 180
+d592 1
+a592 1
+					      rad, 5)
+d614 1
+a614 1
+		if self.frame > getn (mine_anim) then
 @
 
 

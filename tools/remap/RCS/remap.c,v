@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.08.17.03.36.01;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.07.15.14.16.43;	author tjaden;	state Exp;
@@ -26,9 +31,9 @@ desc
 @
 
 
-1.3
+1.4
 log
-@Minor fix for newer Lua API.
+@Updated to Lua 5.0 alpha.
 @
 text
 @/* remap.c
@@ -40,6 +45,7 @@ text
 #include <allegro.h>
 #include "lua.h"
 #include "lualib.h"
+#include "lauxlib.h"
 
 
 /*----------------------------------------------------------------------*/
@@ -156,7 +162,7 @@ static int bind_pack_fopen(lua_State *L)
 	mode = lua_tostring(L, 2);
 	ret = pack_fopen(filename, mode);
 	if (!ret) goto error;
-	lua_newuserdatabox(L, ret); return 1;
+	lua_boxpointer(L, ret); return 1;
 error:
 	lua_pushnil(L); return 1;
 }
@@ -165,7 +171,7 @@ static int bind_pack_fclose(lua_State *L)
 {
 	PACKFILE * f;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	pack_fclose(f);
 	lua_pushnumber(L, 1); return 1;
 error:
@@ -177,7 +183,7 @@ static int bind_pack_feof(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_feof(f);
 	if (!ret) goto error;
 	lua_pushnumber(L, 1); return 1;
@@ -190,7 +196,7 @@ static int bind_pack_getc(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_getc(f);
 	lua_pushnumber(L, ret); return 1;
 error:
@@ -204,7 +210,7 @@ static int bind_pack_putc(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "nu")) goto error;
 	c = lua_tonumber(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_putc(c, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, 1); return 1;
@@ -217,7 +223,7 @@ static int bind_pack_igetw(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_igetw(f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -230,7 +236,7 @@ static int bind_pack_igetl(lua_State *L)
 	PACKFILE * f;
 	int ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_igetl(f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -245,7 +251,7 @@ static int bind_pack_iputw(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "nu")) goto error;
 	w = lua_tonumber(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_iputw(w, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -260,7 +266,7 @@ static int bind_pack_iputl(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "nu")) goto error;
 	w = lua_tonumber(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_iputl(w, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -274,7 +280,7 @@ static int bind_pack_fgets(lua_State *L)
 	char buf[4096];
     	const char *ret;
 	if (!lua_checkargs(L, "u")) goto error;
-	f = lua_touserdata(L, 1);
+	f = lua_unboxpointer(L, 1);
 	ret = pack_fgets(buf, sizeof buf, f);
 	if (!ret) goto error;
 	lua_pushstring(L, buf); return 1;
@@ -289,7 +295,7 @@ static int bind_pack_fputs(lua_State *L)
 	int ret;
 	if (!lua_checkargs(L, "su")) goto error;
 	p = lua_tostring(L, 1);
-	f = lua_touserdata(L, 2);
+	f = lua_unboxpointer(L, 2);
 	ret = pack_fputs(p, f);
 	if (ret == EOF) goto error;
 	lua_pushnumber(L, ret); return 1;
@@ -351,6 +357,48 @@ int main (int argc, char *argv[])
 }
 
 END_OF_MAIN ();
+@
+
+
+1.3
+log
+@Minor fix for newer Lua API.
+@
+text
+@d10 1
+d127 1
+a127 1
+	lua_newuserdatabox(L, ret); return 1;
+d136 1
+a136 1
+	f = lua_touserdata(L, 1);
+d148 1
+a148 1
+	f = lua_touserdata(L, 1);
+d161 1
+a161 1
+	f = lua_touserdata(L, 1);
+d175 1
+a175 1
+	f = lua_touserdata(L, 2);
+d188 1
+a188 1
+	f = lua_touserdata(L, 1);
+d201 1
+a201 1
+	f = lua_touserdata(L, 1);
+d216 1
+a216 1
+	f = lua_touserdata(L, 2);
+d231 1
+a231 1
+	f = lua_touserdata(L, 2);
+d245 1
+a245 1
+	f = lua_touserdata(L, 1);
+d260 1
+a260 1
+	f = lua_touserdata(L, 2);
 @
 
 

@@ -1,9 +1,14 @@
-head	1.10;
+head	1.11;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.11
+date	2002.08.17.03.35.27;	author tjaden;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2002.07.11.12.27.15;	author tjaden;	state Exp;
@@ -60,9 +65,9 @@ desc
 @@
 
 
-1.10
+1.11
 log
-@bindings.c deleted (stuff moved into mylua.c).
+@Updated to Lua 5.0 alpha.
 @
 text
 @/* gameinit.c - main init and shutdown
@@ -75,6 +80,7 @@ text
 #include "libnet.h"
 #include "bitmaskr.h"
 #include "blod.h"
+#include "error.h"
 #include "explo.h"
 #include "extdata.h"
 #include "fastsqrt.h"
@@ -90,39 +96,61 @@ text
 #include "store.h"
 
 
+#if 0
+# define dbg(msg)	puts ("[init] " msg)
+#else
+# define dbg(msg)
+#endif
+
+
 void game_init (void)
 {
+    dbg ("build_sqrt_table");
     build_sqrt_table ();
 
+    dbg ("generating magic tables");
     generate_magic_color_map ();
     generate_magic_conversion_tables ();
-    
+
+    dbg ("registering datafile routines");
     register_bitmap_file_type ("jpg", load_jpg, NULL);
     register_extended_datafile ();
     register_aud_file_type ();
 
+    dbg ("initing path, store, bitmask_ref");
     path_init ();
     store_init (1024);
     bitmask_ref_init ();
- 
-    mylua_open ();
 
+    dbg ("initing lua");
+    if (mylua_open () != 0)
+	error ("Error initialising Lua.\n");
+
+    dbg ("initing tiles, lights, objtypes, explosions");
     tiles_init ();
     lights_init ();
     objtypes_init ();
     explosion_init ();
 
+    dbg ("initing object");
     object_init ();
 
-    lua_dofile_path (the_lua_state, "init.lua");
+    dbg ("running init.lua");
+    if (lua_dofile_path (the_lua_state, "init.lua") != 0)
+	error ("Error running init.lua\n");
+    dbg ("opening server and client namespaces");
     mylua_open_server_and_client_namespaces ();
 
+    dbg ("initing blod");
     blod_init ();
-    
+
+    dbg ("initing networking");
     net_init ();
     net_loadconfig (NULL);
     net_detectdrivers (net_drivers_all);
     net_initdrivers (net_drivers_all);
+
+    dbg ("done");
 }
 
 
@@ -147,6 +175,35 @@ void game_shutdown (void)
 
     free_magic_color_map ();
 }
+@
+
+
+1.10
+log
+@bindings.c deleted (stuff moved into mylua.c).
+@
+text
+@d11 1
+d27 7
+d36 1
+d39 1
+d42 2
+a43 1
+    
+d48 1
+a51 2
+ 
+    mylua_open ();
+d53 5
+d63 1
+d66 4
+a69 1
+    lua_dofile_path (the_lua_state, "init.lua");
+d72 1
+d74 2
+a75 1
+    
+d80 2
 @
 
 

@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.5
+date	2002.08.17.03.34.17;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.22.04.00.51;	author tjaden;	state Exp;
@@ -30,10 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Only run editor-init.lua when actually running the editor.
-This allows us to put in editor-specific code in there.
+@Updated to Lua 5.0 alpha.
 @
 text
 @-- init.lua
@@ -73,8 +77,16 @@ end
 
 local old_dofile = dofile
 function dofile (filename)
+    -- local dbg = print
+    local dbg = function (s) return end
+    dbg ("Doing file "..filename)
     for i,v in load_path do 
-	if old_dofile (v.."/"..filename) then return 1 end
+	dbg (" trying "..v.."/"..filename)
+	local chunk = loadfile (v.."/"..filename)
+	if chunk then
+	    chunk ()
+	    return 1
+	end
     end
     return nil
 end
@@ -104,6 +116,19 @@ local files = {
 for _,filename in files do
     dofile (filename)
 end
+@
+
+
+1.4
+log
+@Only run editor-init.lua when actually running the editor.
+This allows us to put in editor-specific code in there.
+@
+text
+@d38 3
+d42 6
+a47 1
+	if old_dofile (v.."/"..filename) then return 1 end
 @
 
 

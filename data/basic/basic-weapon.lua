@@ -169,8 +169,8 @@ Weapon {
     name = "basic-bow",
     ammo_type = "basic-arrow",
     fire = function (player)
-	local proj = spawn_projectile ("basic-arrow-projectile", player, 12,
-				       ((random(10) - 5) / 10) * (PI/48))
+	local proj = spawn_projectile ("basic-arrow-projectile", player, 12, 
+				   ((math.random(10) - 5) / 10) * (math.pi/48))
 	player:set_fire_delay (0.3)
 	player:deduct_ammo ("basic-arrow")
 	return proj
@@ -270,7 +270,7 @@ Weapon {
     ammo_type = "basic-bullet",
     fire = function (player)
 	local proj = spawn_projectile ("basic-minigun-projectile", player, 12,
-				       ((random(10) - 5) / 10) * (PI/48))
+				       ((math.random(10) - 5) / 10) * (math.pi/48))
 	player:set_fire_delay (0.06)
 	player:deduct_ammo ("basic-bullet")
 	return proj
@@ -376,7 +376,7 @@ Weapon {
     name = "basic-shotgun",
     ammo_type = "basic-shell",
     fire = function (player)
-	local spread = PI / 96
+	local spread = math.pi / 96
 	local proj = {
 	    spawn_projectile ("basic-shotgun-projectile", player, 10, -2 * spread),
 	    spawn_projectile ("basic-shotgun-projectile", player, 10, -spread),
@@ -587,10 +587,9 @@ Objtype {
 		function self:die ()
 		    -- spew some ball bearings, a blast and play a sound
 		    for i, deg in { 30, 50, 70, 90, 110, 130, 150 } do
-			local rad = (deg + 180) * 3.141592 / 180
 			spawn_projectile_raw ("basic-mine-projectiles",
 					      self.owner, self.x, self.y,
-					      rad, 5)
+					      math.rad (deg), 5)
 		    end
 		    spawn_blast (self.x, self.y, 25, 20, self.owner)
 		    spawn_explosion_on_clients ("basic-explo20", self.x, self.y-6)
@@ -612,7 +611,7 @@ Objtype {
 	    function (self)
 		-- animation
 		self.frame = self.frame + 1
-		if self.frame > getn (mine_anim) then
+		if self.frame > table.getn (mine_anim) then
 		    self.frame = 1
 		end
 		self:replace_layer (0, mine_anim[self.frame], 3, 1)

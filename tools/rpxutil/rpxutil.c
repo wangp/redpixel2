@@ -9,6 +9,7 @@
 #include <string.h>
 #include <allegro.h>
 #include "lua.h"
+#include "lauxlib.h"
 #include "datedit.h"
 
 #ifndef NO_LOADPNG
@@ -173,7 +174,7 @@ int datedit_ask(const char *fmt, ...)
  *--------------------------------*/
 
 #define pop_string(L, x)	(lua_tostring (L, x))
-#define pop_userdata(L, x)	(lua_touserdata (L, x))
+#define pop_userdata(L, x)	(lua_unboxpointer (L, x))
 #define pop_number(L, x)	(lua_tonumber (L, x))
 
 
@@ -193,7 +194,7 @@ static DATAFILE *new_datafile (void)
 static int _new_datafile (lua_State *L)
     /* (no input) : (dat) */
 {
-    lua_newuserdatabox (L, new_datafile ());
+    lua_boxpointer (L, new_datafile ());
     return 1;
 }
 
@@ -232,7 +233,7 @@ static int _add_to_datafile_bitmap (lua_State *L)
 
     dat = datedit_insert (dat, NULL, name, DAT_BITMAP, bmp, 0);
 
-    lua_newuserdatabox (L, dat);
+    lua_boxpointer (L, dat);
     return 1;
 }
 
@@ -249,7 +250,7 @@ static int _add_to_datafile_magic_bitmap (lua_State *L)
     dat = datedit_insert (dat, &new, name, DAT_BITMAP, bmp, 0);
     datedit_set_property (new, DAT_ID ('M','A','G','K'), "Magical lightbulb");
 
-    lua_newuserdatabox (L, dat);
+    lua_boxpointer (L, dat);
     return 1;
 }
 
@@ -318,7 +319,7 @@ static int _add_to_datafile_grab_from_grid (lua_State *L)
 
   end:
 
-    lua_newuserdatabox (L, dat);
+    lua_boxpointer (L, dat);
     return 1;
 }
 
@@ -433,7 +434,7 @@ static int _create_simple_lightmap (lua_State *L)
     float brightness = pop_number (L, 3);
     float pinpoint   = pop_number (L, 4);
 
-    lua_newuserdatabox (L, ((hue > 0)
+    lua_boxpointer (L, ((hue > 0)
 			    ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
 			    : (create_simple_mono_lightmap (radius, brightness, pinpoint))));
     return 1;
@@ -462,7 +463,7 @@ static int _create_lightmap_icon (lua_State *L)
     textprintf_centre (bmp, font, bmp->w / 2, bmp->h / 2,
 		       makecol16 (0, 0, 0), "%d", radius);
 
-    lua_newuserdatabox (L, bmp);
+    lua_boxpointer (L, bmp);
     return 1;
 }
 
@@ -495,7 +496,7 @@ static int _create_lightmap_from_bitmap (lua_State *L)
 
     destroy_bitmap (bmp);
 
-    lua_newuserdatabox (L, magic);
+    lua_boxpointer (L, magic);
     return 1;
 }
 

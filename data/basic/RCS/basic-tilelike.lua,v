@@ -1,9 +1,14 @@
-head	1.20;
+head	1.21;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.21
+date	2002.08.17.03.35.01;	author tjaden;	state Exp;
+branches;
+next	1.20;
 
 1.20
 date	2002.07.16.12.29.50;	author tjaden;	state Exp;
@@ -110,11 +115,9 @@ desc
 @@
 
 
-1.20
+1.21
 log
-@receive_damage now takes four arguments.  The final two arguments
-(new) provide an idea of where the collision occurred, which is where
-blood should be spawned, etc.
+@Updated to Lua 5.0 alpha.
 @
 text
 @-- basic-tilelike.lua
@@ -224,10 +227,10 @@ local Barrel = function (t)
 		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then
-			for i = 1, random (10) do
+			for i = 1, math.random (10) do
 			    spawn_object (t.chunks,
-					  self.x + random (17) - 8,
-					  self.y + random (17) - 8)
+					  self.x + math.random (17) - 8,
+					  self.y + math.random (17) - 8)
 			end
 		    end
 
@@ -282,10 +285,11 @@ local BarrelChunks = function (t)
 	nonproxy_init = function (self)
 	    self.mass = 0.001
 	    self:set_collision_flags ("t")
-	    self:set_update_hook (1000 + random (3000), object_set_stale)
+	    self:set_update_hook (1000 + math.random (3000), object_set_stale)
 	end,
 	proxy_init = function (self)
-	    self:replace_layer (0, t.images[random (getn (t.images))], 2, 2)
+	    local i = math.random (table.getn (t.images))
+	    self:replace_layer (0, t.images[i], 2, 2)
 	end
     })
 end
@@ -359,6 +363,29 @@ Ladder {
     mask = "/basic/tilelike/ladder-gray5-mask",
     cx = 8, cy = 40
 }
+@
+
+
+1.20
+log
+@receive_damage now takes four arguments.  The final two arguments
+(new) provide an idea of where the collision occurred, which is where
+blood should be spawned, etc.
+@
+text
+@d108 1
+a108 1
+			for i = 1, random (10) do
+d110 2
+a111 2
+					  self.x + random (17) - 8,
+					  self.y + random (17) - 8)
+d166 1
+a166 1
+	    self:set_update_hook (1000 + random (3000), object_set_stale)
+d169 2
+a170 1
+	    self:replace_layer (0, t.images[random (getn (t.images))], 2, 2)
 @
 
 

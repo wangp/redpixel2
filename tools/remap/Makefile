@@ -1,5 +1,5 @@
 CC := gcc
-LUADIR := ../../lua-4.1-work4
+LUADIR := ../../lua-5.0-alpha
 CFLAGS := -Wall -g -I $(LUADIR)/include
 LDFLAGS := -s
 LDLIBS := `allegro-config --libs`		\

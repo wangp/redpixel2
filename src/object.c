@@ -260,7 +260,7 @@ void object_run_init_func (object_t *obj)
     if (!lua_isfunction (S, -1))
 	error ("Missing _internal_object_init_hook\n");
     lua_pushobject (S, obj);
-    lua_call (S, 1, 0);
+    lua_call_with_error (S, 1, 0);
     
     /* Call type specific init function, if any.  */
     if (objtype_init_func (obj->type) != LUA_NOREF) {
@@ -269,7 +269,7 @@ void object_run_init_func (object_t *obj)
 	    errorv ("init function for %s object type is not function\n",
 		    objtype_name (obj->type));
 	lua_pushobject (S, obj);
-	lua_call (S, 1, 0);
+	lua_call_with_error (S, 1, 0);
     }
 }
 
@@ -643,7 +643,7 @@ void object_poll_update_hook (object_t *obj, int elapsed_msecs)
     while (elapsed_msecs > obj->update_hook_msecs) {
 	lua_getref (S, obj->update_hook);
 	lua_pushobject (S, obj);
-	lua_call (S, 1, 0);
+	lua_call_with_error (S, 1, 0);
 	elapsed_msecs -= obj->update_hook_msecs;
     }
 
@@ -1020,11 +1020,11 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 
 	/* if tile_collide_hook returns false then no collision */
 	lua_getref (S, obj->table);
-	lua_pushstring (S, "tile_collide_hook");
+	lua_pushliteral (S, "tile_collide_hook");
 	lua_rawget (S, -2);
 	if (lua_isfunction (S, -1)) {
 	    lua_pushobject (S, obj);
-	    lua_call (S, 1, 1);
+	    lua_call_with_error (S, 1, 1);
 	    if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
 		collide = 0;
 	}
@@ -1045,12 +1045,12 @@ static int call_collide_hook (object_t *obj, object_t *touched_obj)
 
     /* if collide_hook returns false then no collision */
     lua_getref (S, obj->table);
-    lua_pushstring (S, "collide_hook");
+    lua_pushliteral (S, "collide_hook");
     lua_rawget (S, -2);
     if (lua_isfunction (S, -1)) {
 	lua_pushobject (S, obj);
 	lua_pushobject (server_lua_namespace, touched_obj);
-	lua_call (S, 2, 1);
+	lua_call_with_error (S, 2, 1);
 	if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
 	    collide = 0;
     }
@@ -1435,7 +1435,7 @@ void object_do_physics (object_t *obj, map_t *map)
 		error ("Missing _internal_player_died_hook\n");
 	    lua_pushnumber (L, obj->id);
 	    lua_pushnumber (L, obj->id); /* (probably) suicide */
-	    lua_call (L, 2, 0);
+	    lua_call_with_error (L, 2, 0);
 	}
     }
     else if (rep)
@@ -1514,7 +1514,7 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
 
 void lua_pushobject (lua_State *L, object_t *obj)
 {
-    lua_newuserdatabox (L, obj);
+    lua_boxpointer (L, obj);
     lua_getref (L, object_metatable);
     lua_setmetatable (L, -2);
 }
@@ -1532,7 +1532,7 @@ object_t *lua_toobject (lua_State *L, int index)
     if (!is_object)
 	return NULL;
 
-    return lua_touserdata(L, index);
+    return lua_unboxpointer(L, index);
 }
 
 
@@ -1549,12 +1549,13 @@ int object_call (lua_State *S, object_t *obj, const char *method, int nargs)
 	lua_pushobject (S, obj);
 	for (i = 0; i < nargs; i++)
 	    lua_pushvalue (S, -3 - nargs);
-	err = lua_call (S, 1 + nargs, 0);
+	err = lua_call_with_error (S, 1 + nargs, 0);
     }
     else {
 	char buf[1024];
 	uszprintf (buf, sizeof buf, "couldn't call method %s", method);
-	lua_error (S, buf);
+	lua_pushstring (S, buf);
+	lua_error (S);
 	err = LUA_ERRRUN;
     }
 

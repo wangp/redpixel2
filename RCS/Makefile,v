@@ -1,9 +1,14 @@
-head	1.26;
+head	1.27;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.27
+date	2002.08.17.03.33.59;	author tjaden;	state Exp;
+branches;
+next	1.26;
 
 1.26
 date	2002.08.10.13.18.25;	author tjaden;	state Exp;
@@ -140,10 +145,9 @@ desc
 @@
 
 
-1.26
+1.27
 log
-@Incomplete temporary lobby/frontend code using Allegro GUI
-(from ~3 weeks ago).
+@Updated to Lua 5.0 alpha.
 @
 text
 @##
@@ -161,7 +165,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include -I lua-4.1-work4/include \
+	  -I libnet/include -I lua-5.0-alpha/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -327,7 +331,7 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work4
+	$(MAKE) -C lua-5.0-alpha
 
 endif
 
@@ -338,9 +342,9 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work4/src
-	$(MAKE) -C lua-4.1-work4/src/lib
-	$(MAKE) -C lua-4.1-work4/src/lua
+	$(MAKE) -C lua-5.0-alpha/src
+	$(MAKE) -C lua-5.0-alpha/src/lib
+	$(MAKE) -C lua-5.0-alpha/src/lua
 endif
 
 #----------------------------------------------------------------------
@@ -405,7 +409,7 @@ prepare-dist: cleaner
 	$(MAKE) depend
 	$(MAKE) -C libnet cleaner
 	rm libnet/port.mak
-	$(MAKE) -C lua-4.1-work4 clean
+	$(MAKE) -C lua-5.0-alpha clean
 
 .PHONY: clean cleaner backup suidroot prepare-dist
 
@@ -413,6 +417,29 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.26
+log
+@Incomplete temporary lobby/frontend code using Allegro GUI
+(from ~3 weeks ago).
+@
+text
+@d16 1
+a16 1
+	  -I libnet/include -I lua-4.1-work4/include \
+d182 1
+a182 1
+	$(MAKE) -C lua-4.1-work4
+d193 3
+a195 3
+	$(MAKE) -C lua-4.1-work4/src
+	$(MAKE) -C lua-4.1-work4/src/lib
+	$(MAKE) -C lua-4.1-work4/src/lua
+d260 1
+a260 1
+	$(MAKE) -C lua-4.1-work4 clean
 @
 
 
