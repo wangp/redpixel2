@@ -129,11 +129,56 @@ static gui_window_t *actions_win;
 static ug_dialog_t *actions_dlg;
 static int action = ACTION_ADD;
 
-static void add_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_ADD; }
-static void del_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_DEL; }
-static void raise_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_RAISE; }
-static void lower_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_LOWER; }
-static void edit_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_EDIT; }
+static void set_cursor_for_action ()
+{
+    switch (action) {
+	case ACTION_ADD:
+	    cursor_set_selected ();
+	    break;
+	case ACTION_DEL:
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/delete"), 0, 0);
+	    break;
+	case ACTION_RAISE:
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/raise"), 3*3, 0);
+	    break;
+	case ACTION_LOWER:
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/lower"), 3*3, 15);
+	    break;
+	case ACTION_EDIT:
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/edit"), 0, 6);
+	    break;
+    }
+}
+
+static void add_slot (ug_widget_t *p, ug_signal_t s, void *d)
+{
+    action = ACTION_ADD;
+    set_cursor_for_action ();
+}
+
+static void del_slot (ug_widget_t *p, ug_signal_t s, void *d)
+{
+    action = ACTION_DEL;
+    set_cursor_for_action ();
+}
+
+static void raise_slot (ug_widget_t *p, ug_signal_t s, void *d)
+{
+    action = ACTION_RAISE;
+    set_cursor_for_action ();
+}
+
+static void lower_slot (ug_widget_t *p, ug_signal_t s, void *d)
+{
+    action = ACTION_LOWER;
+    set_cursor_for_action ();
+}
+
+static void edit_slot (ug_widget_t *p, ug_signal_t s, void *d)
+{
+    action = ACTION_EDIT;
+    set_cursor_for_action ();
+}
 
 static ug_dialog_layout_t actions_layout[] =
 {
@@ -207,7 +252,7 @@ static void change_set (struct type *p)
     current = p;
     selectbar_set_list (current->list);
     restore_current ();
-    cursor_set_selected ();
+    set_cursor_for_action ();
 }
 
 
@@ -242,9 +287,9 @@ static void enter_mode ()
     selectbar_set_list (current->list);
     selectbar_set_icon_size (32, 32);
     selectbar_set_change_set_proc (left_proc, right_proc);
-    selectbar_set_selected_proc (cursor_set_selected);
+    selectbar_set_selected_proc (set_cursor_for_action);
     restore_current ();
-    cursor_set_selected ();
+    set_cursor_for_action ();
     if (!actions_box_was_hidden)
 	show_actions_box ();
 }
@@ -319,7 +364,7 @@ static void do_object_pickup (object_t *p)
 	if (i >= 0) {
 	    change_set (type);
 	    selectbar_set_selected (i);
-	    cursor_set_selected ();
+	    set_cursor_for_action ();
 	    break;
 	}
     }
@@ -414,7 +459,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 	    if (move) {
 		object_set_xy (move, x - move_offx, y - move_offy);
-		cursor_set_dot ();   /* XXX inefficient? */
+		cursor_set_dot ();
 		return 1;
 	    }
 	    
@@ -426,7 +471,7 @@ static int event_layer (int event, struct editarea_event *d)
 	    break;
 
 	case EDITAREA_EVENT_MOUSE_UP:
-	    cursor_set_selected ();
+	    set_cursor_for_action ();
 	    move = NULL;
 	    break;
     }
