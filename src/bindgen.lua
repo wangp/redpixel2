@@ -434,6 +434,13 @@ generate {
 }
 
 generate {
+    cname	= "game_server_object_would_collide_with_objects",
+    lname	= "_internal_would_collide_with_objects",
+    args	= {{ Object, "obj" }},
+    ret		= { Int, "ret", "!$" }
+}
+
+generate {
     cname	= "game_client_set_camera",
     lname	= "_internal_set_camera",
     args	= {{ Int, "pushable" },	-- XXX should be Bool

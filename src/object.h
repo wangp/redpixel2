@@ -138,6 +138,7 @@ void object_remove_all_masks (object_t *);
 /* Collisions.  */
 
 int object_supported (object_t *, struct map *);
+int object_collide_with_objects_raw (object_t *, int mask_num, struct map *, float x, float y);
 
 
 /* Ladder.  */

@@ -1052,6 +1052,20 @@ int object_supported (object_t *obj, map_t *map)
 }
 
 
+int object_collide_with_objects_raw (object_t *obj, int mask_num, map_t *map,
+				     float x, float y)
+{
+    int save = obj->is_hidden;
+    int ret;
+    
+    obj->is_hidden = 0;
+    ret = check_collision_with_objects (obj, OBJECT_MASK_MAIN, map, obj->x, obj->y);
+    obj->is_hidden = save;
+
+    return ret;
+}
+
+
 
 /*
  * Ladders.

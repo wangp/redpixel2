@@ -27,6 +27,7 @@ void game_server_spawn_sparks (float x, float y, long nparticles, float spread);
 void game_server_spawn_respawn_particles (float x, float y, long nparticles, float spread);
 void game_server_spawn_blod (float x, float y, long nparticles);
 void game_server_call_method_on_clients (struct object *, const char *method, const char *arg);
+int game_server_object_would_collide_with_objects (struct object *);
 
 
 #endif

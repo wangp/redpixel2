@@ -802,6 +802,17 @@ void game_server_call_method_on_clients (object_t *obj, const char *method, cons
 }
 
 
+/* Check if an object would collide with other objects, if it were to
+ * be unhidden (Lua binding).  */
+
+int game_server_object_would_collide_with_objects (object_t *obj)
+{
+    return (!object_stale (obj) &&
+	    object_collide_with_objects_raw (obj, OBJECT_MASK_MAIN, map,
+					     object_x (obj), object_y (obj)));
+}
+
+
 /* Create and free the game state. */
 
 static start_t *server_pick_random_start ()
