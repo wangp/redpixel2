@@ -19,8 +19,7 @@ static objtype_t *create (const char *type, const char *name,
 {
     objtype_t *p, **tmp;
 
-    if (!(p = alloc (sizeof *p)))
-	return 0;
+    p = alloc (sizeof *p);
 
     tmp = realloc (types, sizeof (objtype_t *) * (num + 1));
     if (!tmp) {

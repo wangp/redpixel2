@@ -7,7 +7,7 @@
 struct ug_widget_class {
     int (*create) (ug_widget_t *, void *);
     void (*destroy) (ug_widget_t *);
-    void (*event) (ug_widget_t *, int, void *);
+    void (*event) (ug_widget_t *, int, ug_event_t *);
 };
   
 

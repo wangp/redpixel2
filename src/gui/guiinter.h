@@ -47,7 +47,7 @@ extern gui_wm_t *gui_wm;
 
 void gui_wm_init ();
 void gui_wm_shutdown ();
-void gui_wm_event (int, int);
+void gui_wm_event (int event, int d);
 int gui_wm_update_screen (BITMAP *);
 
 

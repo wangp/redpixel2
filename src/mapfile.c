@@ -157,7 +157,7 @@ int map_save (map_t *map, const char *filename)
 /*----------------------------------------------------------------------*/
 
   
-int read_tiles (map_t *map, PACKFILE *f)
+static int read_tiles (map_t *map, PACKFILE *f)
 {
     int x, y, t;
     char tmp[1024];
@@ -207,8 +207,8 @@ static int read_lights (map_t *map, PACKFILE *f)
 	idx = store_index (tmp);
 	if (idx == 0)
 	    warning = 1;
-	else if (!map_light_create (map, x, y, idx))
-	    goto error;
+	else
+	    map_light_create (map, x, y, idx);
     }
 
     return warning;
@@ -275,8 +275,7 @@ static int read_starts (map_t *map, PACKFILE *f)
 	if ((x == EOF) || (y == EOF))
 	    goto error;
 
-	if (!map_start_create (map, x, y))
-	    warning = 1;
+	map_start_create (map, x, y);
     }
 
     return warning;
@@ -295,6 +294,7 @@ map_t *map_load (const char *filename, int loadobjects, int *warning)
 
     if (!warning)
 	warning = &warn;
+    *warning = 0;
 
     f = pack_fopen (filename, F_READ_PACKED);
     if (!f) goto error;

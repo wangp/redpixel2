@@ -12,6 +12,7 @@
 #include "map.h"
 #include "mapfile.h"
 #include "render.h"
+#include "yield.h"
 
 
 static BITMAP *bmp;
@@ -53,6 +54,8 @@ static int do_init ()
 	    break;
 	}
     }
+    
+    show_mouse (screen);
 
     /* end XXX */
 
@@ -86,7 +89,18 @@ static void do_input ()
     if (key[KEY_UP])
 	obj->cvar.y -= 4;
 
-    camera_track_object (&cam, obj);
+    {
+	lua_State *L = lua_state;
+	
+	getref (L, obj->table);
+	pushstring (L, "walk_hook");
+	gettable (L, -2);
+	getref (L, obj->table);
+	call (L, 1, 0);
+	pop (L, 1);
+    }
+
+    camera_track_object_with_mouse (&cam, obj, mouse_x, mouse_y, 128);
 }
 
 
@@ -98,6 +112,8 @@ static void do_physics ()
 	obj->cvar.x += obj->cvar.xv;
 	obj->cvar.y += obj->cvar.yv;
 	obj->cvar.xv *= 0.75;
+	if (ABS (obj->cvar.xv) < 0.25)
+	    obj->cvar.xv = 0;
     }
 }
 
@@ -130,7 +146,7 @@ static void do_render ()
 	BITMAP *t = create_magic_bitmap (320, 200);
 	clear (t);
 	pivot_magic_sprite (t, store_dat ("/player/torch"), 160, 100, 0, 36,
-			     fatan2 (mouse_y - 100, mouse_x - 160));
+			    fatan2 (mouse_y - 100, mouse_x - 160));
 	draw_trans_sprite (bmp, t, 0, 0);
 	destroy_bitmap (t);
     }
@@ -138,7 +154,9 @@ static void do_render ()
     text_mode (-1);
     trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
 		      "%d FPS", fps);
+    scare_mouse ();
     blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
+    unscare_mouse ();
 
     frames++;
 }
@@ -159,7 +177,8 @@ int game ()
     if (do_init () < 0)
 	return -1;
 
-    while (do_loop () == 0);
+    while (do_loop () == 0)
+	yield ();
 
     do_shutdown ();
     return 0;

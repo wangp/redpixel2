@@ -233,17 +233,15 @@ void editarea_layer_register (const char *name, void (*draw) (BITMAP *, int offx
 {
     struct layer *p = alloc (sizeof *p);
     
-    if (p) {
-	p->name = ustrdup (name);
-	p->draw = draw;
-	p->event = event;
-	p->depth = depth;
-	p->show = 1;
-	link_layer (p);
+    p->name = ustrdup (name);
+    p->draw = draw;
+    p->event = event;
+    p->depth = depth;
+    p->show = 1;
+    link_layer (p);
 
-	if (!active)
-	    active = p;
-    }
+    if (!active)
+	active = p;
 }
 
 

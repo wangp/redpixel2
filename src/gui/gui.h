@@ -46,19 +46,19 @@ void gui_wm_set (gui_wm_t *);
 
 typedef struct gui_window gui_window_t;
 
-gui_window_t *gui_window_create (int, int, int, int, int);
+gui_window_t *gui_window_create (int x, int y, int w, int h, int flags);
 void gui_window_destroy (gui_window_t *);
-void gui_window_move (gui_window_t *, int, int);
-void gui_window_move_relative (gui_window_t *, int, int);
-void gui_window_resize (gui_window_t *, int, int);
-void gui_window_raise (gui_window_t *);
+void gui_window_move (gui_window_t *, int x, int y);
+void gui_window_move_relative (gui_window_t *, int dx, int dy);
+void gui_window_resize (gui_window_t *, int w, int h);
 void gui_window_lower (gui_window_t *);
+void gui_window_raise (gui_window_t *);
 void gui_window_dirty (gui_window_t *);
-void gui_window_set_title (gui_window_t *, const char *);
-void gui_window_set_depth (gui_window_t *, int);
-void gui_window_set_self (gui_window_t *, void *);
-void gui_window_set_draw_proc (gui_window_t *, void (*) (void *, BITMAP *));
-void gui_window_set_event_proc (gui_window_t *, void (*) (void *, int, int));
+void gui_window_set_title (gui_window_t *, const char *title);
+void gui_window_set_depth (gui_window_t *, int depth);
+void gui_window_set_self (gui_window_t *, void *self);
+void gui_window_set_draw_proc (gui_window_t *, void (*draw) (void *, BITMAP *));
+void gui_window_set_event_proc (gui_window_t *, void (*event) (void *, int, int));
 
 int gui_window_x (gui_window_t *);
 int gui_window_y (gui_window_t *);

@@ -8,7 +8,6 @@
 #include "alloc.h"
 #include "list.h"
 #include "magic4x4.h"
-#include "magicrot.h"
 #include "map.h"
 #include "object.h"
 #include "store.h"
@@ -26,8 +25,8 @@ static void render_tiles (BITMAP *bmp, map_t *map, int offx, int offy,
 
     x1 = (offx / 16);
     y1 = (offy / 16);
-    x2 = MIN (x1 + w + 1, map->width - 1);
-    y2 = MIN (y1 + h + 2, map->height - 1);
+    x2 = MIN (x1 + w + 1, map->width);
+    y2 = MIN (y1 + h + 2, map->height);
 
     for (y = y1, yy = -(offy % 16); y < y2; y++, yy += 16)
     for (x = x1, xx = -(offx % 16); x < x2; x++, xx += 16)
@@ -39,51 +38,16 @@ static void render_tiles (BITMAP *bmp, map_t *map, int offx, int offy,
 /*----------------------------------------------------------------------*/
 
 
-struct extra_light {
-    struct extra_light *next;
-    struct extra_light *prev;
-    BITMAP *bmp;
-    int x, y;
-};
-
-
-static struct list_head extra_lights;
-
-
-static inline void add_extra_light (BITMAP *bmp, int x, int y)
-{
-    struct extra_light *p;
-
-    if ((p = alloc (sizeof *p))) {
-	p->bmp = bmp;
-	p->x = x;
-	p->y = y;
-	append_to_list (extra_lights, p);
-    }
-}
-
-
 static void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    {
-	BITMAP *b;
-	light_t *l;
-
-	foreach (l, map->lights) {
-	    b = store[l->lightmap]->dat;
-	    draw_trans_magic_sprite (bmp, b,
-				     (l->x - offx) - (b->w / 3 / 2),
-				     (l->y - offy) - (b->h / 2));
-	}
-    }
-
-    {
-	struct extra_light *p;
-
-	foreach (p, extra_lights)
-	    draw_trans_magic_sprite (bmp, p->bmp, p->x, p->y);
-
-	free_list (extra_lights, free);
+    BITMAP *b;
+    light_t *l;
+    
+    foreach (l, map->lights) {
+	b = store[l->lightmap]->dat;
+	draw_trans_magic_sprite (bmp, b,
+				 (l->x - offx) - (b->w / 3 / 2),
+				 (l->y - offy) - (b->h / 2));
     }
 }
 
@@ -132,20 +96,30 @@ static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
 #endif
 
 
-static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
+static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    object_t *p;
-    BITMAP *b;
+    object_t *obj;
+    struct object_layer *layer;
 
-    foreach (p, map->objects) {
-	if ((b = store_dat (p->type->icon)))
-	    draw_magic_sprite (bmp, b, p->cvar.x - offx, p->cvar.y - offy);
+    foreach (obj, map->objects) {
+	foreach (layer, obj->cvar.layers) 
+	    draw_magic_sprite (bmp, layer->bmp,
+			       obj->cvar.x - offx + layer->offset_x,
+			       obj->cvar.y - offy + layer->offset_y);
+    }
+}
 
-	if (p->cvar.light_source) {
-	    b = p->cvar.light_source;
-	    add_extra_light (b, p->cvar.x - offx - (b->w / 3 / 2),
-			     p->cvar.y - offy - (b->h / 2));
-	}
+
+static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
+{
+    object_t *obj;
+    struct object_light *light;
+
+    foreach (obj, map->objects) {
+	foreach (light, obj->cvar.lights)
+	    draw_trans_magic_sprite (bmp, light->bmp,
+				     obj->cvar.x - offx + light->offset_x,
+				     obj->cvar.y - offy + light->offset_y);
     }
 }
 
@@ -160,9 +134,8 @@ void render (BITMAP *bmp, map_t *map, camera_t *cam)
     int w = cam->view_width;
     int h = cam->view_height;
 
-    init_list (extra_lights);
-	
     render_tiles (bmp, map, x, y, w, h);
-    render_objects (bmp, map, x, y);
+    render_object_layers (bmp, map, x, y);
     render_lights (bmp, map, x, y);
+    render_object_lights (bmp, map, x, y);
 }

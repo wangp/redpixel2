@@ -1,0 +1,114 @@
+This file documents the Red Pixel II script API.  In this document,
+all type names start with a capital letter.
+
+
+- Type: Nil
+
+	The value `nil'.
+
+
+- Type: String
+
+	A string.
+
+
+- Type: Int
+
+	A number which will be treated as an integer.
+
+
+- Type: StoreKey
+
+	A string that represents a key to a Store item.
+
+
+- Type: Object
+
+	A tagged table representing a game object.
+
+
+- Type: Method
+
+	A function taking at least one argument, which is the object
+	the function is being invoked on.
+
+
+- Function: store_load (String filename, String prefix)
+
+	Loads the datafile named by FILENAME, prefixing all the item
+	names with PREFIX.  Returns nil on error.
+
+
+- Function: objtype_register (String type, String name, StoreKey icon, 
+				Nil | Function initfunc)
+
+	Registers a new object type.
+
+	- TYPE is used to categorise the type in the map editor.
+	Current types include: item, objtile, food, player.
+
+	- NAME is the name of the type.  This will be used for map
+	loading and saving purposes, so should not be changed unless
+	you really mean it.
+
+	- ICON points to a Store image item, which will be used to
+	represent the object in the map editor.  It will also be used
+	as the default object layer for instances of this object type.
+		
+	- INITFUNC will be invoked on new instances of this object type.
+	It may be `nil' if it is not necessary.
+
+	Returns nil on error.
+
+
+- Function: object_add_layer (Object object, StoreKey image, 
+			      Int xoffset, Int yoffset)
+
+	Adds an image layer to OBJECT.  The layer will appear on top
+	of the stack.
+
+	Returns a layer id (Int) on success.
+
+
+- Function: object_replace_layer (Object object, Int layerid, StoreKey image,
+				  Int xoffset, Int yoffset)
+
+	Replaces the image layer of OBJECT identified by LAYERID.
+	Returns nil on error.
+
+
+- Function: object_remove_layer (Object object, Int layerid)
+
+	Removes an image layer from OBJECT.  Returns nil on error.
+
+
+- Function: object_remove_all_layers (Object object)
+
+	Removes all image layers from OBJECT.  Return nil on error.
+
+
+- Function: object_add_light (Object object, StoreKey light, 
+			      Int xoffset, Int yoffset)
+
+	Adds a light source to OBJECT.  The light will appear on top
+	of the stack.
+	
+	Returns a light id (Int) on success.
+
+
+- Function: object_replace_light (Object object, Int lightid, StoreKey image,
+				  Int xoffset, Int yoffset)
+
+	Replaces the light source of OBJECT identified by LIGHTID.
+	Returns nil on error.
+
+
+- Function: object_remove_light (Object object, Int lightid)
+
+	Removes an light source from OBJECT.  Returns nil on error.
+
+
+- Function: object_remove_all_lights (Object object)
+
+	Removes all light sources from OBJECT.  Return nil on error.
+

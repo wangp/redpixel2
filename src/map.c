@@ -22,12 +22,12 @@ map_t *map_create (void)
 {
     map_t *map;
 
-    if ((map = alloc (sizeof *map))) {
-	init_list (map->lights);
-	init_list (map->objects);
-	init_list (map->starts);
-    }
-    
+    map = alloc (sizeof *map);
+
+    init_list (map->lights);
+    init_list (map->objects);
+    init_list (map->starts);
+
     return map;
 }
 
@@ -130,13 +130,13 @@ light_t *map_light_create (map_t *map, int x, int y, int lightmap)
 {
     light_t *p;
 
-    if ((p = alloc (sizeof *p))) {
-	p->x = x;
-	p->y = y;
-	p->lightmap = lightmap;
-	append_to_list (map->lights, p);
-    }
-    
+    p = alloc (sizeof *p);
+
+    p->x = x;
+    p->y = y;
+    p->lightmap = lightmap;
+    append_to_list (map->lights, p);
+
     return p;
 }
 
@@ -152,11 +152,11 @@ start_t *map_start_create (map_t *map, int x, int y)
 {
     start_t *p;
 
-    if ((p = alloc (sizeof *p))) {
-	p->x = x;
-	p->y = y;
-	append_to_list (map->starts, p);
-    }
+    p = alloc (sizeof *p);
+    
+    p->x = x;
+    p->y = y;
+    append_to_list (map->starts, p);
 
     return p;
 }

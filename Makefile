@@ -2,7 +2,8 @@
 ## Makefile for Red Pixel II
 ##
 
-SRCDIRS = src src/net src/store src/magic src/gui src/ug src/editor 
+SRCDIRS = src src/net src/store src/magic src/fastsqrt \
+	  src/gui src/ug src/editor
 
 CC = gcc
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
@@ -20,6 +21,9 @@ MODULES_STORE =					\
 MODULES_MAGIC =					\
 	magic4x4				\
 	magicrot
+
+MODULES_FASTSQRT =				\
+	fastsqrt
 
 MODULES_GUI =					\
 	gui					\
@@ -65,6 +69,7 @@ MODULES_GAME =					\
 	bindings				\
 	bitmask					\
 	camera					\
+	error					\
 	extdata					\
 	fps					\
 	game					\
@@ -80,20 +85,10 @@ MODULES_GAME =					\
 	render					\
 	yield
 
-#MODULES_GAME =					\
-#	bdobject				\
-#	bdstore					\
-#	console					\
-#	gameloop				\
-#	hub					\
-#	luahelp					\
-#	luastack				\
-#	object					\
-#	scripts					\
-
 MODULES = 					\
 	$(MODULES_STORE) 			\
 	$(MODULES_MAGIC)			\
+	$(MODULES_FASTSQRT)			\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\

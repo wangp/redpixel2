@@ -61,7 +61,6 @@ static void callback (const char *filename, int id)
     struct file *f;
     
     f = alloc (sizeof *f);
-    if (!f) return;
 
     f->list = ed_select_list_create ();
     _add_to_list (f->list, store_file (id), VTREE_TILES);

@@ -32,8 +32,8 @@ extern ug_widget_class_t ug_blank;
 
 extern ug_widget_class_t ug_button;
 
-void ug_button_set_extra (ug_widget_t *p, void *extra);
-void *ug_button_extra (ug_widget_t *p);
+void ug_button_set_extra (ug_widget_t *, void *extra);
+void *ug_button_extra (ug_widget_t *);
 
 extern ug_widget_class_t ug_menu;
 
@@ -50,7 +50,7 @@ typedef struct ug_menu_root {
 
 /* ugwidget.c */
 
-ug_widget_t *ug_widget_create (ug_widget_class_t *, void *, const char *);
+ug_widget_t *ug_widget_create (ug_widget_class_t *, void *data, const char *id);
 void ug_widget_destroy (ug_widget_t *);
 void ug_widget_dirty (ug_widget_t *);
 void ug_widget_focus (ug_widget_t *);
@@ -64,32 +64,34 @@ char *ug_widget_id (ug_widget_t *);
 
 /* ugevent.c */
 
+typedef void ug_event_t;
+
 void ug_widget_send_event (ug_widget_t *w, int event);
 void ug_widget_emit_signal (ug_widget_t *w, int event);
 
-void ug_widget_send_event_ex (ug_widget_t *w, int event, void *d);
-void ug_widget_emit_signal_ex (ug_widget_t *w, int event, void *d);
+void ug_widget_send_event_ex (ug_widget_t *w, int event, ug_event_t *d);
+void ug_widget_emit_signal_ex (ug_widget_t *w, int event, ug_event_t *d);
 
 void ug_widget_send_event_key (ug_widget_t *w, int event, int key);
 void ug_widget_emit_signal_key (ug_widget_t *w, int event, int key);
-int ug_event_key (void *);
+int ug_event_key (ug_event_t *d);
 
 void ug_widget_send_event_mouse (ug_widget_t *w, int event, int x, int y, int b, int bstate);
 void ug_widget_emit_signal_mouse (ug_widget_t *w, int event, int x, int y, int b, int bstate);
-int ug_event_mouse_x (void *);
-int ug_event_mouse_y (void *);
-int ug_event_mouse_rel_x (void *);
-int ug_event_mouse_rel_y (void *);
-int ug_event_mouse_b (void *);
-int ug_event_mouse_bstate (void *);
+int ug_event_mouse_x (ug_event_t *d);
+int ug_event_mouse_y (ug_event_t *d);
+int ug_event_mouse_rel_x (ug_event_t *d);
+int ug_event_mouse_rel_y (ug_event_t *d);
+int ug_event_mouse_b (ug_event_t *d);
+int ug_event_mouse_bstate (ug_event_t *d);
 
 void ug_widget_send_event_draw (ug_widget_t *w, int event, BITMAP *bmp);
 void ug_widget_emit_signal_draw (ug_widget_t *w, int event, BITMAP *bmp);
-BITMAP *ug_event_draw_bmp (void *);
-int ug_event_draw_x (void *);
-int ug_event_draw_y (void *);
-int ug_event_draw_w (void *);
-int ug_event_draw_h (void *);
+BITMAP *ug_event_draw_bmp (ug_event_t *);
+int ug_event_draw_x (ug_event_t *);
+int ug_event_draw_y (ug_event_t *);
+int ug_event_draw_w (ug_event_t *);
+int ug_event_draw_h (ug_event_t *);
 
 
 /* uglayout.c */

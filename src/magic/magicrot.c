@@ -20,7 +20,7 @@
 
 
 #include <allegro.h>
-#include "magicrot.h"
+#include "magic4x4.h"
 
 
 

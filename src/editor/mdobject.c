@@ -39,7 +39,6 @@ static struct type *current;
 static struct type *create_type (const char *name)
 {
     struct type *p = alloc (sizeof *p);
-    if (!p) return 0;
 
     p->name = ustrdup (name);
     p->list = ed_select_list_create ();

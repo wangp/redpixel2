@@ -56,7 +56,7 @@ static void draw (ug_widget_t *p, BITMAP *bmp)
 }
 
 
-static void button_event (ug_widget_t *p, int event, void *d)
+static void button_event (ug_widget_t *p, int event, ug_event_t *d)
 {
     switch (event) {
 	case UG_EVENT_WIDGET_DRAW:

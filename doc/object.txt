@@ -1,60 +1,12 @@
 An object in Red Pixel II is anything that performs an action
-(i.e. can have a script attached) They are stored partly in the
+(i.e. can have a script attached).  They are stored partly in the
 `object_t' struct in C, and partly in Lua.
 
 The bits that are in C are there to keep the rendering loop happy,
-such as the object position, image, etc.
+such as the object position, image, light sources, etc.
 
 The rest is stored inside Lua tables, which means they are feel to
 take advantage of untyped variables, associative arrays, better string
 handling, etc.
 
-
-Current C functions to be called from Lua:
-
- [ these function names are out of date ]
-
-	register_object 
-
-		object NAME, 
-		TABLE of actions
-		object TYPE (for map editor)
-		object ICON 
-
-	set_visual
-
-		OBJECT
-		string containing `store' key of BITMAP
-
-	set_visual_layers
-
-		OBJECT
-		VISUAL-REP, which is list of layers, from bottom to
-		top, which should be drawn.
-
-		     Each layer can either be a string, or a table like this:
-
-			  { "/path/to/image"; param1 = value, param2 = value }
-
-			  The extra params can be:
-
-			      offsetx = int
-			      offsety = int
-			      angle = fixed
-
-	set_collision_mask
-
-		OBJECT
-		path to collision MASK
-
-
-Lua object methods
-
-	init (self, type)
-
-	     Called when object is created.  
-
-	process (self)
-
-	     Called every game tick.  The function should return
-	     quickly.
+See also `api.txt'.

@@ -89,14 +89,10 @@ static void loader (const char *filename, int attrib, int param)
     if (id < 0) return;
     
     f = alloc (sizeof *f);
-    if (!f) {
-	store_unload (id);
-	return;
-    }
 
     f->filename = ustrdup (filename);
     f->id = id;
-    
+   
     f->next = file_list->next;
     file_list->next = f;
 }
@@ -107,7 +103,6 @@ static void *loadhelp_load (void *filenames, const char *_vtree)
     char **p, tmp[1024];
 
     file_list = alloc (sizeof *file_list);
-    if (!file_list) return 0;
     
     vtree = _vtree;
     

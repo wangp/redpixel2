@@ -10,17 +10,19 @@
 
 
 #define MAKE_GETTER(RET, NAME, EVTYPE, MEMB)	\
-	RET NAME (void *p) { return ((struct EVTYPE *) p)->MEMB; }
+	RET NAME (ug_event_t *p) { return ((struct EVTYPE *) p)->MEMB; }
 
 
-static void do_event (ug_widget_t *w, int event, void *data)
+static void do_event (ug_widget_t *w, int event, ug_event_t *data)
 {
-    if (w && w->class->event) w->class->event (w, event, data);
+    if (w && w->class->event)
+	w->class->event (w, event, data);
 }
 
-static void do_signal (ug_widget_t *w, int event, void *data)
+static void do_signal (ug_widget_t *w, int event, ug_event_t *data)
 {
-    if (w && w->slot) w->slot (w, event, data);
+    if (w && w->slot)
+	w->slot (w, event, data);
 }
 
 
@@ -28,23 +30,23 @@ static void do_signal (ug_widget_t *w, int event, void *data)
 
 void ug_widget_send_event (ug_widget_t *w, int event)
 {
-    do_event (w, event, 0);
+    do_event (w, event, NULL);
 }
 
 void ug_widget_emit_signal (ug_widget_t *w, int event)
 {
-    do_signal (w, event, 0);
+    do_signal (w, event, NULL);
 }
 
 
 /*----------------------------------------------------------------------*/
 
-void ug_widget_send_event_ex (ug_widget_t *w, int event, void *d)
+void ug_widget_send_event_ex (ug_widget_t *w, int event, ug_event_t *d)
 {
     do_event (w, event, d);
 }
 
-void ug_widget_emit_signal_ex (ug_widget_t *w, int event, void *d)
+void ug_widget_emit_signal_ex (ug_widget_t *w, int event, ug_event_t *d)
 {
     do_signal (w, event, d);
 }
@@ -79,7 +81,8 @@ struct mouse {
     int b, bstate;
 };
 
-void ug_widget_send_event_mouse (ug_widget_t *w, int event, int x, int y, int b, int bstate)
+void ug_widget_send_event_mouse (ug_widget_t *w, int event, int x, int y,
+				 int b, int bstate)
 {
     struct mouse data = { x, y,
 			  x - ug_widget_x (w),
@@ -88,7 +91,8 @@ void ug_widget_send_event_mouse (ug_widget_t *w, int event, int x, int y, int b,
     do_event (w, event, &data);
 }
 
-void ug_widget_emit_signal_mouse (ug_widget_t *w, int event, int x, int y, int b, int bstate)
+void ug_widget_emit_signal_mouse (ug_widget_t *w, int event, int x, int y,
+				  int b, int bstate)
 {
     struct mouse data = { x, y,
 			  x - ug_widget_x (w),

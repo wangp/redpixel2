@@ -93,9 +93,6 @@ struct sel {
 static int sel_create (ug_widget_t *p, void *label)
 {
     p->private = alloc (sizeof (struct sel));
-    if (!p->private)
-	return -1;
-
     pink = makecol (0xc0, 0xa0, 0xa0);
     return 0;
 }
@@ -214,7 +211,7 @@ static int sel_select (ug_widget_t *widget, int mx, int my)
     return 0;
 }
 
-static void sel_event (ug_widget_t *p, int event, void *d)
+static void sel_event (ug_widget_t *p, int event, ug_event_t *d)
 {
     switch (event) {
 	case UG_EVENT_WIDGET_DRAW:

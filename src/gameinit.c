@@ -6,6 +6,7 @@
 
 #include <allegro.h>
 #include "bindings.h"
+#include "fastsqrt.h"
 #include "gameinit.h"
 #include "loaddata.h"
 #include "magic4x4.h"
@@ -17,6 +18,8 @@
 
 void game_init ()
 {
+    build_sqrt_table ();
+
     generate_magic_color_map ();
     generate_magic_conversion_tables ();
 

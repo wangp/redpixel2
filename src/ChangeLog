@@ -1,5 +1,21 @@
 2001-04-01  Peter Wang  <tjaden@psynet.net>
 
+	* camera.c (camera_track_object_with_mouse): New function to
+	handle the mouse-cursor-pushes-display idea.
+	(move_camera_closer_to_target): Soft camera!
+
+	* Merged magic4x4.h and magicrot.h.
+
+	* Remodeled the object light source API to the layers API.
+	
+	* object.h: Added object layers.
+	* object.c, bindings.c: Added relevant functions.
+
+	* error.c (error): Function to abort in case of serious errors.
+
+	* ug/ug.h, ug/ugevent.c: New ug_event_t typedef replaces void *
+	for event data.
+
 	* object.h: Added light_source cvar.
 	* object.c (object_set_light_source): Added.
 	* bindings.c (bind_object_set_light_source): Added.
