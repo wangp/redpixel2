@@ -32,6 +32,7 @@
 #include "render.h"
 #include "screen.h"
 #include "server.h"
+#include "set-video.h"
 #include "sound.h"
 #include "store.h"
 #include "sync.h"
@@ -1171,7 +1172,6 @@ static void update_screen (int mouse_x, int mouse_y)
 }
 
 
-
 /*
  *----------------------------------------------------------------------
  *	The game client outer loop (XXX too big, very, very disgusting)
@@ -1425,10 +1425,12 @@ void client_run (int client_server)
 
   game:
 
-    /* XXX */
-    if ((desired_game_screen_w != SCREEN_W) ||
-	(desired_game_screen_h != SCREEN_H))
-	set_gfx_mode (GFX_AUTODETECT, desired_game_screen_w, desired_game_screen_h, 0, 0);
+    if (autodetect_video_mode (&desired_game_screen_w, &desired_game_screen_h, 1) < 0) {
+	/* This shouldn't EVER fail since the game checks that there
+	   is at least one usable screen mode during start up.  But
+	   just in case. */
+	errorv ("Error setting video mode.  Please report this.\n%s\n", allegro_error);
+    }
 
     show_mouse(NULL);
     set_mouse_range(0, 0, screen_width-1, screen_height-1);

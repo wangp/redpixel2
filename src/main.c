@@ -32,31 +32,10 @@
 #endif
 
 
-static int setup_video (int w, int h, int d)
+static void setup_allegro (void)
 {
-    int depths[] = { 16, 15, 0 }, *i;
-    
-    set_color_conversion (COLORCONV_NONE);
-   
-    if (d > 0) {
-	set_color_depth (d);
-	if (set_gfx_mode (GFX_AUTODETECT, w, h, 0, 0) == 0)
-	    return 0;
-    }
-    else {
-        for (i = depths; *i; i++) {
-	    set_color_depth (*i);
-	    if (set_gfx_mode (GFX_AUTODETECT, w, h, 0, 0) == 0)
-		return 0;
-	}
-    }
-    
-    return -1;
-}
+    int stretch_method;
 
-
-static void setup_allegro (int w, int h, int d, int stretch_method)
-{
     if (allegro_init () != 0) {
         puts ("Error initialising Allegro.");
 	exit (1);
@@ -81,14 +60,10 @@ static void setup_allegro (int w, int h, int d, int stretch_method)
 
     load_config (&stretch_method);
 
-    if (w < 0) w = desired_menu_screen_w;
-    if (h < 0) h = desired_menu_screen_h;
-    if (d < 0) d = 16;
+    if (set_menu_gfx_mode () < 0)
+	errorv ("Error setting video mode.\n%s\n", allegro_error);
 
-    if (setup_video (w, h, d) < 0)
-        errorv ("Error setting video mode.\n%s\n", allegro_error);
-
-    screen_blitter_init (stretch_method, d);
+    screen_blitter_init (stretch_method, bitmap_color_depth (screen));
     
     if (set_display_switch_mode (SWITCH_BACKAMNESIA) < 0)
 	set_display_switch_mode (SWITCH_BACKGROUND);
@@ -137,8 +112,6 @@ static void do_run_server (void)
 
 int main (int argc, char *argv[])
 {
-    int w = -1, h = -1, d = -1;
-    int stretch_method = STRETCH_METHOD_NONE;
     int run_server = 0;
     int run_editor = 0;
     int c;
@@ -172,7 +145,7 @@ int main (int argc, char *argv[])
     if (run_server)
 	setup_minimal_allegro ();
     else
-	setup_allegro (w, h, d, stretch_method);
+	setup_allegro ();
 
     music_init();
 

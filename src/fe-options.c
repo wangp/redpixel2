@@ -1,17 +1,20 @@
 #include <string.h>
 #include <allegro.h>
+#include "error.h"
 #include "fe-lobby.h"
 #include "fe-main.h"
 #include "fe-widgets.h"
 #include "gamma.h"
 #include "music.h"
 #include "screen.h"
+#include "set-video.h"
 #include "sound.h"
 #include "store.h"
 
 
 static float old_music_desired_volume;
 static int old_desired_brightness;
+static int stretch_method_in_use;
 
 static DIALOG options_menu[];
 #define DEFAULT_FOCUS			-1
@@ -66,34 +69,40 @@ static int gamma_factor_to_gamma_slider_d2 (float gamma)
 }
 
 
-static int menu_screen_resolution_needs_resetting (void)
+static int radiobuttons_to_stretch_method (void)
+{
+    if (PLAIN_STRETCH_RADIOBUTTON.flags & D_SELECTED)
+	return STRETCH_METHOD_PLAIN;
+    else if (SUPER_2XSAI_RADIOBUTTON.flags & D_SELECTED)
+	return STRETCH_METHOD_SUPER2XSAI;
+    else if (SUPER_EAGLE_RADIOBUTTON.flags & D_SELECTED)
+	return STRETCH_METHOD_SUPEREAGLE;
+    else
+	return STRETCH_METHOD_NONE;
+}
+
+
+static void stretch_method_to_radiobuttons (int method)
+{
+    broadcast_dialog_message (MSG_RADIO, STRETCH_METHOD_RADIO_GROUP);
+
+    if (method == STRETCH_METHOD_PLAIN)
+	PLAIN_STRETCH_RADIOBUTTON.flags |= D_SELECTED;
+    else if (method == STRETCH_METHOD_SUPER2XSAI)
+	SUPER_2XSAI_RADIOBUTTON.flags |= D_SELECTED;
+    else if (method == STRETCH_METHOD_SUPEREAGLE)
+	SUPER_EAGLE_RADIOBUTTON.flags |= D_SELECTED;
+    else
+	NO_STRETCH_RADIOBUTTON.flags |= D_SELECTED;
+}
+
+
+static int video_mode_is_big (int w, int h)
 {
     /* The menu should try to be in the same resolution as the game to
        minimize the screen changing between the battle field and the
        lobby. */
-    if ((desired_game_screen_w == 640) &&
-	(desired_menu_screen_h != desired_game_screen_h))
-	return 1;
-
-    return 0;
-}
-
-
-static int reset_menu_screen_resolution (void)
-{
-    int old_menu_screen_w = desired_menu_screen_w;
-    int old_menu_screen_h = desired_menu_screen_h;
-    desired_menu_screen_w = desired_game_screen_w;
-    desired_menu_screen_h = desired_game_screen_h;
-
-    if (set_menu_gfx_mode () < 0) {
-	desired_menu_screen_w = old_menu_screen_w;
-	desired_menu_screen_h = old_menu_screen_h;
-	set_menu_gfx_mode ();
-	return -1;
-    }
-
-    return 0;
+    return ((w >= 640) && (h >= 400));
 }
 
 
@@ -174,49 +183,20 @@ static int gamma_slider_changed (DIALOG *d)
 
 static int options_menu_modify_changes_pressed (void)
 {
-    /* XXX */
-    int d = 16;
-    int stretch_method;
+    int w, h, method;
 
-    /* Screen resolution. */
+    /* Screen resolution & stretching method. */
     if (RESOLUTION_640x400_RADIOBUTTON.flags & D_SELECTED)
-	desired_game_screen_w = 640, desired_game_screen_h = 400;
+	w = 640, h = 400;
     else if (RESOLUTION_640x480_RADIOBUTTON.flags & D_SELECTED)
-	desired_game_screen_w = 640, desired_game_screen_h = 480;
+	w = 640, h = 480;
     else
-	desired_game_screen_w = 320, desired_game_screen_h = 200;
+	w = 320, h = 200;
+    method = radiobuttons_to_stretch_method ();
 
-    /* Stretching method. */
-    if (PLAIN_STRETCH_RADIOBUTTON.flags & D_SELECTED)
-	stretch_method = STRETCH_METHOD_PLAIN;
-    else if (SUPER_2XSAI_RADIOBUTTON.flags & D_SELECTED)
-	stretch_method = STRETCH_METHOD_SUPER2XSAI;
-    else if (SUPER_EAGLE_RADIOBUTTON.flags & D_SELECTED)
-	stretch_method = STRETCH_METHOD_SUPEREAGLE;
-    else
-	stretch_method = STRETCH_METHOD_NONE;
-
-    screen_blitter_shutdown ();
-    screen_blitter_init (stretch_method, d);
-
-    /* Sound. */
+    /* Sound & music. */
     sound_volume_factor = SFX_SLIDER.d2 / 255.0;
-
-    /* Music. */
     music_allowed = MUSIC_CHECKBOX.flags & D_SELECTED;
-
-    if (menu_screen_resolution_needs_resetting ()) {
-	if (reset_menu_screen_resolution () < 0) {
-	    alert ("Error setting video mode.", allegro_error, NULL, "Ok", NULL, 0, 0);
-	    return D_REDRAW;
-	}
-	else {
-	    lobby_shutdown ();
-	    lobby_init (NULL);
-	    fancy_gui_shutdown ();
-	    fancy_gui_init ();
-	}
-    }
 
     /* Brightness. */
     if (GAMMA_SLIDER.d2 != old_desired_brightness) {
@@ -225,12 +205,42 @@ static int options_menu_modify_changes_pressed (void)
 	gamma_factor = gamma_slider_d2_to_gamma_factor (GAMMA_SLIDER.d2);
     }
 
+    /* Test the desired video mode. */
+    if (setup_video (w, h, 0) == 0) {
+	desired_game_screen_w = w;
+	desired_game_screen_h = h;
+	stretch_method_in_use = method;
+
+	if (video_mode_is_big (w, h)) {
+	    desired_menu_screen_w = w;
+	    desired_menu_screen_h = h;
+
+	    lobby_shutdown ();
+	    lobby_init (NULL);
+	    fancy_gui_shutdown ();
+	    fancy_gui_init ();
+	}
+	else
+	    set_menu_gfx_mode ();
+
+	screen_blitter_shutdown ();
+	screen_blitter_init (method, bitmap_color_depth (screen));
+    }
+    else {
+	set_menu_gfx_mode ();
+	show_mouse (screen);
+	alert ("Couldn't set the desired video mode.", NULL, NULL, "Ok", NULL, 0, 0);
+	return D_REDRAW;
+    }
+
     return D_EXIT;
 }
 
 
 static int cancel_changes_pressed (void)
 {
+    broadcast_dialog_message (MSG_RADIO, SCREEN_RESOLUTION_RADIO_GROUP);
+    broadcast_dialog_message (MSG_RADIO, STRETCH_METHOD_RADIO_GROUP);
     music_desired_volume = old_music_desired_volume;
 
     return D_EXIT;
@@ -247,7 +257,7 @@ static DIALOG options_menu[] =
     { fancy_radio_proc,     30, 120, 100,  30, 0, -1, 0, 0, SCREEN_RESOLUTION_RADIO_GROUP, 0x80, "640x480", NULL, enable_stretching }, /* 5 */
     { fancy_button_proc,   325,  20, 295, 170, 0, -1, 0, D_DISABLED, 0, 0, NULL, NULL, NULL }, /* 6 */
     { fancy_label_proc,    340,  20, 160,  30, 0, -1, 0, 0, 0, 0xa0, "Stretching method:", NULL, NULL }, /* 7 */
-    { fancy_radio_proc,    340,  60, 160,  30, 0, -1, 0, D_SELECTED, STRETCH_METHOD_RADIO_GROUP, 0x60, "No stretching", NULL, NULL }, /* 8 */
+    { fancy_radio_proc,    340,  60, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "No stretching", NULL, NULL }, /* 8 */
     { fancy_radio_proc,    340,  90, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Plain stretching", NULL, NULL },	/* 9 */
     { fancy_radio_proc,    340, 120, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Super 2xSaI", NULL, NULL }, /* 10 */
     { fancy_radio_proc,    340, 150, 160,  30, 0, -1, 0, 0, STRETCH_METHOD_RADIO_GROUP, 0x60, "Super Eagle", NULL, NULL }, /* 11 */
@@ -269,18 +279,18 @@ static DIALOG options_menu[] =
 void options_menu_run (void)
 {
     /* Screen resolution & stretching method. */
-    broadcast_dialog_message (MSG_RADIO, SCREEN_RESOLUTION_RADIO_GROUP);
-    if (desired_game_screen_w == 320) {
-	RESOLUTION_320x200_RADIOBUTTON.flags |= D_SELECTED;
-	disable_stretching ();
-    }
-    else {
+    if (video_mode_is_big (desired_game_screen_w, desired_game_screen_h)) {
 	if (desired_game_screen_h == 400)
 	    RESOLUTION_640x400_RADIOBUTTON.flags |= D_SELECTED;
 	else
 	    RESOLUTION_640x480_RADIOBUTTON.flags |= D_SELECTED;
 	enable_stretching ();
     }
+    else {
+	RESOLUTION_320x200_RADIOBUTTON.flags |= D_SELECTED;
+	disable_stretching ();
+    }
+    stretch_method_to_radiobuttons (stretch_method_in_use);
 
     /* Sound & music. */
     SFX_SLIDER.d2 = sound_volume_factor * 255;
@@ -341,16 +351,6 @@ void load_config (int *desired_stretch_method)
     desired_game_screen_h = get_config_int (CONFIG_SECTION, "screen_height", 200);
     stretch_method = get_config_int (CONFIG_SECTION, "stretch_method", 0);
 
-    /* Make sure the stretching method is okay for the screen mode. */
-    if (desired_game_screen_w == 320)
-	stretch_method = STRETCH_METHOD_NONE;
-    else {
-	if ((stretch_method < STRETCH_METHOD_PLAIN) || 
-	    (stretch_method > STRETCH_METHOD_SUPEREAGLE))
-	    stretch_method = STRETCH_METHOD_PLAIN;
-    }
-    *desired_stretch_method = stretch_method;
-
     /* Sound & music. */
     sound_volume_factor = get_config_float (CONFIG_SECTION, "sound_volume_factor", 1.0);
     music_allowed = get_config_int (CONFIG_SECTION, "music_allowed", 1);
@@ -365,10 +365,27 @@ void load_config (int *desired_stretch_method)
     strcpy (address_editbox_buf, get_config_string (CONFIG_SECTION, "server", "localhost"));
     strcpy (port_editbox_buf, get_config_string (CONFIG_SECTION, "port", DEFAULT_PORT));
 
-    if (menu_screen_resolution_needs_resetting ()) {
+
+    /* Test the desired video mode.  Change if necessary. */
+    if (autodetect_video_mode (&desired_game_screen_w, &desired_game_screen_h, 1) < 0)
+	error ("Couldn't detect a suitable video mode.  Supported modes are:\n 320x200, 640x400, 640x480\n");
+
+    if (video_mode_is_big (desired_game_screen_w, desired_game_screen_h)) {
 	desired_menu_screen_w = desired_game_screen_w;
 	desired_menu_screen_h = desired_game_screen_h;
     }
+
+    /* Make sure the stretching method is okay for the screen mode. */
+    if (video_mode_is_big (desired_game_screen_w, desired_game_screen_h)) {
+	if ((stretch_method < STRETCH_METHOD_PLAIN) || 
+	    (stretch_method > STRETCH_METHOD_SUPEREAGLE))
+	    stretch_method = STRETCH_METHOD_PLAIN;
+    }
+    else
+	stretch_method = STRETCH_METHOD_NONE;
+    stretch_method_in_use = stretch_method;
+    *desired_stretch_method = stretch_method;
+
 
     pop_config_state ();
 }
@@ -376,20 +393,13 @@ void load_config (int *desired_stretch_method)
 
 void save_config (void)
 {
-    int v;
-
     push_config_state ();
     set_config_file (CONFIG_FILENAME);
 
     /* Screen resolution & stretching method. */
-    /* XXX: this is utter crap. */
     set_config_int (CONFIG_SECTION, "screen_width", desired_game_screen_w);
     set_config_int (CONFIG_SECTION, "screen_height", desired_game_screen_h);
-    
-    v = (PLAIN_STRETCH_RADIOBUTTON.flags & D_SELECTED) ? 1 :
-	(SUPER_2XSAI_RADIOBUTTON.flags & D_SELECTED) ? 2 :
-	(SUPER_EAGLE_RADIOBUTTON.flags & D_SELECTED) ? 3 : 0;
-    set_config_int (CONFIG_SECTION, "stretch_method", v);
+    set_config_int (CONFIG_SECTION, "stretch_method", stretch_method_in_use);
 
     /* Sound & music. */
     set_config_float (CONFIG_SECTION, "sound_volume_factor", sound_volume_factor);

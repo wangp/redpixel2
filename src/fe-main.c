@@ -16,6 +16,7 @@
 #include "messages.h"
 #include "music.h"
 #include "server.h"
+#include "set-video.h"
 #include "store.h"
 #include "strlcat.h"
 #include "strlcpy.h"
@@ -38,7 +39,7 @@ char address_editbox_buf[32] = "localhost";
 char name_editbox_buf[32] = "Gutless";
 char port_editbox_buf[8] = DEFAULT_PORT;
 int client_was_kicked = 0;
-int desired_menu_screen_w = 640, desired_menu_screen_h = 400;
+int desired_menu_screen_w = 640, desired_menu_screen_h = 480;
 
 
 static void *server_thread (void *arg)
@@ -61,42 +62,9 @@ static void set_menu_mouse_sprite (void)
 }
 
 
-/* Yoinked from main.c and modified. */
-static int setup_video (int w, int h)
-{
-    int depths[] = { 16, 15, 0 }, *i;
-    
-    set_color_conversion (COLORCONV_NONE);
-   
-/*     if (d > 0) { */
-/* 	set_color_depth (d); */
-/* 	if (set_gfx_mode (GFX_AUTODETECT, w, h, 0, 0) == 0) */
-/* 	    return 0; */
-/*     } */
-/*     else { */
-    for (i = depths; *i; i++) {
-	set_color_depth (*i);
-	if (set_gfx_mode (GFX_AUTODETECT, w, h, 0, 0) == 0)
-	    return 0;
-    }
-/*     } */
-    
-    return -1;
-}
-
-
 int set_menu_gfx_mode (void)
 {
-    if ((SCREEN_W != desired_menu_screen_w) ||
-	(SCREEN_H != desired_menu_screen_h)) {
-	if (setup_video (desired_menu_screen_w, desired_menu_screen_h) < 0) {
-	    printf ("Error setting video mode.\n%s\n", allegro_error);
-/* 	    errorv ("Error setting video mode.\n%s\n", allegro_error); */
-	    return -1;
-	}
-    }
-
-    return 0;
+    return autodetect_video_mode (&desired_menu_screen_w, &desired_menu_screen_h, 0);
 }
 
 
@@ -331,7 +299,7 @@ static int client_server_button_pressed (void)
 	show_mouse (screen);
     }
 
-    return D_REDRAW;
+    return D_EXIT;
 }
 
 

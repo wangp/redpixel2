@@ -136,6 +136,7 @@ MODULES_GAME :=					\
 	ral					\
 	render					\
 	screen					\
+	set-video				\
 	sound					\
 	strlcat					\
 	strlcpy					\
