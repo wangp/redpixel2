@@ -68,6 +68,12 @@ enum {
     MSG_SC_GAMEINFO_DONE = 'H',
 
 
+    /* The server broadcasts this to clients when it is returning to
+       the lobby.  */
+
+    MSG_SC_LOBBY = 'l',
+    
+
     /* The client sends this when it wants to politely disconnect from
        the server.  */
 

@@ -10,6 +10,7 @@
 #include "gameinit.h"
 #include "gameclt.h"
 #include "gamesrv.h"
+#include "textface.h"
 
 
 static int setup_video (int w, int h, int d)
@@ -52,6 +53,18 @@ static void setup_allegro (int w, int h, int d)
         allegro_message ("Error setting video mode.\n%s\n", allegro_error);
 	exit (1);
     }
+    
+    if (set_display_switch_mode (SWITCH_BACKAMNESIA) < 0)
+	set_display_switch_mode (SWITCH_BACKGROUND);
+}
+
+
+static void setup_minimal_allegro ()
+{
+    install_allegro (SYSTEM_NONE, &errno, atexit);
+
+    set_color_conversion (COLORCONV_NONE);
+    set_color_depth (16);
 }
 
 
@@ -65,8 +78,11 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, "a:ew:h:d:s")) != -1) {
+    while ((c = getopt (argc, argv, "sa:ew:h:d:")) != -1) {
 	switch (c) {
+	    case 's':
+		run_server = 1;
+		break;
 	    case 'a':
 		addr = optarg;
 		break;
@@ -86,9 +102,6 @@ int main (int argc, char *argv[])
 		    return 1;
 		}
 		break;
-	    case 's':
-		run_server = 1;
-		break;
 	    case ':':
 	    	fprintf (stderr, "Option `%c' missing argument.\n", optopt);
 		return 1;
@@ -100,7 +113,10 @@ int main (int argc, char *argv[])
 	}
     }
 
-    setup_allegro (w, h, d);
+    if (run_server)
+	setup_minimal_allegro ();
+    else
+	setup_allegro (w, h, d);
 
     game_init ();
 
@@ -108,7 +124,7 @@ int main (int argc, char *argv[])
 	editor ();
     }
     else if (run_server) {
-	if (game_server_init () == 0) {
+	if (game_server_init (&game_server_text_interface) == 0) {
 	    game_server ();
 	    game_server_shutdown ();
 	}

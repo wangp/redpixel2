@@ -151,6 +151,11 @@ objects or gates if necessary (e.g. open a door, etc.)
 
 ** proper chat screen (maybe in-game)
 
+** pass server
+
+** swap to another server executable
+good during development
+
 ** [?] person with `flag' has a cow head sticking out of backpack
 
 ** [?] single player mode

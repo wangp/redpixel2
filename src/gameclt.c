@@ -24,7 +24,7 @@
 #include "yield.h"
 
 
-#if 1
+#if 0
 # define dbg(msg)	puts ("[client] " msg)
 #else
 # define dbg(msg)
@@ -43,6 +43,10 @@ static camera_t *cam;
 
 #define local_object_id	(-client_id)
 
+static int last_controls;
+
+static int backgrounded;
+
 
 /*----------------------------------------------------------------------*/
 
@@ -58,18 +62,19 @@ static void net_send_rdm_byte (NET_CONN *conn, unsigned char c)
 
 static void send_gameinfo_controls ()
 {
-    int bitmask = 0;
+    int controls = 0;
 
     if (key[KEY_LEFT])
-	bitmask |= 0x01;
+	controls |= 0x01;
     if (key[KEY_RIGHT])
-	bitmask |= 0x02;
+	controls |= 0x02;
     if (key[KEY_UP])
-	bitmask |= 0x04;
+	controls |= 0x04;
 
-    if (bitmask) {
-	char buf[] = { MSG_CS_GAMEINFO, MSG_CS_GAMEINFO_CONTROLS, bitmask };
+    if (controls != last_controls) {
+	char buf[] = { MSG_CS_GAMEINFO, MSG_CS_GAMEINFO_CONTROLS, controls };
 	net_send_rdm (conn, buf, sizeof buf);
+	last_controls = controls;
     }
 }
 
@@ -96,7 +101,8 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		if (map)
 		    map_destroy (map);
 		map = map_load (filename, 0, NULL);
-	    } break;
+		break;
+	    }
 
 	    case MSG_SC_GAMEINFO_OBJECTCREATE:
 	    {
@@ -110,7 +116,8 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		obj = object_create_ex (type, id);
 		object_set_xy (obj, x, y);
 		map_link_object (map, obj);
-	    } break;
+		break;
+	    }
 
 	    case MSG_SC_GAMEINFO_OBJECTDESTROY:
 	    {
@@ -122,7 +129,8 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		    map_unlink_object (obj);
 		    object_destroy (obj);
 		}
-	    } break;
+		break;
+	    }
 
 	    case MSG_SC_GAMEINFO_OBJECTMOVE:
 	    {
@@ -133,7 +141,8 @@ static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
 		buf += packet_decode (buf, "lff", &id, &x, &y);
 		if ((obj = map_find_object (map, id)))
 		    object_set_xy (obj, x, y);
-	    } break;
+		break;
+	    }
 
 	    default:
 		error ("error: unknown code in gameinfo packet (client)\n");
@@ -164,29 +173,33 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 }
 
 
-static void game_client_render ()
+static void update_screen ()
 {
     object_t *obj;
 
     obj = map_find_object (map, local_object_id);
     if (obj)
 	camera_track_object_with_mouse (cam, obj, mouse_x, mouse_y, 80);
+    
+    if (!backgrounded) {
+	clear (bmp);
+	render (bmp, map, cam);
 
-    clear (bmp);
-    render (bmp, map, cam);
+	if (obj)
+	    pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
+				      object_x (obj) - camera_x (cam),
+				      object_y (obj) - camera_y (cam), 0, 36,
+				      fatan2 (mouse_y - 100, mouse_x - 160));
 
-    if (obj)
-	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
-				  object_x (obj) - camera_x (cam),
-				  object_y (obj) - camera_y (cam), 0, 36,
-				  fatan2 (mouse_y - 100, mouse_x - 160));
-
-    text_mode (-1);
-    trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
-		      "%d FPS", fps);
-    scare_mouse ();
-    blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
-    unscare_mouse ();
+	text_mode (-1);
+	trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
+			  "%d FPS", fps);
+	scare_mouse ();
+	acquire_screen ();
+	blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
+	release_screen ();
+	unscare_mouse ();
+    }
 
     frames++;
 }
@@ -195,11 +208,27 @@ static void game_client_render ()
 /*----------------------------------------------------------------------*/
 
 
+static void switch_in_callback ()
+{
+    backgrounded = 0;
+}
+
+
+static void switch_out_callback ()
+{
+    backgrounded = 1;
+}
+
+
+/*----------------------------------------------------------------------*/
+
+
 void game_client ()
 {
-    /* limbo */
-	
-    dbg ("limbo");
+
+  lobby:
+    
+    dbg ("lobby");
     {
 	char buf[NET_MAX_PACKET_SIZE];
 	int size;
@@ -225,7 +254,7 @@ void game_client ()
 	    }
 	}
     }
-	
+
   receive_game_state:
 
     dbg ("receive game state");
@@ -319,14 +348,17 @@ void game_client ()
 			    done = 1;
 			    break;
 
+			case MSG_SC_LOBBY:
+			    goto lobby;
+
 			case MSG_SC_DISCONNECTED:
 			    goto end;
 		    }
 		}
 	    }
 
-	    dbg ("render");
-	    game_client_render ();
+	    dbg ("update screen");
+	    update_screen ();
 	}
     }
     
@@ -343,8 +375,10 @@ void game_client ()
 
 	while (!timeout_test (&timeout)) {
 	    if (net_receive_rdm (conn, &c, 1) > 0) 
-		if (c == MSG_SC_DISCONNECTED)
+		if (c == MSG_SC_DISCONNECTED) {
+		    dbg ("server confirmed disconnect");
 		    break;
+		}
 	    yield ();
 	}
 
@@ -382,6 +416,12 @@ int game_client_init (const char *addr)
     map = NULL;
     fps_init ();
 
+    set_display_switch_callback (SWITCH_IN, switch_in_callback);
+    set_display_switch_callback (SWITCH_OUT, switch_out_callback);
+    backgrounded = 0;
+
+    last_controls = 0;
+
     return 0;
 
   error:
@@ -393,6 +433,8 @@ int game_client_init (const char *addr)
 
 void game_client_shutdown ()
 {
+    remove_display_switch_callback (switch_out_callback);
+    remove_display_switch_callback (switch_in_callback);
     fps_shutdown ();
     map_destroy (map);
     camera_destroy (cam);

@@ -16,27 +16,21 @@
 #include "object.h"
 #include "objtypes.h"
 #include "packet.h"
+#include "timeout.h"
 #include "yield.h"
 
 
-#if 1
-# define dbg(msg)	puts ("[server] " msg)
-#else
-# define dbg(msg)
-#endif
-
-
-/*------------------------------------------------------------*/
-
-
 static NET_CONN *listen;
+
+static game_server_interface_t *interface;
+
 static struct list_head clients;
 
 static map_t *map;
-static const char *map_filename = "test.pit"; /* XXX */
+static char *map_filename;
 
 
-/*------------------------------------------------------------*/
+/* Client nodes.  */
 
 
 typedef struct clt clt_t;
@@ -48,26 +42,34 @@ struct clt {
     int id;
     int flags;
     int controls;
+    timeout_t timeout;
 };
 
 
-static int clt_next_id;
-
-
-#define CLT_FLAG_READY		0x01
-#define CLT_FLAG_DELETED	0x02
-
-#define clt_is_ready(c)		((c)->flags & CLT_FLAG_READY)
-#define clt_set_ready(c)	((c)->flags |= CLT_FLAG_READY)
-#define clt_clear_ready(c)	((c)->flags &=~ CLT_FLAG_READY)
-
-#define clt_is_deleted(c)	((c)->flags & CLT_FLAG_DELETED)
-#define clt_set_deleted(c)	((c)->flags |= CLT_FLAG_DELETED)
-
-#define clt_is_alive(c)		(!clt_is_deleted (c))
-
-
 #define clt_object_id(c)	(- (c)->id)
+
+
+#define CLT_FLAG_STALE		0x01
+#define CLT_FLAG_READY		0x02
+#define CLT_FLAG_CANTIMEOUT	0x04
+
+#define clt_test_flag(c,f)	((c)->flags & (f))
+#define clt_set_flag(c,f)	((c)->flags |= (f))
+#define clt_clear_flag(c,f)	((c)->flags &=~ (f))
+
+#define clt_stale(c)		(clt_test_flag (c, CLT_FLAG_STALE))
+#define clt_set_stale(c)	(clt_set_flag (c, CLT_FLAG_STALE))
+
+#define clt_ready(c)		(clt_test_flag (c, CLT_FLAG_READY))
+#define clt_set_ready(c)	(clt_set_flag (c, CLT_FLAG_READY))
+#define clt_clear_ready(c)	(clt_clear_flag (c, CLT_FLAG_READY))
+
+#define clt_cantimeout(c)	(clt_test_flag (c, CLT_FLAG_CANTIMEOUT))
+#define clt_set_cantimeout(c)	(clt_set_flag (c, CLT_FLAG_CANTIMEOUT))
+#define clt_clear_cantimeout(c)	(clt_clear_flag (c, CLT_FLAG_CANTIMEOUT))
+
+
+static int clt_next_id;
 
 
 static clt_t *clt_create (NET_CONN *conn)
@@ -87,8 +89,71 @@ static void clt_destroy (clt_t *c)
     }
 }
 
+static void clt_set_timeout (clt_t *c, int secs)
+{
+    timeout_set (&c->timeout, secs * 1000);
+}
 
-/*------------------------------------------------------------*/
+
+static int clt_timed_out (clt_t *c)
+{
+    return clt_cantimeout (c) && timeout_test (&c->timeout);
+}
+
+
+static int clt_send_rdm (clt_t *c, const void *buf, int size)
+{
+    return net_send_rdm (c->conn, buf, size);
+}
+
+
+static int clt_receive_rdm (clt_t *c, void *buf, int size)
+{
+    if (!net_query_rdm (c->conn))
+	return 0;
+    return net_receive_rdm (c->conn, buf, size);
+}
+
+
+/* Helper for logging things.  */
+
+
+static void srv_log (const char *fmt, ...)
+{
+    char buf[1024];
+    va_list ap;
+
+    va_start (ap, fmt);
+    uvszprintf (buf, sizeof buf, fmt, ap);
+    va_end (ap);
+
+    interface->add_log (NULL, buf);
+}
+
+
+/* Working with the client list.  */
+
+
+#define for_each_client(c)		list_for_each(c, &clients)
+#define for_each_fresh_client(c)	list_for_each (c, &clients) if (!clt_stale (c))
+
+
+static void broadcast_rdm (const void *buf, int size)
+{
+    clt_t *c;
+
+    for_each_fresh_client (c)
+	clt_send_rdm (c, buf, size);
+}
+
+
+static void broadcast_rdm_byte (char c)
+{
+    broadcast_rdm (&c, 1);
+}
+
+
+/* Handle new connections.  */
 
 
 static void send_post_join_info (clt_t *c)
@@ -96,7 +161,7 @@ static void send_post_join_info (clt_t *c)
     char buf[5];
 
     packet_encode (buf, "cl", MSG_SC_POST_JOIN, c->id);
-    net_send_rdm (c->conn, buf, sizeof buf);
+    clt_send_rdm (c, buf, sizeof buf);
 }
 
 
@@ -105,7 +170,8 @@ static clt_t *check_new_connection (int auto_add)
     NET_CONN *conn;
     clt_t *c;
 
-    if (!(conn = net_poll_listen (listen)))
+    conn = net_poll_listen (listen);
+    if (!conn)
 	return NULL;
 
     c = clt_create (conn);
@@ -118,91 +184,46 @@ static clt_t *check_new_connection (int auto_add)
 }
 
 
-/*------------------------------------------------------------*/
+/* Creating and freeing the game state.  */
 
 
-/*static int count_clients ()
+static int create_initial_game_state ()
 {
-    clt_t *c;
-    int n = 0;
-
-    list_for_each (c, &clients)
-	if (clt_is_alive (c)) n++;
-
-    return n;
-}*/
-
-
-static void clear_clients_readiness ()
-{
+    start_t *start;
+    object_t *obj;
     clt_t *c;
 
-    list_for_each (c, &clients)
-	clt_clear_ready (c);
-}
+    map = map_load (map_filename, 1, 0);
+    if (!map)
+	return -1;
 
+    start = map_start_list (map)->next;
 
-static int all_clients_ready ()
-{
-    clt_t *c;
+    for_each_fresh_client (c) {
+	obj = object_create_ex ("player", clt_object_id (c));
+	object_set_xy (obj, map_start_x (start), map_start_y (start));
+	map_link_object_bottom (map, obj);
 
-    list_for_each (c, &clients)
-	if (clt_is_alive (c) && !clt_is_ready (c))
-	    return 0;
-
-    return 1;
-}
-
-
-static void clear_clients_controls ()
-{
-    clt_t *c;
-
-    list_for_each (c, &clients)
-	c->controls = 0;
-}
-
-
-/*------------------------------------------------------------*/
-
-
-static void broadcast_rdm (const void *buf, int size)
-{
-    clt_t *c;
-
-    list_for_each (c, &clients)
-	if (clt_is_alive (c))
-	    net_send_rdm (c->conn, buf, size);
-}
-
-
-static void broadcast_rdm_byte (unsigned char c)
-{
-    broadcast_rdm (&c, 1);
-}
-
-
-/*------------------------------------------------------------*/
-
-
-static void destroy_deleted_clients ()
-{
-    clt_t *c, *next;
-
-    for (c = clients.next; list_neq (c, &clients); c = next) {
-	next = list_next (c);
-	if (clt_is_deleted (c)) {
-	    list_remove (c);
-	    clt_destroy (c);
-	}
+	start = list_next (start);
+	if (list_eq (start, map_start_list (map)))
+	    start = list_next (start);
     }
+
+    return 0;
 }
 
 
-/*------------------------------------------------------------*/
+static void destroy_game_state ()
+{
+    map_destroy (map);
+    map = NULL;
+}
 
 
-static void feed_game_state (NET_CONN *conn)
+/* Feeding game state.  */
+
+
+static void feed_game_state (clt_t *c)
 {
     char buf[NET_MAX_PACKET_SIZE] = { MSG_SC_GAMEINFO };
     char *p = buf+1;
@@ -223,7 +244,7 @@ static void feed_game_state (NET_CONN *conn)
 	    /* check for packet overflow */
 	    /* XXX this is not nice */ 
 	    if ((p - buf) + 16 + strlen (typename) > sizeof buf) {
-		net_send_rdm (conn, buf, p - buf);
+		clt_send_rdm (c, buf, p - buf);
 		p = buf+1;
     	    }
 
@@ -234,19 +255,53 @@ static void feed_game_state (NET_CONN *conn)
     }
 
     if (p - buf > 1)
-	net_send_rdm (conn, buf, p - buf);
+	clt_send_rdm (c, buf, p - buf);
 
     /* end marker */
-    dbg ("feed game state done");
     buf[0] = MSG_SC_GAMEINFO_DONE;
-    net_send_rdm (conn, buf, 1);
+    clt_send_rdm (c, buf, 1);
 
     /* Note: after the client receives the game state, it will
      * automatically switch to paused mode.  */
 }
 
 
-/*------------------------------------------------------------*/
+/* Handle stale clients and objects.  */
+
+
+static void destroy_stale_object (objid_t id)
+{
+    object_t *obj;
+    char buf[6];
+
+    if (!(obj = map_find_object (map, id)))
+	return;
+
+    map_unlink_object (obj);
+    object_destroy (obj);
+
+    /* tell clients to destroy it as well */
+    packet_encode (buf, "ccl", MSG_SC_GAMEINFO,
+		   MSG_SC_GAMEINFO_OBJECTDESTROY, id);
+    broadcast_rdm (buf, 6);
+}
+
+
+static void handle_stale_clients ()
+{
+    clt_t *c, *next;
+
+    for (c = clients.next; list_neq (c, &clients); c = next) {
+	next = list_next (c);
+	if (clt_stale (c)) {
+	    list_remove (c);
+	    clt_destroy (c);
+	}
+    }
+}
+
+
+/* Special types of incoming network packets.  */
 
 
 static void process_cs_gameinfo_packet (clt_t *c, const unsigned char *buf, int size)
@@ -266,7 +321,7 @@ static void process_cs_gameinfo_packet (clt_t *c, const unsigned char *buf, int 
 }
 
 
-/*------------------------------------------------------------*/
+/* Handle game physics.  */
 
 
 static void handle_client_controls ()
@@ -274,12 +329,7 @@ static void handle_client_controls ()
     clt_t *c;
     object_t *obj;
 
-    dbg ("handle client controls");
-
-    list_for_each (c, &clients) {
-	if (!clt_is_alive (c))
-	    continue;
-	
+    for_each_fresh_client (c) {
 	obj = map_find_object (map, clt_object_id (c));
 	if (!obj)
 	    error ("error: server missing object\n");
@@ -371,236 +421,377 @@ static void handle_physics ()
 }
 
 
-/*------------------------------------------------------------*/
+/* The game server.
+ *
+ * This is written as a state machine.  Each state returns the next
+ * state the server should switch to.  Each state is also responsible
+ * for calling interface->poll () if it can handle commands.
+ */
 
 
-void game_server ()
+typedef enum {
+    STATE_LOBBY,
+    STATE_GAME_STATE_FEED,
+    STATE_GAME,
+    STATE_END
+} state_t;
+
+
+static void process_command (const char *cmdline)
 {
-  lobby:
+#define is(x)  (0 == ustricmp (cmd, x))
 
-    dbg ("lobby");
-    {
-	while (1) {
-	    check_new_connection (1);
-	    destroy_deleted_clients ();
+    const char *sep = " \t";
+    char *cmd, *p;
 
-	    if (key[KEY_S])
-		goto create_initial_game_state;
+    cmd = ustrdup (cmdline);
+    if ((p = ustrpbrk (cmd, sep)))
+	 usetc (p, 0);
 
-	    if (key[KEY_X])
-		goto end;
-
-	    yield ();
+    if (is ("HELP") || is ("?")) {
+	srv_log ("");
+        srv_log ("  MAP <filename>          - select a map");
+        srv_log ("  CLIENTS                 - list clients");
+        srv_log ("  KICK <client> [reason]  - kick a client");
+	srv_log ("  MSG <message>           - broadcast text message to clients");
+        srv_log ("  QUIT                    - quit completely");
+        srv_log ("  START                   - enter game mode");
+        srv_log ("  STOP                    - return to the lobby");
+        srv_log ("  CONTEXT                 - show current context");
+	srv_log ("");
+    }
+    else if is ("MAP") {
+	p = ustrpbrk (cmdline, sep);
+	if (!p)
+	    srv_log ("MAP missing argument");
+	else {
+	    ugetx (&p);
+	    free (map_filename);
+	    map_filename = ustrdup (p);
+	    srv_log ("Setting map to %s.", map_filename);
 	}
     }
-
-  create_initial_game_state:
-
-    dbg ("create initial game state");
-    {
-	start_t *start;
-	object_t *obj;
+    else if is ("CLIENTS") {
 	clt_t *c;
+	int n;
+	
+	n = 0; list_for_each (c, &clients) n++;
+	srv_log ("Number of clients: %d", n);
+    }
+    else if is ("KICK")
+	srv_log ("KICK unsupported at this time");
+    else if is ("QUIT")
+	srv_log ("QUIT unsupported in this context");
+    else if is ("START")
+	srv_log ("START unavailable in this context");
+    else if is ("STOP")
+	srv_log ("STOP unavailable in this context");
+    else if is ("CONTEXT")
+	srv_log ("CONTEXT unavailable in this context (this is a bug :-)");
+    else
+	srv_log ("Unrecognised command: %s\n", cmd);
+    
+    free (cmd);
 
-	map = map_load (map_filename, 1, NULL);
+#undef is
+}
 
-	start = map_start_list (map)->next;
 
-	list_for_each (c, &clients) {
-	    if (!clt_is_alive (c))
+static state_t state_lobby ()
+{
+    const char *cmd;
+
+    srv_log ("Entering lobby");
+
+    while (1) {
+	yield ();
+
+	if (check_new_connection (1))
+	    srv_log ("New client connected");
+
+	if (!(cmd = interface->poll ()))
+	    continue;
+
+	if (0 == ustrcmp (cmd, "start")) {
+	    srv_log ("Creating initial game state");
+	    if (create_initial_game_state () < 0) {
+		srv_log ("An error occurred, aborting game start");
+		continue;
+	    }
+	    return STATE_GAME_STATE_FEED;
+	}
+	else if (0 == ustrcmp (cmd, "quit"))
+	    return STATE_END;
+	else
+	    process_command (cmd);
+    }
+}
+
+
+static state_t state_game_state_feed ()
+{
+    char ch;
+    clt_t *c;
+    int done;
+
+    srv_log ("Feeding game state");
+
+    broadcast_rdm_byte (MSG_SC_GAMESTATEFEED_REQ);
+
+    for_each_fresh_client (c) {
+	clt_clear_ready (c);
+	clt_set_cantimeout (c);
+	clt_set_timeout (c, 10);
+    }
+
+    do {
+	yield ();
+	done = 1;
+
+	for_each_fresh_client (c) {
+	    if (clt_ready (c))
 		continue;
 
-	    obj = object_create_ex ("player", clt_object_id (c));
-	    object_set_xy (obj, map_start_x (start), map_start_y (start));
-	    map_link_object_bottom (map, obj);
+	    done = 0;
 
-	    start = list_next (start);
-	    if (list_eq (start, map_start_list (map)))
-		start = list_next (start);
+	    if (clt_receive_rdm (c, &ch, 1) <= 0) {
+		if (clt_timed_out (c))
+		    clt_set_stale (c);
+		continue;
+	    }
+
+	    if (ch == MSG_CS_GAMESTATEFEED_ACK) {
+		feed_game_state (c);
+		clt_set_ready (c);
+		clt_clear_cantimeout (c);
+		continue;
+	    }
 	}
-    }
+    } while (!done);
 
-    dbg ("feed game state to clients");
-    {
-	unsigned char ch;
-	clt_t *c;
+    broadcast_rdm_byte (MSG_SC_RESUME);
 
-	broadcast_rdm_byte (MSG_SC_GAMESTATEFEED_REQ);
+    return STATE_GAME;
+}
 
-	clear_clients_readiness ();
 
-	while (!all_clients_ready ()) {
-	    list_for_each (c, &clients) {
-		if ((!clt_is_alive (c)) || (clt_is_ready (c)))
-		    continue;
+static state_t state_game ()
+{
+    const char *cmd;
 
-		if (net_receive_rdm (c->conn, &ch, 1) <= 0)
-		    continue;
+    srv_log ("Entering game");
 
-		if (ch == MSG_CS_GAMESTATEFEED_ACK) {
-		    feed_game_state (c->conn);
-		    clt_set_ready (c);
+    while (1) {
+	if ((cmd = interface->poll ())) {
+	    if (0 == ustrcmp (cmd, "stop"))
+		goto stop;
+	    else if (0 == ustrcmp (cmd, "quit"))
+		goto quit;
+	    else
+		process_command (cmd);
+	}
+
+	handle_stale_clients ();
+
+	/* check new connection */
+	{
+	    clt_t *c;
+	    object_t *obj;
+	    char buf[NET_MAX_PACKET_SIZE];
+	    int size;
+
+	    if ((c = check_new_connection (0))) {
+		srv_log ("New client connected.  Feeding game state...");
+
+		/* Joining mid-game.  */
+
+		/* tell other clients to pause */
+		broadcast_rdm_byte (MSG_SC_PAUSE);
+
+		/* tell new client we're going to send the game state */
+		buf[0] = MSG_SC_GAMESTATEFEED_REQ;
+		clt_send_rdm (c, buf, 1);
+
+		/* wait for ack */
+		while (1) {
+		    yield ();
+		    if (clt_receive_rdm (c, buf, sizeof buf) <= 0)
+			continue;
+		    if (buf[0] == MSG_CS_GAMESTATEFEED_ACK)
+			break;
 		}
-	    }
 
-	    yield ();
+		/* feed game state to the new client */
+		feed_game_state (c);
+
+		/* add new client to list */
+		list_add (clients, c);
+
+		/* create a new player object for new client */
+		{
+		    start_t *start = map_start_list (map)->next;
+
+		    obj = object_create_ex ("player", clt_object_id (c));
+		    object_set_xy (obj, map_start_x (start), map_start_y (start));
+		    map_link_object_bottom (map, obj);
+		}
+
+		/* resume the game */
+		broadcast_rdm_byte (MSG_SC_RESUME);
+
+		/* tell all clients to create the new player object */
+		size = packet_encode (buf, "ccslff", MSG_SC_GAMEINFO,
+				      MSG_SC_GAMEINFO_OBJECTCREATE,
+				      objtype_name (object_type (obj)),
+				      object_id (obj), object_x (obj),
+				      object_y (obj));
+		broadcast_rdm (buf, size);
+
+		srv_log ("Resuming game");
+	    }
 	}
+	    
+	/* receive input */
+	{
+	    char buf[NET_MAX_PACKET_SIZE];
+	    int size;
+	    clt_t *c;
+	    int done;
 
-	broadcast_rdm_byte (MSG_SC_RESUME);
-    }
-    
-    dbg ("game");
-    {
-	while (1) {
-	    if (key[KEY_Q]) {
-	      go_lobby:
-		/* XXX free game state properly */
-		map_destroy (map);
-		map = NULL;
-		goto lobby;
+	    for_each_fresh_client (c) {
+		clt_clear_ready (c);
+		clt_set_cantimeout (c);
+		clt_set_timeout (c, 10);
 	    }
 
-	    destroy_deleted_clients ();
+	    do {  /* ... } while (!done); */
+		yield ();
 
-	    dbg ("check new connection");
-	    {
-		clt_t *c;
-		object_t *obj;
-		char buf[NET_MAX_PACKET_SIZE];
-		int size;
+		if ((cmd = interface->poll ())) {
+		    if (0 == ustrcmp (cmd, "stop"))
+			goto stop;
+		    else if (0 == ustrcmp (cmd, "quit"))
+			goto quit;
+		    else
+			process_command (cmd);
+		}
 
-		if ((c = check_new_connection (0))) {				
+		done = 1;
 
-		    /* Joining mid-game.  */
+		for_each_fresh_client (c) {
+		    if (clt_ready (c))
+			continue;
 
-		    /* tell other clients to pause */
-		    broadcast_rdm_byte (MSG_SC_PAUSE);
+		    done = 0;
 
-		    /* tell new client we're going to send the game state */
-		    buf[0] = MSG_SC_GAMESTATEFEED_REQ;
-		    net_send_rdm (c->conn, buf, 1);
+		    size = clt_receive_rdm (c, buf, sizeof buf);
+		    if (size <= 0) {
+			if (clt_timed_out (c)) {
+			    clt_set_stale (c);
+			    destroy_stale_object (clt_object_id (c));
+			}
+			continue;
+		    }			    
 
-		    /* wait for ack */
-		    while (1) {
-			yield ();
-			if (net_receive_rdm (c->conn, buf, sizeof buf) <= 0)
-			    continue;
-			if (buf[0] == MSG_CS_GAMESTATEFEED_ACK)
+		    switch (buf[0]) {
+			case MSG_CS_GAMEINFO:
+			    process_cs_gameinfo_packet (c, buf+1, size-1);
+			    break;
+
+			case MSG_CS_GAMEINFO_DONE:
+			    clt_set_ready (c);
+			    clt_clear_cantimeout (c);
+			    break;
+
+			case MSG_CS_DISCONNECT_ASK:
+			    buf[0] = MSG_SC_DISCONNECTED;
+			    clt_send_rdm (c, buf, 1);
+			    clt_set_stale (c);
+			    destroy_stale_object (clt_object_id (c));
+			    srv_log ("Client disconnected");
 			    break;
 		    }
-
-		    /* feed game state to the new client */
-		    feed_game_state (c->conn);
-
-		    /* add new client to list */
-		    list_add (clients, c);
-
-		    /* create a new player object for new client */
-		    {
-			start_t *start = map_start_list (map)->next;
-
-			obj = object_create_ex ("player", clt_object_id (c));
-			object_set_xy (obj, map_start_x (start), map_start_y (start));
-			map_link_object_bottom (map, obj);
-		    }
-
-		    /* resume the game */
-		    broadcast_rdm_byte (MSG_SC_RESUME);
-
-		    /* tell all clients to create the new player object */
-		    size = packet_encode (buf, "ccslff", MSG_SC_GAMEINFO,
-					  MSG_SC_GAMEINFO_OBJECTCREATE,
-					  objtype_name (object_type (obj)),
-					  object_id (obj), object_x (obj),
-					  object_y (obj));
-		    broadcast_rdm (buf, size);
 		}
-	    }
-	    
-	    dbg ("receive input");
-	    {
-		char buf[NET_MAX_PACKET_SIZE];
-		int size;
-		clt_t *c;
-
-		clear_clients_controls ();
-		clear_clients_readiness ();
-
-		while (!all_clients_ready ()) {
-		    if (key[KEY_Q])
-			goto go_lobby;
-
-		    list_for_each (c, &clients) {
-			if (!clt_is_alive (c) || clt_is_ready (c))
-			    continue;
-
-			size = net_receive_rdm (c->conn, buf, sizeof buf);
-			if (size <= 0)
-			    continue;
-
-			switch (buf[0]) {
-			    case MSG_CS_GAMEINFO:
-				process_cs_gameinfo_packet (c, buf+1, size-1);
-				break;
-
-			    case MSG_CS_GAMEINFO_DONE:
-				clt_set_ready (c);
-				break;
-
-			    case MSG_CS_DISCONNECT_ASK: {
-				object_t *obj;
-				
-				buf[0] = MSG_SC_DISCONNECTED;
-				net_send_rdm (c->conn, buf, 1);
-				clt_set_deleted (c);
-
-				if ((obj = map_find_object (map, clt_object_id (c)))) {
-				    map_unlink_object (obj);
-				    object_destroy (obj);
-
-				    packet_encode (buf, "ccl", MSG_SC_GAMEINFO,
-						   MSG_SC_GAMEINFO_OBJECTDESTROY,
-						   clt_object_id (c));
-				    broadcast_rdm (buf, 6);
-				}
-			    } break;
-			}
-		    }
-
-		    yield ();
-		}
-	    }
-	    
-	    dbg ("handle physics");
-	    handle_physics ();
-	    broadcast_rdm_byte (MSG_SC_GAMEINFO_DONE);
+	    } while (!done);
 	}
+	    
+	handle_physics ();
+	broadcast_rdm_byte (MSG_SC_GAMEINFO_DONE);
     }
 
-  end:
+  stop:
 
-    dbg ("end");
+    destroy_game_state ();
+    broadcast_rdm_byte (MSG_SC_LOBBY);
+    return STATE_LOBBY;
+
+  quit:
+
+    destroy_game_state ();
+    return STATE_END;
+}
+
+
+static void state_end ()
+{
+    srv_log ("Disconnecting clients");
     broadcast_rdm_byte (MSG_SC_DISCONNECTED);
 }
 
 
-/*------------------------------------------------------------*/
+void game_server ()
+{
+    state_t state = STATE_LOBBY;
+
+    while (1) switch (state) {
+
+	case STATE_LOBBY:
+	    state = state_lobby ();
+	    break;
+
+	case STATE_GAME_STATE_FEED:
+	    state = state_game_state_feed ();
+	    break;
+
+	case STATE_GAME:
+	    state = state_game ();
+	    break;
+
+	case STATE_END:
+	    state_end ();
+	    srv_log ("Quitted");
+	    return;
+    }
+}
 
 
-int game_server_init ()
+int game_server_init (game_server_interface_t *iface)
 {
     if (!(listen = net_openconn (NET_DRIVER_SOCKETS, "")))
 	return -1;
     net_listen (listen);
+
+    interface = iface;
+    if (interface->init () < 0) {
+	net_closeconn (listen);
+	return -1;
+    }
+
     list_init (clients);
+
+    map_filename = ustrdup ("test.pit");
+
     clt_next_id = 1;  /* not zero! (see clt_object_id) */
+
     return 0;
 }
 
 
 void game_server_shutdown ()
 {
+    free (map_filename);
     list_free (clients, clt_destroy);
+    interface->shutdown ();
     net_closeconn (listen);
 }
 

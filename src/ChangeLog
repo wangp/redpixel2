@@ -1,3 +1,19 @@
+2001-07-06  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c (process_command): Common command processor.
+
+	* gameclt.c: Don't both rendering graphics if backgrounded.
+
+	* main.c (setup_allegro): Try to continue running in the
+	background if the user switches away from the client.
+
+	* gamesrv.c: Reworked to allow command interface.
+
+	* textface.c: New file.  The start of a text mode interface for
+	the server.
+
+	* gamesrv.c: Some clean up.  Introduced timeouts.
+
 2001-07-05  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* Lots of network stuff (can't remember it all).  [diff against
