@@ -1,0 +1,84 @@
+Red Pixel II Engine Design: Brief
+---------------------------------
+
+Thing {
+    InvisibleThing {
+    	Gate {
+	    AND
+	    NAND
+	    OR
+	    NOR
+	    XOR
+	    NXOR
+	    NOT
+	    Pulse
+	    Delay
+	}
+
+    	Trigger {
+	    Area
+	    Timer
+	}
+	
+	Snippet
+
+	EnvLight	
+    } 
+
+    VisibleThing {
+    	Wall {
+	    Shootable {
+	        Barrel
+    	    	Wood
+	    	etc.
+	    }
+
+	    Unshootable {
+	    	Brick
+	    	Steel
+	    	etc.
+	    }
+    	}
+	
+	Door
+
+	Pickup {
+	    RPG
+	    Shotgun
+	    GrenadeLauncher
+	    etc.
+	}
+
+	Missle {
+	    Rocket
+	    Bullet
+	    Grenade
+	    Flame
+	    Mine
+	    etc.
+	}
+
+	Creature {
+	    Alien 
+	    Human 
+	}
+	
+	Chunks {
+	    Meat
+	    BloodChunks
+	}
+    }
+}
+
+Glow
+Explosion
+Particle
+    Spark
+    
+WeaponStats
+MissleStats
+ExploSeq
+
+
+Data type: Vector.  So blood particles can decide
+which way to spray depending on direction :)
