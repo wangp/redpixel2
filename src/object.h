@@ -3,6 +3,7 @@
 
 
 #include <allegro.h>
+#include "bitmaskr.h"
 #include "list.h"
 #include "map.h"
 #include "mylua.h"
@@ -11,6 +12,13 @@
 
 
 typedef int objid_t;
+
+
+typedef struct objmask {
+    bitmask_ref_t *ref;
+    int offset_x;
+    int offset_y;
+} objmask_t;
 
 
 struct object {
@@ -23,13 +31,16 @@ struct object {
     lref_t table;
 
     /* C variables.  */
-    struct {
-	float x, y;
-	float xv, yv;
-	struct list_head layers;
-	struct list_head lights;
-	objmask_t *mask;
-    } cvar;
+    float x, y;
+    float xv, yv;
+    float mass;
+    float ramp;
+    struct list_head layers;
+    struct list_head lights;
+    objmask_t mask[5];
+
+    /* XXX - player specific.  */
+    int jump;
 };
 
 
@@ -37,6 +48,16 @@ struct object {
 
 object_t *object_create (const char *type_name);
 void object_destroy (object_t *obj);
+
+
+/* Mass.  */
+
+void object_set_mass (object_t *obj, float mass);
+
+
+/* Ramp.  */
+
+void object_set_ramp (object_t *obj, float ramp);
 
 
 /* Layers.  */
@@ -63,18 +84,29 @@ int object_remove_light (object_t *obj, int light_id);
 void object_remove_all_lights (object_t *obj);
 
 
-/* Collision.  */
+/* Masks.  */
 
-int object_set_collision_mask (object_t *obj, const char *key,
-			       int offset_x, int offset_y);
-void object_remove_collision_mask (object_t *obj);
-int object_collides_with_map_tiles (object_t *obj, map_t *map);
-int object_will_collide_with_map_tiles (object_t *obj, map_t *map);
-void object_move_until_collision_with_map_tiles (object_t *obj, map_t *map);
+int object_set_mask (object_t *obj, int mask_num, const char *key,
+		     int offset_x, int offset_y);
+int object_remove_mask (object_t *obj, int mask_num);
+void object_remove_all_masks (object_t *obj);
+
+
+/* Collisions.  */
+
+int object_supported_at (object_t *obj, map_t *map, float x, float y);
+
+
+/* Movement.  */
+
+int object_move (object_t *obj, int mask_num, map_t *map, float xv, float yv);
+int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
+			     float dx, float ramp_amount);
 
 
 /* Lua table operations.  */
 
+void object_call (object_t *obj, const char *method);
 float object_get_number (object_t *obj, const char *var);
 void object_set_number (object_t *obj, const char *var, float value);
 const char *object_get_string (object_t *obj, const char *var);

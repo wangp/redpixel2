@@ -35,7 +35,7 @@ add_lightmap (64,   -1,  600, 0.2, "white-64")
 add_lightmap (32,   -1,  600, 0.1, "white-32")
 
 
-save_datafile ("lightmap.dat", dat, 1)
+save_datafile ("lightmap.dat", dat, 2)
 unload_datafile (dat)
 
 

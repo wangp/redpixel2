@@ -1,5 +1,5 @@
 Edit area
-=========
+---------
 
 All modes
 
@@ -36,6 +36,6 @@ Start points mode
 
 
 Selector bar
-============
+------------
 
 	Mouse wheel	scroll list

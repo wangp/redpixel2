@@ -70,6 +70,8 @@ MODULES_GAME =					\
 	alloc					\
 	bindings				\
 	bitmask					\
+	bitmaskg				\
+	bitmaskr				\
 	camera					\
 	error					\
 	extdata					\
@@ -107,6 +109,9 @@ vpath %.c $(SRCDIRS)
 
 $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
+
+src/bindings.inc: src/bindgen.lua
+	lua $< > $@
 
 $(PROGRAM): $(OBJS)
 	$(CC) -o $@ $^ $(LOADLIBES)

@@ -1,5 +1,6 @@
 ALLEGRO = $(HOME)/allegro
 CFLAGS = -Wall -g -I$(ALLEGRO)/tools
+LDFLAGS = -s
 LOADLIBES = $(ALLEGRO)/lib/unix/libaldat.a `allegro-config --libs` -llua
 
 ifdef NO_LOADPNG

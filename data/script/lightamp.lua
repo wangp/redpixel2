@@ -2,6 +2,7 @@
 
 function init_lightamp (self)
     object_add_light (self, "/lights/blue-32", 0, 0)
+    object_set_mass (self, 0)
 end
 
 -- Module init.

@@ -71,6 +71,18 @@ void bitmask_destroy (bitmask_t *p)
 }
 
 
+int bitmask_width (bitmask_t *p)
+{
+    return p->w;
+}
+
+
+int bitmask_height (bitmask_t *p)
+{
+    return p->h;
+}
+
+
 void bitmask_set_point (bitmask_t *p, int x, int y, int value)
 {
     if (!((x < 0) || (y < 0) || (x >= p->w) || (y >= p->h))) {

@@ -71,20 +71,18 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offy *= 16;
     
     foreach (p, map->starts)
-	draw_trans_sprite (bmp, icon, 
-			   ((p->x - offx) - (icon->w / 6)) * 3,
-			   ((p->y - offy) - (icon->h / 2)));
+	draw_trans_magic_sprite (bmp, icon, 
+				 (p->x - offx) - (icon->w / 3 / 2),
+				 (p->y - offy) - (icon->h / 2));
 }
 
 static start_t *find_start (int x, int y)
 {
-    start_t *p, *last = 0;
+    start_t *p, *last = NULL;
     
     foreach (p, map->starts)
-	if (in_rect (x, y,
-		     p->x - icon->w / 3 / 2,
-		     p->y - icon->h / 2,
-		     icon->w / 3, icon->h))
+	if (in_rect (x, y, p->x - icon->w/3/2, p->y - icon->h/2, 
+		     icon->w/3, icon->h))
 	    last = p;
 
     return last;
@@ -95,37 +93,42 @@ static int event_layer (int event, struct editarea_event *d)
     static start_t *old;    
     start_t *p;
     int x, y;
-	
-    if (event == EDITAREA_EVENT_MOUSE_DOWN) {
-	x = (d->offx * 16) + d->mouse.x;
-	y = (d->offy * 16) + d->mouse.y;
-	
-	if (d->mouse.b == 0) {
-	    old = p = find_start (x, y);
 
-	    if (!p) {
-		old = map_start_create (map, x, y);
-		return 1;
+    #define map_x(x)	((d->offx * 16) + (x))
+    #define map_y(y)	((d->offy * 16) + (y))
+
+    switch (event) {
+	    
+	case EDITAREA_EVENT_MOUSE_DOWN:
+	    x = map_x (d->mouse.x);
+	    y = map_y (d->mouse.y);
+	    p = find_start (x, y);
+	    
+	    if (d->mouse.b == 0) {
+		if (p)
+		    old = p;
+		else {
+		    old = map_start_create (map, x, y);
+		    return 1;
+		}
 	    }
-	}
-	else if (d->mouse.b == 1) {
-	    if ((p = find_start (x, y))) {
+	    else if ((d->mouse.b == 1) && (p)) {
 		map_start_destroy (p);
 		return 1;
 	    }
-	}
-    }
-    else if (event == EDITAREA_EVENT_MOUSE_MOVE) {
-	if (old) {
-	    x = (d->offx * 16) + d->mouse.x;
-	    y = (d->offy * 16) + d->mouse.y;
-	    old->x = x;
-	    old->y = y;
-	    return 1;
-	}
-    }
-    else if (event ==  EDITAREA_EVENT_MOUSE_UP) {
-	old = 0;
+	    break;
+	    
+	case EDITAREA_EVENT_MOUSE_MOVE:
+	    if (old) {
+		old->x = map_x (d->mouse.x);
+		old->y = map_y (d->mouse.y);
+		return 1;
+	    }
+	    break;
+
+	case EDITAREA_EVENT_MOUSE_UP:
+	    old = NULL;
+	    break;
     }
     
     return 0;

@@ -5,7 +5,7 @@
 
 
 #include <allegro.h>
-#include "bitmask.h"
+#include "bitmaskg.h"
 #include "extdata.h"
 #include "magic4x4.h"
 
@@ -17,22 +17,6 @@
 static int property_exists (DATAFILE *d, int prop)
 {
     return ustrcmp (get_datafile_property (d, prop), empty_string) != 0;
-}
-
-
-static bitmask_t *bitmask_create_from_bitmap (BITMAP *bmp)
-{
-    bitmask_t *mask;
-    int x, y;
-
-    mask = bitmask_create (bmp->w, bmp->h);
-
-    if (mask)
-	for (y = 0; y < bmp->h; y++)
-	    for (x = 0; x < bmp->w; x++)
-		bitmask_set_point (mask, x, y, getpixel (bmp, x, y) != bitmap_mask_color (bmp));
-
-    return mask;
 }
 
 

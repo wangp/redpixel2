@@ -1,0 +1,26 @@
+Implementation ideas
+--------------------
+
+Cells
+
+	If collision detection between objects is too slow, we can
+	separate the objects into different map cells.  A map would
+	probably have 9 or 16 cells.  These variables would need to be
+	added the object structure:
+
+		struct object {
+		    ...
+		    int cell_x;
+		    int cell_y;
+		    ...
+		}
+
+	Then only other objects in the same or adjacent cells as the
+	current object need to be checked.
+
+		static inline cells_in_contact (int cell_x1, int cell_y1,
+					     	int cell_x2, int cell_y2)
+		{
+		    return ((ABS (cell_x1 - cell_x2) < 2) &&
+  			    (ABS (cell_y1 - cell_y2) < 2));
+		}

@@ -6,8 +6,10 @@
 
 #include <allegro.h>
 #include "alloc.h"
+#include "bitmaskg.h"
 #include "mylua.h"
 #include "objtypes.h"
+#include "store.h"
 
 
 static int num;
@@ -15,7 +17,8 @@ static objtype_t **types;
 
 
 static objtype_t *create (const char *type, const char *name,
-			  const char *icon, lref_t init_func)
+			  const char *icon, lref_t init_func,
+			  bitmask_t *icon_mask)
 {
     objtype_t *p, **tmp;
 
@@ -31,6 +34,7 @@ static objtype_t *create (const char *type, const char *name,
     p->name = ustrdup (name);
     p->icon = ustrdup (icon);
     p->init_func = init_func;
+    p->icon_mask = icon_mask;
 
     types = tmp;
     types[num++] = p;
@@ -44,6 +48,7 @@ static void destroy_all ()
     int i;
 
     for (i = 0; i < num; i++) {
+	bitmask_destroy (types[i]->icon_mask);
 	unref (lua_state, types[i]->init_func);
 	free (types[i]->icon);
 	free (types[i]->name);
@@ -71,7 +76,8 @@ void objtypes_shutdown ()
 void objtypes_register (const char *type, const char *name,
 			const char *icon, lref_t init_func)
 {
-    create (type, name, icon, init_func);
+    create (type, name, icon, init_func,
+	    bitmask_create_from_magic_bitmap (store_dat (icon)));
 }
 
 
@@ -83,7 +89,7 @@ objtype_t *objtypes_lookup (const char *name)
 	if (!ustrcmp (types[i]->name, name))
 	    return types[i];
 
-    return 0;
+    return NULL;
 }
 
 

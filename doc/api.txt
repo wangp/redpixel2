@@ -17,6 +17,11 @@ all type names start with a capital letter.
 	A number which will be treated as an integer.
 
 
+- Type: Float
+
+	A floating point number.
+
+
 - Type: StoreKey
 
 	A string that represents a key to a Store item.
@@ -40,7 +45,7 @@ all type names start with a capital letter.
 
 
 - Function: objtype_register (String type, String name, StoreKey icon, 
-				Nil | Function initfunc)
+				Nil | Method initfunc)
 
 	Registers a new object type.
 
@@ -59,6 +64,17 @@ all type names start with a capital letter.
 	It may be `nil' if it is not necessary.
 
 	Returns nil on error.
+
+
+- Function: object_set_mass (Object object, Float mass)
+
+	Set the mass of OBJECT to MASS (default is zero).
+	Returns nil on error.
+
+
+- Function: object_set_ramp (Object object, Float rampamount)
+
+	Set the ramp amount of an object.  Returns nil on error.
 
 
 - Function: object_add_layer (Object object, StoreKey image, 
@@ -127,13 +143,25 @@ all type names start with a capital letter.
 	Removes all light sources from OBJECT.  Return nil on error.
 
 
-- Function: object_set_collision_mask (Object object, StoreKey mask, 
-				       Int xoffset, Int yoffset)
+- Function: object_set_mask (Object object, Int masknumber, StoreKey mask, 
+			     Int xoffset, Int yoffset)
 
-	Set collision mask of OBJECT to MASK.  Returns nil on error.
+	Set collision mask of OBJECT to MASK.  MASKNUMBER is one of:
+
+		0 -- main
+		1 -- top
+		2 -- bottom
+		3 -- left
+		4 -- right
+
+	Returns nil on error.
 
 
-- Function: object_remove_collision_mask (Object object)
+- Function: object_remove_mask (Object object, Int masknumber)
 
 	Remove collision mask of OBJECT.  Returns nil on error.
 
+
+- Function: object_remove_all_masks (Object object)
+
+	Remove all collision masks from OBJECT.

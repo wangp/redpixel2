@@ -5,7 +5,6 @@
 
 
 #include <allegro.h>
-#include "alloc.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "map.h"
@@ -35,9 +34,6 @@ static void render_tiles (BITMAP *bmp, map_t *map, int offx, int offy,
 }
 
 
-/*----------------------------------------------------------------------*/
-
-
 void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
     BITMAP *b;
@@ -50,9 +46,6 @@ void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 				 (l->y - offy) - (b->h / 2));
     }
 }
-
-
-/*----------------------------------------------------------------------*/
 
 
 static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
@@ -71,9 +64,6 @@ static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
     foreach (obj, map->objects)
 	object_draw_lights (bmp, obj, offx, offy);
 }
-
-
-/*----------------------------------------------------------------------*/
 
 
 void render (BITMAP *bmp, map_t *map, camera_t *cam)

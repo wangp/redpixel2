@@ -118,8 +118,8 @@ int map_save (map_t *map, const char *filename)
 		const char *name = p->type->name;
 		
 		if ((pack_fputs_nl (name, f) == EOF)
-		    || (pack_iputl (p->cvar.x, f) == EOF)
-		    || (pack_iputl (p->cvar.y, f) == EOF))
+		    || (pack_iputl (p->x, f) == EOF)
+		    || (pack_iputl (p->y, f) == EOF))
 		    goto error;
 	    }
 	}
@@ -246,8 +246,8 @@ static int read_objects (map_t *map, PACKFILE *f, int loadobjects)
 	    if (!p)
 		goto error;
 	    else {
-		p->cvar.x = x;
-		p->cvar.y = y;
+		p->x = x;
+		p->y = y;
 		map_link_object (map, p);
 	    }
 	}

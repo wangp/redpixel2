@@ -6,6 +6,7 @@
 
 #include <allegro.h>
 #include "bindings.h"
+#include "bitmaskr.h"
 #include "fastsqrt.h"
 #include "gameinit.h"
 #include "loaddata.h"
@@ -25,6 +26,7 @@ void game_init ()
 
     path_init ();
     store_init (211);
+    bitmask_ref_init ();
  
     mylua_open (0);
     bindings_init ();
@@ -46,6 +48,7 @@ void game_shutdown ()
     bindings_shutdown ();
     mylua_close ();
 
+    bitmask_ref_shutdown ();
     store_shutdown ();
     path_shutdown ();
 

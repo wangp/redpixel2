@@ -1,7 +1,54 @@
+2001-04-08  Peter Wang  <tjaden@psynet.net>
+
+	* bindgen.lua: New file to generate bindings.
+
+	* object.h (struct object): Added ramp field; specifies how much
+	an object can ramp up when moving horizontally.  Added bindings.
+
+	* object.c (object_move_x_with_ramp): New function for movement in
+	the direction, with ramping upwards in the y direction.
+
+	* editor/mdobject.c (event_layer): Fixed cursor offset bugs I
+	introduced yesterday.
+
+	* object.c: Added object / object collision.
+
+	* objtypes.c, objtypes.h: Added icon_mask to objtype struct.
+	* object.c: Use objtype.icon_mask as default mask.
+
+	* bitmask.c (bitmask_width, bitmask_height): New functions.
+
+	* bitmaskg.c: New module for bitmask generation, and made
+	extdata.c use it.
+
+	* objmask.h: Removed.  Contents moved into object.h.
+	* object.c (struct object): Simplified.
+	
+	* bitmaskr.c: New module.
+	
+	* game.c (do_input): Experimental jumping physics.
+
+	* object.c (object_call): New function to call methods.
+	
+	* object.c (object_move_until_collision_with_map_tiles): Removed.
+	(object_move): New function to move object, with collisions.
+
+	* object.h: Got rid of "cvar." prefix in object struct.
+	
+	* object.c (object_collides_with_map_tiles_at): Added.
+	(object_will_collide_with_map_tiles): Removed.
+
+	* object.c, object.h, objmask.h: Five collision masks instead of
+	one.  Renamed *_collision_mask to *_mask.
+
+	* object.c, object.h: Added object mass.
+
+	* editor/mdstarts.c (event_layer): Cleaned up.
+
 2001-04-07  Peter Wang  <tjaden@psynet.net>
 
-	* render.c (render_lights): Made public.
-	* editor/mdlights.c (draw_layer): Use render_lights.
+	* render.c (render_lights): Made public, and made
+	editor/mdlights.c use it.
 
 	* editor/mdobject.c (event_layer): Cleaned up.
 	* editor/mdlights.c (event_layer): Cleaned up.
@@ -9,64 +56,58 @@
 	* editor/mdstarts.c, editor/mdlights.c: Use path_share for icon.
 
 	* map.c, map.h (map_link_object_bottom): Added.
+	* editor/mdobject.c: Added raise / lower actions.
 
 	* editor/mdobject.c (do_object_pickup): Whoops, a tiny mistake
 	made this not work (it searched for icon instead of name).
 
 	* game.c: Basic testing collision detection.
 	
-	* object.c (object_collides_with_map_tiles,
-	object_will_collide_with_map_tiles,
-	object_move_until_collision_with_map_tiles): Added.
+	* object.c: Added collision detection functions.
 	
 	* object.c (object_destroy): Free layers, lights and mask.
 
-	* object.c, object.h (object_set_collision_mask,
-	object_remove_collision_mask): Added.
-	* bindings.c (bind_object_set_collision_mask,
-	bind_object_set_collision_mask): Added.
+	* object.c, object.h: Added object_set_collision_mask,
+	object_remove_collision_mask.  Bindings in bindings.c.
 
 	* editor/mdobject.c: Highlight object if mouse moves over it.
 
 	* object.c (object_draw_lit_layers): Added.
 	* magic/magic4x4.c (draw_lit_magic_sprite): Added.
 
-	* object.c (object_bounding_box): Added.
+	* object.c (object_bounding_box): New function.
 
 	* editor/mdobject.c (draw_layer): Use object_draw_layers and
 	object_draw_lights.
 
 	* object.c: object.cvar.x and object.cvar.y now represent the
-	centre of the object.
+	centre of the object.  Lots of consequential changes.
 
-	* bindings.c: Added bindings for object_move_layer and
-	object_move_light.
-
-	* object.c (object_draw_layers): Added.
-	(object_draw_lights): Added.
-	* render.c: Use object_draw_layers and object_draw_lights.
+	* object.c (object_draw_layers, object_draw_lights): Moved these
+	functions from render.c.
 
 	* objmin.h: New header to minimise dependence on object.h.
 
-	* map.c, map.h: Removed unused variable map_filename.
+	* map.c: Removed unused variable map_filename.
 
-	* object.c (object_move_layer, object_move_light): Added.
+	* object.c (object_move_layer, object_move_light): Added, with
+	bindings in bindings.c
 
-	* objlayer.h, objlight.h: New files.  Move object layer and object
-	light structs from object.h.
-	* Renamed object_layer to objlayer and object_light to objlight.
+	* objlayer.h, objlight.h: Moved object layer and object light
+	structs from object.h into these new files.  Renamed object_layer
+	to objlayer and object_light to objlight.
 
 2001-04-05  Peter Wang  <tjaden@psynet.net>
 
-	* Makefile: Added optimisations.
+	* Makefile: Added optimisations.  A lot faster :-)
 
-	* magic/magicrt.c: New module.
+	* magic/magicrt.c: New module, for translucent, rotated magic
+	bitmaps.
 
 2001-04-01  Peter Wang  <tjaden@psynet.net>
 
-	* camera.c (camera_track_object_with_mouse): New function to
-	handle the mouse-cursor-pushes-display idea.
-	(move_camera_closer_to_target): Soft camera!
+	* camera.c: Now handles the mouse-cursor-pushes-display idea,
+	and... soft camera!
 
 	* Merged magic4x4.h and magicrot.h.
 
@@ -96,7 +137,7 @@
 
 2001-03-31  Peter Wang  <tjaden@psynet.net>
 
-	* camera.c: New module.
+	* camera.c: New module to handle cameras.
 
 	* object.c: Added helper functions for getting and setting table
 	values.
@@ -117,9 +158,8 @@
 	* editor/selbar.c: Removed bottom set of Up / Down buttons in the
 	selector bar, and resized the top set a little.
 
-	* Removed newfont.c stuff.
-
 	* src/editor/editor.c, data/font/font.dat: Added a new font.
+	* Removed newfont.c stuff.
 
 2001-01-24  Peter Wang  <tjaden@psynet.net>
 
@@ -141,7 +181,7 @@
 
 	* Stripped out a lot of objects stuff.
 	
-	* mylua.[ch]: New module to contain a personalised Lua API
+	* mylua.c, mylua.h: New module to contain a personalised Lua API
 	(missing lua_ prefix mostly).
 
 	* Moved loadhelp.c stuff into loaddata.c.

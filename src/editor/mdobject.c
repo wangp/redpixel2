@@ -111,9 +111,6 @@ static void cursor_set_selected ()
     }
 }
 
-#define cursor_x(x)	((x) + cursor_offset_x)
-#define cursor_y(y)	((y) + cursor_offset_y)
-
 
 /* Save / restore selectbar state.  */
  
@@ -217,7 +214,7 @@ static object_t *find_object (int x, int y)
     
     foreach (p, map->objects) {
 	object_bounding_box (p, &x1, &y1, &x2, &y2);
-	if (in_rect (x, y, p->cvar.x + x1, p->cvar.y + y1, x2-x1+1, y2-y1+1))
+	if (in_rect (x, y, p->x + x1, p->y + y1, x2-x1+1, y2-y1+1))
 	    last = p;
     }
 
@@ -236,6 +233,7 @@ static void do_object_pickup (object_t *p)
 	if (i >= 0) {
 	    change_set (type);
 	    selectbar_set_selected (i);
+	    cursor_set_selected ();
 	    break;
 	}
     }
@@ -254,8 +252,8 @@ static int event_layer (int event, struct editarea_event *d)
     switch (event) {
 
 	case EDITAREA_EVENT_MOUSE_DOWN:
-	    x = map_x (cursor_x (d->mouse.x));
-	    y = map_y (cursor_y (d->mouse.y));
+	    x = map_x (d->mouse.x);
+	    y = map_y (d->mouse.y);
 	    p = find_object (x, y);
 
 	    if (d->mouse.b == 0) {
@@ -272,17 +270,18 @@ static int event_layer (int event, struct editarea_event *d)
 		}
 		else if (p) {
 		    move = p;
-		    move_offx = map_x (cursor_x (d->mouse.x)) - p->cvar.x;
-		    move_offy = map_y (cursor_y (d->mouse.y)) - p->cvar.y;
+		    move_offx = x - p->x;
+		    move_offy = y - p->y;
 		}
 		else {
 		    p = object_create (selectbar_selected_name ());
-		    p->cvar.x = x;
-		    p->cvar.y = y;
+		    p->x = x + cursor_offset_x;
+		    p->y = y + cursor_offset_y;
 		    map_link_object (map, p);
 
 		    highlighted = move = p;
-		    move_offx = move_offy = 0;
+		    move_offx = x - p->x;
+		    move_offy = y - p->y;
 		    cursor_set_dot ();
 		    return 1;
 		}
@@ -298,17 +297,17 @@ static int event_layer (int event, struct editarea_event *d)
 	    break;
 	    
 	case EDITAREA_EVENT_MOUSE_MOVE:
+	    x = map_x (d->mouse.x);
+	    y = map_y (d->mouse.y);
+
 	    if (move) {
-		x = map_x (cursor_x (d->mouse.x)) - move_offx;
-		y = map_y (cursor_y (d->mouse.y)) - move_offy;
-		move->cvar.x = x;
-		move->cvar.y = y;
+		move->x = x - move_offx;
+		move->y = y - move_offy;
 		cursor_set_dot ();
 		return 1;
 	    }
 	    
-	    p = find_object (map_x (cursor_x (d->mouse.x)),
-			     map_y (cursor_y (d->mouse.y)));
+	    p = find_object (x, y);
 	    if (highlighted != p) {
 		highlighted = p;
 		return 1;
@@ -317,7 +316,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 	case EDITAREA_EVENT_MOUSE_UP:
 	    cursor_set_selected ();
-	    move = 0;
+	    move = NULL;
 	    break;
     }
 

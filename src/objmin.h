@@ -6,7 +6,6 @@
  * doesn't need to know about the internals or object functions.  */
 
 
-typedef struct objmask objmask_t;
 typedef struct object object_t;
 
 

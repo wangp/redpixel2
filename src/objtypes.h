@@ -2,6 +2,7 @@
 #define __included_objtypes_h
 
 
+#include "bitmask.h"
 #include "mylua.h"
 
 
@@ -10,6 +11,7 @@ typedef struct objtype {
     char *name;
     char *icon;
     lref_t init_func;
+    bitmask_t *icon_mask;
 } objtype_t;
 
 

@@ -118,15 +118,19 @@ void map_link_object_bottom (map_t *map, object_t *p)
 void map_unlink_object (object_t *p)
 {
     del_from_list (p);
-    p->next = p->prev = 0;
+    p->next = p->prev = NULL;
 }
 
 
 object_t *map_find_object (map_t *map, int id)
 {
     object_t *p;
-    foreach (p, map->objects) if (p->id == id) return p;
-    return 0;
+
+    foreach (p, map->objects)
+	if (p->id == id)
+	    return p;
+
+    return NULL;
 }
 
 
