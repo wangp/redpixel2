@@ -489,6 +489,8 @@ int server_init (server_interface_t *iface, int net_driver)
     single_hack = 0;
     client_to_quit_with = 0;
 
+    gettimeofday_init ();
+
     return 0;    
 }
 
@@ -507,6 +509,8 @@ void server_set_client_to_quit_with (int id)
 
 void server_shutdown (void)
 {
+    gettimeofday_shutdown ();
+
     server_log ("Disconnecting clients");
     svclients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
     server_log ("Quitting");
