@@ -19,7 +19,11 @@ LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+ifndef DEBUG
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
+else
+CFLAGS += -O2 -g
+endif
 else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
@@ -208,10 +212,8 @@ mtfmdocs: doc/gui_api.html doc/ug_api.html
 
 #----------------------------------------------------------------------
 
-makefile.dep: $(SOURCES)
+depend: $(SOURCES)
 	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$$(OBJDIR)/\1,' > makefile.dep
-
-depend: makefile.dep
 
 include makefile.dep
 
