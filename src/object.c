@@ -72,6 +72,20 @@ void object_shutdown ()
 
 object_t *object_create (const char *type_name)
 {
+    object_t *obj;
+
+    obj = object_create_ex (type_name, next_id);
+    if (obj)
+	next_id++;
+
+    return obj;
+}
+
+
+/* Only use this when you know what you are doing.  If you mix this
+ * with `object_create', two objects may end up with the same id.  */
+object_t *object_create_ex (const char *type_name, objid_t id)
+{
     lua_State *L = lua_state;
     objtype_t *type;
     object_t *obj;
@@ -82,7 +96,7 @@ object_t *object_create (const char *type_name)
     obj = alloc (sizeof (object_t));
 
     obj->type = type;
-    obj->id = next_id++;
+    obj->id = id;
 
     /* C object references Lua table.  */
     lua_newtable (L);
@@ -535,6 +549,12 @@ static inline int check_collision (object_t *obj, int mask_num, map_t *map,
 {
     return (check_collision_with_tiles (obj, mask_num, map, x, y) ||
 	    check_collision_with_objects (obj, mask_num, map, x, y));
+}
+
+
+int object_supported (object_t *obj, map_t *map)
+{
+    return object_supported_at (obj, map, obj->x, obj->y);
 }
 
 

@@ -2,7 +2,9 @@
 #define __included_gamesrv_h
 
 
-int game_server (const char *mapfile, int num_clients);
+int game_server_init ();
+void game_server ();
+void game_server_shutdown ();
 
 
 #endif

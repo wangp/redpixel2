@@ -3,6 +3,7 @@
 
 
 struct gui_window;
+struct BITMAP;
 
 
 /* ug.c */

@@ -8,8 +8,12 @@ struct BITMAP;
 struct map;
 
 
-typedef int objid_t;
 typedef struct object object_t;
+
+/* Unique id number.  All machines playing the same game have the same
+ * id numbers for objects.  Negative numbers are reserved for use by
+ * objects controlled by clients.  */
+typedef int objid_t;
 
 
 int object_init ();
@@ -17,6 +21,7 @@ void object_shutdown ();
 
 
 object_t *object_create (const char *type_name);
+object_t *object_create_ex (const char *type_name, objid_t id);
 void object_destroy (object_t *obj);
 
 struct objtype *object_type (object_t *obj);
@@ -68,6 +73,7 @@ void object_remove_all_masks (object_t *obj);
 
 /* Collisions.  */
 
+int object_supported (object_t *obj, struct map *map);
 int object_supported_at (object_t *obj, struct map *map, float x, float y);
 
 

@@ -5,70 +5,144 @@
 
 
 #include <allegro.h>
+#include <libnet.h>
 #include "camera.h"
-#include "comm.h"
-#include "commmsg.h"
+#include "error.h"
 #include "fps.h"
-#include "game.h"
 #include "gameclt.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "magicrt.h"
 #include "map.h"
 #include "mapfile.h"
+#include "netmsg.h"
 #include "object.h"
+#include "packet.h"
 #include "render.h"
 #include "store.h"
+#include "timeout.h"
 #include "yield.h"
 
 
-static comm_client_t *comm;
+#if 1
+# define dbg(msg)	puts ("[client] " msg)
+#else
+# define dbg(msg)
+#endif
+
+
+/*----------------------------------------------------------------------*/
+
+
+static NET_CONN *conn;
+static int client_id;
+
 static map_t *map;
 static BITMAP *bmp;
 static camera_t *cam;
-static objid_t local_player;
+
+#define local_object_id	(-client_id)
 
 
-static void game_client_send_input ()
+/*----------------------------------------------------------------------*/
+
+
+static void net_send_rdm_byte (NET_CONN *conn, unsigned char c)
 {
-    char buf[4];
-    
-    msg_put_long (buf, local_player);
-
-    if (key[KEY_RIGHT])
-	comm_client_send (comm, MSG_CS_KEY_RIGHT, buf, 4);
-    if (key[KEY_LEFT])
-	comm_client_send (comm, MSG_CS_KEY_LEFT, buf, 4);
-    if (key[KEY_UP])
-	comm_client_send (comm, MSG_CS_KEY_UP, buf, 4);
+    net_send_rdm (conn, &c, 1);
 }
 
 
-static void game_client_process_msg (int type, void *buf, int size)
-{
-    switch (type) {
+/*----------------------------------------------------------------------*/
 
-	case MSG_SC_MOVE_OBJECT: {
-	    object_t *obj;
-	    objid_t id;
-	    float x;
-	    float y;
-	    	    
-	    /* msg_decode (buf, "lff", &id, &x, &y); */
-	    id = msg_get_float (buf);
-	    x = msg_get_float (buf+4);
-	    y = msg_get_float (buf+8);
-	    
-	    obj = map_find_object (map, /*id*/ local_player);
-	    if (obj)
-		object_set_xy (obj, x, y);
-	    break;
-	}
-	    
-	default:
-	    break;
+
+static void send_gameinfo_controls ()
+{
+    int bitmask = 0;
+
+    if (key[KEY_LEFT])
+	bitmask |= 0x01;
+    if (key[KEY_RIGHT])
+	bitmask |= 0x02;
+    if (key[KEY_UP])
+	bitmask |= 0x04;
+
+    if (bitmask) {
+	char buf[] = { MSG_CS_GAMEINFO, MSG_CS_GAMEINFO_CONTROLS, bitmask };
+	net_send_rdm (conn, buf, sizeof buf);
     }
 }
+
+
+/*----------------------------------------------------------------------*/
+
+
+static void process_sc_gameinfo_packet (const unsigned char *buf, int size)
+{
+    const void *end = buf + size;
+
+    dbg ("process gameinfo packet");
+    
+    while (buf != end) {
+
+	switch (*buf++) {
+
+	    case MSG_SC_GAMEINFO_MAPLOAD:
+	    {
+		char filename[NET_MAX_PACKET_SIZE];
+		long len;
+		
+		buf += packet_decode (buf, "s", &len, filename);
+		if (map)
+		    map_destroy (map);
+		map = map_load (filename, 0, NULL);
+	    } break;
+
+	    case MSG_SC_GAMEINFO_OBJECTCREATE:
+	    {
+		char type[NET_MAX_PACKET_SIZE];
+		long len;
+		objid_t id;
+		float x, y;
+		object_t *obj;
+
+		buf += packet_decode (buf, "slff", &len, type, &id, &x, &y);
+		obj = object_create_ex (type, id);
+		object_set_xy (obj, x, y);
+		map_link_object (map, obj);
+	    } break;
+
+	    case MSG_SC_GAMEINFO_OBJECTDESTROY:
+	    {
+		objid_t id;
+		object_t *obj;
+
+		buf += packet_decode (buf, "l", &id);
+		if ((obj = map_find_object (map, id))) {
+		    map_unlink_object (obj);
+		    object_destroy (obj);
+		}
+	    } break;
+
+	    case MSG_SC_GAMEINFO_OBJECTMOVE:
+	    {
+		objid_t id;
+		float x, y;
+		object_t *obj;
+
+		buf += packet_decode (buf, "lff", &id, &x, &y);
+		if ((obj = map_find_object (map, id)))
+		    object_set_xy (obj, x, y);
+	    } break;
+
+	    default:
+		error ("error: unknown code in gameinfo packet (client)\n");
+	}
+    }
+}
+
+
+/*----------------------------------------------------------------------*/
 
 
 static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
@@ -92,18 +166,20 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 
 static void game_client_render ()
 {
-    camera_track_object_with_mouse (cam, map_find_object (map, local_player), mouse_x, mouse_y, 80);
+    object_t *obj;
+
+    obj = map_find_object (map, local_object_id);
+    if (obj)
+	camera_track_object_with_mouse (cam, obj, mouse_x, mouse_y, 80);
 
     clear (bmp);
     render (bmp, map, cam);
 
-    {
-	object_t *obj = map_find_object (map, local_player);
+    if (obj)
 	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
 				  object_x (obj) - camera_x (cam),
 				  object_y (obj) - camera_y (cam), 0, 36,
 				  fatan2 (mouse_y - 100, mouse_x - 160));
-    }
 
     text_mode (-1);
     trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
@@ -116,86 +192,210 @@ static void game_client_render ()
 }
 
 
-static void game_client_loop ()
+/*----------------------------------------------------------------------*/
+
+
+void game_client ()
 {
-    while (!key[KEY_Q]) {
-	game_client_send_input (comm);
-	comm_client_send_over (comm);
-	while (!comm_client_poll (comm, game_client_process_msg)) 
-	    yield ();
-	game_client_render (comm);
-    }
-}
-
-
-static int game_client_init (const char *mapfile)
-{
-    bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
-    cam = camera_create (SCREEN_W, SCREEN_H);
-
-    /* This is temporary until a menu system is in place and some
-       proper networking.  */
-
-    map = map_load (mapfile, 1, NULL);
-    if (!map)
-	return -1;
-
+    /* limbo */
+	
+    dbg ("limbo");
     {
-	struct list_head *list;
-	start_t *start;
-	object_t *obj;
+	char buf[NET_MAX_PACKET_SIZE];
+	int size;
 
-	list = map_start_list (map);
-	list_for_each (start, list) {
-	    obj = object_create ("player");
-	    object_set_xy (obj, map_start_x (start), map_start_y (start));
-	    map_link_object_bottom (map, obj);
-	    local_player = object_id (obj);
-	    break;
+	while (1) {
+	    size = net_receive_rdm (conn, buf, sizeof buf);
+	    if (size <= 0) {
+		yield ();
+		continue;
+	    }
+
+	    switch (buf[0]) {
+		case MSG_SC_POST_JOIN:
+		    packet_decode (buf+1, "l", &client_id);
+		    break;
+
+		case MSG_SC_GAMESTATEFEED_REQ:
+		    net_send_rdm_byte (conn, MSG_CS_GAMESTATEFEED_ACK);
+		    goto receive_game_state;
+
+		case MSG_SC_DISCONNECTED:
+		    goto end;
+	    }
+	}
+    }
+	
+  receive_game_state:
+
+    dbg ("receive game state");
+    {
+	char buf[NET_MAX_PACKET_SIZE];
+	int size;
+
+	while (1) {
+	    size = net_receive_rdm (conn, buf, sizeof buf);
+	    if (size <= 0) {
+		yield ();
+		continue;
+	    }
+
+	    switch (buf[0]) {
+		case MSG_SC_GAMEINFO:
+		    process_sc_gameinfo_packet (buf+1, size-1);
+		    break;
+
+		case MSG_SC_GAMEINFO_DONE:
+		    goto pause;
+
+		case MSG_SC_DISCONNECTED:
+		    goto end;
+	    }
+	}
+    }
+	
+  pause:
+        
+    dbg ("pause");
+    {
+	unsigned char c;
+
+	while (1) {
+	    if (net_receive_rdm (conn, &c, 1) <= 0) {
+		yield ();
+		continue;
+	    }
+
+	    switch (c) {
+		case MSG_SC_RESUME:
+		    goto game;
+
+		case MSG_SC_DISCONNECTED:
+		    goto end;
+	    }
 	}
     }
 
-    fps_init ();
+  game:
+    
+    dbg ("game");
+    {
+	while (1) {
+	    if (key[KEY_Q])
+		goto disconnect;
+    
+	    dbg ("send gameinfo");
+	    send_gameinfo_controls ();
 
-    return 0;
+	    dbg ("send gameinfo_done");
+	    net_send_rdm_byte (conn, MSG_CS_GAMEINFO_DONE);
+
+	    dbg ("receive game updates");
+	    {
+		char buf[NET_MAX_PACKET_SIZE];
+		int size;
+		int done = 0;
+		int pause_later = 0;
+      
+		while (!done) {
+		    size = net_receive_rdm (conn, buf, sizeof buf);
+		    if (size <= 0) {
+			if (pause_later)
+			    goto pause;
+			yield ();
+			continue;
+		    }
+
+		    switch (buf[0]) {
+			case MSG_SC_PAUSE:
+			    pause_later = 1;
+			    break;
+
+			case MSG_SC_GAMEINFO:
+			    process_sc_gameinfo_packet (buf+1, size-1);
+			    break;
+
+			case MSG_SC_GAMEINFO_DONE:
+			    done = 1;
+			    break;
+
+			case MSG_SC_DISCONNECTED:
+			    goto end;
+		    }
+		}
+	    }
+
+	    dbg ("render");
+	    game_client_render ();
+	}
+    }
+    
+  disconnect:
+
+    dbg ("disconnect");
+    {
+	timeout_t timeout;
+	unsigned char c;
+
+	net_send_rdm_byte (conn, MSG_CS_DISCONNECT_ASK);
+
+	timeout_set (&timeout, 5000);
+
+	while (!timeout_test (&timeout)) {
+	    if (net_receive_rdm (conn, &c, 1) > 0) 
+		if (c == MSG_SC_DISCONNECTED)
+		    break;
+	    yield ();
+	}
+
+	goto end;
+    }
+
+  end:
+
+    dbg ("end");
 }
 
 
-static void game_client_shutdown ()
+/*----------------------------------------------------------------------*/
+
+
+int game_client_init (const char *addr)
+{
+    int status;
+
+    if (!(conn = net_openconn (NET_DRIVER_SOCKETS, NULL)))
+	return -1;
+
+    net_connect (conn, addr);
+    while (!(status = net_poll_connect (conn))) {
+	if (key[KEY_Q])
+	    goto error;
+	yield ();
+    }
+
+    if (status < 1)
+	goto error;
+
+    bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
+    cam = camera_create (SCREEN_W, SCREEN_H);
+    map = NULL;
+    fps_init ();
+
+    return 0;
+
+  error:
+
+    net_closeconn (conn);
+    return -1;
+}
+
+
+void game_client_shutdown ()
 {
     fps_shutdown ();
     map_destroy (map);
     camera_destroy (cam);
     destroy_bitmap (bmp);
-}
-
-
-int game_client (const char *mapfile, const char *addr)
-{
-    int status;
-
-    comm = comm_client_init ();
-    if (!comm)
-	return -1;
-
-    comm_client_connect (comm, addr);
-    while (1) {
-	status = comm_client_poll_connect (comm);
-	if ((status < 0) || (key[KEY_Q])) 
-	    goto end;
-	if (status > 0)
-	    break;
-	yield ();
-    }
-
-    if (game_client_init (mapfile) == 0) {
-	game_client_loop ();
-	game_client_shutdown ();
-    }
-
-  end:
-
-    comm_client_shutdown (comm);
-
-    return 0;
+    net_closeconn (conn);
 }

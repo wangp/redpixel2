@@ -83,22 +83,11 @@ p (1, 'return 1;')
 p (0, '}')
 
 
--- gc tag method (currently no types require gc)
-
-print ([[
-static int
-object_gc_tm(lua_State *L)
-{
-	return 0;
-}]])
-
-
 -- tag method registration
 print ([[
 #define REGISTER_OBJECT_TAG_METHODS(L,TAG)						\
 	lua_pushcfunction(L, object_gettable_tm); lua_settagmethod(L, TAG, "gettable"); \
 	lua_pushcfunction(L, object_settable_tm); lua_settagmethod(L, TAG, "settable"); \
-	lua_pushcfunction(L, object_gc_tm); lua_settagmethod(L, TAG, "gc");
 ]])
 
 

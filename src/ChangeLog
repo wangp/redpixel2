@@ -1,3 +1,28 @@
+2001-07-05  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Lots of network stuff (can't remember it all).  [diff against
+	backup later]
+	
+	* timeout.c: New module to help with timeouts.
+
+	* list.h: Made cooler.
+
+	* game.c, game.h: Removed (contained nothing).
+	
+	* commprot.h: Renamed to netmsg.h.
+
+	* commmsg.c, commmsg.h: Renamed to packet.c, packet.h.  Function
+	prefixes changed to "packet_".
+	
+	* comm.c, comm.h: Removed (obsolete).
+
+	* gamesrv.c, gameclt.c: Started work on yet newer network code.
+	Got sending game state at the start of play to work :-)
+	
+	* commprot.h: Wrote down ideas for network protocol.
+
+	* commmsg.c: Helper module to build packets.
+
 2001-07-04  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* gamesrv.c, gameclt.c: New files, split from game.c.
@@ -13,7 +38,7 @@
 	* object.c: Support tag methods.  Pass userdata to Lua scripts
 	instead of a table.
 
-	* objgen.lua: New file to generates object tag methods.
+	* objgen.lua: New file to generate object tag methods.
 
 	* object.h, object.c: Encapsulated object structure.
 

@@ -13,7 +13,7 @@
 void *alloc (size_t size)
 {
     void *p = malloc (size);
-    if (!p) error ("Out of memory.");
+    if (!p) error ("Out of memory.\n");
     memset (p, 0, size);
     return p;
 }

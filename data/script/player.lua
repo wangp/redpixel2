@@ -16,8 +16,12 @@ function init_player (self)
 
     -- XXX
     self.arm_frame = 0
-    self.arm_layer = self:add_layer ("/weapon/shotgun/2arm-000", 7, -4)
+    --self.arm_layer = self:add_layer ("/weapon/shotgun/2arm-000", 7, -4)
+    --self.arm_layer = self:add_layer ("/weapon/minigun/2arm-minigun-000", 11, -1)
+    --self.arm_layer = self:add_layer ("/weapon/rpg/2arm-000", -3, -4)
+    self.arm_layer = self:add_layer ("/weapon/minigun/2arm-ak-000", 9, -2)
 
+    -- this is not called atm
     self.walk_hook = function (self)
 	if self.walk_frame < 7
 	then self.walk_frame = self.walk_frame + 1
@@ -25,11 +29,12 @@ function init_player (self)
 	end
 	self:replace_layer (self.leg_layer, "/player/legs-walk-"..self.walk_frame, 0, 4)
 
-	if self.arm_frame < 4
+	if self.arm_frame < 6
 	then self.arm_frame = self.arm_frame + 1
 	else self.arm_frame = 0 
 	end
-	self:replace_layer (self.arm_layer, "/weapon/shotgun/2arm-00"..self.arm_frame, 7, -4)
+	--self:replace_layer (self.arm_layer, "/weapon/shotgun/2arm-00"..self.arm_frame, 7, -4)
+	self:replace_layer (self.arm_layer, "/weapon/minigun/2arm-minigun-00"..self.arm_frame, 7, -4)
     end
 
 end

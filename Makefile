@@ -69,12 +69,9 @@ MODULES_GAME =					\
 	bitmaskg				\
 	bitmaskr				\
 	camera					\
-	comm					\
-	commmsg					\
 	error					\
 	extdata					\
 	fps					\
-	game					\
 	gameinit				\
 	gameclt					\
 	gamesrv					\
@@ -85,8 +82,10 @@ MODULES_GAME =					\
 	mylua					\
 	object					\
 	objtypes				\
+	packet					\
 	path					\
 	render					\
+	timeout					\
 	yield
 
 MODULES = 					\
@@ -141,7 +140,7 @@ mtfmdocs: doc/gui_api.html doc/ug_api.html
 #----------------------------------------------------------------------
 
 depend:
-	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$(OBJDIR)/\1,' > makefile.dep
+	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$$(OBJDIR)/\1,' > makefile.dep
 
 -include makefile.dep
 
