@@ -9,22 +9,23 @@ $(OBJDIR)/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
  src/list.h
 $(OBJDIR)/blood.o: src/blood.c src/alloc.h src/bitmask.h src/blood.h src/map.h
 $(OBJDIR)/camera.o: src/camera.c src/alloc.h src/camera.h \
- src/fastsqrt/fastsqrt.h src/object.h
+ src/fastsqrt/fastsqrt.h src/object.h src/mylua.h
 $(OBJDIR)/error.o: src/error.c src/error.h
 $(OBJDIR)/extdata.o: src/extdata.c src/bitmask.h src/bitmaskg.h src/extdata.h \
  src/magic/magic4x4.h
 $(OBJDIR)/fps.o: src/fps.c src/fps.h
 $(OBJDIR)/gameclt.o: src/gameclt.c src/blood.h src/camera.h src/error.h \
  src/fps.h src/gameclt.h src/list.h src/magic/magic4x4.h src/map.h \
- src/mapfile.h src/messages.h src/netmsg.h src/object.h src/packet.h \
- src/render.h src/store/store.h src/sync.h src/timeout.h src/timeval.h
+ src/mapfile.h src/messages.h src/netmsg.h src/object.h src/mylua.h \
+ src/packet.h src/render.h src/store/store.h src/sync.h src/timeout.h \
+ src/timeval.h
 $(OBJDIR)/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h src/extdata.h \
  src/fastsqrt/fastsqrt.h src/gameinit.h src/jpgalleg/jpgalleg.h \
  src/loaddata.h src/magic/magic4x4.h src/mylua.h src/object.h \
  src/objtypes.h src/path.h src/store/store.h
 $(OBJDIR)/gamesrv.o: src/gamesrv.c src/alloc.h src/error.h src/gamesrv.h \
  src/list.h src/map.h src/mapfile.h src/netmsg.h src/object.h \
- src/objtypes.h src/mylua.h src/packet.h src/sync.h src/timeout.h \
+ src/mylua.h src/objtypes.h src/packet.h src/sync.h src/timeout.h \
  src/timeval.h
 $(OBJDIR)/getoptc.o: src/getoptc.c
 $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
@@ -32,9 +33,9 @@ $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
 $(OBJDIR)/main.o: src/main.c src/editor/editor.h src/gameinit.h src/gameclt.h \
  src/gamesrv.h src/getoptc.h src/sync.h src/textface.h
 $(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blood.h src/list.h \
- src/map.h src/object.h src/store/store.h
+ src/map.h src/object.h src/mylua.h src/store/store.h
 $(OBJDIR)/mapfile.o: src/mapfile.c src/list.h src/map.h src/mapfile.h \
- src/object.h src/objtypes.h src/mylua.h src/store/store.h
+ src/object.h src/mylua.h src/objtypes.h src/store/store.h
 $(OBJDIR)/messages.o: src/messages.c src/magic/magic4x4.h src/store/store.h
 $(OBJDIR)/mylua.o: src/mylua.c src/mylua.h src/path.h
 $(OBJDIR)/object.o: src/object.c src/alloc.h src/bitmask.h src/bitmaskg.h \
@@ -45,8 +46,8 @@ $(OBJDIR)/objtypes.o: src/objtypes.c src/alloc.h src/bitmask.h src/bitmaskg.h \
 $(OBJDIR)/packet.o: src/packet.c src/packet.h src/error.h
 $(OBJDIR)/path.o: src/path.c src/path.h
 $(OBJDIR)/render.o: src/render.c src/blood.h src/camera.h src/list.h \
- src/magic/magic4x4.h src/map.h src/object.h src/store/store.h \
- src/render.h
+ src/magic/magic4x4.h src/map.h src/object.h src/mylua.h \
+ src/store/store.h src/render.h
 $(OBJDIR)/sync.o: src/sync.c src/sync.h src/yield.h
 $(OBJDIR)/textface.o: src/textface.c src/gamesrv.h src/textface.h
 $(OBJDIR)/timeout.o: src/timeout.c src/alloc.h src/timeout.h src/timeval.h
@@ -102,8 +103,8 @@ $(OBJDIR)/mdobject.o: src/editor/mdobject.c src/gui/gui.h src/ug/ug.h \
  src/alloc.h src/editor/cursor.h src/editor/depths.h \
  src/editor/editor.h src/editor/editarea.h src/editor/edselect.h \
  src/list.h src/map.h src/editor/modemgr.h src/editor/modes.h \
- src/editor/selbar.h src/store/store.h src/object.h src/objtypes.h \
- src/mylua.h src/editor/rect.h
+ src/editor/selbar.h src/store/store.h src/object.h src/mylua.h \
+ src/objtypes.h src/editor/rect.h
 $(OBJDIR)/mdstarts.o: src/editor/mdstarts.c src/editor/depths.h \
  src/editor/editor.h src/editor/editarea.h src/editor/edselect.h \
  src/ug/ug.h src/list.h src/magic/magic4x4.h src/map.h \

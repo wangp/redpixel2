@@ -78,6 +78,7 @@ static int backgrounded;
 
 /* keep in sync with gamesrv.c */
 #define TICKS_PER_SECOND	(50)
+#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
 
 
 static volatile ulong_t ticks;
@@ -150,6 +151,24 @@ static void perform_simple_physics ()
 /*----------------------------------------------------------------------*/
 
 
+static void poll_update_hooks (int elapsed_msecs)
+{
+    list_head_t *object_list;
+    object_t *obj;
+
+    if (elapsed_msecs <= 0)
+	return;
+    
+    object_list = map_object_list (map);
+    list_for_each (obj, object_list)
+	if (!object_stale (obj))
+	    object_poll_update_hook (obj, elapsed_msecs);
+}
+
+
+/*----------------------------------------------------------------------*/
+
+
 static void send_gameinfo_controls ()
 {
     int controls = 0;
@@ -158,6 +177,7 @@ static void send_gameinfo_controls ()
     if (key[KEY_A]) controls |= CONTROL_LEFT;
     if (key[KEY_D]) controls |= CONTROL_RIGHT;
     if (key[KEY_W]) controls |= CONTROL_UP;
+    if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
     if (mouse_b & 1) controls |= CONTROL_FIRE;
 
     if (controls != last_controls)
@@ -167,7 +187,7 @@ static void send_gameinfo_controls ()
 	if (!update)
 	    update = ((controls & CONTROL_FIRE)
 		      ? (ABS (aim_angle - last_aim_angle) > (M_PI/256))
-		      : (ABS (aim_angle - last_aim_angle) > (M_PI/8)));
+		      : (ABS (aim_angle - last_aim_angle) > (M_PI/16)));
 	if (local_object)
 	    object_set_number (local_object, "aim_angle", aim_angle);
     }
@@ -281,6 +301,18 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		break;
 	    }
 
+	    case MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE:
+	    {
+		long id;
+		float angle;
+		object_t *obj;
+
+		buf += packet_decode (buf, "lf", &id, &angle);
+		if ((id != client_id) && (obj = map_find_object (map, id)))
+		    object_set_number (obj, "aim_angle", angle);
+		break;
+	    }
+
 	    case MSG_SC_GAMEINFO_BLOOD_CREATE:
 	    {
 		float x;
@@ -376,8 +408,7 @@ static void update_screen ()
     }
 
     if (crosshair) {
-	draw_lit_magic_sprite (bmp, crosshair, mouse_x, 
-			       mouse_y, 
+	draw_lit_magic_sprite (bmp, crosshair, mouse_x-2, mouse_y-2,
 			       makecol24 (0xff, 0xff, 0xff));
     }
 
@@ -585,7 +616,10 @@ void game_client_run ()
     
     dbg ("game");
     {
+	ulong_t last_ticks, t;
+
 	ticks_init ();
+	last_ticks = ticks;
 
 	pinging = 0;
 	last_ping_time = 0;
@@ -656,22 +690,32 @@ void game_client_run ()
 		if (end_later) { sync_client_unlock (); goto end; }
 	    }
 	    
-	    dbg ("send gameinfo");
-	    send_gameinfo_controls ();
+	    t = ticks;
+	    if (last_ticks != t) {
+		dbg ("send gameinfo");
+		send_gameinfo_controls ();
 
-	    dbg ("do physics");
-	    perform_simple_physics ();
+		dbg ("do physics");
+		perform_simple_physics ();
 
-	    if (local_object)
-		object_call (local_object, "_client_update_hook");
+		dbg ("poll update hooks");
+		poll_update_hooks ((t - last_ticks) * MSECS_PER_TICK);
 
-	    map_destroy_stale_objects (map);
+		map_destroy_stale_objects (map);
 
-	    messages_poll_input ();
+		messages_poll_input ();
 
-	    dbg ("update screen");
-	    update_camera ();
-	    update_screen ();
+		dbg ("update camera");
+		{
+		    int n = t - last_ticks;
+		    while ((n--) && update_camera ());
+		}
+
+		dbg ("update screen");
+		update_screen ();
+
+		last_ticks = t;
+	    }
 	    
 	    dbg ("handling pinging");
 	    if ((!pinging) && (ticks > last_ping_time + (2 * TICKS_PER_SECOND))) {

@@ -1,0 +1,26 @@
+2002-01-15  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-player.lua:
+	Flip and rotate remote clients' arms depending on the aim angle.
+
+2002-01-14  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-player.lua: Put in playing walking animation.
+
+	* basic-player.lua:
+	Fixed a problem with the test corpse where the corpse object would be
+	replicated to new clients, but the new client would think the corpse
+	was starting at animation frame 0.  The solution was to use the
+	creation field feature.
+
+	* basic-weapon.lua: Rotate blaster projectile in the angle it is fired
+
+	* basic-player.lua:
+	Update hook changes.  Also the beginnings of corpses
+
+	* basic-base.lua: Update hook and creation fields changes
+
+2002-01-13  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Started using RCS.
+

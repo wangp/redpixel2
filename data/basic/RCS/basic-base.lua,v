@@ -1,10 +1,19 @@
-head	1.1;
+head	1.3;
 access;
 symbols;
-locks
-	tjaden:1.1; strict;
+locks; strict;
 comment	@# @;
 
+
+1.3
+date	2002.01.14.15.00.49;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.14.02.24.10;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.13.22;	author tjaden;	state Exp;
@@ -16,9 +25,10 @@ desc
 @@
 
 
-1.1
+1.3
 log
-@Initial revision
+@Added object_set_masks_centre() for the situation where you want to
+change where the centre of all the bitmasks are at once.
 @
 text
 @-- basic-base.lua -- XXX: rename this file?
@@ -38,14 +48,23 @@ mask_right = 4
 local dummy = function () end
 
 function _object_init_hook (self)
+
+    self.set_update_hook = object_set_update_hook
+    self.remove_update_hook = object_remove_update_hook
+
     if not self.is_proxy then
+
+	-- nonproxy methods
 	self.destroy = object_destroy
 	self.set_collision_flags = object_set_collision_flags
+	self.add_creation_field = object_add_creation_field
 	self.set_mask = object_set_mask
+	self.set_masks_centre = object_set_masks_centre
 	self.remove_mask = object_remove_mask
 	self.remove_all_masks = object_remove_all_masks
 	self.receive_damage = %dummy
 
+	-- proxy methods
 	self.add_layer = %dummy
 	self.replace_layer = %dummy
 	self.move_layer = %dummy
@@ -57,13 +76,20 @@ function _object_init_hook (self)
 	self.move_light = %dummy
 	self.remove_light = %dummy
 	self.remove_all_lights = %dummy
+
     else
+
+	-- nonproxy methods
 	self.destroy = %dummy
 	self.set_collision_flags = %dummy
+	self.add_creation_field = %dummy
 	self.set_mask = %dummy
+	self.set_masks_centre = %dummy
 	self.remove_mask = %dummy
 	self.remove_all_masks = %dummy
+	self.receive_damage = %dummy
 
+	-- proxy methods
 	self.add_layer = object_add_layer
 	self.replace_layer = object_replace_layer
 	self.move_layer = object_move_layer
@@ -76,6 +102,7 @@ function _object_init_hook (self)
 	self.move_light = object_move_light
 	self.remove_light = object_remove_light
 	self.remove_all_lights = object_remove_all_lights
+
     end
 end
 
@@ -101,4 +128,40 @@ weapons = {}
 function Weapon (t)
     weapons[t.name] = t
 end
+
+
+-- utility functions
+
+function radian_to_bangle (rads)
+    return rads * 128 / 3.1415
+end
+@
+
+
+1.2
+log
+@Update hook and creation fields changes
+@
+text
+@d29 1
+d54 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d18 4
+d23 2
+d27 1
+d33 1
+d45 1
+d47 2
+d51 1
+d55 1
+d57 1
+d70 1
+d95 7
 @

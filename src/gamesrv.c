@@ -101,6 +101,7 @@ struct client {
     int flags;
     int controls;
     float aim_angle;
+    float last_sent_aim_angle;
     timeout_t timeout;
     ulong_t pong_time;
     int lag;
@@ -460,7 +461,7 @@ static void poll_interface_command_list (char **last)
 		server_log ("%4d  %s (stale)", c->id, c->name);
 		break;
 	    default:
-		server_log ("%4d  %s (lag: %d x %d)", c->id, c->name, 
+		server_log ("%4d  %s (lag: %d x %d msecs)", c->id, c->name, 
 			    c->lag, MSECS_PER_TICK);
 		break;
 	}
@@ -686,6 +687,7 @@ static object_t *server_spawn_player (objid_t id)
 {
     start_t *start;
     object_t *obj;
+    client_t *c;
 
     start = server_pick_random_start ();
     obj = object_create_ex ("player", id);
@@ -693,6 +695,10 @@ static object_t *server_spawn_player (objid_t id)
     object_set_collision_tag (obj, id); /* XXX temp */
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);
+
+    if ((c = clients_find_by_id (id)))
+	c->last_sent_aim_angle = 0;
+    
     return obj;
 }
 
@@ -831,6 +837,7 @@ static void gameinfo_packet_queue_flush (void)
 static size_t make_object_creation_packet (object_t *obj, char *buf)
 {
     char *p;
+    list_head_t *list;
     creation_field_t *f;
     
     p = buf + packet_encode (buf, "cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
@@ -842,7 +849,8 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 
     /* creation fields */
     /* XXX this only supports fields of type float right now */
-    list_for_each (f, object_creation_fields (obj))
+    list = object_creation_fields (obj);
+    list_for_each (f, list)
 	p += packet_encode (p, "csf", 'f', f->name,
 			    object_get_number (obj, f->name));
 
@@ -981,8 +989,13 @@ static void server_handle_client_controls ()
 	if (c->state != CLIENT_STATE_JOINED)
 	    continue;
 
-	if (!(obj = c->client_object))
+	if (!(obj = c->client_object)) {
+	    if (c->controls & CONTROL_RESPAWN) {
+		c->client_object = server_spawn_player (c->id);
+		object_set_replication_flag (c->client_object, OBJECT_REPLICATE_CREATE);
+	    }
 	    continue;
+	}
 
 	/* left */
 	if (c->controls & CONTROL_LEFT) {
@@ -1049,6 +1062,35 @@ static void server_perform_physics ()
 }
 
 
+/* Poll objects' update hooks.  */
+
+static void server_poll_update_hooks (int elapsed_msecs)
+{
+    list_head_t *list;
+    object_t *obj;
+
+    list = map_object_list (map);
+    list_for_each (obj, list)
+	object_poll_update_hook (obj, elapsed_msecs);
+}
+
+
+/* Sending aim angles to clients. */
+
+static void server_send_client_aim_angles ()
+{
+    client_t *c;
+
+    for_each_client (c) {
+	if (ABS (c->aim_angle - c->last_sent_aim_angle) > (M_PI/16)) {
+	    add_to_gameinfo_packet ("clf", MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE,
+				    c->id, c->aim_angle);
+	    c->last_sent_aim_angle = c->aim_angle;
+	}
+    }
+}
+
+
 /* Sending important object changes to clients. */
 
 static void server_send_object_updates ()
@@ -1082,18 +1124,6 @@ static void server_send_object_updates ()
 
 	object_clear_replication_flags (obj);
     }
-}
-
-
-/* Poll client objects' update hooks.  */
-
-static void server_poll_client_update_hooks ()
-{
-    client_t *c;
-
-    for_each_client (c)
-	if ((c->client_object) && (!object_stale (c->client_object)))
-	    object_call (c->client_object, "_client_update_hook");
 }
 
 
@@ -1197,7 +1227,7 @@ static void server_purge_stale_objects ()
 static void server_state_game_poll ()
 {
     ulong_t t = ticks;
-    long dt;
+    long dt, i;
     
     if (!ticks_poll ())
 	return;
@@ -1205,13 +1235,14 @@ static void server_state_game_poll ()
 	return;
     
     server_handle_wantfeeds ();
-    
-    while (dt--) {
+
+    for (i = 0; i < dt; i++)
 	server_perform_physics ();
-	server_poll_client_update_hooks ();
-    }
+
+    server_poll_update_hooks (MSECS_PER_TICK * dt);
 
     start_gameinfo_packet (NULL);
+    server_send_client_aim_angles ();
     server_send_object_updates ();
     gameinfo_packet_queue_flush ();
     done_gameinfo_packet ();

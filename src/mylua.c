@@ -20,6 +20,7 @@ int mylua_open (int stacksize)
 	return -1;
     lua_baselibopen (lua_state);
     lua_mathlibopen (lua_state); /* XXX: needed? */
+    lua_strlibopen (lua_state);
     return 0;
 }
 

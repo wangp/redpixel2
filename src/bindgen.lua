@@ -184,6 +184,15 @@ generate {
     args	= {{ Object, "obj" }}
 }
 
+-- little hack for player walking animation code in basic-player.lua
+-- don't use it!
+generate {
+    cname	= "object_moving_horizontally",
+    lname	= "_object_moving_horizontally",
+    args	= {{ Object, "obj" }},
+    ret		= { Int, "ret", "!$" }
+}
+
 generate {
     cname	= "object_set_collision_is_player",
     args	= {{ Object, "obj" }}
@@ -200,6 +209,18 @@ generate {
     cname	= "object_add_creation_field",
     args	= {{ Object, "obj" },
 		   { String, "name" }}
+}
+
+generate {
+    cname	= "object_set_update_hook",
+    args	= {{ Object, "obj" },
+		   { Int, "msecs" },
+		   { Method, "method" }}
+}
+
+generate {
+    cname	= "object_remove_update_hook",
+    args	= {{ Object, "obj" }}
 }
 
 generate {
@@ -308,6 +329,13 @@ generate {
 		   { Int, "xoffset" },
 		   { Int, "yoffset" }},
     ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
+    cname	= "object_set_masks_centre",
+    args	= {{ Object, "obj" },
+		   { Int, "xoffset" },
+		   { Int, "yoffset" }}
 }
 
 generate {

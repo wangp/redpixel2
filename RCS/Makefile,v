@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.14.08.36.11;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.14.00;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Small changes to Makefile
 @
 text
 @##
@@ -30,14 +35,17 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/gui src/ug src/editor
 
 CC := gcc
-CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT
-CFLAGS += -I libnet/include
-CFLAGS += $(addprefix -I,$(SRCDIRS)) -g
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
-# CFLAGS += -pg
-# LDFLAGS := -pg
+CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
+	  -I libnet/include $(addprefix -I,$(SRCDIRS)) -g
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
+
+ifndef PROFILE
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+else
+CFLAGS += -O2 -funroll-loops -march=pentium -pg
+LDFLAGS := -pg
+endif
 
 PROGRAM := program$(PLAT_EXE)
 OBJDIR := $(PLAT_OBJDIR)
@@ -212,4 +220,21 @@ suidroot:
 ##
 ## End of Makefile
 ##
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d11 2
+a12 6
+CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT
+CFLAGS += -I libnet/include
+CFLAGS += $(addprefix -I,$(SRCDIRS)) -g
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
+# CFLAGS += -pg
+# LDFLAGS := -pg
+d15 7
 @

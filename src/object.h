@@ -2,6 +2,8 @@
 #define __included_object_h
 
 
+#include "mylua.h"
+
 struct BITMAP;
 struct map;
 struct lua_State;
@@ -54,6 +56,7 @@ int object_ramp (object_t *);
 void object_set_ramp (object_t *, int);
 int object_jump (object_t *);
 void object_set_jump (object_t *, int);
+int object_moving_horizontally (object_t *);
 
 void object_set_collision_is_player (object_t *);
 void object_set_collision_flags (object_t *, int tiles, int players, int nonplayers);
@@ -77,6 +80,13 @@ struct creation_field {
 
 void object_add_creation_field (object_t *, const char *name);
 struct list_head *object_creation_fields (object_t *);
+
+
+/* Update hooks.  */
+
+void object_set_update_hook (object_t *, int msecs, lua_ref_t hook);
+void object_remove_update_hook (object_t *);
+void object_poll_update_hook (object_t *, int elapsed_msecs);
 
 
 /* Layers.  */
@@ -109,6 +119,7 @@ void object_remove_all_lights (object_t *);
 #define OBJECT_MASK_MAX		5
 
 int object_set_mask (object_t *, int mask_num, const char *key, int offset_x, int offset_y);
+void object_set_masks_centre (object_t *obj, int centre_x, int centre_y);
 int object_remove_mask (object_t *, int mask_num);
 void object_remove_all_masks (object_t *);
 

@@ -1,9 +1,34 @@
-head	1.3;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.01.14.14.28.50;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.01.14.13.53.33;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.01.14.08.38.05;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.01.14.03.42.19;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.01.14.02.22.09;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.13.15.01.43;	author tjaden;	state Exp;
@@ -25,10 +50,9 @@ desc
 @@
 
 
-1.3
+1.8
 log
-@Initial creation field stuff.
-NET_MAX_PACKET_SIZE -> NETWORK_MAX_PACKET_SIZE.
+@Centred mouse sprite on mouse_x, mouse_y properly.
 @
 text
 @/* gameclt.c
@@ -111,6 +135,7 @@ static int backgrounded;
 
 /* keep in sync with gamesrv.c */
 #define TICKS_PER_SECOND	(50)
+#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
 
 
 static volatile ulong_t ticks;
@@ -183,6 +208,24 @@ static void perform_simple_physics ()
 /*----------------------------------------------------------------------*/
 
 
+static void poll_update_hooks (int elapsed_msecs)
+{
+    list_head_t *object_list;
+    object_t *obj;
+
+    if (elapsed_msecs <= 0)
+	return;
+    
+    object_list = map_object_list (map);
+    list_for_each (obj, object_list)
+	if (!object_stale (obj))
+	    object_poll_update_hook (obj, elapsed_msecs);
+}
+
+
+/*----------------------------------------------------------------------*/
+
+
 static void send_gameinfo_controls ()
 {
     int controls = 0;
@@ -191,6 +234,7 @@ static void send_gameinfo_controls ()
     if (key[KEY_A]) controls |= CONTROL_LEFT;
     if (key[KEY_D]) controls |= CONTROL_RIGHT;
     if (key[KEY_W]) controls |= CONTROL_UP;
+    if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
     if (mouse_b & 1) controls |= CONTROL_FIRE;
 
     if (controls != last_controls)
@@ -200,7 +244,7 @@ static void send_gameinfo_controls ()
 	if (!update)
 	    update = ((controls & CONTROL_FIRE)
 		      ? (ABS (aim_angle - last_aim_angle) > (M_PI/256))
-		      : (ABS (aim_angle - last_aim_angle) > (M_PI/8)));
+		      : (ABS (aim_angle - last_aim_angle) > (M_PI/16)));
 	if (local_object)
 	    object_set_number (local_object, "aim_angle", aim_angle);
     }
@@ -314,6 +358,18 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		break;
 	    }
 
+	    case MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE:
+	    {
+		long id;
+		float angle;
+		object_t *obj;
+
+		buf += packet_decode (buf, "lf", &id, &angle);
+		if ((id != client_id) && (obj = map_find_object (map, id)))
+		    object_set_number (obj, "aim_angle", angle);
+		break;
+	    }
+
 	    case MSG_SC_GAMEINFO_BLOOD_CREATE:
 	    {
 		float x;
@@ -409,8 +465,7 @@ static void update_screen ()
     }
 
     if (crosshair) {
-	draw_lit_magic_sprite (bmp, crosshair, mouse_x, 
-			       mouse_y, 
+	draw_lit_magic_sprite (bmp, crosshair, mouse_x-2, mouse_y-2,
 			       makecol24 (0xff, 0xff, 0xff));
     }
 
@@ -618,7 +673,10 @@ void game_client_run ()
     
     dbg ("game");
     {
+	ulong_t last_ticks, t;
+
 	ticks_init ();
+	last_ticks = ticks;
 
 	pinging = 0;
 	last_ping_time = 0;
@@ -689,22 +747,32 @@ void game_client_run ()
 		if (end_later) { sync_client_unlock (); goto end; }
 	    }
 	    
-	    dbg ("send gameinfo");
-	    send_gameinfo_controls ();
+	    t = ticks;
+	    if (last_ticks != t) {
+		dbg ("send gameinfo");
+		send_gameinfo_controls ();
 
-	    dbg ("do physics");
-	    perform_simple_physics ();
+		dbg ("do physics");
+		perform_simple_physics ();
 
-	    if (local_object)
-		object_call (local_object, "_client_update_hook");
+		dbg ("poll update hooks");
+		poll_update_hooks ((t - last_ticks) * MSECS_PER_TICK);
 
-	    map_destroy_stale_objects (map);
+		map_destroy_stale_objects (map);
 
-	    messages_poll_input ();
+		messages_poll_input ();
 
-	    dbg ("update screen");
-	    update_camera ();
-	    update_screen ();
+		dbg ("update camera");
+		{
+		    int n = t - last_ticks;
+		    while ((n--) && update_camera ());
+		}
+
+		dbg ("update screen");
+		update_screen ();
+
+		last_ticks = t;
+	    }
 	    
 	    dbg ("handling pinging");
 	    if ((!pinging) && (ticks > last_ping_time + (2 * TICKS_PER_SECOND))) {
@@ -817,6 +885,100 @@ void game_client_shutdown ()
     messages_shutdown ();
     net_closeconn (conn);
 }
+@
+
+
+1.7
+log
+@Receive remote player's aim angles.  Also, update camera at consistent
+rate on different machines.
+@
+text
+@d411 1
+a411 2
+	draw_lit_magic_sprite (bmp, crosshair, mouse_x, 
+			       mouse_y, 
+@
+
+
+1.6
+log
+@On slower machines `ticks' can change while we are using it, so cache
+the value and use that fixed value instead.
+@
+text
+@d190 1
+a190 1
+		      : (ABS (aim_angle - last_aim_angle) > (M_PI/8)));
+d304 12
+d709 6
+a715 1
+		update_camera ();
+@
+
+
+1.5
+log
+@Added player respawning.
+@
+text
+@d608 1
+a608 1
+	ulong_t last_ticks;
+d682 2
+a683 1
+	    if (last_ticks != ticks) {
+d691 1
+a691 1
+		poll_update_hooks ((ticks - last_ticks) * MSECS_PER_TICK);
+d701 1
+a701 1
+		last_ticks = ticks;
+@
+
+
+1.4
+log
+@Poll objects' update hooks.  Also limited the update rate
+@
+text
+@d180 1
+@
+
+
+1.3
+log
+@Initial creation field stuff.
+NET_MAX_PACKET_SIZE -> NETWORK_MAX_PACKET_SIZE.
+@
+text
+@d81 1
+d154 18
+d607 2
+d610 1
+d681 3
+a683 2
+	    dbg ("send gameinfo");
+	    send_gameinfo_controls ();
+d685 2
+a686 2
+	    dbg ("do physics");
+	    perform_simple_physics ();
+d688 2
+a689 2
+	    if (local_object)
+		object_call (local_object, "_client_update_hook");
+d691 1
+a691 1
+	    map_destroy_stale_objects (map);
+d693 1
+a693 1
+	    messages_poll_input ();
+d695 6
+a700 3
+	    dbg ("update screen");
+	    update_camera ();
+	    update_screen ();
 @
 
 

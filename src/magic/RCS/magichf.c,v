@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.14.09.33.57;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.28;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Fixed the horizontal clipping for draw_magic_sprite_h_flip().
 @
 text
 @/*  draw_magic_sprite_h_flip
@@ -59,11 +64,11 @@ void draw_magic_sprite_h_flip(BITMAP *dst, BITMAP *src, int dx, int dy)
    if (dst->clip) {
       int tmp;
 
-      tmp = dst->cl - dx;
+      tmp = dst->cl/3 - dx;
       sxbeg = ((tmp < 0) ? 0 : tmp);
       dxbeg = sxbeg + dx;
 
-      tmp = dst->cr - dx;
+      tmp = dst->cr/3 - dx;
       w = ((tmp > src->w/3) ? src->w/3 : tmp) - sxbeg;
       if (w <= 0)
 	 return;
@@ -102,4 +107,18 @@ void draw_magic_sprite_h_flip(BITMAP *dst, BITMAP *src, int dx, int dy)
       }
    }
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d40 1
+a40 1
+      tmp = dst->cl - dx;
+d44 1
+a44 1
+      tmp = dst->cr - dx;
 @

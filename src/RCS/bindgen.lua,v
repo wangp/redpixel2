@@ -1,9 +1,24 @@
-head	1.3;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.6
+date	2002.01.14.15.00.24;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.01.14.08.41.42;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.01.14.02.18.48;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.13.15.01.43;	author tjaden;	state Exp;
@@ -25,9 +40,10 @@ desc
 @@
 
 
-1.3
+1.6
 log
-@Bound object_add_creation_field
+@Added object_set_masks_centre() for the situation where you want to
+change where the centre of all the bitmasks are at once.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -216,6 +232,15 @@ generate {
     args	= {{ Object, "obj" }}
 }
 
+-- little hack for player walking animation code in basic-player.lua
+-- don't use it!
+generate {
+    cname	= "object_moving_horizontally",
+    lname	= "_object_moving_horizontally",
+    args	= {{ Object, "obj" }},
+    ret		= { Int, "ret", "!$" }
+}
+
 generate {
     cname	= "object_set_collision_is_player",
     args	= {{ Object, "obj" }}
@@ -232,6 +257,18 @@ generate {
     cname	= "object_add_creation_field",
     args	= {{ Object, "obj" },
 		   { String, "name" }}
+}
+
+generate {
+    cname	= "object_set_update_hook",
+    args	= {{ Object, "obj" },
+		   { Int, "msecs" },
+		   { Method, "method" }}
+}
+
+generate {
+    cname	= "object_remove_update_hook",
+    args	= {{ Object, "obj" }}
 }
 
 generate {
@@ -343,6 +380,13 @@ generate {
 }
 
 generate {
+    cname	= "object_set_masks_centre",
+    args	= {{ Object, "obj" },
+		   { Int, "xoffset" },
+		   { Int, "yoffset" }}
+}
+
+generate {
     cname	= "object_remove_mask",
     args	= {{ Object, "obj" },
 		   { Int, "masknumber" }},
@@ -386,6 +430,34 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.5
+log
+@Added `object_moving_horizontally' function, which is a hack for the
+player walking animation.
+@
+text
+@d335 7
+@
+
+
+1.4
+log
+@Added an ``update hook'' feature to objects
+@
+text
+@d187 9
+@
+
+
+1.3
+log
+@Bound object_add_creation_field
+@
+text
+@d206 12
 @
 
 

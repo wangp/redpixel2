@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.14.02.20.31;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Open the strlib for use from Lua
 @
 text
 @/* mylua.c
@@ -42,6 +47,7 @@ int mylua_open (int stacksize)
 	return -1;
     lua_baselibopen (lua_state);
     lua_mathlibopen (lua_state); /* XXX: needed? */
+    lua_strlibopen (lua_state);
     return 0;
 }
 
@@ -124,4 +130,13 @@ int lua_checkargs (lua_State *L, const char *argtypes)
 
     return 1;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d23 1
 @

@@ -46,8 +46,7 @@ Objtype {
 	end
     end,
     proxy_init = function (self)
-	--function radian_to_bangle (rads) return rads * 128 / 3.1415 end
-	self:add_light ("/basic/light/white-16", 0, 0)
+	--self:add_light ("/basic/light/white-16", 0, 0)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }

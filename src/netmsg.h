@@ -143,10 +143,11 @@ enum {
 
     MSG_CS_GAMEINFO_CONTROLS = 'c',
 	
-	CONTROL_LEFT  = 0x01,
-	CONTROL_RIGHT = 0x02,
-	CONTROL_UP    = 0x04,
-	CONTROL_FIRE  = 0x08,
+	CONTROL_LEFT    = 0x01,
+	CONTROL_RIGHT   = 0x02,
+	CONTROL_UP      = 0x04,
+	CONTROL_FIRE    = 0x08,
+	CONTROL_RESPAWN = 0x10,
 
 
     /* Tell server to broadcast text message to all clients.
@@ -201,6 +202,15 @@ enum {
      */
 
     MSG_SC_GAMEINFO_OBJECT_UPDATE = 'u',
+
+
+    /* Tell clients about a client's new aim angle.  Note: these
+       angles are only approximate.
+
+       Args: long client_id, float aim_angle.
+     */
+
+    MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE = 'a',
 
 
     /* Tell clients to create some blood particles.

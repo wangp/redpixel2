@@ -1,10 +1,15 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks
-	tjaden:1.1; strict;
+	tjaden:1.2; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.14.02.25.33;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.13.22;	author tjaden;	state Exp;
@@ -16,9 +21,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Rotate blaster projectile in the angle it is fired
 @
 text
 @-- basic-weapon.lua
@@ -70,6 +75,7 @@ Objtype {
     end,
     proxy_init = function (self)
 	self:add_light ("/basic/light/white-16", 0, 0)
+	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
 
@@ -180,4 +186,13 @@ Objtype {
     name = "basic-mine", 
     icon = "/basic/weapon/mine/pickup"
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d50 1
 @

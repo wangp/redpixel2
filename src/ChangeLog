@@ -1,6 +1,76 @@
+2002-01-15  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* netmsg.h, gamesrv.c: Send clients' aim angles to other clients.
+
+	* gameclt.c:
+	Receive remote player's aim angles.  Also, update camera at consistent
+	rate on different machines.
+
+	* camera.c: Slowed down the camera acceleration.
+
+2002-01-14  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* object.h, object.c, bindgen.lua: Added
+	`object_moving_horizontally' function, which is a hack for the
+	player walking animation.
+
+	* gamesrv.c: Made it obvious which units the lag value is in
+	(msecs).
+
+	* gameclt.c: On slower machines `ticks' can change while we are
+	using it, so cache the value and use that fixed value instead.
+
+	* netmsg.h, gamesrv.c, gameclt.c: Added player respawning.
+
+	* gameclt.c: Poll objects' update hooks.  Also limited the update
+	rate.
+
+	* gamesrv.c: Poll objects' update hooks.  The old client object's
+	_client_update_hook is obsolete and removed.
+
+	* mylua.c: Open the strlib for use from Lua.
+
+	* object.c: Added an ``update hook'' feature to objects.  Some
+	reformatting too.
+
+	* object.h, bindgen.lua: Added an ``update hook'' feature to
+	objects.
+
+	* bindgen.lua: Bound object_add_creation_field.
+
+	* object.c, object.h: Initial creation field stuff.
+
+	* gameclt.c: Initial creation field stuff.  NET_MAX_PACKET_SIZE ->
+	NETWORK_MAX_PACKET_SIZE.
+
+	* netmsg.h: Libnet has a maximum packet size of 512 bytes, for
+	channels.  Conns take up some of those bytes (too lazy to check
+	how many), so we impose our own limit (NETWORK_MAX_PACKET_SIZE).
+
+	* gamesrv.c: NET_MAX_PACKET_SIZE -> NETWORK_MAX_PACKET_SIZE.  Yom
+	command.  Spawn projectile sets obj.angle field and marks it as
+	creation field.  Unified code that generates object creation
+	packets.
+
 2002-01-13  Peter Wang  <tjaden@users.sourceforge.net>
 
-	* Started using RCS.
+	* gameclt.c: Handle the fact that clients may lose their objects.
+
+	* bindgen.lua, gamesrv.h: New lua binding to spawn an arbitrary
+	object.
+
+	* gamesrv.c: New lua binding to spawn an arbitrary object.  Also
+	handle the fact that clients may lose their objects (i.e. players
+	get killed, so the objects become stale).
+
+	* object.c: In some situations this line: while (interval--) {
+	could (and do) loop forever.
+
+	* basic-player.lua: Made player sprite face the direction that the
+	mouse is aiming in.
+
+	* Started using RCS.  [Note to self: to update this file
+	semi-automatically in Emacs, run C-x v a.]
 
 2002-01-12  Peter Wang  <tjaden@users.sourceforge.net>
 
