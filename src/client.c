@@ -408,8 +408,7 @@ static void update_screen ()
     }
 
     if (crosshair) {
-	draw_lit_magic_sprite (bmp, crosshair, mouse_x, 
-			       mouse_y, 
+	draw_lit_magic_sprite (bmp, crosshair, mouse_x-2, mouse_y-2,
 			       makecol24 (0xff, 0xff, 0xff));
     }
 
