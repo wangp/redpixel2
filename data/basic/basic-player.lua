@@ -316,6 +316,9 @@ local player_proxy_init = function (self)
 
     -- (called by nonproxy fire hook)
     function self:start_firing_anim ()
+	if not self.current_weapon then
+	    return
+	end
 	if not self.animate_arm then
 	    self.animate_arm = true
 	    self.arm_tics = 0
