@@ -61,7 +61,10 @@ static void render_object_layers_and_names (BITMAP *bmp, map_t *map,
 
     list = map_object_list (map);
     list_for_each (obj, list) {
-	object_draw_layers (bmp, obj, offx, offy);
+	if (object_highlighted (obj))
+	    object_draw_lit_layers (bmp, obj, offx, offy, 0x77);
+	else
+	    object_draw_layers (bmp, obj, offx, offy);
 	object_draw_trans_name (bmp, obj, offx, offy);
     }
 }

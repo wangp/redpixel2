@@ -55,6 +55,7 @@ struct object {
     /* Hidden objects are invisible and do not collide, but their
      * update hooks are called. */
     char is_hidden;
+    char is_highlighted;
 
     float x, y;
     float xv_decay, yv_decay;	/* not replicated */
@@ -332,6 +333,22 @@ void object_show (object_t *obj)
     if (obj->is_hidden) {
 	obj->is_hidden = 0;
 	object_set_replication_flag (obj, OBJECT_REPLICATE_HIDDEN);
+    }
+}
+
+
+int object_highlighted (object_t *obj)
+{
+    return obj->is_highlighted;
+}
+
+
+void object_set_highlighted (object_t *obj, int yes_or_no)
+{
+    yes_or_no = !!yes_or_no;
+    if (obj->is_highlighted != yes_or_no) {
+	obj->is_highlighted = yes_or_no;
+	object_set_replication_flag (obj, OBJECT_REPLICATE_HIGHLIGHTED);
     }
 }
 

@@ -45,6 +45,8 @@ void object_set_stale (object_t *); /* Lua binding */
 int object_hidden (object_t *);
 void object_hide (object_t *);	/* Lua binding */
 void object_show (object_t *);	/* Lua binding */
+int object_highlighted (object_t *);
+void object_set_highlighted (object_t *, int yes_or_no); /* Lua binding */
 
 float object_x (object_t *);
 float object_y (object_t *);
@@ -79,6 +81,7 @@ void object_set_collision_tag (object_t *, int);
 #define OBJECT_REPLICATE_CREATE		0x01
 #define OBJECT_REPLICATE_UPDATE		0x02
 #define OBJECT_REPLICATE_HIDDEN		0x04
+#define OBJECT_REPLICATE_HIGHLIGHTED	0x08
 
 int object_need_replication (object_t *, int);
 void object_set_replication_flag (object_t *, int);
