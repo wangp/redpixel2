@@ -37,11 +37,11 @@ void draw_magic_sprite_h_flip(BITMAP *dst, BITMAP *src, int dx, int dy)
    if (dst->clip) {
       int tmp;
 
-      tmp = dst->cl - dx;
+      tmp = dst->cl/3 - dx;
       sxbeg = ((tmp < 0) ? 0 : tmp);
       dxbeg = sxbeg + dx;
 
-      tmp = dst->cr - dx;
+      tmp = dst->cr/3 - dx;
       w = ((tmp > src->w/3) ? src->w/3 : tmp) - sxbeg;
       if (w <= 0)
 	 return;
