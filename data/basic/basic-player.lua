@@ -196,8 +196,7 @@ local player_nonproxy_init = function (self)
 	else
 
 	    -- not dead: blink a red light over the hurt player
-	    call_method_on_clients (self, "start_alt_light",
-		"return '/basic/light/red-64', 38, 10")
+	    call_method_on_clients (self, "get_hurt_hook")
 
 	end
     end
@@ -280,12 +279,12 @@ local animate_player_proxy_walking = function (self)
     end
 end
 
-local animate_player_proxy_alt_lighting = function (self)
-    if self.alt_light_tics > 0 then
-	self.alt_light_tics = self.alt_light_tics - 1
-	if self.alt_light_tics == 0 then
+local animate_player_proxy_lighting = function (self)
+    if self.restore_lighting_tics > 0 then
+	self.restore_lighting_tics = self.restore_lighting_tics - 1
+	if self.restore_lighting_tics == 0 then
 	    self:replace_light (0, "/basic/light/white-64", 0, 0)
-	    self.alt_light_priority = 0
+	    self:set_highlighted (false)
 	end
     end
 end
@@ -299,8 +298,8 @@ local rotate_and_flip_player_proxy_based_on_aim_angle = function (self)
 
     local angle = radian_to_bangle (self.aim_angle)
     local hflip = (angle < -63 or angle > 63)
-    self:hflip_layer (0, hflip and 1 or 0)
-    self:hflip_layer (self.arm_layer, hflip and 1 or 0)
+    self:hflip_layer (0, hflip)
+    self:hflip_layer (self.arm_layer, hflip)
     self:rotate_layer (self.arm_layer, angle - (hflip and 128 or 0))
 end
 
@@ -314,18 +313,6 @@ local player_proxy_init = function (self)
 
     -- light
     self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
-
-    self.alt_light_tics = 0
-    self.alt_light_priority = 0
-
-    function self:start_alt_light (this_is_dodgy)
-	local the_light, timeout, priority = dostring (this_is_dodgy) -- XXX not good for security
-	if (priority > self.alt_light_priority) and self.is_local then
-	    self:replace_light (0, the_light, 0, 0)
-	    self.alt_light_tics = timeout
-	    self.alt_light_priority = priority
-	end
-    end
 
     -- arm stuff
     self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
@@ -353,7 +340,7 @@ local player_proxy_init = function (self)
 	function (self)
 	    animate_player_proxy_firing (self)
 	    animate_player_proxy_walking (self)
-	    animate_player_proxy_alt_lighting (self)
+	    animate_player_proxy_lighting (self)
 	    rotate_and_flip_player_proxy_based_on_aim_angle (self)
 	end
     )
@@ -364,10 +351,22 @@ local player_proxy_init = function (self)
 	self.current_weapon = w
 	self:replace_layer (self.arm_layer, w.arm_anim[1], w.arm_anim.cx, w.arm_anim.cy)
 	if self.is_local then
-	    _internal_set_camera (0, 96)
+	    _internal_set_camera (false, 96)
 	    if w.client_switch_to_hook then
 		w.client_switch_to_hook ()
 	    end
+	end
+    end
+
+    -- (called by nonproxy receive damage function)
+    self.restore_lighting_tics = 0
+    function self:get_hurt_hook ()
+	if self.is_local then
+	    self:replace_light (0, "/basic/light/red-64", 0, 0)
+	    self.restore_lighting_tics = 38
+	else
+	    self:set_highlighted (true)
+	    self.restore_lighting_tics = 10
 	end
     end
 end
