@@ -397,7 +397,7 @@ Standard_Pickup {
     icon = "/basic/weapon/rifle/pickup",
     weapon_to_give = "basic-rifle",
     ammo_to_give = "basic-slug",
-    ammo_amount = 2,
+    ammo_amount = 5,
     respawn_secs = 10
 }
 
