@@ -1,0 +1,6 @@
+# Configuration for Linux (x86) build.
+
+PLAT_TARGET := -DTARGET_LINUX
+PLAT_CFLAGS := -DHAVE_GETOPT -DTHREADS_PTHREAD
+PLAT_OBJDIR := obj/linux
+PLAT_LIBS := `allegro-config --libs` -llua -llualib -lnet -lpthread -lcurses

@@ -2,36 +2,42 @@
 ## Makefile for Red Pixel II
 ##
 
-SRCDIRS = src src/store src/magic src/fastsqrt src/jpgalleg \
-	  src/gui src/ug src/editor
+include config.linux
 
-CC = gcc
-CFLAGS = -Wall -D_REENTRANT $(addprefix -I,$(SRCDIRS)) -g
+SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
+	   src/gui src/ug src/editor
+
+CC := gcc
+CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT
+CFLAGS += $(addprefix -I,$(SRCDIRS)) -g
 CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
-LOADLIBES = `allegro-config --libs` -llua -llualib -lnet -lpthread -lcurses
+# CFLAGS += -pg
+# LDFLAGS := -pg
+LDLIBS := $(PLAT_LIBS)
+LDFLAGS := $(PLAT_LDFLAGS)
 
-PROGRAM = program
-OBJDIR = obj/linux
+PROGRAM := program$(PLAT_EXE)
+OBJDIR := $(PLAT_OBJDIR)
 
 #----------------------------------------------------------------------
 
-MODULES_STORE =					\
+MODULES_STORE :=				\
 	hash					\
 	store
 
-MODULES_MAGIC =					\
+MODULES_MAGIC :=				\
 	magic4x4				\
 	magicrot				\
 	magicrl					\
 	magicrt					\
 
-MODULES_FASTSQRT =				\
+MODULES_FASTSQRT :=				\
 	fastsqrt
 
-MODULES_JPGALLEG =				\
+MODULES_JPGALLEG :=				\
 	jpeg
 
-MODULES_GUI =					\
+MODULES_GUI :=					\
 	gui					\
 	guiaccel				\
 	guidirty				\
@@ -39,7 +45,7 @@ MODULES_GUI =					\
 	guiwm					\
 	guiwmdef
 
-MODULES_UG =					\
+MODULES_UG :=					\
 	ug					\
 	ugblank					\
 	ugbutton				\
@@ -53,7 +59,7 @@ MODULES_UG =					\
 	ugthmpaw				\
 	ugwidget
 
-MODULES_EDITOR =				\
+MODULES_EDITOR :=				\
 	cursor					\
 	editarea				\
 	editor					\
@@ -66,7 +72,7 @@ MODULES_EDITOR =				\
 	modemgr					\
 	selbar
 
-MODULES_GAME =					\
+MODULES_GAME :=					\
 	alloc					\
 	bindings				\
 	bitmask					\
@@ -79,6 +85,7 @@ MODULES_GAME =					\
 	gameinit				\
 	gameclt					\
 	gamesrv					\
+	getoptc					\
 	loaddata				\
 	main					\
 	map					\
@@ -93,9 +100,10 @@ MODULES_GAME =					\
 	sync					\
 	textface				\
 	timeout					\
+	timeval					\
 	yield
 
-MODULES = 					\
+MODULES := 					\
 	$(MODULES_STORE) 			\
 	$(MODULES_MAGIC)			\
 	$(MODULES_FASTSQRT)			\
@@ -105,7 +113,7 @@ MODULES = 					\
 	$(MODULES_EDITOR)			\
 	$(MODULES_GAME)
 
-OBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
+OBJS := $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
 
 #----------------------------------------------------------------------
 
@@ -123,11 +131,11 @@ src/objecttm.inc: src/objgen.lua
 	lua $< > $@
 
 $(PROGRAM): $(OBJS)
-	$(CC) -o $@ $^ $(LOADLIBES)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 #----------------------------------------------------------------------
 
-SOURCES = $(addsuffix /*.c,$(SRCDIRS))
+SOURCES := $(addsuffix /*.c,$(SRCDIRS))
 
 TAGS: $(SOURCES)
 	etags $^
@@ -164,8 +172,8 @@ cleaner: clean
 
 #----------------------------------------------------------------------
 
-EXCLUDE_LIST = *.o $(PROGRAM) TAGS tags depend
-EXCLUDE = $(addprefix --exclude , $(EXCLUDE_LIST))
+EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
+EXCLUDE := $(addprefix --exclude , $(EXCLUDE_LIST))
 
 backup:
 	cd ../ && tar zcvf `date +%Y%m%d`.tar.gz redstone $(EXCLUDE)

@@ -1,13 +1,23 @@
 split objects into different areas?
 
-map_link_object and map_link_object_bottom may be reversed (or the renderers are)
+map_link_object and map_link_object_bottom may be reversed
+	(or the renderers are)
 
-spawn_projectile too slow?
+spawning lots of projectiles makes server become really
+	slow, probably the do_physics function
 
-reread and recleanup network/physics code (I think it's fixed now)
+reread and recleanup network/physics code
+	(I think it's fixed now)
 
-save lua state at the start of the program (after init scripts), then
-use copies of that (for hygiene)
+save lua state at the start of the program (after init
+	scripts), then use copies of that (for hygiene)
+
+it seems I have been using the _t convention wrongly.
+	AFAICS, the _t suffix is used for types which you
+	can statically allocate (i.e. you know the size of
+	it; usually synonyms for int, long, etc.) All the
+	current structures which have _t suffix should
+	probably be "struct foobar".
 
 
 ------------------------------
@@ -19,4 +29,5 @@ rename ed_select?
 move ed_select to new src/editor/custom dir?
      (custom ug widgets would go in there)
 
-dialog dirtiness not precise enough?  if not, go to per-widget dirtiness
+dialog dirtiness not precise enough?
+	if not, go to per-widget dirtiness

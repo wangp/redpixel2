@@ -4,6 +4,7 @@
  */
 
 
+#include <math.h>
 #include <allegro.h>
 #include <libnet.h>
 #include "camera.h"
@@ -23,6 +24,11 @@
 #include "store.h"
 #include "sync.h"
 #include "timeout.h"
+
+
+#ifndef M_PI
+# define M_PI   3.14159265358979323846
+#endif
 
 
 #if 0
@@ -273,7 +279,7 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
     
     tmp = create_magic_bitmap (text_length (font, buf), text_height (font));
     clear (tmp);
-    textout (tmp, font, buf, x, y, color);
+    textout (tmp, font, buf, 0, 0, color);
     draw_trans_magic_sprite (bmp, tmp, x, y);
     destroy_bitmap (tmp);
 }
@@ -335,14 +341,15 @@ static void update_screen ()
 			       mouse_y, 
 			       makecol24 (0xff, 0xff, 0xff));
     }
-    
+
+    messages_render (bmp);
+
     text_mode (-1);
     trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
 		      "%d FPS", fps);
     scare_mouse ();
     acquire_screen ();
     blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
-    messages_render (screen);	/* XXX */
     release_screen ();
     unscare_mouse ();
 

@@ -851,7 +851,7 @@ int object_supported_at (object_t *obj, map_t *map, float x, float y)
 #define SIGN(a)	((a < 0) ? -1 : 1)
 
 
-static int object_move (object_t *obj, int mask_num, map_t *map, float dx, float dy)
+inline static int object_move (object_t *obj, int mask_num, map_t *map, float dx, float dy)
 {
     float idx, idy;
 
@@ -873,8 +873,8 @@ static int object_move (object_t *obj, int mask_num, map_t *map, float dx, float
 }
 
 
-static int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
-				    float dx, int ramp)
+inline static int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
+					   float dx, int ramp)
 {
     float idx;
     int ir;
@@ -901,7 +901,7 @@ static int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
 }
 
 
-static int too_far_off_map (object_t *obj, map_t *map)
+inline static int too_far_off_map (object_t *obj, map_t *map)
 {
     const float margin = 160;
     return ((object_x (obj) < -margin) || (object_y (obj) < -margin)
@@ -953,14 +953,10 @@ void object_do_physics (object_t *obj, map_t *map)
 	rep = 1;
     }
 
-    if (!object_is_client (obj) && (too_far_off_map (obj, map)))
-	object_set_stale (obj);
+    if ((obj->id >= OBJID_PLAYER_MAX) && (too_far_off_map (obj, map)))
+	obj->is_stale = 1;
     else if (rep)
-	object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
-
-/* XXX temp */
-/*      if (obj->xv || obj->yv) */
-/*  	object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+	obj->replication_flags |= OBJECT_REPLICATE_UPDATE;
 }
 
 

@@ -4,6 +4,7 @@
  */
 
 
+#include <math.h>
 #include <string.h>
 #include <allegro.h>
 #include <libnet.h>
@@ -688,7 +689,7 @@ static start_t *server_pick_random_start ()
     list_for_each (start, list) n++;
 
     if (n > 0) {
-	n = random () % n;	/* XXX temp */
+	n = rand () % n;	/* XXX temp */
 	list_for_each (start, list)
 	    if (!n--) return start;
     }
@@ -1217,7 +1218,8 @@ void game_server_run ()
 	}
 
 	sync_server_unlock ();
-    } while (next_state != SERVER_STATE_QUIT);
+    } while ((next_state != SERVER_STATE_QUIT) && 
+	     (!sync_server_stop_requested ()));
 }
 
 

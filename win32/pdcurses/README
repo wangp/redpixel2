@@ -1,0 +1,12 @@
+This directory contains a stripped down copy of PDCurses 2.4.  The one
+change has been to rename `clear' to `curs_clear', as it conflicts with
+`clear' from Allegro.  The demos, docs, panel lib, files for non-Win32
+systems have been removed.
+
+There is a precompiled static library, built for Mingw32.  I stripped the
+distribution *after* making the build, so it might not build again without
+some help.
+
+A pristine copy of PDCurses can be found at:
+
+	http://www.lightlink.com/hessling/PDCurses/

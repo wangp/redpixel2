@@ -17,13 +17,19 @@
 #include "textface.h"
 
 
+#ifdef TARGET_WINDOWS
+int __stdcall AllocConsole (void);
+int __stdcall FreeConsole (void);
+#endif
+
+
 static void refresh_all ();
 
 
 #define CTRL(k)		(k - 'A' + 1)
 
-static inline int min (int a, int b) { return (a < b) ? a : b; }
-static inline int max (int a, int b) { return (a > b) ? a : b; }
+static inline int _min (int a, int b) { return (a < b) ? a : b; }
+static inline int _max (int a, int b) { return (a > b) ? a : b; }
 
 
 /* colour pairs */
@@ -50,7 +56,7 @@ static void repaint_loglines ()
 {
     int h = LAST_LOG_ROW, y, i;
     
-    i = max (0, nloglines - h - 1);
+    i = _max (0, nloglines - h - 1);
 	
     for (y = 0; y <= h; y++, i++) {
 	move (y, 0);
@@ -142,9 +148,9 @@ static void repaint_input ()
     int margin = (width > 10) ? 10 : 0;
 
     if (pos < left) 
-	left = max (0, pos - margin);
+	left = _max (0, pos - margin);
     else if (pos > left + width)
-	left = max (0, pos - width + margin);
+	left = _max (0, pos - width + margin);
 
     attrset (A_NORMAL);
     mvaddstr (INPUT_ROW, 0, (left == 0) ? "> " : "< ");
@@ -182,13 +188,13 @@ static const char *poll_input ()
 
 	case CTRL('B'):
 	case KEY_LEFT:
-	    pos = max (0, pos-1);
+	    pos = _max (0, pos-1);
 	    refresh_input ();
 	    break;
 
 	case CTRL('F'):
 	case KEY_RIGHT:
-	    pos = min (strlen (input), pos+1);
+	    pos = _min (strlen (input), pos+1);
 	    refresh_input ();
 	    break;
 	    
@@ -257,6 +263,7 @@ static void end_input ()
 
 /* Curses stuff.  */
 
+#ifdef SIGWINCH
 static void (*old_sigwinch_handler)(int);
 
 static void sigwinch_handler (int num)
@@ -267,6 +274,7 @@ static void sigwinch_handler (int num)
 
     refresh_all ();
 }
+#endif
 
 static void refresh_all ()
 {
@@ -293,12 +301,16 @@ static void init_curses ()
 	init_pair(PAIR_STATUS, COLOR_WHITE, COLOR_BLUE);
     }
 
+#ifdef SIGWINCH
     old_sigwinch_handler = signal (SIGWINCH, sigwinch_handler);
+#endif
 }
 
 static void end_curses ()
 {
+#ifdef SIGWINCH
     signal (SIGWINCH, old_sigwinch_handler);
+#endif
     endwin ();
 }
 
@@ -307,6 +319,9 @@ static void end_curses ()
 
 static void textface_init ()
 {
+#ifdef TARGET_WINDOWS
+    AllocConsole ();
+#endif
     init_curses ();
     init_loglines ();
     init_status ();
@@ -321,6 +336,9 @@ static void textface_shutdown ()
     end_status ();
     end_loglines ();
     end_curses ();
+#ifdef TARGET_WINDOWS
+    FreeConsole ();
+#endif
 }
 
 static void textface_add_log (const char *prefix, const char *text)

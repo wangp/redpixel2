@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <allegro.h>
+#include "magic4x4.h"
 #include "store.h"
 
 
@@ -48,21 +49,38 @@ void messages_shutdown ()
 #define YMARGIN	2
 
 
+static void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf, int x, int y, int color)
+{
+    int len = text_length (font, buf);
+    int rtm = text_mode (-1);
+    BITMAP *tmp;
+
+    tmp = create_magic_bitmap (len, text_height (font));
+    clear (tmp);
+    textout (tmp, font, buf, 0, 0, color);
+    draw_magic_sprite (bmp, tmp, x - len, y);
+    destroy_bitmap (tmp);
+
+    text_mode (rtm);
+}
+
+
 void messages_render (BITMAP *bmp)
 {
+    FONT *fnt = font;		/* XXX current font doesn't work yet */
     int i, y, h;
     
     y = YMARGIN;
     h = text_height (fnt);
-    
+
     for (i = top_line; i < num_lines; i++, y += h)
-	textout_right (bmp, fnt, lines[i], bmp->w - XMARGIN, y, -1);
+	textout_right_magic (bmp, fnt, lines[i], bmp->w/3 - XMARGIN, y, -1);
 
     if (input_enabled) {
-	textout_right (bmp, fnt, input_line, bmp->w - XMARGIN - 
-		       text_length (fnt, "_"), y, -1);
+	textout_right_magic (bmp, fnt, input_line, bmp->w/3 - XMARGIN - 
+			     text_length (fnt, "_"), y, -1);
 	if ((input_blink & 0x8))
-	    textout_right (bmp, fnt, "_", bmp->w - XMARGIN, y, -1);
+	    textout_right_magic (bmp, fnt, "_", bmp->w/3 - XMARGIN, y, -1);
 	input_blink = (input_blink+1) & 0xf;
     }
 }

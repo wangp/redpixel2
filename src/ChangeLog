@@ -1,3 +1,11 @@
+2001-07-30  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Cleaned up multiple ports mechanisms a bit.
+
+2001-07-29  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Initial Mingw port.
+
 2001-07-22  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* gamesrv.c, gameclt.c, netmsg.h: Text message command.
@@ -5,6 +13,8 @@
 2001-07-21  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* messages.c: New module.
+
+	* physics.c: Obsolete.  Stuff moved into object.c.
 
 	* New physics/network approach: we save the information we got
 	from the server, then each frame extrapolate from there to get the

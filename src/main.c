@@ -11,8 +11,17 @@
 #include "gameinit.h"
 #include "gameclt.h"
 #include "gamesrv.h"
+#include "getoptc.h"
 #include "sync.h"
 #include "textface.h"
+
+
+/* XXX */
+#ifdef TARGET_WINDOWS
+# define INET_DRIVER	NET_DRIVER_WSOCK_WIN
+#else
+# define INET_DRIVER	NET_DRIVER_SOCKETS
+#endif
 
 
 static int setup_video (int w, int h, int d)
@@ -166,7 +175,7 @@ int main (int argc, char *argv[])
     }
     
     if (run_server) {
-	if (game_server_init (&game_server_text_interface, NET_DRIVER_SOCKETS) < 0) {
+	if (game_server_init (&game_server_text_interface, INET_DRIVER) < 0) {
 	    allegro_message ("Error initialising game server.  Perhaps another\n"
 			     "game server is already running on the same port?\n");
 	} else {
@@ -179,7 +188,7 @@ int main (int argc, char *argv[])
     }
 
     /* run client */
-    if (game_client_init (name, NET_DRIVER_SOCKETS, addr) == 0) {
+    if (game_client_init (name, INET_DRIVER, addr) == 0) {
 	sync_init (NULL);
 	game_client_run ();
 	sync_shutdown ();

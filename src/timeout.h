@@ -2,7 +2,7 @@
 #define __included_timeout_h
 
 
-#include <sys/time.h>
+#include "timeval.h"
 
 
 typedef struct {

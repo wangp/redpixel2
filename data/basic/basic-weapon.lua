@@ -39,10 +39,10 @@ Objtype {
     nonproxy_init = function (self)
 	function self.collide_hook (self, obj)
 	    -- hurt player here
---	    self:destroy ()
+	    self:destroy ()
 	end
 	function self.tile_collide_hook (self)
---	    self:destroy ()
+	    self:destroy ()
 	end
     end,
     proxy_init = function (self)
