@@ -203,6 +203,18 @@ generate {
 }
 
 generate {
+    cname	= "object_set_update_hook",
+    args	= {{ Object, "obj" },
+		   { Int, "msecs" },
+		   { Method, "method" }}
+}
+
+generate {
+    cname	= "object_remove_update_hook",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
     cname 	= "object_add_layer",
     args  	= {{ Object, "obj" },
                    { StoreKey, "image" },

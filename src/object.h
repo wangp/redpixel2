@@ -2,6 +2,8 @@
 #define __included_object_h
 
 
+#include "mylua.h"
+
 struct BITMAP;
 struct map;
 struct lua_State;
@@ -77,6 +79,13 @@ struct creation_field {
 
 void object_add_creation_field (object_t *, const char *name);
 struct list_head *object_creation_fields (object_t *);
+
+
+/* Update hooks.  */
+
+void object_set_update_hook (object_t *, int msecs, lua_ref_t hook);
+void object_remove_update_hook (object_t *);
+void object_poll_update_hook (object_t *, int elapsed_msecs);
 
 
 /* Layers.  */
