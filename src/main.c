@@ -145,26 +145,13 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":sew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":se")) != -1) {
 	switch (c) {
 	    case 's':
 		run_server = 1;
 		break;
 	    case 'e':
 		run_editor = 1;
-		break;
-	    case 'w':
-		w = atoi (optarg);
-		break;
-	    case 'h':
-		h = atoi (optarg);
-		break;
-	    case 'd':
-		d = atoi (optarg);
-		if ((d != 15) && (d != 16)) {
-		    fprintf (stderr, "Only 15 and 16 bpp are valid.\n");
-		    return 1;
-		}
 		break;
 	    case ':':
 	    	fprintf (stderr, "Option `%c' missing argument.\n", optopt);
