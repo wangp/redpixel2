@@ -123,6 +123,15 @@ Objtype {
 --  Corpses
 ----------------------------------------------------------------------
 
+function death_fountain_update_hook (self)
+    self:replace_layer (0, format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
+    self.frame = self.frame + 1
+    if self.frame > 30 then
+	self.frame = 30
+	self:remove_update_hook ()
+    end
+end
+
 Objtype {
     category = "player",
     name = "basic-player-death-fountain",
@@ -130,20 +139,13 @@ Objtype {
 
     nonproxy_init = function (self)
 	self:set_collision_flags ("")
+	self.frame = 1
+	self:add_creation_field ("frame")
+	self:set_update_hook (1000/10, death_fountain_update_hook)
     end,
 
     proxy_init = function (self)
-	self:replace_layer (0, "/basic/player/death-fountain/000", 44, 16)
-	self.frame = 1
-	self:set_update_hook (
-	    1000/10, 
-	    function (self)
-		self:replace_layer (0, format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
-		self.frame = self.frame + 1
-		if self.frame > 30 then
-		    self:remove_update_hook ()
-		end
-	    end
-	)
+	self:set_update_hook (1000/10, death_fountain_update_hook)
+	death_fountain_update_hook (self) -- set the initial layer
     end
 }
