@@ -733,7 +733,7 @@ static object_t *server_spawn_player (objid_t id)
     object_set_xy (obj, map_start_x (start), map_start_y (start));
     object_set_collision_tag (obj, id); /* XXX temp */
     object_run_init_func (obj);
-    map_link_object_bottom (map, obj);
+    map_link_object (map, obj);
 
     if ((c = clients_find_by_id (id)))
 	c->last_sent_aim_angle = 0;
@@ -1254,7 +1254,7 @@ static void server_handle_wantfeeds ()
 	    object_set_xy (obj, map_start_x (start), map_start_y (start));
 	    object_set_collision_tag (obj, c->id); /* XXX temp */
 	    object_run_init_func (obj);
-	    map_link_object_bottom (map, obj);
+	    map_link_object (map, obj);
 
 	    {
 		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
