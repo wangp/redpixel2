@@ -4,6 +4,8 @@
  */
 
 
+#include <stdlib.h>
+#include <string.h>
 #include <allegro.h>
 #include "hash.h"
 #include "store.h"
@@ -31,7 +33,7 @@ static int list_add (DATAFILE *dat, AL_CONST char *prefix)
 
     if (f) {
 	f->id = file_id++;
-	f->prefix = ustrdup (prefix);
+	f->prefix = strdup (prefix);
 	f->dat = dat;
 	f->next = 0;
 
@@ -78,13 +80,13 @@ static void list_shutdown ()
 
 /*----------------------------------------------------------------------*/
 
-static int index;
+static int idx;
 DATAFILE **store;
 
 static void data_init ()
 {
     store = 0;
-    index = 1;
+    idx = 1;
 }
 
 static void data_shutdown ()
@@ -94,10 +96,10 @@ static void data_shutdown ()
 
 static int data_append (DATAFILE *item)
 {
-    void *p = realloc (store, (index + 1) * sizeof (DATAFILE *));
+    void *p = realloc (store, (idx + 1) * sizeof (DATAFILE *));
 
     if (p) {
-	int n = index++;
+	int n = idx++;
 	store = p;
 	store[n] = item;
 	return n;
@@ -130,19 +132,19 @@ static void table_add (DATAFILE *d, AL_CONST char *prefix)
 
     for (i = 0; d[i].type != DAT_END; i++) {
 	name = get_datafile_property (&d[i], DAT_NAME);
-	if (!ustrcmp (name, empty_string)
-	    || !ustrcmp (name, "GrabberInfo"))
+	if (!strcmp (name, empty_string)
+	    || !strcmp (name, "GrabberInfo"))
 	    continue;
 
-	ustrzcpy (path, sizeof path, prefix);
-	ustrzcat (path, sizeof path, name);
+	strncpy (path, prefix, sizeof path); path[(sizeof path) - 1] = '\0';
+	strncat (path, name, sizeof path - strlen (path) - 1);
 
 	n = data_append (&d[i]);
 	if (n)
 	    hash_insert (path, (void *) n, &table);
     	
 	if (d[i].type == DAT_FILE) {
-	    ustrzcat (path, sizeof path, "/");
+	    strncat (path, "/", sizeof path - strlen (path) - 1);
 	    table_add (d[i].dat, path);
 	}
     }

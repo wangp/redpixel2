@@ -14,7 +14,8 @@ Introduction
     and use them as a single unit.  This one unit is like one huge
     datafile.
 
-    Store aims to be Unicode-aware, but I don't think it's there yet.
+    Store does not work with encodings other than ASCII and UTF-8 (for
+    speed reasons).  Use only one encoding for all your strings.
 
 
 Compiling
