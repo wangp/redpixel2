@@ -525,7 +525,7 @@ Objtype {
 					      rad, 5)
 		    end
 		    spawn_blast (self.x, self.y, 25, 20, self.owner)
-		    play_sound_on_clients (self, "/basic/explosion/explo42/sound") --XXX wrong datapack
+		    spawn_explosion_on_clients ("basic-explo20", self.x, self.y-6)
 		    self:set_stale ()
 		end
 	    end
