@@ -208,10 +208,12 @@ mtfmdocs: doc/gui_api.html doc/ug_api.html
 
 #----------------------------------------------------------------------
 
-depend:
+makefile.dep: $(SOURCES)
 	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$$(OBJDIR)/\1,' > makefile.dep
 
--include makefile.dep
+depend: makefile.dep
+
+include makefile.dep
 
 #----------------------------------------------------------------------
 
@@ -221,7 +223,7 @@ clean:
 cleaner: clean
 	rm -f $(PROGRAM) 
 	rm -f TAGS tags
-	rm -f depend
+	rm -f makefile.dep
 
 #----------------------------------------------------------------------
 
