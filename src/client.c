@@ -7,6 +7,7 @@
 #include <math.h>
 #include <allegro.h>
 #include <libnet.h>
+#include "blod.h"
 #include "blood.h"
 #include "camera.h"
 #include "error.h"
@@ -132,19 +133,37 @@ static int net_send_rdm_encode (NET_CONN *conn, const char *fmt, ...)
 /*----------------------------------------------------------------------*/
 
 
-static void perform_simple_physics ()
+static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
 {
     list_head_t *object_list;
     object_t *obj;
-    ulong_t t = ticks;
+    int i;
     
     object_list = map_object_list (map);
-    list_for_each (obj, object_list)
-	object_do_simulation (obj, t);
+    list_for_each (obj, object_list) {
+	if (!object_is_client_processed (obj)) {
+	    object_do_simulation (obj, curr_ticks);
+	    continue;
+	}
 
-    blood_particles_update (map_blood_particles (map), map);
-    /* XXX no good because blood particles can only be updated at a
-       regular rate */
+	/*
+	 * For CLIENT PROCESSED objects, we have to do some thinking
+	 * about the physics ourselves, as if we were the server.  But
+	 * we do not have accurate data to work with, so ONLY use
+	 * proxy-only objects when:
+	 *
+	 *  (1) inaccurate results for this object don't matter, and
+	 *  (2) this object will not influence other objects,
+	 *	e.g. in collisions
+	 *
+	 * In short, this means eye-candy only.
+	 */
+	for (i = 0; i < delta_ticks; i++)
+	    object_do_physics (obj, map);
+    }
+
+    for (i = 0; i < delta_ticks; i++) 
+	blood_particles_update (map_blood_particles (map), map);
 }
 
 
@@ -345,6 +364,17 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		buf += packet_decode (buf, "fflf", &x, &y, &nparticles, &spread);
 		blood_particles_spawn (map_blood_particles (map), x, y, nparticles, spread);
+		break;
+	    }
+
+	    case MSG_SC_GAMEINFO_BLOD_CREATE:
+	    {
+		float x;
+		float y;
+		long nparticles;
+		
+		buf += packet_decode (buf, "ffl", &x, &y, &nparticles);
+		blod_spawn (map, x, y, nparticles);
 		break;
 	    }
 
@@ -719,7 +749,7 @@ void game_client_run ()
 		send_gameinfo_controls ();
 
 		dbg ("do physics");
-		perform_simple_physics ();
+		perform_simple_physics (t, t - last_ticks);
 
 		dbg ("poll update hooks");
 		poll_update_hooks ((t - last_ticks) * MSECS_PER_TICK);

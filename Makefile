@@ -82,6 +82,7 @@ MODULES_GAME :=					\
 	bitmask					\
 	bitmaskg				\
 	bitmaskr				\
+	blod					\
 	blood					\
 	camera					\
 	error					\

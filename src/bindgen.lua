@@ -391,6 +391,15 @@ generate {
     ret		= { Int, "ret", "$ < 0" }
 }
 
+generate {
+    cname	= "game_server_spawn_blod",
+    lname	= "spawn_blod",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
 print (reg)
 
 

@@ -133,7 +133,7 @@ struct client {
 #define client_clear_cantimeout(c)  ((c)->flags &=~ CLIENT_FLAG_CANTIMEOUT)
 
 static list_head_t clients;
-static int clients_next_id;
+static int clients_next_id = 1;
 
 static client_t *client_create (NET_CONN *conn)
 {
@@ -683,6 +683,20 @@ int game_server_spawn_blood (float x, float y, long nparticles, float spread)
     
     size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
+    add_to_gameinfo_packet_queue (buf, size);
+    return 0;
+}
+
+
+/* Spawn some blods (Lua binding). */
+
+int game_server_spawn_blod (float x, float y, long nparticles)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    int size;
+    
+    size = packet_encode (buf, "cffl", MSG_SC_GAMEINFO_BLOD_CREATE,
+			  x, y, nparticles);
     add_to_gameinfo_packet_queue (buf, size);
     return 0;
 }

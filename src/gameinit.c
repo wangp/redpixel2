@@ -8,6 +8,7 @@
 #include <libnet.h>
 #include "bindings.h"
 #include "bitmaskr.h"
+#include "blod.h"
 #include "extdata.h"
 #include "fastsqrt.h"
 #include "gameinit.h"
@@ -46,6 +47,8 @@ void game_init ()
 
     lua_dofile_path (lua_state, "init.lua");
 
+    blod_init ();
+    
     net_init ();
     net_loadconfig (NULL);
     net_detectdrivers (net_drivers_all);
@@ -56,6 +59,8 @@ void game_init ()
 void game_shutdown ()
 {
     net_shutdown ();
+
+    blod_shutdown ();
 
     object_shutdown ();
 
