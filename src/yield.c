@@ -27,7 +27,7 @@ void yield (void)
     /* This seems to give better results under Windows that Sleep(0)
      * (which is what yield_timeslice() uses).  */
 
-    void __stdcall Sleep (int);
+    void __stdcall Sleep (unsigned long);
     Sleep (5);
 
 #else
