@@ -1,10 +1,14 @@
-head	1.34;
+head	1.35;
 access;
 symbols;
-locks
-	tjaden:1.34; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.35
+date	2002.02.23.03.39.40;	author tjaden;	state Exp;
+branches;
+next	1.34;
 
 1.34
 date	2002.02.01.14.56.53;	author tjaden;	state Exp;
@@ -181,9 +185,9 @@ desc
 @@
 
 
-1.34
+1.35
 log
-@Updated mingw port.
+@Call gettimeofday_init/shutdown from server.c instead of main.c.
 @
 text
 @/* server.c
@@ -677,6 +681,8 @@ int server_init (server_interface_t *iface, int net_driver)
     single_hack = 0;
     client_to_quit_with = 0;
 
+    gettimeofday_init ();
+
     return 0;    
 }
 
@@ -695,6 +701,8 @@ void server_set_client_to_quit_with (int id)
 
 void server_shutdown (void)
 {
+    gettimeofday_shutdown ();
+
     server_log ("Disconnecting clients");
     svclients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
     server_log ("Quitting");
@@ -730,6 +738,16 @@ void server_interface_set_status (const char *text)
     if (interface)
 	interface->set_status (text);
 }
+@
+
+
+1.34
+log
+@Updated mingw port.
+@
+text
+@d492 2
+d512 2
 @
 
 

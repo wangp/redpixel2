@@ -90,7 +90,7 @@ static int mp_client_server (void)
 static int mp_client (void)
 {
     const char *name = "tjaden";
-    const char *addr = "127.0.0.1";
+    const char *addr = "192.168.0.1";
     messages_init ();
     if (client_init (name, NET_DRIVER_SOCKETS, addr) == 0) {
 	sync_init (NULL);

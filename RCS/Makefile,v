@@ -1,10 +1,14 @@
-head	1.17;
+head	1.18;
 access;
 symbols;
-locks
-	tjaden:1.17; strict;
+locks; strict;
 comment	@# @;
 
+
+1.18
+date	2002.02.23.03.37.37;	author tjaden;	state Exp;
+branches;
+next	1.17;
 
 1.17
 date	2002.02.16.14.15.08;	author tjaden;	state Exp;
@@ -96,9 +100,9 @@ desc
 @@
 
 
-1.17
+1.18
 log
-@Updated to Lua 4.1-work4.
+@Some changes.
 @
 text
 @##
@@ -122,7 +126,11 @@ LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+ifndef DEBUG
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
+else
+CFLAGS += -O2 -g
+endif
 else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
@@ -311,10 +319,8 @@ mtfmdocs: doc/gui_api.html doc/ug_api.html
 
 #----------------------------------------------------------------------
 
-makefile.dep: $(SOURCES)
+depend: $(SOURCES)
 	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$$(OBJDIR)/\1,' > makefile.dep
-
-depend: makefile.dep
 
 include makefile.dep
 
@@ -352,6 +358,23 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.17
+log
+@Updated to Lua 4.1-work4.
+@
+text
+@d22 5
+a26 1
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+d215 1
+a215 1
+makefile.dep: $(SOURCES)
+a216 2
+
+depend: makefile.dep
 @
 
 
