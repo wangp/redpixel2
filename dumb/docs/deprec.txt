@@ -1,0 +1,179 @@
+/*  _______         ____    __         ___    ___
+ * \    _  \       \    /  \  /       \   \  /   /     '   '  '
+ *  |  | \  \       |  |    ||         |   \/   |       .      .
+ *  |  |  |  |      |  |    ||         ||\  /|  |
+ *  |  |  |  |      |  |    ||         || \/ |  |       '  '  '
+ *  |  |  |  |      |  |    ||         ||    |  |       .      .
+ *  |  |_/  /        \  \__//          ||    |  |
+ * /_______/edicated  \____/niversal  /__\  /____\usic /|  .  . astardisation
+ *                                                    /  \
+ *                                                   / .  \
+ * deprec.txt - Deprecated functions, why they      / / \  \
+ *              were deprecated, and what to do    | <  /   \_
+ *              instead.                           |  \/ /\   /
+ *                                                  \_  /  > /
+ *                                                    | \ / /
+ *                                                    |  ' /
+ *                                                     \__/
+ */
+
+
+**********************************************
+*** How the functions have been deprecated ***
+**********************************************
+
+
+   GCC 3.x provides a very useful attribute. The following:
+
+      __attribute__((__deprecated__))
+
+   will result in a warning from GCC if any such part of the API is used. The
+   warning will even tell you where the declaration is, and I have inserted
+   comments by all the deprecated declarations, telling you what to do.
+
+   Unfortunately, GCC 2.x and MSVC do not have any means to deprecate things.
+   The approach I have taken with these compilers is to avoid prototyping the
+   declared functions. This means you will get warnings and errors, and they
+   won't be very helpful. You may also get strange crashes when you run your
+   program, since the compiler needs the declarations in order to make sure
+   function calls are carried out correctly.
+
+   If you would like the deprecated parts of the API to be declared, you can
+   compile with the -DDUMB_DECLARE_DEPRECATED switch for GCC, or the
+   -D"DUMB_DECLARE_DEPRECATED" switch for MSVC. This will be accepted by
+   GCC 3.x but is unnecessary. Use this switch with other people's projects
+   if necessary, but please make the effort to update your own projects to
+   use the new API, as the deprecated parts may be removed in the future.
+
+   The rest of this file explains why some parts of the API were deprecated,
+   and how to adapt your code.
+
+
+**************************************
+*** What happened to DUH_RENDERER? ***
+**************************************
+
+
+   The DUH_RENDERER struct was designed for rendering audio to an end-user
+   format - 8-bit or 16-bit, signed or unsigned, with stereo samples
+   interleaved. In order for it to do this, it was built on top of the
+   hitherto undocumented DUH_SIGRENDERER struct, which rendered audio in
+   DUMB's internal 32-bit signed format with channels (left/right) stored
+   separately. The DUH_RENDERER struct contained a pointer to a
+   DUH_SIGRENDERER struct, along with some other data like the position and
+   number of channels.
+
+   There were then some developments in the API. The DUH_SIGRENDERER struct
+   also stored the position and the number of channels, so I decided to write
+   functions for returning these. Suddenly there was no need to store them in
+   the DUH_RENDERER struct. Before long, the DUH_RENDERER struct contained
+   nothing but a pointer to a DUH_SIGRENDERER.
+
+   I decided it would be a good idea to unify the structs. After all, there
+   really is no difference between the data stored in each, and it would be
+   easy to make duh_render(DUH_RENDERER *dr, ...) and
+   duh_render_signal(DUH_SIGRENDERER *sr, ...) work on the same type of
+   struct. It took some deliberation, but I decided I didn't want functions
+   to be #defined (it prevents you from using these names for member
+   functions in C++ classes), and that meant they had to be defined
+   somewhere. Defining redundant functions is a source of bloat, inefficiency
+   and general inelegance. After weighing things up, I decided it was better
+   to deprecate the redundant functions and have people begin to use the more
+   efficient versions, and eventually the redundant functions will be able to
+   be removed.
+
+   So why did I choose to keep the more complicated name, DUH_SIGRENDERER?
+   The reason has to do with what DUMB will become in the future. Signals are
+   an inherent part of the DUH struct and how .duh files will be constructed.
+   It will be possible to have multiple signals in a single DUH struct, and
+   you will be able to choose which one you want to play (this is the 'sig'
+   parameter passed to duh_start_sigrenderer()). But don't hold your breath;
+   we still have a long way to go before .duh files will start to appear...
+
+
+typedef DUH_SIGRENDERER DUH_RENDERER;
+
+   Wherever you are using DUH_RENDERER in your program, simply replace it
+   with DUH_SIGRENDERER. An automated search and replace operation should get
+   this done.
+
+
+DUH_RENDERER *duh_start_renderer(DUH *duh, int n_channels, long pos);
+
+   Use duh_start_sigrenderer() instead. It takes an extra parameter, 'sig',
+   which comes after 'duh' and before 'n_channels'; pass 0 for this. So an
+   example would be, replace:
+
+      sr = duh_start_renderer(duh, 2, 0);
+
+   with:
+
+      sr = duh_start_sigrenderer(duh, 0, 2, 0);
+
+
+int duh_renderer_get_n_channels(DUH_RENDERER *dr);
+long duh_renderer_get_position(DUH_RENDERER *dr);
+void duh_end_renderer(DUH_RENDERER *dr);
+
+   These are easy enough to fix; all you have to do is replace 'renderer'
+   with 'sigrenderer'. So the new functions are:
+
+      int duh_sigrenderer_get_n_channels(DUH_SIGRENDERER *sigrenderer);
+      long duh_sigrenderer_get_position(DUH_SIGRENDERER *sigrenderer);
+      void duh_end_sigrenderer(DUH_SIGRENDERER *sigrenderer);
+
+
+Note that duh_render() has NOT been deprecated. It now uses DUH_SIGRENDERER
+instead of DUH_RENDERER, but its functionality is unchanged. You do not have
+to change calls to this function in any way.
+
+
+DUH_RENDERER *duh_renderer_encapsulate_sigrenderer(DUH_SIGRENDERER *sr);
+DUH_SIGRENDERER *duh_renderer_get_sigrenderer(DUH_RENDERER *dr);
+DUH_SIGRENDERER *duh_renderer_decompose_to_sigrenderer(DUH_RENDERER *dr);
+
+   These functions did not exist in the last release of DUMB, so you are
+   probably not using them, but they are included here for completeness. All
+   you have to do here is unwrap the function, since the structs have been
+   unified. So, for instance, replace:
+
+      duh_renderer_encapsulate_sigrenderer(my_sigrenderer)
+
+   with:
+
+      my_sigrenderer
+
+   Simple!
+
+
+AL_DUH_PLAYER *al_duh_encapsulate_renderer(DUH_RENDERER *dr,
+                                       float volume, long bufsize, int freq);
+DUH_RENDERER *al_duh_get_renderer(AL_DUH_PLAYER *dp);
+DUH_RENDERER *al_duh_decompose_to_renderer(AL_DUH_PLAYER *dp);
+
+   Again, these functions were not in the last release, so you probably
+   aren't using them. Nevertheless, the fix is simple as always: simply
+   replace 'renderer' with 'sigrenderer'. So the new functions are:
+
+      AL_DUH_PLAYER *al_duh_encapsulate_sigrenderer(DUH_SIGRENDERER *sr,
+                                       float volume, long bufsize, int freq);
+      DUH_SIGRENDERER *al_duh_get_sigrenderer(AL_DUH_PLAYER *dp);
+      DUH_SIGRENDERER *al_duh_decompose_to_sigrenderer(AL_DUH_PLAYER *dp);
+
+
+******************
+*** Conclusion ***
+******************
+
+
+"I conclude that... DUMB is the bestest music player in the world because...
+Complete this sentence in fifteen words or fewer... D'OH!"
+
+The preceding conclusion formerly appeared in dumb.txt, and is deprecated
+because it's lame.
+
+
+Ben Davis
+entheh@users.sf.net
+IRC EFnet #dumb
+See readme.txt for details on using IRC.

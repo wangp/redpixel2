@@ -1,0 +1,135 @@
+.PHONY: all core clean veryclean install instcore uninstall
+
+GCCVER := obj/unix/gccver
+GCCVER_INC := obj/unix/gccver.inc
+-include $(GCCVER_INC)
+
+include make/makefile.lst
+
+DEBUG_OBJDIR = obj/unix/debug
+RELEASE_OBJDIR = obj/unix/release
+LIBDIR = lib/unix
+
+CC  = gcc
+
+
+# -------- decide what compiler options to use --------
+#
+
+ifdef PGCC
+    OFLAGS = -mcpu=pentium -O6 -ffast-math
+else
+ifdef PPROONLY
+    OFLAGS = -march=i686 -O2 -fomit-frame-pointer -ffast-math
+else
+ifdef PENTIUMONLY
+    OFLAGS = -march=i586 -O2 -fomit-frame-pointer -ffast-math
+else
+    OFLAGS = -mcpu=pentium -O2 -fomit-frame-pointer -ffast-math
+endif
+endif
+endif
+
+# OFLAGS+= -fno-strict-aliasing -fno-strength-reduce
+
+ifdef	DEBUGMODE
+	# -------- debugging build --------
+	CFLAGS	= -DDEBUGMODE=$(DEBUGMODE) $(WFLAGS) -g3
+	SFLAGS	= -DDEBUGMODE=$(DEBUGMODE) $(WFLAGS)
+	LFLAGS += -g3
+	LDFLAGS = `allegro-config --libs debug`
+	CORE_LIB_FILE = $(LIBDIR)/lib$(CORE_LIB_DEBUG).a
+	ALLEGRO_LIB_FILE = $(LIBDIR)/lib$(ALLEGRO_LIB_DEBUG).a
+	OBJDIR = $(DEBUG_OBJDIR)
+else
+	#	--------	optimised build	--------
+	CFLAGS	= $(WFLAGS) $(OFLAGS)
+	SFLAGS	= $(WFLAGS)
+	LDFLAGS = `allegro-config --libs`
+	OBJDIR = $(RELEASE_OBJDIR)
+	CORE_LIB_FILE = $(LIBDIR)/lib$(CORE_LIB).a
+	ALLEGRO_LIB_FILE = $(LIBDIR)/lib$(ALLEGRO_LIB).a
+	ifndef SYMBOLMODE
+	LFLAGS	+= -s
+	endif
+endif
+
+CORE_OBJECTS = $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %.o, $(CORE_MODULES))))
+ALLEGRO_OBJECTS = $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %.o, $(ALLEGRO_STUB))))
+EXAMPLES_EXE = $(addprefix examples/, $(notdir $(patsubst %.c, %, $(EXAMPLES))))
+
+all: $(CORE_LIB_FILE) $(ALLEGRO_LIB_FILE) $(EXAMPLES_EXE)
+
+core: $(CORE_LIB_FILE)
+
+CFLAGS += -Iinclude
+
+clean:
+	rm -f $(DEBUG_OBJDIR)/*.o
+	rm -f $(RELEASE_OBJDIR)/*.o
+	rm -f examples/*.o
+	rm -f $(GCCVER) $(GCCVER_INC)
+
+veryclean: clean
+	rm -f $(CORE_LIB_FILE)
+	rm -f $(ALLEGRO_LIB_FILE)
+	rm -f $(EXAMPLES_EXE)
+
+$(OBJDIR)/%.o: src/core/%.c include/dumb.h include/internal/dumb.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OBJDIR)/%.o: src/helpers/%.c include/dumb.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OBJDIR)/%.o: src/it/%.c include/dumb.h include/internal/it.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OBJDIR)/%.o: src/allegro/%.c include/aldumb.h include/dumb.h \
+                      include/internal/aldumb.h include/internal/dumb.h
+	$(CC) -c -o $@ $< $(CFLAGS) $(WFLAGS_ALLEGRO)
+
+$(EXAMPLES_EXE): examples/%: examples/%.o $(ALLEGRO_LIB_FILE) $(CORE_LIB_FILE)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+examples/%.o: examples/%.c include/aldumb.h include/dumb.h
+	$(CC) -c $< -o $@ $(CFLAGS) -Wno-missing-declarations
+
+$(CORE_LIB_FILE): $(CORE_OBJECTS)
+	ar rs $@ $^
+
+$(ALLEGRO_LIB_FILE): $(ALLEGRO_OBJECTS)
+	ar rs $@ $^
+
+ifdef PREFIX
+
+install: $(CORE_LIB_FILE) $(ALLEGRO_LIB_FILE) include/dumb.h include/aldumb.h
+	cp $(CORE_LIB_FILE) $(PREFIX)/lib
+	cp $(ALLEGRO_LIB_FILE) $(PREFIX)/lib
+	cp include/dumb.h $(PREFIX)/include
+	cp include/aldumb.h $(PREFIX)/include
+
+instcore: $(CORE_LIB_FILE) include/dumb.h
+	cp $(CORE_LIB_FILE) $(PREFIX)/lib
+	cp include/dumb.h $(PREFIX)/include
+
+uninstall:
+	- rm $(PREFIX)/include/dumb.h
+	- rm $(PREFIX)/include/aldumb.h
+	- rm $(PREFIX)/lib/$(notdir $(CORE_LIB_FILE))
+	- rm $(PREFIX)/lib/$(notdir $(ALLEGRO_LIB_FILE))
+else
+
+install:
+	@echo Need to specify PREFIX for this to work, e.g. make install PREFIX=/usr/local
+instcore:
+	@echo Need to specify PREFIX for this to work, e.g. make instcore PREFIX=/usr/local
+uninstall:
+	@echo Need to specify PREFIX for this to work, e.g. make uninstall PREFIX=/usr/local
+
+endif
+
+$(GCCVER): src/misc/gccver.c
+	$(CC) $< -o $@
+
+$(GCCVER_INC): $(GCCVER)
+	$< > $@

@@ -1,0 +1,157 @@
+.PHONY: all core install instcore uninstall clean veryclean
+
+include make/makefile.lst
+
+OPT = -G5
+
+DEBUG_OBJDIR = obj/msvc/debug
+RELEASE_OBJDIR = obj/msvc/release
+LIBDIR = lib/msvc
+
+ifdef DEBUGMODE
+	FLAGS = -D"DEBUGMODE" -MDd -W3 -ZI -GZ
+	MINFLAGS = -MDd
+	ALLEG = alld.lib
+	OBJDIR = $(DEBUG_OBJDIR)
+	CORE_LIB_FILE = $(LIBDIR)/$(CORE_LIB_DEBUG).lib
+	ALLEGRO_LIB_FILE = $(LIBDIR)/$(ALLEGRO_LIB_DEBUG).lib
+else
+	FLAGS = -MD -W3 -Ogityb2 -Gs $(OPT)
+	MINFLAGS = -MD
+	ALLEG = alleg.lib
+	OBJDIR = $(RELEASE_OBJDIR)
+	CORE_LIB_FILE = $(LIBDIR)/$(CORE_LIB).lib
+	ALLEGRO_LIB_FILE = $(LIBDIR)/$(ALLEGRO_LIB).lib
+endif
+
+FLAGS += -D"DUMB_DECLARE_DEPRECATED"
+
+CP := copy
+#CP := xcopy /Y
+#CP := cp
+
+#--------------------------------------#
+#-- Check for environment variables ---#
+
+.PHONY: badwin badmsvc badspaces
+
+ifeq ($(OS),Windows_NT)
+WINSYSDIR = $(SYSTEMROOT)
+WINSUBDIR = system32
+
+ifeq ($(WINSYSDIR),)        # Fix for Win2k
+WINSYSDIR = $(SystemRoot)
+endif
+
+else
+WINSYSDIR = $(windir)
+WINSUBDIR = system
+endif
+
+ifneq ($(WINSYSDIR),)
+WINDIR_U = $(subst \,/,$(WINSYSDIR)/$(WINSUBDIR))
+WINDIR_D = $(subst /,\,$(WINSYSDIR)/$(WINSUBDIR))
+else
+badwin:
+	@echo Your SYSTEMROOT or windir environment variable is not set!
+endif
+
+
+ifdef MSVCDir
+MSVCDIR_U = $(subst \,/,$(MSVCDir))
+MSVCDIR_D = $(subst /,\,$(MSVCDir))
+else
+ifdef MSDevDir
+MSVCDIR_U = $(subst \,/,$(MSDevDir))
+MSVCDIR_D = $(subst /,\,$(MSDevDir))
+else
+ifdef MSVCDIR
+MSVCDIR_U = $(subst \,/,$(MSVCDIR))
+MSVCDIR_D = $(subst /,\,$(MSVCDIR))
+else
+ifdef MSDEVDIR
+MSVCDIR_U = $(subst \,/,$(MSDEVDIR))
+MSVCDIR_D = $(subst /,\,$(MSDEVDIR))
+else
+badmsvc:
+	@echo Your MSVCDIR or MSDEVDIR environment variable is not set!
+endif
+endif
+endif
+endif
+
+NULLSTRING :=
+SPACE := $(NULLSTRING) # special magic to get an isolated space character
+
+ifneq ($(findstring $(SPACE),$(MSVCDIR)$(MSDEVDIR)),)
+badspaces:
+	@echo There are spaces in your MSVCDIR or MSDEVDIR environment
+	@echo variables: please change these to the 8.3 short filename
+	@echo version, or move your compiler to a different directory.
+endif
+
+
+OBJDIR_D = $(subst /,\,$(OBJDIR))
+CORE_OBJECTS = $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %.obj, $(CORE_MODULES))))
+ALLEGRO_OBJECTS = $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %.obj, $(ALLEGRO_STUB))))
+EXAMPLES_EXE = $(addprefix examples/, $(notdir $(patsubst %.c, %.exe, $(EXAMPLES))))
+
+RUNNER = obj\runner.exe
+
+all: $(CORE_LIB_FILE) $(ALLEGRO_LIB_FILE) $(EXAMPLES_EXE)
+
+core: $(CORE_LIB_FILE)
+
+clean:
+	- del $(subst /,\,$(DEBUG_OBJDIR))\*.obj
+	- del $(subst /,\,$(RELEASE_OBJDIR))\*.obj
+	- del examples\*.obj
+
+veryclean: clean
+	- del $(subst /,\,$(CORE_LIB_FILE))
+	- del $(subst /,\,$(ALLEGRO_LIB_FILE))
+
+install: $(CORE_LIB_FILE) $(ALLEGRO_LIB_FILE) include/dumb.h include/aldumb.h
+	$(CP) $(subst /,\,$(CORE_LIB_FILE)) "$(MSVCDIR_D)\lib\"
+	$(CP) $(subst /,\,$(ALLEGRO_LIB_FILE)) "$(MSVCDIR_D)\lib\"
+	$(CP) include\dumb.h "$(MSVCDIR_D)\include\"
+	$(CP) include\aldumb.h "$(MSVCDIR_D)\include\"
+
+instcore: $(CORE_LIB_FILE) include/dumb.h
+	$(CP) $(subst /,\,$(CORE_LIB_FILE)) "$(MSVCDIR_D)\lib\"
+	$(CP) include\dumb.h "$(MSVCDIR_D)\include\"
+
+uninstall:
+	- del $(MSVCDIR_D)\include\dumb.h
+	- del $(MSVCDIR_D)\include\aldumb.h
+	- del $(MSVCDIR_D)\lib\$(notdir $(CORE_LIB_FILE))
+	- del $(MSVCDIR_D)\lib\$(notdir $(ALLEGRO_LIB_FILE))
+
+$(RUNNER): src/misc/runner.c
+	gcc -O -Wall -Werror -o $(RUNNER) src/misc/runner.c
+
+$(OBJDIR)/%.obj: src/core/%.c include/dumb.h include/internal/dumb.h $(RUNNER)
+	$(RUNNER) cl -nologo @ -c $< -Iinclude -Fo$@ $(FLAGS)
+
+$(OBJDIR)/%.obj: src/helpers/%.c include/dumb.h $(RUNNER)
+	$(RUNNER) cl -nologo @ -c $< -Iinclude -Fo$@ $(FLAGS)
+
+$(OBJDIR)/%.obj: src/it/%.c include/dumb.h include/internal/it.h $(RUNNER)
+	$(RUNNER) cl -nologo @ -c $< -Iinclude -Fo$@ $(FLAGS)
+
+$(OBJDIR)/%.obj: src/allegro/%.c include/aldumb.h include/dumb.h \
+                        include/internal/aldumb.h include/internal/dumb.h $(RUNNER)
+	$(RUNNER) cl -nologo @ -c $< -Iinclude -Fo$@ $(FLAGS)
+
+examples/%.obj: examples/%.c include/aldumb.h include/dumb.h $(RUNNER)
+	$(RUNNER) cl -nologo @ -c $< -Iinclude -Fo$@ $(FLAGS)
+
+examples/%.exe: examples/%.obj $(RUNNER) $(ALLEGRO_LIB_FILE) $(CORE_LIB_FILE)
+	$(RUNNER) cl -nologo @ $< -Iinclude -Fe$@ $(FLAGS) $(ALLEGRO_LIB_FILE) $(CORE_LIB_FILE) $(ALLEG)
+
+$(CORE_LIB_FILE): $(CORE_OBJECTS) $(RUNNER)
+	$(RUNNER) lib -nologo @ -out:$(CORE_LIB_FILE) $(CORE_OBJECTS)
+
+$(ALLEGRO_LIB_FILE): $(ALLEGRO_OBJECTS) $(RUNNER)
+	$(RUNNER) lib -nologo @ -out:$(ALLEGRO_LIB_FILE) $(ALLEGRO_OBJECTS)
+

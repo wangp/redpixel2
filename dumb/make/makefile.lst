@@ -1,0 +1,51 @@
+CORE_MODULES =             \
+    core/atexit.c          \
+    core/duhlen.c          \
+    core/dumbfile.c        \
+    core/loadduh.c         \
+    core/makeduh.c         \
+    core/rawsig.c          \
+    core/readduh.c         \
+    core/register.c        \
+    core/rendduh.c         \
+    core/rendsig.c         \
+    core/unload.c          \
+    helpers/clickrem.c     \
+    helpers/memfile.c      \
+    helpers/resample.c     \
+    helpers/sampbuf.c      \
+    helpers/silence.c      \
+    helpers/stdfile.c      \
+    it/itload.c            \
+    it/itread.c            \
+    it/itrender.c          \
+    it/itunload.c          \
+    it/loads3m.c           \
+    it/reads3m.c           \
+    it/loadxm.c            \
+    it/readxm.c            \
+    it/loadmod.c           \
+    it/readmod.c           \
+    it/xmeffect.c          \
+    it/itorder.c           \
+    it/itmisc.c
+
+
+CORE_LIB = dumb
+CORE_LIB_DEBUG = dumbd
+
+ALLEGRO_STUB =             \
+    allegro/alplay.c       \
+    allegro/datduh.c       \
+    allegro/datit.c        \
+    allegro/datxm.c        \
+    allegro/dats3m.c       \
+    allegro/datmod.c       \
+    allegro/datunld.c      \
+    allegro/packfile.c
+
+
+ALLEGRO_LIB = aldmb
+ALLEGRO_LIB_DEBUG = aldmd
+
+EXAMPLES = dumbplay.c

@@ -1,0 +1,145 @@
+.PHONY: all core install instcore uninstall clean veryclean
+
+GCCVER := obj/mingw/gccver.exe
+GCCVER_INC := obj/mingw/gccver.inc
+-include $(GCCVER_INC)
+
+include make/makefile.lst
+
+DEBUG_OBJDIR = obj/mingw/debug
+RELEASE_OBJDIR = obj/mingw/release
+LIBDIR = lib/mingw
+
+CP := copy
+#CP := xcopy /Y
+#CP := cp
+CC  = gcc
+
+#--------------------------------------#
+#-- Check for environment variables ---#
+
+.PHONY: badmingw badspaces
+
+ifdef MINGDIR
+MINGDIR_U = $(subst \,/,$(MINGDIR))
+MINGDIR_D = $(subst /,\,$(MINGDIR))
+else
+badmingw:
+	@echo Your MINGDIR environment variable is not set!
+endif
+
+NULLSTRING :=
+SPACE := $(NULLSTRING) # special magic to get an isolated space character
+
+ifneq ($(findstring $(SPACE),$(MINGDIR)),)
+badspaces:
+	@echo There are spaces in your MINGDIR environment
+	@echo variables: please change these to the 8.3 short filename
+	@echo version, or move your compiler to a different directory.
+endif
+
+
+# -------- decide what compiler options to use --------
+#
+
+ifdef PGCC
+    OFLAGS = -mcpu=pentium -O6 -ffast-math
+else
+ifdef PPROONLY
+    OFLAGS = -march=i686 -O2 -funroll-loops -ffast-math
+else
+ifdef PENTIUMONLY
+    OFLAGS = -march=i586 -O2 -funroll-loops -ffast-math
+else
+    OFLAGS = -mcpu=pentium -O2 -funroll-loops -ffast-math
+endif
+endif
+endif
+
+ifdef	DEBUGMODE
+	# -------- debugging build --------
+	CFLAGS	= -DDEBUGMODE=$(DEBUGMODE) $(WFLAGS) -g3
+	LFLAGS  = -g3
+	LDFLAGS = -mwindows -lalld
+	OBJDIR = $(DEBUG_OBJDIR)
+	CORE_LIB_FILE = $(LIBDIR)/lib$(CORE_LIB_DEBUG).a
+	ALLEGRO_LIB_FILE = $(LIBDIR)/lib$(ALLEGRO_LIB_DEBUG).a
+else
+	#	--------	optimised build	--------
+	CFLAGS	= $(WFLAGS) $(OFLAGS)
+	LDFLAGS = -mwindows -lalleg
+	OBJDIR = $(RELEASE_OBJDIR)
+	CORE_LIB_FILE = $(LIBDIR)/lib$(CORE_LIB).a
+	ALLEGRO_LIB_FILE = $(LIBDIR)/lib$(ALLEGRO_LIB).a
+endif
+
+OBJDIR_D = $(subst /,\,$(OBJDIR))
+CORE_OBJECTS = $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %.o, $(CORE_MODULES))))
+ALLEGRO_OBJECTS = $(addprefix $(OBJDIR)/, $(notdir $(patsubst %.c, %.o, $(ALLEGRO_STUB))))
+EXAMPLES_EXE = $(addprefix examples/, $(notdir $(patsubst %.c, %.exe, $(EXAMPLES))))
+
+
+all: $(CORE_LIB_FILE) $(ALLEGRO_LIB_FILE) $(EXAMPLES_EXE)
+
+core: $(CORE_LIB_FILE)
+
+install: $(CORE_LIB_FILE) $(ALLEGRO_LIB_FILE) include/dumb.h include/aldumb.h
+	xcopy $(subst /,\,$(CORE_LIB_FILE)) $(MINGDIR_D)\lib
+	xcopy $(subst /,\,$(ALLEGRO_LIB_FILE)) $(MINGDIR_D)\lib
+	xcopy include\dumb.h $(MINGDIR_D)\include
+	xcopy include\aldumb.h $(MINGDIR_D)\include
+
+instcore: $(CORE_LIB_FILE) include/dumb.h
+	xcopy $(subst /,\,$(CORE_LIB_FILE)) $(MINGDIR_D)\lib
+	xcopy include\dumb.h $(MINGDIR_D)\include
+
+uninstall:
+	- del $(MINGDIR_D)\include\dumb.h
+	- del $(MINGDIR_D)\include\aldumb.h
+	- del $(MINGDIR_D)\lib\$(notdir $(CORE_LIB_FILE))
+	- del $(MINGDIR_D)\lib\$(notdir $(ALLEGRO_LIB_FILE))
+
+CFLAGS += -Iinclude
+
+clean:
+	- del $(subst /,\,$(DEBUG_OBJDIR))\*.o
+	- del $(subst /,\,$(RELEASE_OBJDIR))\*.o
+	- del examples\*.o
+	- del $(subst /,\,$(GCCVER))
+	- del $(subst /,\,$(GCCVER_INC))
+
+veryclean: clean
+	- del $(subst /,\,$(CORE_LIB_FILE))
+	- del $(subst /,\,$(ALLEGRO_LIB_FILE))
+	- del $(subst /,\,$(EXAMPLES_EXE))
+
+$(OBJDIR)/%.o: src/core/%.c include/dumb.h include/internal/dumb.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OBJDIR)/%.o: src/helpers/%.c include/dumb.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OBJDIR)/%.o: src/it/%.c include/dumb.h include/internal/it.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OBJDIR)/%.o: src/allegro/%.c include/aldumb.h include/dumb.h \
+                      include/internal/aldumb.h include/internal/dumb.h
+	$(CC) -c -o $@ $< $(CFLAGS) $(WFLAGS_ALLEGRO)
+
+examples/%.exe: examples/%.o $(ALLEGRO_LIB_FILE) $(CORE_LIB_FILE)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+examples/%.o: examples/%.c include/aldumb.h include/dumb.h
+	$(CC) -c $< -o $@ $(CFLAGS) -Wno-missing-declarations
+
+$(CORE_LIB_FILE): $(CORE_OBJECTS)
+	ar rs $@ $^
+
+$(ALLEGRO_LIB_FILE): $(ALLEGRO_OBJECTS)
+	ar rs $@ $^
+
+$(GCCVER): src/misc/gccver.c
+	$(CC) $< -o $@
+
+$(GCCVER_INC): $(GCCVER)
+	$(subst /,\,$<) > $(subst /,\,$@)
