@@ -78,32 +78,7 @@ function _internal_object_init_hook (self)
 				  end)
 	end
 
-	-- proxy methods
-	self.add_layer = dummy
-	self.replace_layer = dummy
-	self.move_layer = dummy
-	self.rotate_layer = dummy
-	self.remove_layer = dummy
-	self.remove_all_layers = dummy
-	self.add_light = dummy
-	self.replace_light = dummy
-	self.move_light = dummy
-	self.remove_light = dummy
-	self.remove_all_lights = dummy
-
     else
-
-	-- nonproxy methods
-	self.set_stale = dummy
-	self.hide = dummy
-	self.show = dummy
-	self.set_collision_flags = dummy
-	self.add_creation_field = dummy
-	self.set_mask = dummy
-	self.set_masks_centre = dummy
-	self.remove_mask = dummy
-	self.remove_all_masks = dummy
-	self.receive_damage = dummy
 
 	-- proxy methods
 	self.add_layer = object_add_layer
