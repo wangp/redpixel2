@@ -152,7 +152,7 @@ Standard_Projectile {
     alias = "~bp",
     icon = "/basic/weapon/blaster/projectile",
     damage = 8,
-    sparks = 30,
+    sparks = 50,
     dot_mask = true,
     proxy_init = function (self)
 	self:move_layer (0, 3, 0)
@@ -262,7 +262,7 @@ Standard_Projectile {
     alias = "~Ap",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     damage = 12,
-    sparks = 40
+    sparks = 60
 }
 
 Weapon {
@@ -302,7 +302,7 @@ Standard_Projectile {
     alias = "~mp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     damage = 10,
-    sparks = 50
+    sparks = 70
 }
 
 
@@ -420,7 +420,7 @@ Standard_Projectile {
     alias = "~sp",
     icon = "/basic/weapon/shotgun/projectile",
     damage = 10,
-    sparks = 20
+    sparks = 30
 }
 
 
@@ -468,7 +468,7 @@ Objtype {
 	function self:tile_collide_hook (obj)
 	    -- sniper rifle slugs don't collide with tiles, but for fun
 	    -- we make them spawn sparks the first time they hit one 
-	    spawn_sparks_on_clients (self.x, self.y, 30, 2)
+	    spawn_sparks_on_clients (self.x, self.y, 50, 2)
 	    self:set_collision_flags ("pn")
 	    self.tile_collide_hook = nil
 	    return false
@@ -520,7 +520,7 @@ Standard_Projectile {
     alias = "~vp",
     icon = "/basic/weapon/vulcan/projectile",
     damage = 7,
-    sparks = 40,
+    sparks = 60,
 }
 
 

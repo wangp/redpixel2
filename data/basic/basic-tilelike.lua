@@ -18,7 +18,7 @@ local Crate = function (t)
 		self.health = self.health - amount
 		if self.health <= 0 then
 		    spawn_explosion_on_clients ("basic-explo42", collision_x, collision_y)
-		    spawn_sparks_on_clients (collision_x, collision_y, 30, 3)
+		    spawn_sparks_on_clients (collision_x, collision_y, 40, 3)
 		    self.health = t.health
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
@@ -101,7 +101,7 @@ local Barrel = function (t)
 		self.health = self.health - amount
 		if self.health <= 0 then
 		    spawn_explosion_on_clients ("basic-explo42", collision_x, collision_y)
-		    spawn_sparks_on_clients (collision_x, collision_y, 30, 3)
+		    spawn_sparks_on_clients (collision_x, collision_y, 40, 3)
 		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then

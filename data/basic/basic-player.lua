@@ -353,7 +353,7 @@ local player_nonproxy_init = function (self)
 	    return
 	end
 
-	spawn_blood_on_clients (collision_x, collision_y, 200, 2)
+	spawn_blood_on_clients (collision_x, collision_y, damage * 40, 2)
 	if damage/3 >= 1 then
 	    spawn_blod_on_clients (self.x, self.y, damage/3)
 	end
