@@ -1,17 +1,27 @@
-\documentclass[a4paper,titlepage]{article}
+\documentclass[a4paper]{article}
 \usepackage{vmargin}
 \usepackage{url}
-%% PDF options from Chicken Scheme compiler's manual
+
+\newif\ifpdf\ifx\pdfoutput\undefined\pdffalse\else\pdfoutput=1\pdftrue\fi
+
+%% PDF options from Chicken Scheme compiler's manual.
+%% Only use hyperref for the PDF output otherwise it puts ugly
+%% underlines in the TOC.
+\ifpdf
 \usepackage[bookmarks=true,bookmarksnumbered=true,bookmarksopen=false,colorlinks=true,pdfpagemode=none,plainpages=false]{hyperref}
+\fi
+
+
 \begin{document}
 
 
 \newcommand{\key}[1]{\fbox{\texttt{#1}}}
 
 
-\title{Red Pixel 2}
-\date{Demo 2}
-\author{Peter Wang}
+\title{\textbf{Red Pixel 2}}
+\date{\textbf{Demo 2}}
+\author{Peter Wang\\
+\texttt{tjaden@users.sf.net}}
 \maketitle
 
 \tableofcontents
@@ -35,15 +45,24 @@ is based on the number of kills made.
 \subsection{System requirements}
 
 \begin{itemize}
-\item i686 class machine running Windows 9x/ME or Linux
-\item machines must be connected on a LAN with IP (high speed internet
-  connections may work, but hasn't been tested)
-\item keyboard, mouse, sound card, etc.
-\end{itemize}
 
-Windows XP doesn't work (well?), and I presume neither would Windows
-NT nor Windows 2000.  I don't have access to those operating systems,
-so I don't know when that will be fixed.
+\item Processor: i686-ish machine with a clock speed of around 400 MHz
+  is probably minimum.  i686 means Pentium Pro or above.
+
+\item Operating system: Windows 9x/ME or Linux.
+
+  It has been reported that Windows XP doesn't work well in
+  client-server mode (although it works in client-only mode).  I
+  presume the same of Windows NT and Windows 2000.  I don't have
+  access to those operating systems, so I don't know when the problem
+  will be fixed.
+
+\item Network: Machines must be on a LAN with IP.  High speed Internet
+  connections may work, but hasn't been tested.
+
+\item Keyboard, mouse, sound card, etc.
+
+\end{itemize}
 
 
 
@@ -237,6 +256,7 @@ maximum of 100 health points.
 \subsubsection*{Bloodlust}
 
 The bloodlust item temporarily doubles the damage your weapons do.
+Mines are unaffected.
 
 \subsubsection*{Lightamp}
 
@@ -247,6 +267,71 @@ you see better.  It will not affect how other players see you.
 
 A backpack is dropped when a player dies, containing half of their
 ammunition (but no weapons).  Mines are not retained.
+
+\subsubsection*{Red codial}
+
+\emph{Does nothing yet.}
+
+
+
+%----------------------------------------------------------------------
+\section{Options}
+
+These are options in the menu:
+
+\subsubsection*{Screen resolution}
+
+Select the resolution you wish to play the game in.  Note that the
+game is always rendered at 320x200 and only stretched up to larger
+resolutions as required, so try not to use 640x400 or 640x480 unless
+your video card drivers don't support 320x200.  The menu system always
+runs in 640x400 or 640x480.  Only 15- and 16-bit colour depths are
+supported.
+
+\subsubsection*{Stretch method}
+
+If you are using a high resolution video mode you have three choices
+of how to stretch the original low-res game image.  The choices are
+\emph{plain} (fastest), \emph{Super 2xSaI} and \emph{SuperEagle}.
+
+\subsubsection*{SFX}
+
+Choose the sound effects volume.
+
+\subsubsection*{Music}
+
+Choose whether to play music modules in the background, and the music
+volume.  Music can take a considerable amount of CPU power to play.
+Supported module formats are XM, IT, S3M, and MOD.  You can place
+additional modules into the \path{data/music} directory and edit the
+\texttt{.txt} files.
+
+\subsubsection*{Gamma}
+
+Adjust the brightness of the game screen.  \emph{You must restart the
+game for this setting to take effect.}
+
+
+
+%----------------------------------------------------------------------
+\section{Editor}
+
+\emph{Undocumented yet.}
+
+
+%----------------------------------------------------------------------
+\section{Known bugs}
+
+\begin{itemize}
+
+\item Sometimes the character becomes stuck on the floor and cannot
+  jump.  Workaround: fall down, then jumping ability will be reset.
+
+\item Segfaults when client attempts to run without the map in use.
+
+\item Sometimes suicide is counted twice or more.
+
+\end{itemize}
 
 
 
