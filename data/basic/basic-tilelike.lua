@@ -12,22 +12,35 @@ local Crate = function (t)
 	category = "objtile",
 	nonproxy_init = function (self)
 	    self.health = t.health
+
 	    function self:receive_damage (amount)
 		self.health = self.health - amount
 		if self.health <= 0 then
 		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
 		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
 		    self:hide ()
-		    function the_hook (self)
-			if _internal_would_collide_with_objects (self) then
-			    -- try again later
-			    self:set_update_hook (700, the_hook)
-			else
-			    self:show ()
-			    self:remove_update_hook ()
-			end
-		    end
-		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
+		    self:hibernate (t.respawn_secs * 1000)
+		end
+	    end
+
+	    function self:hibernate (msecs)
+		function the_hook (self)
+		    local ball = spawn_object ("basic-respawning-ball",
+					       self.x, self.y)
+		    ball.item = self
+		    self:remove_update_hook()
+		end
+		self:set_update_hook (msecs, the_hook)
+	    end
+
+	    self.super_show = self.show
+	    function self:show ()
+		if _internal_would_collide_with_objects (self) then
+		    -- try again later
+		    self:hibernate (700)
+		else
+		    self:super_show ()
+		    self:remove_update_hook ()
 		end
 	    end
 	end
@@ -65,6 +78,7 @@ local Barrel = function (t)
 	category = "objtile",
 	nonproxy_init = function (self)
 	    self.health = t.health
+
 	    function self:receive_damage (amount, killer_id)
 		self.health = self.health - amount
 		if self.health <= 0 then
@@ -81,16 +95,28 @@ local Barrel = function (t)
 		    end
 
 		    self:hide ()
-		    function the_hook (self)
-			if _internal_would_collide_with_objects (self) then
-			    -- try again later
-			    self:set_update_hook (700, the_hook)
-			else
-			    self:show ()
-			    self:remove_update_hook ()
-			end
-		    end
-		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
+		    self:hiberate (t.respawn_secs * 1000)
+		end
+	    end
+
+	    function self:hibernate (msecs)
+		function the_hook (self)
+		    local ball = spawn_object ("basic-respawning-ball",
+					       self.x, self.y)
+		    ball.item = self
+		    self:remove_update_hook()
+		end
+		self:set_update_hook (msecs, the_hook)
+	    end
+
+	    self.super_show = self.show
+	    function self:show ()
+		if _internal_would_collide_with_objects (self) then
+		    -- try again later
+		    self:hibernate (700)
+		else
+		    self:super_show ()
+		    self:remove_update_hook ()
 		end
 	    end
 	end
