@@ -112,6 +112,78 @@ static void cursor_set_selected ()
 }
 
 
+/* Actions box.  */
+
+enum {
+    ACTION_ADD,
+    ACTION_DEL,
+    ACTION_RAISE,
+    ACTION_LOWER,
+    ACTION_EDIT
+};
+
+static gui_window_t *actions_win;
+static ug_dialog_t *actions_dlg;
+static int action = ACTION_ADD;
+
+static void add_slot (ug_widget_t *p, int s, void *d) { action = ACTION_ADD; }
+static void del_slot (ug_widget_t *p, int s, void *d) { action = ACTION_DEL; }
+static void raise_slot (ug_widget_t *p, int s, void *d) { action = ACTION_RAISE; }
+static void lower_slot (ug_widget_t *p, int s, void *d) { action = ACTION_LOWER; }
+static void edit_slot (ug_widget_t *p, int s, void *d) { action = ACTION_EDIT; }
+
+static ug_dialog_layout_t actions_layout[] =
+{
+    { &ug_button, -50, 16, "add", add_slot, NULL },
+    { &ug_button, -50, 16, "del", del_slot, NULL },
+    { UG_DIALOG_LAYOUT_BR },
+    { &ug_button, -100, 16, "raise", raise_slot, NULL },
+    { UG_DIALOG_LAYOUT_BR },
+    { &ug_button, -100, 16, "lower", lower_slot, NULL },
+    { UG_DIALOG_LAYOUT_BR },
+    { &ug_button, -100, 16, "edit", edit_slot, NULL },
+    { UG_DIALOG_LAYOUT_END }
+};
+
+static void create_actions_box ()
+{
+    actions_win = gui_window_create (150, 50, 50, 70, 0);
+    gui_window_hide (actions_win);
+    gui_window_set_title (actions_win, "obj");
+    gui_window_set_alpha (actions_win, 0x70);
+    actions_dlg = ug_dialog_create (actions_win, actions_layout, 0);
+}
+
+static void destroy_actions_box ()
+{
+    ug_dialog_destroy (actions_dlg);
+    gui_window_destroy (actions_win);
+}
+
+static void show_actions_box ()
+{
+    gui_window_show (actions_win);
+}
+
+static void hide_actions_box ()
+{
+    gui_window_hide (actions_win);
+}
+
+static void toggle_actions_box ()
+{
+    if (gui_window_hidden (actions_win))
+	show_actions_box ();
+    else
+	hide_actions_box ();
+}
+
+static int actions_box_hidden ()
+{
+    return gui_window_hidden (actions_win);
+}
+
+
 /* Save / restore selectbar state.  */
  
 static void save_current ()
@@ -159,6 +231,8 @@ static void right_proc ()
 
 /* Mode manager callbacks.  */
 
+static int actions_box_was_hidden;
+
 static void enter_mode ()
 {
     editarea_layer_activate ("objects");
@@ -168,10 +242,14 @@ static void enter_mode ()
     selectbar_set_selected_proc (cursor_set_selected);
     restore_current ();
     cursor_set_selected ();
+    if (!actions_box_was_hidden)
+	show_actions_box ();
 }
 
 static void leave_mode ()
 {
+    actions_box_was_hidden = actions_box_hidden ();
+    hide_actions_box ();
     cursor_set_default ();
     save_current ();
     selectbar_set_selected_proc (0);
@@ -256,44 +334,70 @@ static int event_layer (int event, struct editarea_event *d)
 	    y = map_y (d->mouse.y);
 	    p = find_object (x, y);
 
+	    /* LMB */
 	    if (d->mouse.b == 0) {
-		if (key_shifts & KB_SHIFT_FLAG) {
-		    if (p) do_object_pickup (p);
-		    move = NULL;
-		}
-		else if (key_shifts & KB_CTRL_FLAG) {
-		    if (p) {
-			map_unlink_object (p);
-			map_link_object (map, p);
-			return 1;
-		    }
-		}
-		else if (p) {
-		    move = p;
-		    move_offx = x - p->x;
-		    move_offy = y - p->y;
-		}
-		else {
-		    p = object_create (selectbar_selected_name ());
-		    p->x = x + cursor_offset_x;
-		    p->y = y + cursor_offset_y;
-		    map_link_object (map, p);
+		switch (action) {
+		    case ACTION_ADD:
+			if (key_shifts & KB_SHIFT_FLAG) {
+			    if (p) do_object_pickup (p);
+			    move = NULL;
+			}
+			else if (p) {
+			    move = p;
+			    move_offx = x - p->x;
+			    move_offy = y - p->y;
+			}
+			else {
+			    p = object_create (selectbar_selected_name ());
+			    p->x = x + cursor_offset_x;
+			    p->y = y + cursor_offset_y;
+			    map_link_object (map, p);
+			    
+			    highlighted = move = p;
+			    move_offx = x - p->x;
+			    move_offy = y - p->y;
+			    cursor_set_dot ();
+			    return 1;
+			}
+			break;
 
-		    highlighted = move = p;
-		    move_offx = x - p->x;
-		    move_offy = y - p->y;
-		    cursor_set_dot ();
-		    return 1;
+		    case ACTION_DEL:
+			if (p) { 
+			    map_unlink_object (p);
+			    object_destroy (p);
+			    return 1;
+			}
+			break;
+			
+		    case ACTION_RAISE:
+			if (p) {
+			    map_unlink_object (p);
+			    map_link_object (map, p);
+			    return 1;
+			}
+			break;
+			
+		    case ACTION_LOWER:
+			if (p) {
+			    map_unlink_object (p);
+			    map_link_object_bottom (map, p);
+			    return 1;
+			}
+			break;
+			
+		    case ACTION_EDIT:
+			if (p) {
+			    /* XXX: test only */
+			    gui_window_t *w;
+			    w = gui_window_create (100, 100, 100, 80, GUI_HINT_GHOSTABLE);
+			    gui_window_set_title (w, "Edit object");
+			    gui_window_set_alpha (w, 0xa0);
+			}
+			break;
 		}
 	    }
-	    else if ((d->mouse.b == 1) && (p)) {
-		map_unlink_object (p);
-		if (key_shifts & KB_CTRL_FLAG)
-		    map_link_object_bottom (map, p);
-		else
-		    object_destroy (p);
-		return 1;
-	    }
+	    else if ((d->mouse.b == 1))
+		toggle_actions_box ();
 	    break;
 	    
 	case EDITAREA_EVENT_MOUSE_MOVE:
@@ -331,6 +435,8 @@ int mode_objects_init ()
     if (make_type_list () < 0)
 	return -1;
     current = type_list.next;
+    
+    create_actions_box ();
 
     modemgr_register (&object_mode);
     editarea_layer_register ("objects", draw_layer, event_layer, DEPTH_OBJECTS);
@@ -340,5 +446,6 @@ int mode_objects_init ()
 
 void mode_objects_shutdown ()
 {
+    destroy_actions_box ();
     free_type_list ();
 }

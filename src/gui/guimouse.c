@@ -32,3 +32,17 @@ void gui_mouse_update ()
 	gui_mouse.b[i].state =  HELD (i);
     }
 }
+
+
+void gui_mouse_restrict (gui_window_t *w)
+{
+    set_mouse_range (gui_window_x (w), gui_window_y (w),
+		     gui_window_x (w) + gui_window_w (w) - 1,
+		     gui_window_y (w) + gui_window_h (w) - 1);
+}
+
+
+void gui_mouse_unrestrict ()
+{
+    set_mouse_range (0, 0, SCREEN_W - 1, SCREEN_H - 1);
+}

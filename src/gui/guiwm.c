@@ -76,6 +76,16 @@ void gui_window_raise (gui_window_t *w)
     gui_wm->window_raise (w);
 }
 
+void gui_window_show (gui_window_t *w)
+{
+    gui_wm->window_show (w);
+}
+
+void gui_window_hide (gui_window_t *w)
+{
+    gui_wm->window_hide (w);
+}
+
 void gui_window_dirty (gui_window_t *w)
 {
     gui_wm->window_dirty (w);
@@ -89,6 +99,11 @@ void gui_window_set_title (gui_window_t *w, const char *title)
 void gui_window_set_depth (gui_window_t *w, int depth)
 {
     gui_wm->window_set_depth (w, depth);
+}
+
+void gui_window_set_alpha (gui_window_t *w, int alpha)
+{
+    gui_wm->window_set_alpha (w, alpha);
 }
 
 void gui_window_set_self (gui_window_t *w, void *self)
@@ -110,4 +125,4 @@ int gui_window_x (gui_window_t *w) { return gui_wm->window_x (w); }
 int gui_window_y (gui_window_t *w) { return gui_wm->window_y (w); }
 int gui_window_w (gui_window_t *w) { return gui_wm->window_w (w); }
 int gui_window_h (gui_window_t *w) { return gui_wm->window_h (w); }
-
+int gui_window_hidden (gui_window_t *w) { return gui_wm->window_hidden (w); }

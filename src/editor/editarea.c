@@ -11,6 +11,7 @@
 #include "list.h"
 #include "magic4x4.h"
 #include "modes.h"
+#include "selbar.h"
 
 
 static gui_window_t *window;
@@ -63,7 +64,7 @@ static void draw (void *p, BITMAP *bmp)
     blit_magic_format (magic, bmp, bmp->w, bmp->h);
 
     if (grid)
-	dot_grid (bmp, 0, 0, gridx, gridy, makecol (0x20, 0xf0, 0xa0));
+	dot_grid (bmp, 0, 0, gridx, gridy, makecol (0x40, 0x60, 0x40));
     rect (bmp, 0, 0, bmp->w - 1, bmp->h - 1, makecol (0x40, 0x40, 0x40));
 }
 
@@ -106,35 +107,47 @@ static void event (void *p, int event, int d)
 		panning = 1;
 		old_x = gui_mouse.x;
 		old_y = gui_mouse.y;
+		gui_mouse_restrict (window);
+		scare_mouse ();
 		goto skip_layer;
 	    }
 	    break;
 
 	case GUI_EVENT_MOUSE_MOVE:
 	    if (panning) {
-		int dx = (gui_mouse.x - old_x) / 16;
-		int dy = (gui_mouse.y - old_y) / 16;
+		int dx = (gui_mouse.x - old_x) / 4;
+		int dy = (gui_mouse.y - old_y) / 4;
 
 		if (dx || dy) {
-		    offsetx -= dx;
-		    offsety -= dy;
+		    offsetx += dx;
+		    offsety += dy;
 		    offsetx = MAX (0, offsetx);
 		    offsety = MAX (0, offsety);
 		    dirty = 1;
-		    old_x = gui_mouse.x;
-		    old_y = gui_mouse.y;
+		    position_mouse (old_x, old_y);
 		}
-		
+
 		goto skip_layer;
 	    }
 	    break;
 
 	case GUI_EVENT_MOUSE_UP:
 	    if (d == 2) {	/* middle */
-		panning = 0;
+		if (panning) {
+		    unscare_mouse ();
+		    gui_mouse_unrestrict ();
+		    panning = 0;
+		}
 		goto skip_layer;
 	    }
 	    break;
+
+	case GUI_EVENT_MOUSE_WHEEL:
+	    if (d > 0)
+		selectbar_scroll_up ();
+	    else
+		selectbar_scroll_down ();
+	    goto skip_layer;
 
 	default:
 	    break;
@@ -165,6 +178,9 @@ static void event (void *p, int event, int d)
 	    data.mouse.b = d;
 	    dirty = active->event (EDITAREA_EVENT_MOUSE_UP, &data);
 	    break;
+	case GUI_EVENT_KEY_TYPE:
+	    data.key.key = d;
+	    dirty = active->event (EDITAREA_EVENT_KEY_TYPE, &data);
 	default:
 	    break;
     }

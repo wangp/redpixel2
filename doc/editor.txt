@@ -6,6 +6,7 @@ All modes
 	MMB		pan map
 	Arrows		scroll map
 	Space		toggle lighting
+	Mouse wheel	scroll selection
 
 Tile mode
 
@@ -21,12 +22,24 @@ Lights mode
 
 Object mode
 
+	RMB		toggle actions box
+
+	Action: add
 	LMB		create object
 	LMB drag	move object
 	Shift + LMB	pick up object
-	Ctrl + LMB	raise object
-	Ctrl + RMB	lower object
-	RMB		remove object
+
+	Action: del
+	LMB		remove object
+
+	Action: raise
+	LMB		raise object
+
+	Action: lower
+	LMB		lower object
+
+	Action: edit
+	LMB		edit object properties
 
 Start points mode
 

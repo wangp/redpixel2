@@ -18,12 +18,19 @@
 #define TITLE_X		8
 #define TITLE_Y		5
 
+/* ghost icon dimensions (keep in sync with ghost_image) */
+#define GHOST_ICON_W	15
+#define GHOST_ICON_H	7
+#define GHOST_ALPHA	0x40 	/* alpha level when ghosted */
+
 
 struct gui_window {
     int fx, fy, fw, fh;		/* frame */
     int ux, uy, uw, uh;		/* user */
     int flags, depth;
+    int alpha;
     int hidden;
+    int ghosted;
     char *title;
     
     void *self;
@@ -126,6 +133,7 @@ static gui_window_t *window_create (int x, int y, int w, int h, int flags)
     p->uw = w;
     p->uh = h;
     p->flags = flags;
+    p->alpha = 255;
 
     if (p->flags & GUI_HINT_NOFRAME) 
 	p->fx = x,
@@ -262,6 +270,22 @@ static void window_raise (gui_window_t *w)
 }
 
 
+static void window_show (gui_window_t *w)
+{
+    if (!w->hidden) return;
+    w->hidden = 0;
+    add_dirty_rect (w);
+}
+
+
+static void window_hide (gui_window_t *w)
+{
+    if (w->hidden) return;
+    w->hidden = 1;
+    add_dirty_rect (w);
+}
+
+
 /* XXX: implement window shading as a window manager function
  * (perhaps as an "extended" feature, even though we only have one
  * window manager) */
@@ -288,6 +312,18 @@ static void window_shade (gui_window_t *w, int shade)
 }
 
 
+/* XXX: see above comments for window_shade */
+static void window_ghost (gui_window_t *w, int ghost)
+{
+    if (!(w->flags & GUI_HINT_GHOSTABLE))
+	return;
+    if (!!ghost == !!w->ghosted)
+	return;
+    w->ghosted = !!ghost;
+    window_frame_dirty (w);
+}
+
+
 static void window_set_title (gui_window_t *w, const char *title)
 {
     free (w->title);
@@ -302,6 +338,13 @@ static void window_set_depth (gui_window_t *w, int depth)
     unlink_window (&windows, w);
     link_window (&windows, w);
     
+    add_dirty_rect (w);
+}
+
+
+static void window_set_alpha (gui_window_t *w, int alpha)
+{
+    w->alpha = MID (GHOST_ALPHA, alpha, 255);
     add_dirty_rect (w);
 }
 
@@ -330,6 +373,7 @@ static int window_x (gui_window_t *w) { return w->ux; }
 static int window_y (gui_window_t *w) { return w->uy; }
 static int window_w (gui_window_t *w) { return w->uw; }
 static int window_h (gui_window_t *w) { return w->uh; }
+static int window_hidden (gui_window_t *w) { return w->hidden; }
 
 /*----------------------------------------------------------------------*/
 
@@ -347,12 +391,13 @@ static void set_focus (gui_window_t *p)
     }
 }
 
-static gui_window_t *get_focused (int x, int y)
+static gui_window_t *get_focused (int x, int y, int allow_ghosted)
 {
     gui_window_t *w, *z = 0;
     
     for (w = windows.next; w; w = w->next)
-	if ((!w->hidden)
+	if ((!w->hidden) 
+	    && ((!w->ghosted) || (allow_ghosted))
 	    && (x >= w->fx) && (y >= w->fy) 
 	    && (x < w->fx + w->fw) && (y < w->fy + w->fh))
 	    z = w;
@@ -362,10 +407,8 @@ static gui_window_t *get_focused (int x, int y)
 
 static int in_user_area (gui_window_t *w, int x, int y)
 {
-    return ((x >= w->ux)
-	    && (y >= w->uy) 
-	    && (x < w->ux + w->uw)
-	    && (y < w->uy + w->uh));
+    return ((x >= w->ux) && (y >= w->uy) 
+	    && (x < w->ux + w->uw) && (y < w->uy + w->uh));
 }
 
 static int in_title_area (gui_window_t *w, int x, int y)
@@ -374,9 +417,18 @@ static int in_title_area (gui_window_t *w, int x, int y)
 	    && (y >= w->fy) && (y < w->uy));
 }
 
+static int on_ghost_icon (gui_window_t *w, int x, int y)
+{
+    return ((w->flags & GUI_HINT_GHOSTABLE)
+	    && (y > w->fy + TITLE_Y) 
+	    && (y <= w->fy + TITLE_Y + GHOST_ICON_H)
+	    && (x > w->fx + w->fw - RIGHT - GHOST_ICON_W) 
+	    && (x <= w->fx + w->fw - RIGHT));
+}
+
 static int in_resize_area (gui_window_t *w, int x, int y)
 {
-    return (!in_user_area (w, x, y) 
+    return (!in_user_area (w, x, y)
 	    && (x > w->fx + w->fw - 5) 
 	    && (y > w->fy + w->fh - 5));
 }
@@ -395,29 +447,12 @@ static int old_x, old_y;
 static void wm_handle_event (int event, int d)
 {
     gui_window_t *tmp;
-    
-#if 0
-    /* XXX: implement window hiding as a window manager function */
-    if (event == GUI_EVENT_KEY_TYPE) {
-	gui_window_t *w;
-	
-	for (w = windows.next; w; w = w->next) 
-	    if (!(w->flags & GUI_HINT_NOFRAME)) {
-		w->hidden = !w->hidden;
-		if (w->hidden && w == focus)
-		    focus = 0;
-	    }
-
-	dirty = 1;
-	return;
-    }
-#endif
 
     switch (event) {
 	case GUI_EVENT_MOUSE_MOVE:
-	    tmp = get_focused (gui_mouse.x, gui_mouse.y);
+	    tmp = get_focused (gui_mouse.x, gui_mouse.y, 0);
 	
-	    if (hasmouse != tmp) {
+	    if ((hasmouse != tmp) && (!moving) && (!resizing)) {
 		send_event (hasmouse, GUI_EVENT_WINDOW_LOSTMOUSE, 0);
 		
 		hasmouse = tmp;
@@ -429,16 +464,28 @@ static void wm_handle_event (int event, int d)
 	    break;
 
 	case GUI_EVENT_MOUSE_DOWN:
+	    tmp = get_focused (gui_mouse.x, gui_mouse.y, 1);
+
+	    /* unghost */
+	    if ((tmp) && (tmp->ghosted)) {
+		if ((d == MB1) && on_ghost_icon (tmp, gui_mouse.x, gui_mouse.y))
+		    window_ghost (tmp, 0), tmp = 0;
+		else
+		    tmp = get_focused (gui_mouse.x, gui_mouse.y, 0);
+	    }
+
 	    /* click to focus */
-	    tmp = get_focused (gui_mouse.x, gui_mouse.y);
 	    if (focus != tmp)
 		set_focus (tmp);
 
-	    /* raise / lower / shade */
+	    /* ghost / raise / lower / shade */
 	    if (focus)
 		switch (d) {
 		    case MB1:
-			window_raise (focus);
+			if (on_ghost_icon (focus, gui_mouse.x, gui_mouse.y))
+			    window_ghost (focus, 1), set_focus (0);
+			else
+			    window_raise (focus);
 			break;
 		    case MB2:
 			if (!in_user_area (focus, gui_mouse.x, gui_mouse.y))
@@ -450,7 +497,7 @@ static void wm_handle_event (int event, int d)
 			break;
 		}
 	    break;
-	    
+
 	case GUI_EVENT_MOUSE_UP:
 	    if (d == MB1)
 		moving = resizing = 0;
@@ -503,6 +550,40 @@ static void wm_handle_event (int event, int d)
 
 /*----------------------------------------------------------------------*/
 
+static const char *ghost_image[] =
+{
+    /* 15 x 7 -- keep in sync with GHOST_ICON_[WH] */
+    "##           ##",
+    "#  ###   ###  #",
+    "#  #  # #     #",
+    "#  ###  #  #  #",
+    "#  #  # #  #  #",
+    "#  ###   ##   #",
+    "##           ##"
+};
+
+static BITMAP *ghost_icon;
+
+static void create_ghost_icon ()
+{
+    int x, y;
+
+    ghost_icon = create_bitmap (GHOST_ICON_W, GHOST_ICON_H);
+
+    for (y = 0; y < GHOST_ICON_H; y++)
+	for (x = 0; x < GHOST_ICON_W; x++)
+	    putpixel (ghost_icon, x, y, ((ghost_image[y][x] == '#')
+					 ? makecol (0xc0, 0xe0, 0xc0)
+					 : bitmap_mask_color (ghost_icon)));
+}
+
+static void destroy_ghost_icon ()
+{
+    destroy_bitmap (ghost_icon);
+}
+
+/*----------------------------------------------------------------------*/
+
 static void draw_panel (BITMAP *bmp, int x, int y, int w, int h, int invert)
 {
     int fg, bg;
@@ -533,9 +614,13 @@ static void draw_frame (gui_window_t *w)
 	text_mode (-1);
 	textout (w->fbmp, font, w->title, TITLE_X, TITLE_Y, 
 		 ((focus == w)
-		  ? makecol (0xe0, 0xc0, 0xc0) 
+		  ? makecol (0xe0, 0xc0, 0xc0)
 		  : makecol (0xc0, 0xc0, 0xe0)));
     }
+    
+    if (w->flags & GUI_HINT_GHOSTABLE)
+	draw_sprite (w->fbmp, ghost_icon, 
+		     w->fbmp->w - RIGHT - GHOST_ICON_W, TITLE_Y);
 
     if (!w->shaded) {
 	hline (w->fbmp, 0, TOP - 1, w->fw - 1, makecol (0, 0, 0));
@@ -551,6 +636,15 @@ static void draw_user (gui_window_t *w)
 {
     if (w->draw)
 	w->draw (w->self, w->ubmp);
+}
+
+static void draw_trans_window (BITMAP *bmp, gui_window_t *w, int alpha)
+{
+    int h = w->fbmp->h;
+    w->fbmp->h = w->fh;
+    set_trans_blender (0, 0, 0, alpha);
+    draw_trans_sprite (bmp, w->fbmp, w->fx, w->fy);
+    w->fbmp->h = h;
 }
 
 static int wm_update_screen (BITMAP *bmp)
@@ -576,7 +670,12 @@ static int wm_update_screen (BITMAP *bmp)
 	    p->udirty = 0;
 	}
 	    
-	blit (p->fbmp, bmp, 0, 0, p->fx, p->fy, p->fw, p->fh);
+	if (p->ghosted)
+	    draw_trans_window (bmp, p, GHOST_ALPHA);
+	else if (p->alpha == 255)
+	    blit (p->fbmp, bmp, 0, 0, p->fx, p->fy, p->fw, p->fh);
+	else
+	    draw_trans_window (bmp, p, p->alpha);
     }
 
     dirty = 0;
@@ -588,6 +687,7 @@ static int wm_update_screen (BITMAP *bmp)
 
 static void wm_init ()
 {
+    create_ghost_icon ();
     focus = 0;
 }
 
@@ -595,6 +695,7 @@ static void wm_shutdown ()
 {
     while (windows.next)
 	window_destroy (windows.next);
+    destroy_ghost_icon ();
 }
 
 /*----------------------------------------------------------------------*/
@@ -611,9 +712,12 @@ gui_wm_t gui_default_wm = {
     window_resize,
     window_lower,
     window_raise,
+    window_show,
+    window_hide,	
     window_user_dirty,
     window_set_title,
     window_set_depth,
+    window_set_alpha,
     window_set_self,
     window_set_draw_proc,
     window_set_event_proc,
@@ -621,5 +725,6 @@ gui_wm_t gui_default_wm = {
     window_x,
     window_y,
     window_w,
-    window_h
+    window_h,
+    window_hidden
 };

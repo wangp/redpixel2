@@ -43,6 +43,7 @@ void gui_wm_set (gui_wm_t *);
 
 #define GUI_HINT_NOFRAME	1
 #define GUI_HINT_STEALFOCUS	2
+#define GUI_HINT_GHOSTABLE	4
 
 typedef struct gui_window gui_window_t;
 
@@ -53,9 +54,12 @@ void gui_window_move_relative (gui_window_t *, int dx, int dy);
 void gui_window_resize (gui_window_t *, int w, int h);
 void gui_window_lower (gui_window_t *);
 void gui_window_raise (gui_window_t *);
+void gui_window_show (gui_window_t *);
+void gui_window_hide (gui_window_t *);
 void gui_window_dirty (gui_window_t *);
 void gui_window_set_title (gui_window_t *, const char *title);
 void gui_window_set_depth (gui_window_t *, int depth);
+void gui_window_set_alpha (gui_window_t *, int alpha);
 void gui_window_set_self (gui_window_t *, void *self);
 void gui_window_set_draw_proc (gui_window_t *, void (*draw) (void *, BITMAP *));
 void gui_window_set_event_proc (gui_window_t *, void (*event) (void *, int, int));
@@ -64,6 +68,7 @@ int gui_window_x (gui_window_t *);
 int gui_window_y (gui_window_t *);
 int gui_window_w (gui_window_t *);
 int gui_window_h (gui_window_t *);
+int gui_window_hidden (gui_window_t *);
 
 
 /* guiaccel.c */
@@ -88,6 +93,9 @@ struct gui_mouse_state {
 };
 
 extern struct gui_mouse_state gui_mouse;
+
+void gui_mouse_restrict (gui_window_t *);
+void gui_mouse_unrestrict ();
 
 
 #endif

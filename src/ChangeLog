@@ -1,3 +1,38 @@
+2001-05-26  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* editor/mdobject.c: Added object actions box, to replace LMB/RMB,
+	and modifier key fumbling.
+
+	* gui/gui.h, gui/guiwmdef.c (gui_window_show, gui_window_hide,
+	gui_window_hidden): New functions.
+
+	* editor/editarea.c (event): Made mouse wheel scroll the selected
+	item in the selection bar.
+
+	* editor/edselect.c (ed_select_scroll_up, ed_select_scroll_down):
+	* editor/selbar.c (selectbar_scroll_up, selectbar_scroll_down):
+	New functions.
+
+	* editor/editarea.c (event): Restrict mouse position and scare
+	mouse pointer when panning.  Also changed panning behaviour (e.g.
+	no longer need to drag, reposition mouse, drag, reposition...)
+
+	* gui/gui.h, gui/guimouse.c (gui_mouse_restrict,
+	gui_mouse_unrestrict): New functions.
+
+	* gui/guiwm.c, gui/guiwmdef.c (gui_window_set_alpha): Added a
+	translucency option for all windows, as it's too useful (and
+	cool!) to just have for ghosted windows.
+
+	* editor/mdobject.c (event_layer): Added temporary code to test
+	out ghosted windows (press 'e' to pop up window).  This will
+	become the dialog to edit object properties.
+
+	* editor/editarea.c, editor/editarea.h (EDITAREA_EVENT_KEY_TYPE):
+	Added event.
+
+	* gui/gui.c, gui/gui.h: Added window "ghosting".
+
 2001-05-10  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* Changed email address in many files (sigh).

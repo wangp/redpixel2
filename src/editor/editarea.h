@@ -2,6 +2,9 @@
 #define __included_editarea_h
 
 
+/* For no particular reason, these are the same as the gui.h numbers.  */
+
+#define EDITAREA_EVENT_KEY_TYPE		4
 #define EDITAREA_EVENT_MOUSE_MOVE	12
 #define EDITAREA_EVENT_MOUSE_DOWN	13
 #define EDITAREA_EVENT_MOUSE_UP		14
@@ -13,6 +16,10 @@ struct editarea_event {
     struct {
 	int x, y, b, bstate;
     } mouse;
+    
+    struct {
+	int key;
+    } key;
 };
 
 

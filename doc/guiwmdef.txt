@@ -1,0 +1,18 @@
+The default, and only, window manager
+-------------------------------------
+
+Mouse actions
+
+    LMB					- raise window
+    LMB ([bg] icon)			- "ghost" window
+    RMB (frame)    			- lower window
+    MMB (title bar)			- shade window
+    LMB drag (frame)			- move window
+    LMB drag (lower-right corner)	- resize window
+	
+Hints
+
+    GUI_HINT_NOFRAME	- window will have no frame
+    GUI_HINT_STEALFOCUS	- window will grab mouse focus without click
+    GUI_HINT_GHOSTABLE  - window can be ghosted (i.e. made transparent,
+    				and unable to receive focus)

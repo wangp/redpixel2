@@ -21,6 +21,8 @@ extern ug_widget_class_t ed_select;
 
 void ed_select_set_list (ug_widget_t *, ed_select_list_t *);
 void ed_select_set_icon_size (ug_widget_t *, int w, int h);
+void ed_select_scroll_up (ug_widget_t *);
+void ed_select_scroll_down (ug_widget_t *);
 void ed_select_scroll_page_up (ug_widget_t *);
 void ed_select_scroll_page_down (ug_widget_t *);
 

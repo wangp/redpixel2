@@ -93,6 +93,16 @@ void selectbar_set_selected_proc (void (*proc) ())
     selected_proc = proc;
 }
 
+void selectbar_scroll_up ()
+{
+    ed_select_scroll_up (sel);
+}
+
+void selectbar_scroll_down ()
+{
+    ed_select_scroll_down (sel);
+}
+
 void selectbar_set_top (int top)
 {
     ed_select_set_top (sel, top);

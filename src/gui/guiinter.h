@@ -35,9 +35,12 @@ struct gui_wm {
     void (*window_resize) (gui_window_t *, int, int);
     void (*window_lower) (gui_window_t *);
     void (*window_raise) (gui_window_t *);
+    void (*window_show) (gui_window_t *);
+    void (*window_hide) (gui_window_t *);
     void (*window_dirty) (gui_window_t *);
     void (*window_set_title) (gui_window_t *, const char *);
     void (*window_set_depth) (gui_window_t *, int);
+    void (*window_set_alpha) (gui_window_t *, int);
     void (*window_set_self) (gui_window_t *, void *);
     void (*window_set_draw_proc)  (gui_window_t *, void (*) (void *, BITMAP *));
     void (*window_set_event_proc) (gui_window_t *, void (*) (void *, int, int));
@@ -46,6 +49,7 @@ struct gui_wm {
     int (*window_y) (gui_window_t *);
     int (*window_w) (gui_window_t *);
     int (*window_h) (gui_window_t *);
+    int (*window_hidden) (gui_window_t *);
 };
 
 extern gui_wm_t *gui_wm;

@@ -137,6 +137,14 @@ static void sel_scroll_down (struct sel *s, int count)
     }
 }
 
+static void sel_scroll_until_selected_in_view (struct sel *s)
+{
+    while (s->selected < s->top)
+	sel_scroll_up (s, 1);
+    while (s->selected > (s->top + (s->rows * s->cols) - 1))
+	sel_scroll_down (s, 1);
+}
+
 
 static void draw_magic_max_stretch (BITMAP *dest, BITMAP *src, int x, int y, int w, int h)
 {
@@ -190,6 +198,11 @@ static void sel_draw (struct sel *s, BITMAP *bmp, int x, int y, int w, int h)
 }
 
 
+static void sel_emit_selected (ug_widget_t *widget)
+{
+    ug_widget_emit_signal (widget, ED_SELECT_SIGNAL_SELECTED);
+}
+
 static int sel_select (ug_widget_t *widget, int mx, int my)
 {
     struct sel *p = widget->private;
@@ -204,7 +217,7 @@ static int sel_select (ug_widget_t *widget, int mx, int my)
 		    return 0;
 		
 		p->selected = i;
-		ug_widget_emit_signal (widget, ED_SELECT_SIGNAL_SELECTED);
+		sel_emit_selected (widget);
 		return 1;
 	    }
 
@@ -287,6 +300,30 @@ void ed_select_set_icon_size (ug_widget_t *p, int w, int h)
     ug_widget_dirty (p);
 }
 
+/* The scroll functions are for interactive use.  */
+
+void ed_select_scroll_up (ug_widget_t *p)
+{
+    struct sel *s = private (p);
+    if (s->selected > 0) {
+	s->selected--;
+	sel_scroll_until_selected_in_view (s);
+	sel_emit_selected (p);
+	ug_widget_dirty (p);
+    }
+}
+
+void ed_select_scroll_down (ug_widget_t *p)
+{
+    struct sel *s = private (p);
+    if (s->selected < s->list->num - 1) {
+	s->selected++;
+	sel_scroll_until_selected_in_view (s);
+	sel_emit_selected (p);
+	ug_widget_dirty (p);
+    }
+}
+
 void ed_select_scroll_page_up (ug_widget_t *p)
 {
     sel_scroll_up (p->private, PAGE (p->private) / 2);
@@ -298,6 +335,8 @@ void ed_select_scroll_page_down (ug_widget_t *p)
     sel_scroll_down (p->private, PAGE (p->private) / 2);
     ug_widget_dirty (p);
 }
+
+/* The set functions are for saving and restore state.  */
 
 void ed_select_set_top (ug_widget_t *p, int top)
 {
