@@ -464,7 +464,7 @@ generate_server {
 
 generate_server {
     cname	= "svgame_spawn_blood",
-    lname	= "spawn_blood",
+    lname	= "spawn_blood_on_clients",
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
@@ -473,7 +473,7 @@ generate_server {
 
 generate_server {
     cname	= "svgame_spawn_sparks",
-    lname	= "spawn_sparks",
+    lname	= "spawn_sparks_on_clients",
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
@@ -482,7 +482,7 @@ generate_server {
 
 generate_server {
     cname	= "svgame_spawn_respawn_particles",
-    lname	= "spawn_respawn_particles",
+    lname	= "spawn_respawn_particles_on_clients",
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
@@ -491,7 +491,7 @@ generate_server {
 
 generate_server {
     cname	= "svgame_spawn_blod",
-    lname	= "spawn_blod",
+    lname	= "spawn_blod_on_clients",
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" }}
@@ -499,7 +499,7 @@ generate_server {
 
 generate_server {
     cname	= "svgame_spawn_explosion",
-    lname	= "spawn_explosion",
+    lname	= "spawn_explosion_on_clients",
     args	= {{ String, "name" },
 		   { Float, "x" },
 		   { Float, "y" }}
@@ -564,6 +564,14 @@ generate_server {
 --------------
 -- client.h --
 --------------
+
+generate_client {
+    cname	= "client_spawn_explosion",
+    lname	= "spawn_explosion",
+    args	= {{ String, "name" },
+		   { Float, "x" },
+		   { Float, "y" }}
+}
 
 generate_client {
     cname	= "client_play_sound",
