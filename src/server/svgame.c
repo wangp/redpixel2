@@ -868,6 +868,21 @@ void svgame_play_sound_on_clients (object_t *obj, const char *sound)
 }
 
 
+const char *svgame_get_client_name (int client_id)
+{
+    svclient_t *c = svclients_find_by_id (client_id);
+    return c ? c->name : NULL;
+}
+
+
+void svgame_broadcast_text_message (const char *msg)
+{
+    char buf[64];
+    ustrzcpy (buf, sizeof buf, msg);
+    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
