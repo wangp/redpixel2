@@ -40,10 +40,10 @@ objid_t object_id (object_t *);
 int object_is_client (object_t *);
 int object_is_client_processed (object_t *);
 int object_stale (object_t *);
-void object_set_stale (object_t *);
+void object_set_stale (object_t *); /* Lua binding */
 int object_hidden (object_t *);
-void object_hide (object_t *);
-void object_show (object_t *);
+void object_hide (object_t *);	/* Lua binding */
+void object_show (object_t *);	/* Lua binding */
 
 float object_x (object_t *);
 float object_y (object_t *);
@@ -65,13 +65,13 @@ int object_ramp (object_t *);
 void object_set_ramp (object_t *, int);
 int object_jump (object_t *);
 void object_set_jump (object_t *, int);
-int object_moving_horizontally (object_t *);
+int object_moving_horizontally (object_t *); /* Lua binding (internal) */
 
-void object_set_collision_is_player (object_t *);
-void object_set_collision_is_projectile (object_t *);
-void object_set_collision_is_ladder (object_t *);
+void object_set_collision_is_player (object_t *); /* Lua binding */
+void object_set_collision_is_projectile (object_t *); /* Lua binding */
+void object_set_collision_is_ladder (object_t *); /* Lua binding */
 void object_set_collision_flags (object_t *, int tiles, int players, int nonplayers);
-void object_set_collision_flags_string (object_t *, const char *flags);
+void object_set_collision_flags_string (object_t *, const char *flags);	/* Lua binding */
 int object_collision_tag (object_t *);
 void object_set_collision_tag (object_t *, int);
 
@@ -90,19 +90,20 @@ struct creation_field {
     char name[0];
 };
 
-void object_add_creation_field (object_t *, const char *name);
+void object_add_creation_field (object_t *, const char *name); /* Lua binding */
 struct list_head *object_creation_fields (object_t *);
 
 
 /* Update hooks.  */
 
-void object_set_update_hook (object_t *, int msecs, lua_ref_t hook);
-void object_remove_update_hook (object_t *);
+void object_set_update_hook (object_t *, int msecs, lua_ref_t hook); /* Lua binding */
+void object_remove_update_hook (object_t *); /* Lua binding */
 void object_poll_update_hook (object_t *, int elapsed_msecs);
 
 
 /* Layers.  */
 
+/* begin Lua bindings */
 int object_add_layer (object_t *, const char *key, int offset_x, int offset_y);
 int object_replace_layer (object_t *, int layer_id, const char *key, int offset_x, int offset_y);
 int object_move_layer (object_t *, int layer_id, int offset_x, int offset_y);
@@ -110,15 +111,18 @@ int object_hflip_layer (object_t *, int layer_id, int hflip);
 int object_rotate_layer (object_t *, int layer_id, int angle);
 int object_remove_layer (object_t *, int layer_id);
 void object_remove_all_layers (object_t *);
+/* end Lua bindings */
 
 
 /* Lights.  */
 
+/* begin Lua bindings */
 int object_add_light (object_t *, const char *key, int offset_x, int offset_y);
 int object_replace_light (object_t *, int light_id, const char *key, int offset_x, int offset_y);
 int object_move_light (object_t *, int light_id, int offset_x, int offset_y);
 int object_remove_light (object_t *, int light_id);
 void object_remove_all_lights (object_t *);
+/* end Lua bindings */
 
 
 /* Masks.  */
@@ -130,10 +134,12 @@ void object_remove_all_lights (object_t *);
 #define OBJECT_MASK_RIGHT	4
 #define OBJECT_MASK_MAX		5
 
+/* begin Lua bindings */
 int object_set_mask (object_t *, int mask_num, const char *key, int offset_x, int offset_y);
 void object_set_masks_centre (object_t *obj, int centre_x, int centre_y);
 int object_remove_mask (object_t *, int mask_num);
 void object_remove_all_masks (object_t *);
+/* end Lua bindings */
 
 
 /* Collisions.  */

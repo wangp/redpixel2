@@ -11,9 +11,8 @@ void client_shutdown (void);
 
 void client_send_text_message (const char *text);
 
-/* lua bindings */
-void client_play_sound (struct object *, const char *sample);
-void client_set_camera (int pushable, int max_dist);
+void client_play_sound (struct object *, const char *sample); /* Lua binding */
+void client_set_camera (int pushable, int max_dist); /* Lua binding (internal) */
 
 
 #endif

@@ -11,7 +11,7 @@ typedef struct objtype objtype_t;
 void objtypes_init (void);
 void objtypes_shutdown (void);
 int objtypes_register (const char *type, const char *name,
-		       const char *icon, lua_ref_t init_func);
+		       const char *icon, lua_ref_t init_func); /* Lua binding */
 objtype_t *objtypes_lookup (const char *name);
 void objtypes_enumerate (void (*proc) (objtype_t *type));
 
