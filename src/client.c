@@ -51,6 +51,7 @@ static char *client_name;
 /* for rendering */
 static BITMAP *bmp;
 static camera_t *cam;
+static int cam_allow_push;
 
 static BITMAP *bkgd;
 static int parallax_x = 2;
@@ -429,7 +430,8 @@ static int update_camera ()
     oldx = camera_x (cam);
     oldy = camera_y (cam);
 
-    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y, 96);
+    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y,
+				    cam_allow_push ? 300 : 96, cam_allow_push);
 
     return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
 }
