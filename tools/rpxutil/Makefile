@@ -1,5 +1,5 @@
 ALLEGRODIR := $(HOME)/code/cvs/allegro40/allegro
-LUADIR := ../../lua-5.0-beta
+LUADIR := ../../lua
 
 CC := gcc
 CFLAGS := -Wall -g -I$(ALLEGRODIR)/tools -I$(LUADIR)/include
