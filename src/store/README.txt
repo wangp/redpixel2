@@ -25,71 +25,86 @@ Compiling
     library (more convenient for end users).  Therefore, no makefile
     is provided -- compile it as if it were your own code.
 
-    The files you need are: hash.c hash.h store.c store.h
+    The files you need are: store.c store.h bjhash.inc
 
 
 API
 
     Look inside `example.c' for usage.
 
-    int store_init (int);
+    int store_init (unsigned int size);
 
 	Call this at the start of your program to set the size of the
 	main hash table.  A larger hash table requires more memory, but
 	reduces the chances of a key collision (which will slow down
 	retrieval times).  Returns zero on success.
 
-    void store_shutdown ();
+	Note: the actual size used will not necessarily be exactly the
+	size you requested.  In the current implementation, it is
+	round up to the next power of two, for speed reasons.
+
+    void store_shutdown (void);
 
 	Free all resources, including loaded datafiles.  You must call
 	this at the end of your program (will NOT be done automatically).
 
-    int store_load (const char *filename, const char *prefix);
+    typedef ... store_file_t;
 
-	Load a datafile named FILENAME into core, with a prefix for
-	the item names.  Returns a file id on success, or a negative
-	number on error.
+        This is the handle for a loaded file.
 
-    int store_load_ex (const char *filename, const char *prefix,
-			DATAFILE *(*loader) (const char *filename));
+    store_file_t store_load (const char *filename, const char *prefix);
+
+	Load a datafile named FILENAME into memory, with a prefix for
+	the item names.  Returns a file handle on success, or NULL on
+	failure.
+
+    store_file_t store_load_ex (const char *filename, const char *prefix,
+			        DATAFILE *(*loader) (const char *filename));
 
 	Same as above, but allows you to provide an alternative
 	datafile loading function.
 
-    void store_unload (int id);
+    void store_unload (store_file_t file);
 
-	Unload the datafile using the file id.  Entries in the `store'
-	array which pointed to items in the datafile being unloaded
-	get cleared to NULL; all other items remain unchanged.
+	Unload the datafile using the file handle.  Entries in the
+	`store' array which pointed to items in the datafile being
+	unloaded get cleared to NULL; all other items remain
+	unchanged.
 
     DATAFILE **store;
 
 	All the datafiles you load will be concatenated together into
-	a big array, called `store'.
+	a big array, called `store'.  This increases in size for each
+	datafile you load.
 
-    int store_index (const char *key);
+    typedef ... store_index_t;
+
+	This represents an index into `store' and is used instead of a
+	bare integer for readability reasons.
+
+    store_index_t store_get_index (const char *key);
 
 	Returns an index into the `store' data structure for an item
-	with key KEY, or zero on error.
+	with key KEY, or STORE_INDEX_NONEXISTANT on error.
 
-    char *store_key (int index);
+    const char *store_get_key (store_index_t index);
 
 	Returns the key for a given index, or NULL if not found.
 	This function is slow.
 
-    DATAFILE *store_datafile (const char *key);
+    DATAFILE *store_get_datafile (const char *key);
 
 	Returns a pointer to the datafile structure for an item
 	with key KEY, or NULL on error.
 	           
-    void *store_dat (const char *key);
+    void *store_get_dat (const char *key);
 
 	Returns a pointer to the datafile structure `dat' field for an
 	item with key KEY, or NULL on error.
 
-    DATAFILE *store_file (int id);
+    DATAFILE *store_get_file (store_file_t f);
     
-	Returns a pointer to the DATAFILE structure of file ID, as if
+	Returns a pointer to the DATAFILE structure of a file, as if
 	you had loaded it yourself with `load_datafile', or NULL on
 	error.  You will probably not use this function.
 	
@@ -108,6 +123,9 @@ Credits
 
     Jerry Coffin and HenkJan Wolthuis wrote the hash table code,
     which was put in the Snippets collection (public domain).
+    {Note that it isn't used anymore.}
+
+    Bob Jenkins is the author of the hashing function in bjhash.inc.
 
 	
 Contact
