@@ -460,7 +460,7 @@ static void poll_interface_command_list (char **last)
 		server_log ("%4d  %s (stale)", c->id, c->name);
 		break;
 	    default:
-		server_log ("%4d  %s (lag: %d x %d)", c->id, c->name, 
+		server_log ("%4d  %s (lag: %d x %d msecs)", c->id, c->name, 
 			    c->lag, MSECS_PER_TICK);
 		break;
 	}
