@@ -35,7 +35,7 @@ void game_init ()
     lights_load ();
     objtypes_init ();
 
-    dofile_path (lua_state, "script/init.lua");
+    lua_dofile_path (lua_state, "script/init.lua");
 }
 
 

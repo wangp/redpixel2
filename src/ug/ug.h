@@ -16,16 +16,20 @@ void ug_shutdown ();
 
 /* ugwidget.c */
 
-/* ug_widget_class_t: Opaque data type representing a widget class.  */
+/*: Opaque data type representing a widget class.  */
 typedef struct ug_widget_class ug_widget_class_t;
 
-/* ug_widget_t: Opaque data type representing a widget.  */
+/*: Opaque data type representing a widget.  */
 typedef struct ug_widget ug_widget_t;
 
-/*: Mark a widget as "dirty", to be redrawn later.  */
+/*: Mark a widget as "dirty", to be redrawn later.  Currently, this marks the
+ *  widget's dialog as dirty, so the entire dialog is redrawn, but you should 
+ *  not depend on that.  */
 void ug_widget_dirty (ug_widget_t *);
 
-/*: Give a widget input focus.  */
+/*: Give a widget input focus, within its own dialog.  This is equivalent to
+ *  calling ug_dialog_focus(dialog, widget), if you know what the dialog should
+ *  be.  See also: ug_dialog_focus.   */
 void ug_widget_focus (ug_widget_t *);
 
 /*: Return the absolute x position of a widget.  */
@@ -68,13 +72,13 @@ enum ug_signal {
     UG_SIGNAL_CLICKED = 200
 };
 
-/* ug_event_t: An UG event number.  */
+/*: An UG event number.  */
 typedef enum ug_event ug_event_t;
 
-/* ug_signal_t: An UG signal number.  Not to be confused with Unix signals.  */
+/*: An UG signal number.  Not to be confused with Unix signals.  */
 typedef enum ug_signal ug_signal_t;
 
-/* ug_event_data_t: An opaque data type, used when dealing with event
+/*: An opaque data type, used when dealing with event
  *  (or signal) data. To retrieve information from this data type, you must
  *  use the correct ug_event_* functions.
  */
@@ -146,7 +150,7 @@ int ug_event_data_draw_h (ug_event_data_t *);
 
 /* uglayout.c */
 
-/* ug_dialog_layout_t: 
+/* ug_dialog_layout_t:
  *  An array of this structure type tells UG about the layout of widgets
  *  that make up a dialog.  The structure contains the following fields:
  * 
@@ -203,17 +207,15 @@ ug_dialog_layout_t *ug_dialog_layout_create ();
 /*: Free the memory associated with a dynamic dialog layout.  */
 void ug_dialog_layout_destroy (ug_dialog_layout_t *);
 
-/* ug_dialog_layout_insert: 
- *  Add a layout item onto the back of a dynamic dialog layout, and
- *  return the new address of the dialog.
- */
+/*: Add a layout item onto the back of a dynamic dialog layout, and
+ *  return the new address of the dialog.  */
 ug_dialog_layout_t *ug_dialog_layout_insert (ug_dialog_layout_t *dialog,
 					     ug_dialog_layout_t *newitem);
 
 
 /* ugdialog.c */
 
-/* ug_dialog_t: Opaque data type for holding dialogs.  */
+/*: Opaque data type for holding dialogs.  */
 typedef struct ug_dialog ug_dialog_t;
 
 /*: Create a dialog with the specified layout in a window, and with a
@@ -223,10 +225,11 @@ ug_dialog_t *ug_dialog_create (gui_window_t *, ug_dialog_layout_t *, int border)
 /*: Free memory associated with a dialog.  */
 void ug_dialog_destroy (ug_dialog_t *);
 
-/*: Mark a dialog as "dirty", so it will be redrawn.  */
+/*: Mark the window that a dialog occupies for redrawing.  */
 void ug_dialog_dirty (ug_dialog_t *);
 
-/*: Give the focus to the specified widget in the dialog.  */
+/*: Give the focus to the specified widget in the dialog.
+ *  See also: ug_widget_focus.  */
 void ug_dialog_focus (ug_dialog_t *, ug_widget_t *);
 
 /*: Return the x position of a dialog.  */
@@ -247,17 +250,15 @@ ug_widget_t *ug_dialog_widget (ug_dialog_t *, char *id);
 
 /* ugblank.c */
 
-/* ug_blank: A dummy widget class that takes up space, but does nothing.  */
+/*: A dummy widget class that takes up space, but does nothing.  */
 extern ug_widget_class_t ug_blank;
 
 
 /* ugbutton.c */
 
-/* ug_button:
- *  A widget class that implements a push button.  The `data' field is
+/*: A widget class that implements a push button.  The `data' field is
  *  the text label on the button.  When clicked, it emits a
- *  UG_SIGNAL_CLICKED signal, with mouse event data.
- */
+ *  UG_SIGNAL_CLICKED signal, with mouse event data.  */
 extern ug_widget_class_t ug_button;
 
 /*: Buttons have an `extra' field, which can point to anything you want.
@@ -270,13 +271,11 @@ void *ug_button_extra (ug_widget_t *);
 
 /* ugmenu.c */
 
-/* ug_menu: 
- *  A widget class implementing popup menus.  The `data' field points to
+/*: A widget class implementing popup menus.  The `data' field points to
  *  a ug_menu_root_t structure.  When any one of the items in the menu is
  *  clicked, it emits a UG_SIGNAL_CLICKED signal.  The data parameter of
  *  the slot function will be passed the contents of the selected menu
- *  item's `data' field.  See also: ug_menu_item_t, ug_menu_root_t.
- */
+ *  item's `data' field.  See also: ug_menu_item_t, ug_menu_root_t.  */
 extern ug_widget_class_t ug_menu;
 
 /* ug_menu_item_t:

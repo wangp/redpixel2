@@ -1,3 +1,15 @@
+2001-05-29  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* mtfm.lua: Better symbol name guessing for "short" comments.
+
+	* Clarified some UG API aspects.
+
+	* mylua.h: Removed macros that stripped away the lua_ prefix from
+	Lua functions, since most bindings are now auto generated.  Also,
+	renamed lref_t / ltag_t to lua_ref_t / lua_tag_t.
+
+	* ug/uginter.h: Moved struct ug_dialog into ugdialog.c.
+
 2001-05-28  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* ug/ug.h, ug/uginter.h: Made ug_widget_create and

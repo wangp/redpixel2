@@ -27,7 +27,7 @@ enum gui_event {
     GUI_EVENT_WINDOW_DESTROYED = 29
 };
 
-/* gui_event_t: A GUI event number.  */
+/*: A GUI event number.  */
 typedef enum gui_event gui_event_t;
 
 
@@ -55,7 +55,7 @@ typedef struct gui_wm gui_wm_t;
 void gui_wm_set (gui_wm_t *);
 
 
-/* gui_window_t: Opaque data type representing a window.  */
+/*: Opaque data type representing a window.  */
 typedef struct gui_window gui_window_t;
 
 #define GUI_HINT_NOFRAME	1
@@ -152,7 +152,7 @@ int gui_window_hidden (gui_window_t *);
 
 #define GUI_ACCEL_CTRL(x)	((x) - 'a' + 1)
 
-/* gui_accel_t: Opaque data type representing an accelerator key.  */
+/*: Opaque data type representing an accelerator key.  */
 typedef struct gui_accel gui_accel_t;
 
 /*: Create an accelerator key.  KEY can be either a character, or

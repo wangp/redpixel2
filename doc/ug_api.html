@@ -86,12 +86,16 @@ Opaque data type representing a widget.
 
 <a name='sym_ug_h_ug_widget_dirty'><p><a href='#idx_ug_h_ug_widget_dirty'>void <b>ug_widget_dirty</b> (ug_widget_t *)</a>
 <blockquote>
-Mark a widget as "dirty", to be redrawn later.  
+Mark a widget as "dirty", to be redrawn later.  Currently, this marks the
+widget's dialog as dirty, so the entire dialog is redrawn, but you should
+not depend on that.  
 </blockquote><br><br>
 
 <a name='sym_ug_h_ug_widget_focus'><p><a href='#idx_ug_h_ug_widget_focus'>void <b>ug_widget_focus</b> (ug_widget_t *)</a>
 <blockquote>
-Give a widget input focus.  
+Give a widget input focus, within its own dialog.  This is equivalent to
+calling ug_dialog_focus(dialog, widget), if you know what the dialog should
+be.  <p>See also: ug_dialog_focus.   
 </blockquote><br><br>
 
 <a name='sym_ug_h_ug_widget_x'><p><a href='#idx_ug_h_ug_widget_x'>int <b>ug_widget_x</b> (ug_widget_t *)</a>
@@ -132,8 +136,8 @@ An UG signal number.  Not to be confused with Unix signals.
 <a name='sym_ug_h_ug_event_data_t'><p><a href='#idx_ug_h_ug_event_data_t'>typedef void <b>ug_event_data_t</b></a>
 <blockquote>
 An opaque data type, used when dealing with event
-  (or signal) data. To retrieve information from this data type, you must
-  use the correct ug_event_* functions.
+(or signal) data. To retrieve information from this data type, you must
+use the correct ug_event_* functions.
 <p></blockquote><br><br>
 
 <a name='sym_ug_h_ug_widget_send_event'><p><a href='#idx_ug_h_ug_widget_send_event'>void <b>ug_widget_send_event</b> (ug_widget_t *, ug_event_t, ug_event_data_t *)</a>
@@ -283,10 +287,9 @@ Free the memory associated with a dynamic dialog layout.
 
 <a name='sym_ug_h_ug_dialog_layout_insert'><p><a href='#idx_ug_h_ug_dialog_layout_insert'>ug_dialog_layout_t *<b>ug_dialog_layout_insert</b> (ug_dialog_layout_t *dialog, ug_dialog_layout_t *newitem)</a>
 <blockquote>
-
-  Add a layout item onto the back of a dynamic dialog layout, and
-  return the new address of the dialog.
-<p></blockquote><br><br>
+Add a layout item onto the back of a dynamic dialog layout, and
+return the new address of the dialog.  
+</blockquote><br><br>
 
 <a name='sym_ug_h_ug_dialog_t'><p><a href='#idx_ug_h_ug_dialog_t'>typedef struct ug_dialog <b>ug_dialog_t</b></a>
 <blockquote>
@@ -306,12 +309,13 @@ Free memory associated with a dialog.
 
 <a name='sym_ug_h_ug_dialog_dirty'><p><a href='#idx_ug_h_ug_dialog_dirty'>void <b>ug_dialog_dirty</b> (ug_dialog_t *)</a>
 <blockquote>
-Mark a dialog as "dirty", so it will be redrawn.  
+Mark the window that a dialog occupies for redrawing.  
 </blockquote><br><br>
 
 <a name='sym_ug_h_ug_dialog_focus'><p><a href='#idx_ug_h_ug_dialog_focus'>void <b>ug_dialog_focus</b> (ug_dialog_t *, ug_widget_t *)</a>
 <blockquote>
-Give the focus to the specified widget in the dialog.  
+Give the focus to the specified widget in the dialog.
+<p>See also: ug_widget_focus.  
 </blockquote><br><br>
 
 <a name='sym_ug_h_ug_dialog_x'><p><a href='#idx_ug_h_ug_dialog_x'>int <b>ug_dialog_x</b> (ug_dialog_t *)</a>
@@ -346,11 +350,10 @@ A dummy widget class that takes up space, but does nothing.
 
 <a name='sym_ug_h_ug_button'><p><a href='#idx_ug_h_ug_button'>extern ug_widget_class_t <b>ug_button</b></a>
 <blockquote>
-
-  A widget class that implements a push button.  The `data' field is
-  the text label on the button.  When clicked, it emits a
-  UG_SIGNAL_CLICKED signal, with mouse event data.
-<p></blockquote><br><br>
+A widget class that implements a push button.  The `data' field is
+the text label on the button.  When clicked, it emits a
+UG_SIGNAL_CLICKED signal, with mouse event data.  
+</blockquote><br><br>
 
 <a name='sym_ug_h_ug_button_set_extra'><p><a href='#idx_ug_h_ug_button_set_extra'>void <b>ug_button_set_extra</b> (ug_widget_t *, void *extra)</a>
 <blockquote>
@@ -365,13 +368,12 @@ Return the data stored in a ug_button widget's `extra' field.
 
 <a name='sym_ug_h_ug_menu'><p><a href='#idx_ug_h_ug_menu'>extern ug_widget_class_t <b>ug_menu</b></a>
 <blockquote>
-
-  A widget class implementing popup menus.  The `data' field points to
-  a ug_menu_root_t structure.  When any one of the items in the menu is
-  clicked, it emits a UG_SIGNAL_CLICKED signal.  The data parameter of
-  the slot function will be passed the contents of the selected menu
-  item's `data' field.  <p>See also: ug_menu_item_t, ug_menu_root_t.
-<p></blockquote><br><br>
+A widget class implementing popup menus.  The `data' field points to
+a ug_menu_root_t structure.  When any one of the items in the menu is
+clicked, it emits a UG_SIGNAL_CLICKED signal.  The data parameter of
+the slot function will be passed the contents of the selected menu
+item's `data' field.  <p>See also: ug_menu_item_t, ug_menu_root_t.  
+</blockquote><br><br>
 
 <a name='sym_ug_h_ug_menu_item_t'><p><a href='#idx_ug_h_ug_menu_item_t'>typedef struct ug_menu_item </a>
 <blockquote>
@@ -401,6 +403,6 @@ Return the data stored in a ug_button widget's `extra' field.
 </pre></blockquote><br><br>
 
 <hr>
-<em>Generated by mtfm.lua on Mon May 28 23:24:38 2001</em>
+<em>Generated by mtfm.lua on Tue May 29 21:53:03 2001</em>
 </body>
 </html>

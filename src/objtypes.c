@@ -17,7 +17,7 @@ static objtype_t **types;
 
 
 static objtype_t *create (const char *type, const char *name,
-			  const char *icon, lref_t init_func,
+			  const char *icon, lua_ref_t init_func,
 			  bitmask_t *icon_mask)
 {
     objtype_t *p, **tmp;
@@ -49,7 +49,7 @@ static void destroy_all ()
 
     for (i = 0; i < num; i++) {
 	bitmask_destroy (types[i]->icon_mask);
-	unref (lua_state, types[i]->init_func);
+	lua_unref (lua_state, types[i]->init_func);
 	free (types[i]->icon);
 	free (types[i]->name);
 	free (types[i]->type);
@@ -74,7 +74,7 @@ void objtypes_shutdown ()
 
 
 void objtypes_register (const char *type, const char *name,
-			const char *icon, lref_t init_func)
+			const char *icon, lua_ref_t init_func)
 {
     create (type, name, icon, init_func,
 	    bitmask_create_from_magic_bitmap (store_dat (icon)));

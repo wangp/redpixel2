@@ -1,1 +1,8 @@
-split loaddata? 
+split loaddata?
+
+rename ed_select?
+
+move ed_select to new src/editor/custom dir?
+     (custom ug widgets would go in there)
+
+dialog dirtiness not precise enough?  if not, go to per-widget dirtiness

@@ -23,6 +23,16 @@ function sread()
 end
 
 
+-- Helper: guess the name of a symbol, given the prototype/declaration.
+function guess_symbol_name(str)
+    str = gsub(str, "^typedef%s+struct%s+", "")
+    str = gsub(str, "^typedef%s+enum%s+", "")
+    str = gsub(str, "^typedef%s+", "")
+    str = gsub(str, "^extern%s+", "")
+    return gsub(str, "^[%w_]*%s+%*?%s*([%w_]+).*", "%1")
+end
+
+
 -- Helper: extract name, prototype and description from a long comment.
 function extract_long(initial)
     local desc, proto = "", ""
@@ -79,13 +89,13 @@ function extract_short(initial)
     while s do
 	proto = proto..s.." "
 	if strsub(proto, -2) == "; " or strsub(proto, -2) == "{ " then
-	    proto = strsub(s, 1, -2); break
+	    proto = strsub(proto, 1, -3); break
 	end
 	s = sread()
     end
 
     -- guess the name
-    local name = gsub(proto, "^[%w_]*%s+%*?%s*([%w_]+).*", "%1")
+    local name = guess_symbol_name(proto)
 
     return name, proto, desc
 end

@@ -9,14 +9,14 @@
 
 ctypes = {
     -- builtin types
-    Float	= { "n", "float", "tonumber" },
-    Function 	= { "f", "lref_t", "ref" },
-    Int	 	= { "n", "int", "tonumber" },
-    String	= { "s", "const char *", "tostring" },
+    Float	= { "n", "float", "lua_tonumber" },
+    Function 	= { "f", "lua_ref_t", "lua_ref" },
+    Int	 	= { "n", "int", "lua_tonumber" },
+    String	= { "s", "const char *", "lua_tostring" },
     -- custom and readability types
-    Method   	= { "f", "lref_t", "ref" },
+    Method   	= { "f", "lua_ref_t", "lua_ref" },
     Object	= { "t", "object_t *", "table_object", "!$" },
-    StoreKey	= { "s", "const char *", "tostring" }
+    StoreKey	= { "s", "const char *", "lua_tostring" }
 }
 
 -- convenience
@@ -73,7 +73,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
     end
 
     -- argument checking
-    str = str..tab..'if (!checkargs(L, "'..(check or generate_check())..'")) goto error;\n'
+    str = str..tab..'if (!lua_checkargs(L, "'..(check or generate_check())..'")) goto error;\n'
 
     -- argument conversion
     for i,v in args do
@@ -115,10 +115,10 @@ function generate_code (lname, cname, check, args, ret, success, error)
     end
 
     -- success clause
-    str = str..tab..(success or "pushnumber(L, 1); return 1;").."\n"
+    str = str..tab..(success or "lua_pushnumber(L, 1); return 1;").."\n"
 
     -- error clause
-    str = str.."error:\n"..tab..(error or "pushnil(L); return 1;").."\n"
+    str = str.."error:\n"..tab..(error or "lua_pushnil(L); return 1;").."\n"
 
     str = str.."}\n"
     print (str)
@@ -130,7 +130,7 @@ function generate (table)
     generate_code (table.lname, table.cname, table.check, table.args, 
 		   table.ret, table.success, table.error)
 
-    reg = reg..' \\\n\tlregister(L, "'..(table.lname or table.cname)..'", bind_'..(table.lname or table.cname)..');'
+    reg = reg..' \\\n\tlua_register(L, "'..(table.lname or table.cname)..'", bind_'..(table.lname or table.cname)..');'
 end
 
 
@@ -154,7 +154,7 @@ generate {
     		   { String, "name" },
 		   { String, "icon" },
 		   { Method, "func", nil, 
-		     "$ = ((isnil(L, $#) || isnull(L, $#)) ? LUA_NOREF : ref(L, $#));" }}
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }}
 }
 
 generate {
@@ -176,7 +176,7 @@ generate {
 		   { Int, "xoffset" },
 		   { Int, "yoffset" }},
     ret 	= { Int, "layerid" },
-    success	= "pushnumber(L, layerid); return 1;"
+    success	= "lua_pushnumber(L, layerid); return 1;"
 }
 
 generate {
@@ -217,7 +217,7 @@ generate {
 		   { Int, "xoffset" },
 		   { Int, "yoffset" }},
     ret 	= { Int, "lightid" },
-    success	= "pushnumber(L, lightid); return 1;"
+    success	= "lua_pushnumber(L, lightid); return 1;"
 }
 
 generate {

@@ -28,7 +28,7 @@ struct object {
     objid_t id;
 
     /* Lua table ref.  */
-    lref_t table;
+    lua_ref_t table;
 
     /* C variables.  */
     float x, y;

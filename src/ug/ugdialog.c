@@ -15,7 +15,17 @@ static void dialog_draw (void *, BITMAP *);
 static void dialog_event (void *, gui_event_t, int);
 
 
-#define is_real_widget(x)	((int) (x) > 0)
+struct ug_dialog {
+    void *window;		/* parent window */
+    int border;			/* margin between widgets (for re-layout) */
+
+    int num;
+    ug_widget_t **widget;
+    ug_widget_t *focus, *hasmouse;
+};
+
+
+#define is_real_widget(x)	(x != 0)
 
 
 static ug_dialog_t *create_dialog ()

@@ -23,7 +23,7 @@
 static void set_default_masks (object_t *obj);
 
 
-static ltag_t object_tag = LUA_NOTAG;
+static lua_tag_t object_tag = LUA_NOTAG;
 
 static objid_t next_id;
 
@@ -35,7 +35,7 @@ object_t *object_create (const char *type_name)
     object_t *obj;
 
     if (object_tag == LUA_NOTAG)
-	object_tag = newtag (L);
+	object_tag = lua_newtag (L);
 
     if (!(type = objtypes_lookup (type_name)))
 	return NULL;
@@ -46,15 +46,15 @@ object_t *object_create (const char *type_name)
     obj->id = next_id++;
 
     /* C object references Lua table.  */
-    newtable (L);
-    obj->table = ref (L, 1);
+    lua_newtable (L);
+    obj->table = lua_ref (L, 1);
 
     /* Lua table references C object.  */
-    getref (L, obj->table);
-    pushstring (L, "_object");
-    pushusertag (L, obj, object_tag);
-    settable (L, -3);
-    pop (L, 1);
+    lua_getref (L, obj->table);
+    lua_pushstring (L, "_object");
+    lua_pushusertag (L, obj, object_tag);
+    lua_settable (L, -3);
+    lua_pop (L, 1);
 
     /* Initialise some C variables.  */
     init_list (obj->layers);
@@ -66,9 +66,9 @@ object_t *object_create (const char *type_name)
 
     /* Call object init function if any.  */
     if (obj->type->init_func != LUA_NOREF) {
-	getref (L, obj->type->init_func);
-	getref (L, obj->table);
-	call (L, 1, 0);
+	lua_getref (L, obj->type->init_func);
+	lua_getref (L, obj->table);
+	lua_call (L, 1, 0);
     }
     
     return obj;
@@ -80,7 +80,7 @@ void object_destroy (object_t *obj)
     object_remove_all_masks (obj);
     object_remove_all_lights (obj);
     object_remove_all_layers (obj);
-    unref (lua_state, obj->table);
+    lua_unref (lua_state, obj->table);
     free (obj);
 }
 
@@ -479,12 +479,12 @@ void object_call (object_t *obj, const char *method)
 {
     lua_State *L = lua_state;
 
-    getref (L, obj->table);
-    pushstring (L, method);
-    gettable (L, -2);
-    getref (L, obj->table);
-    call (L, 1, 0);
-    pop (L, 1);    
+    lua_getref (L, obj->table);
+    lua_pushstring (L, method);
+    lua_gettable (L, -2);
+    lua_getref (L, obj->table);
+    lua_call (L, 1, 0);
+    lua_pop (L, 1);    
 }
 
 
@@ -493,12 +493,12 @@ float object_get_number (object_t *obj, const char *var)
     lua_State *L = lua_state;
     float val = 0.0;
 
-    getref (L, obj->table);
-    pushstring (L, var);
-    gettable (L, -2);
-    if (isnumber (L, -1))
-	val = tonumber (L, -1);
-    pop (L, 2);
+    lua_getref (L, obj->table);
+    lua_pushstring (L, var);
+    lua_gettable (L, -2);
+    if (lua_isnumber (L, -1))
+	val = lua_tonumber (L, -1);
+    lua_pop (L, 2);
 
     return val;
 }
@@ -508,11 +508,11 @@ void object_set_number (object_t *obj, const char *var, float value)
 {
     lua_State *L = lua_state;
 
-    getref (L, obj->table);
-    pushstring (L, var);
-    pushnumber (L, value);
-    settable (L, -3);
-    pop (L, 1);
+    lua_getref (L, obj->table);
+    lua_pushstring (L, var);
+    lua_pushnumber (L, value);
+    lua_settable (L, -3);
+    lua_pop (L, 1);
 }
 
 
@@ -521,12 +521,12 @@ const char *object_get_string (object_t *obj, const char *var)
     lua_State *L = lua_state;
     const char *str = NULL;
 
-    getref (L, obj->table);
-    pushstring (L, var);
-    gettable (L, -2);
-    if (isstring (L, -1))
-	str = tostring (L, -1);
-    pop (L, 2);
+    lua_getref (L, obj->table);
+    lua_pushstring (L, var);
+    lua_gettable (L, -2);
+    if (lua_isstring (L, -1))
+	str = lua_tostring (L, -1);
+    lua_pop (L, 2);
 
     return str;
 }
@@ -536,11 +536,11 @@ void object_set_string (object_t *obj, const char *var, const char *value)
 {
     lua_State *L = lua_state;
 
-    getref (L, obj->table);
-    pushstring (L, var);
-    pushstring (L, value);
-    settable (L, -3);
-    pop (L, 1);
+    lua_getref (L, obj->table);
+    lua_pushstring (L, var);
+    lua_pushstring (L, value);
+    lua_settable (L, -3);
+    lua_pop (L, 1);
 }
 
 
@@ -548,11 +548,11 @@ object_t *table_object (lua_State *L, int index)
 {
     object_t *obj = NULL;
 
-    pushstring (L, "_object");
-    gettable (L, index);
-    if (tag (L, -1) == object_tag)
-	obj = touserdata (L, -1);
-    pop (L, 1);
+    lua_pushstring (L, "_object");
+    lua_gettable (L, index);
+    if (lua_tag (L, -1) == object_tag)
+	obj = lua_touserdata (L, -1);
+    lua_pop (L, 1);
 
     return obj;
 }

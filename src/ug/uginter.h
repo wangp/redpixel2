@@ -26,16 +26,4 @@ ug_widget_t *ug_widget_create (ug_widget_class_t *, void *data, const char *id);
 void ug_widget_destroy (ug_widget_t *);
 
 
-/* ugdialog.c */
-
-struct ug_dialog {
-    void *window;		/* parent window */
-    int border;			/* margin between widgets (for re-layout) */
-
-    int num;
-    ug_widget_t **widget;
-    ug_widget_t *focus, *hasmouse;
-};
-
-
 #endif
