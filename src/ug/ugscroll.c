@@ -88,9 +88,8 @@ static void vscroll_draw (ug_widget_t *p, BITMAP *bmp)
 }
 
 
-static int vscroll_event (ug_widget_t *p, int event, int d)
+static void vscroll_event (ug_widget_t *p, ug_event_t event, ug_event_data_t *d)
 {
-    return 0;
 }
 
 

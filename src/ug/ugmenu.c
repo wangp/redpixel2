@@ -10,7 +10,6 @@
 #include "ug.h"
 #include "uginter.h"
 #include "ugtheme.h"
-#include "ugbutton.h"
 
 
 static void unpop (ug_widget_t *p);
@@ -63,7 +62,7 @@ static void draw (ug_widget_t *p, BITMAP *bmp)
 }
 
 
-static void item_slot (ug_widget_t *p, int signal, void *d)
+static void item_slot (ug_widget_t *p, ug_signal_t signal, void *d)
 {
     ug_widget_t *parent;
     ug_menu_root_t *root;
@@ -80,8 +79,7 @@ static void item_slot (ug_widget_t *p, int signal, void *d)
 	    break;
 
     if (!last_item (root, i))
-	ug_widget_emit_signal_ex (parent, UG_SIGNAL_CLICKED,
-				  root->item[i].data);
+	ug_widget_emit_signal (parent, UG_SIGNAL_CLICKED, root->item[i].data);
 	
     unpop (parent);
 }
@@ -167,22 +165,22 @@ static void unpop (ug_widget_t *p)
 }
 
 
-static void menu_event (ug_widget_t *p, int event, void *d)
+static void menu_event (ug_widget_t *p, ug_event_t event, void *d)
 {
     switch (event) {
 	case UG_EVENT_WIDGET_DRAW:
-	    draw (p, ug_event_draw_bmp (d));
+	    draw (p, ug_event_data_draw_bmp (d));
 	    break;
 
 	case UG_EVENT_MOUSE_DOWN:
-	    if (ug_event_mouse_b (d) == 0) {
+	    if (ug_event_data_mouse_b (d) == 0) {
 		private (p)->down = 1;
 		ug_widget_dirty (p);
 	    }
 	    break;
 
 	case UG_EVENT_MOUSE_UP:
-	    if (ug_event_mouse_b (d) == 0) {
+	    if (ug_event_data_mouse_b (d) == 0) {
 		if (!private (p)->popped)
 		    pop (p);
 		else
@@ -191,6 +189,9 @@ static void menu_event (ug_widget_t *p, int event, void *d)
 		private (p)->down = 0;
 		ug_widget_dirty (p);
 	    }
+	    break;
+
+	default:
 	    break;
     }
 }

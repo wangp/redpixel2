@@ -35,7 +35,7 @@ struct gui_window {
     
     void *self;
     void (*draw) (void *, BITMAP *);
-    void (*event) (void *, int, int);
+    void (*event) (void *, gui_event_t, int);
     
     BITMAP *fbmp, *ubmp;
     int fdirty, udirty;
@@ -78,7 +78,7 @@ static void unlink_window (gui_window_t *p, gui_window_t *q)
 }
 
 
-static void send_event (gui_window_t *w, int event, int data)
+static void send_event (gui_window_t *w, gui_event_t event, int data)
 {
     if ((w) && (w->event))
 	w->event (w->self, event, data);
@@ -362,7 +362,7 @@ static void window_set_draw_proc (gui_window_t *w, void (*draw) (void *, BITMAP 
 }
 
 
-static void window_set_event_proc (gui_window_t *w, void (*event) (void *, int, int))
+static void window_set_event_proc (gui_window_t *w, void (*event) (void *, gui_event_t, int))
 {
     w->event = event;
 }
@@ -444,7 +444,7 @@ static int old_x, old_y;
 #define MB3	2
 
 
-static void wm_handle_event (int event, int d)
+static void wm_handle_event (gui_event_t event, int d)
 {
     gui_window_t *tmp;
 
@@ -512,6 +512,9 @@ static void wm_handle_event (int event, int d)
 	    if (gui_accel_handle_key (d))
 		goto more;
 	    break;
+
+	default:
+	    break;
     }
     
     /* the following commands require focus */
@@ -537,6 +540,9 @@ static void wm_handle_event (int event, int d)
 				   	  focus->uh + gui_mouse.y - old_y);
 		save_old ();
 	    	goto more;
+
+	    default:
+		break;
 	}
     }
 

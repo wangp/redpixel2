@@ -11,8 +11,8 @@
 #include "ugtheme.h"
 
 
-static void dialog_draw (void *p, BITMAP *bmp);
-static void dialog_event (void *p, int event, int data);
+static void dialog_draw (void *, BITMAP *);
+static void dialog_event (void *, gui_event_t, int);
 
 
 #define is_real_widget(x)	((int) (x) > 0)
@@ -200,7 +200,10 @@ ug_dialog_t *ug_dialog_create (gui_window_t *win, ug_dialog_layout_t *layout, in
 void ug_dialog_destroy (ug_dialog_t *d)
 {
     if (d) {
+	int i;
 	detach_window (d);
+	for (i = 0; i < d->num; i++)
+	    ug_widget_destroy (d->widget[i]);
 	free (d->widget);
 	free (d);
     }
@@ -238,7 +241,7 @@ static ug_widget_t *find_widget (ug_dialog_t *d, int x, int y)
 }
 
 
-static void do_mouse_event (ug_widget_t *w, int event, int b)
+static void do_mouse_event (ug_widget_t *w, ug_event_t event, int b)
 {
     if (w)
 	ug_widget_send_event_mouse (w, event, 
@@ -249,7 +252,7 @@ static void do_mouse_event (ug_widget_t *w, int event, int b)
 }
 
 
-static void dialog_event (void *p, int event, int data)
+static void dialog_event (void *p, gui_event_t event, int data)
 {
     ug_dialog_t *d = p;
 
@@ -270,10 +273,10 @@ static void dialog_event (void *p, int event, int data)
 	    ug_widget_t *w = find_widget (d, gui_mouse.x - gui_window_x (d->window),
 					     gui_mouse.y - gui_window_y (d->window));
 	    if (d->hasmouse != w) {
-		ug_widget_send_event (d->hasmouse, UG_EVENT_WIDGET_LOSTMOUSE);
+		ug_widget_send_event (d->hasmouse, UG_EVENT_WIDGET_LOSTMOUSE, NULL);
 		
 		d->hasmouse = w;
-		ug_widget_send_event (d->hasmouse, UG_EVENT_WIDGET_GOTMOUSE);
+		ug_widget_send_event (d->hasmouse, UG_EVENT_WIDGET_GOTMOUSE, NULL);
 	    }
 
 	    do_mouse_event (d->focus, UG_EVENT_MOUSE_MOVE, data);
@@ -328,10 +331,10 @@ void ug_dialog_dirty (ug_dialog_t *d)
 void ug_dialog_focus (ug_dialog_t *d, ug_widget_t *w)
 {
     if (d->focus != w) {
-	ug_widget_send_event (d->focus, UG_EVENT_WIDGET_UNFOCUSED);
+	ug_widget_send_event (d->focus, UG_EVENT_WIDGET_UNFOCUSED, NULL);
 		
 	d->focus = w;
-	ug_widget_send_event (d->focus, UG_EVENT_WIDGET_FOCUSED);
+	ug_widget_send_event (d->focus, UG_EVENT_WIDGET_FOCUSED, NULL);
     }
 }
 

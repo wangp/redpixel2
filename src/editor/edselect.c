@@ -200,7 +200,7 @@ static void sel_draw (struct sel *s, BITMAP *bmp, int x, int y, int w, int h)
 
 static void sel_emit_selected (ug_widget_t *widget)
 {
-    ug_widget_emit_signal (widget, ED_SELECT_SIGNAL_SELECTED);
+    ug_widget_emit_signal (widget, ED_SELECT_SIGNAL_SELECTED, 0);
 }
 
 static int sel_select (ug_widget_t *widget, int mx, int my)
@@ -224,14 +224,14 @@ static int sel_select (ug_widget_t *widget, int mx, int my)
     return 0;
 }
 
-static void sel_event (ug_widget_t *p, int event, ug_event_t *d)
+static void sel_event (ug_widget_t *p, ug_event_t event, ug_event_data_t *d)
 {
     switch (event) {
 	case UG_EVENT_WIDGET_DRAW:
 	    sel_draw (p->private,
-		      ug_event_draw_bmp (d),
-		      ug_event_draw_x (d), ug_event_draw_y (d),
-		      ug_event_draw_w (d), ug_event_draw_h (d));
+		      ug_event_data_draw_bmp (d),
+		      ug_event_data_draw_x (d), ug_event_data_draw_y (d),
+		      ug_event_data_draw_w (d), ug_event_data_draw_h (d));
 	    break;
 
 	case UG_EVENT_WIDGET_GOTMOUSE:
@@ -239,24 +239,25 @@ static void sel_event (ug_widget_t *p, int event, ug_event_t *d)
 	    break;
 
 	case UG_EVENT_MOUSE_MOVE:
-	    if (!ug_event_mouse_bstate (d))
+	    if (!ug_event_data_mouse_bstate (d))
 		break;
 	    /* fall through */
  
 	case UG_EVENT_MOUSE_DOWN:
         select:
-	    if (sel_select (p, ug_event_mouse_rel_x (d), ug_event_mouse_rel_y (d)))
+	    if (sel_select (p, ug_event_data_mouse_rel_x (d),
+			    ug_event_data_mouse_rel_y (d)))
 		ug_widget_dirty (p);
 	    break;
 
 	case UG_EVENT_MOUSE_WHEEL:
-	    if (ug_event_mouse_b (d) > 0)
+	    if (ug_event_data_mouse_b (d) > 0)
 		sel_scroll_up (p->private, MAX (STEP (p->private), 1));
 	    else
 		sel_scroll_down (p->private, MAX (STEP (p->private), 1));
 	    ug_widget_dirty (p);
 
-	    if (ug_event_mouse_bstate (d))
+	    if (ug_event_data_mouse_bstate (d))
 		goto select;
 	    break;
 

@@ -129,6 +129,16 @@ tags: $(SOURCES)
 
 #----------------------------------------------------------------------
 
+doc/gui_api.html: src/gui/gui.h
+	lua -f tools/mtfm.lua $< > $@
+
+doc/ug_api.html: src/ug/ug.h
+	lua -f tools/mtfm.lua $< > $@
+
+mtfmdocs: doc/gui_api.html doc/ug_api.html
+
+#----------------------------------------------------------------------
+
 depend:
 	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$(OBJDIR)/\1,' > makefile.dep
 

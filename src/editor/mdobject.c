@@ -126,11 +126,11 @@ static gui_window_t *actions_win;
 static ug_dialog_t *actions_dlg;
 static int action = ACTION_ADD;
 
-static void add_slot (ug_widget_t *p, int s, void *d) { action = ACTION_ADD; }
-static void del_slot (ug_widget_t *p, int s, void *d) { action = ACTION_DEL; }
-static void raise_slot (ug_widget_t *p, int s, void *d) { action = ACTION_RAISE; }
-static void lower_slot (ug_widget_t *p, int s, void *d) { action = ACTION_LOWER; }
-static void edit_slot (ug_widget_t *p, int s, void *d) { action = ACTION_EDIT; }
+static void add_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_ADD; }
+static void del_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_DEL; }
+static void raise_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_RAISE; }
+static void lower_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_LOWER; }
+static void edit_slot (ug_widget_t *p, ug_signal_t s, void *d) { action = ACTION_EDIT; }
 
 static ug_dialog_layout_t actions_layout[] =
 {

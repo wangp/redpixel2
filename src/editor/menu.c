@@ -98,7 +98,7 @@ static void quit ()
 }
 
 
-static void file_menu_slot (ug_widget_t *p, int signal, void *data)
+static void file_menu_slot (ug_widget_t *p, ug_signal_t signal, void *data)
 {
     void (*proc) () = data;
     if (proc)

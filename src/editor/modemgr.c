@@ -61,7 +61,7 @@ void modemgr_select (char *name)
  */
 
 
-static void slot (ug_widget_t *p, int signal, void *d);
+static void slot (ug_widget_t *p, ug_signal_t signal, void *d);
 
 
 static gui_window_t *window;
@@ -111,7 +111,7 @@ static void modebar_make ()
 }
 
 
-static void slot (ug_widget_t *p, int signal, void *d)
+static void slot (ug_widget_t *p, ug_signal_t signal, void *d)
 {
     char *id = ug_widget_id (p);
     int i;

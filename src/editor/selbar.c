@@ -21,27 +21,27 @@ static void (*right_proc) ();
 static void (*selected_proc) ();
 
 
-static void up_slot (ug_widget_t *p, int signal, void *data)
+static void up_slot (ug_widget_t *p, ug_signal_t signal, void *data)
 {
     ed_select_scroll_page_up (sel);
 }
 
-static void down_slot (ug_widget_t *p, int signal, void *data)
+static void down_slot (ug_widget_t *p, ug_signal_t signal, void *data)
 {
     ed_select_scroll_page_down (sel);
 }
 
-static void left_slot (ug_widget_t *p, int signal, void *data)
+static void left_slot (ug_widget_t *p, ug_signal_t signal, void *data)
 {
     if (left_proc) left_proc ();
 }
 
-static void right_slot (ug_widget_t *p, int signal, void *data)
+static void right_slot (ug_widget_t *p, ug_signal_t signal, void *data)
 {
     if (right_proc) right_proc ();
 }
 
-static void select_slot (ug_widget_t *p, int signal, void *data)
+static void select_slot (ug_widget_t *p, ug_signal_t signal, void *data)
 {
     if (selected_proc) selected_proc ();
 }    

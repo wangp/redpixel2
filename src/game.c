@@ -25,7 +25,7 @@ static camera_t *cam;
 static objid_t local_player;
 
 
-static int do_init ()
+static int do_init (const char *filename)
 {
     fps_init ();
 
@@ -38,7 +38,7 @@ static int do_init ()
     /* This is temporary until a menu system is in place and some
        proper networking.  */
 
-    map = map_load ("test.pit", 1, NULL);
+    map = map_load (filename, 1, NULL);
     if (!map)
 	return -1;
 
@@ -205,9 +205,9 @@ static int do_loop ()
 }
 
 
-int game ()
+int game (const char *filename)
 {
-    if (do_init () < 0)
+    if (do_init (filename) < 0)
 	return -1;
 
     while (do_loop () == 0)

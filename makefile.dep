@@ -1,13 +1,13 @@
 obj/linux/alloc.o: src/alloc.c src/alloc.h src/error.h
-obj/linux/bindings.o: src/bindings.c src/bindings.h src/mylua.h src/object.h \
- src/bitmaskr.h src/bitmask.h src/list.h src/map.h src/objmin.h \
- src/objtypes.h src/bindings.inc
+obj/linux/bindings.o: src/bindings.c src/bindings.h src/mylua.h src/extdata.h \
+ src/store/store.h src/object.h src/bitmaskr.h src/bitmask.h \
+ src/list.h src/map.h src/objmin.h src/objtypes.h src/bindings.inc
 obj/linux/bitmask.o: src/bitmask.c src/bitmask.h
 obj/linux/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
 obj/linux/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
  src/list.h
-obj/linux/camera.o: src/camera.c src/camera.h src/objmin.h \
+obj/linux/camera.o: src/camera.c src/alloc.h src/camera.h src/objmin.h \
  src/fastsqrt/fastsqrt.h src/object.h src/bitmaskr.h src/bitmask.h \
  src/list.h src/map.h src/mylua.h src/objtypes.h
 obj/linux/error.o: src/error.c src/error.h
@@ -55,6 +55,7 @@ obj/linux/magicrt.o: src/magic/magicrt.c src/magic/magicrt.h
 obj/linux/bmark.o: src/fastsqrt/bmark.c src/fastsqrt/fastsqrt.h
 obj/linux/fastsqrt.o: src/fastsqrt/fastsqrt.c src/fastsqrt/fastsqrt.h
 obj/linux/gui.o: src/gui/gui.c src/gui/gui.h src/gui/guiinter.h src/yield.h
+obj/linux/guiaccel.o: src/gui/guiaccel.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guidirty.o: src/gui/guidirty.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guimouse.o: src/gui/guimouse.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guiwm.o: src/gui/guiwm.c src/gui/gui.h src/gui/guiinter.h
@@ -68,7 +69,7 @@ obj/linux/ugdialog.o: src/ug/ugdialog.c src/gui/gui.h src/ug/ug.h \
 obj/linux/ugevent.o: src/ug/ugevent.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h
 obj/linux/uglayout.o: src/ug/uglayout.c src/ug/ug.h src/gui/gui.h
 obj/linux/ugmenu.o: src/ug/ugmenu.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h \
- src/ug/ugtheme.h src/ug/ugbutton.h
+ src/ug/ugtheme.h
 obj/linux/ugscroll.o: src/ug/ugscroll.c
 obj/linux/ugtheme.o: src/ug/ugtheme.c src/ug/ugtheme.h
 obj/linux/ugthmmot.o: src/ug/ugthmmot.c src/ug/ugtheme.h
@@ -78,7 +79,8 @@ obj/linux/ugwidget.o: src/ug/ugwidget.c src/ug/ug.h src/gui/gui.h \
 obj/linux/cursor.o: src/editor/cursor.c src/editor/cursor.h src/magic/magic4x4.h
 obj/linux/editarea.o: src/editor/editarea.c src/gui/gui.h src/alloc.h \
  src/editor/editarea.h src/list.h src/magic/magic4x4.h \
- src/editor/modes.h
+ src/editor/modes.h src/editor/selbar.h src/editor/edselect.h \
+ src/ug/ug.h
 obj/linux/editor.o: src/editor/editor.c src/gui/gui.h src/ug/ug.h \
  src/editor/cursor.h src/store/store.h src/path.h src/vtree.h \
  src/editor/editarea.h src/editor/menu.h src/editor/modebar.h \

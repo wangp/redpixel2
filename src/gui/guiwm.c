@@ -29,7 +29,7 @@ void gui_wm_shutdown ()
     gui_wm->wm_shutdown ();
 }
 
-void gui_wm_event (int event, int d)
+void gui_wm_event (gui_event_t event, int d)
 {
     gui_wm->wm_event (event, d);
 }
@@ -116,7 +116,7 @@ void gui_window_set_draw_proc (gui_window_t *w, void (*draw) (void *, BITMAP *))
     gui_wm->window_set_draw_proc (w, draw);
 }
 
-void gui_window_set_event_proc (gui_window_t *w, void (*event) (void *, int, int))
+void gui_window_set_event_proc (gui_window_t *w, void (*event) (void *, gui_event_t, int))
 {
     gui_wm->window_set_event_proc (w, event);
 }

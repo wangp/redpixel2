@@ -7,7 +7,7 @@
 struct ug_widget_class {
     int (*create) (ug_widget_t *, void *);
     void (*destroy) (ug_widget_t *);
-    void (*event) (ug_widget_t *, int, ug_event_t *);
+    void (*event) (ug_widget_t *, ug_event_t, ug_event_data_t *);
 };
   
 
@@ -19,8 +19,11 @@ struct ug_widget {
 
     int rw, rh;			/* requested size */
     int x, y, w, h;		/* allocated pos, size */
-    void (*slot) (ug_widget_t *, int, void *);
+    void (*slot) (ug_widget_t *, ug_signal_t, void *);
 };
+
+ug_widget_t *ug_widget_create (ug_widget_class_t *, void *data, const char *id);
+void ug_widget_destroy (ug_widget_t *);
 
 
 /* ugdialog.c */

@@ -56,31 +56,34 @@ static void draw (ug_widget_t *p, BITMAP *bmp)
 }
 
 
-static void button_event (ug_widget_t *p, int event, ug_event_t *d)
+static void button_event (ug_widget_t *p, ug_event_t event, ug_event_data_t *d)
 {
     switch (event) {
 	case UG_EVENT_WIDGET_DRAW:
-	    draw (p, ug_event_draw_bmp (d));
+	    draw (p, ug_event_data_draw_bmp (d));
 	    break;
 
 	case UG_EVENT_MOUSE_DOWN:
-	    if (ug_event_mouse_b (d) == 0) {
+	    if (ug_event_data_mouse_b (d) == 0) {
 		private (p)->down = 1;
 		ug_widget_dirty (p);
 	    }
 	    break;
 
 	case UG_EVENT_MOUSE_UP:
-	    if (ug_event_mouse_b (d) == 0) {
+	    if (ug_event_data_mouse_b (d) == 0) {
 		private (p)->down = 0;
 		ug_widget_dirty (p);
 
 		ug_widget_emit_signal_mouse (p, UG_SIGNAL_CLICKED,
-					     ug_event_mouse_x (d),
-					     ug_event_mouse_y (d),
-					     ug_event_mouse_b (d),
-					     ug_event_mouse_bstate (d));
+					     ug_event_data_mouse_x (d),
+					     ug_event_data_mouse_y (d),
+					     ug_event_data_mouse_b (d),
+					     ug_event_data_mouse_bstate (d));
 	    }
+	    break;
+
+	default:
 	    break;
     }
 }

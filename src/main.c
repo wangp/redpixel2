@@ -58,11 +58,12 @@ int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1;
     int run_game = 0;
+    const char *map = "test.pit";
     int c;
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":w:h:d:g")) != -1) {
+    while ((c = getopt (argc, argv, ":w:h:d:gm:")) != -1) {
 	switch (c) {
 	    case 'w':
 		w = atoi (optarg);
@@ -80,6 +81,9 @@ int main (int argc, char *argv[])
 	    case 'g':
 		run_game = 1;
 		break;
+	    case 'm':
+		map = optarg;
+		break;
 	    case ':':
 	    	fprintf (stderr, "Option `%c' missing argument.\n", optopt);
 		return 1;
@@ -96,7 +100,7 @@ int main (int argc, char *argv[])
     game_init ();
 
     if (run_game)
-	game ();
+	game (map);
     else
 	editor ();
     

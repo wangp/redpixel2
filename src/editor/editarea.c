@@ -71,7 +71,7 @@ static void draw (void *p, BITMAP *bmp)
 
 /*----------------------------------------------------------------------*/
 
-static void event (void *p, int event, int d)
+static void event (void *p, gui_event_t event, int d)
 {
     static int panning = 0;
     static int old_x, old_y;

@@ -1,3 +1,31 @@
+2001-05-28  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* ug/ug.h, ug/uginter.h: Made ug_widget_create and
+	ug_widget_destroy internal functions.
+
+	* ug/ugdialog.c (ug_dialog_destroy): Free widgets properly..
+
+	* ug/ug.h: Removed ug_send_event_ex and ug_emit_signal_ex, and
+	made ug_send_event and ug_emit_signal take their places.
+
+	* gui/gui.h: Use enum instead of preprocessor for event numbers.
+
+	* ug/ug.h, gui/gui.h: Documented for mtfm.
+
+	* ug/ug.h: Cleaned up API: UG events are now an enum instead of
+	preprocessor #defines; signals now have a type alias; the old
+	ug_event_t is now named ug_event_data_t (with corresponding
+	changes to function names).
+
+	* mtfm.lua: Expanded.
+
+2001-05-27  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Wrote mtfm.lua to help generate docs, so I don't have to relearn
+	the various interfaces by reading code every month.
+
+	* main.c (main): Added -m option for testing different maps.
+
 2001-05-26  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* editor/mdobject.c: Added object actions box, to replace LMB/RMB,
