@@ -35,6 +35,7 @@ local Standard_Pickup = function (t)
 	    if t.ammo_to_give then
 		player:receive_ammo (t.ammo_to_give, t.ammo_amount)
 	    end
+	    play_sound (self, t.sound or "/basic/weapon/generic-pickup-sound")
 	end
     })
 end
