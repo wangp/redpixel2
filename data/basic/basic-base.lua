@@ -141,7 +141,7 @@ Objtype {
     alias = "~rb",
     icon = "/basic/respawning-ball/000",
     nonproxy_init = function (self)
-	spawn_respawn_particles (self.x, self.y, 30, 1.5)
+	spawn_respawn_particles_on_clients (self.x, self.y, 30, 1.5)
 	self:set_collision_flags ("")
 	self:set_update_hook (
 	    1000,

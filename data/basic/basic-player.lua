@@ -158,9 +158,9 @@ local player_nonproxy_init = function (self)
     _internal_tell_health (self, self.health)
 
     function self:receive_damage (damage, attacker)
-	spawn_blood (self.x + cx, self.y + cy, 100, 2)
+	spawn_blood_on_clients (self.x + cx, self.y + cy, 100, 2)
 	if damage/5 >= 1 then
-	    spawn_blod (self.x, self.y, damage/5)
+	    spawn_blod_on_clients (self.x, self.y, damage/5)
 	end
 
 	self.health = self.health - damage
@@ -221,7 +221,7 @@ local player_nonproxy_init = function (self)
 		    self.trail_tics = self.trail_tics - 1
 		else
 		    self.trail_tics = 50
-		    spawn_blood (self.x + cx, self.y + cx, 40, 2)
+		    spawn_blood_on_clients (self.x + cx, self.y + cx, 40, 2)
 		end
 	    end
 	end

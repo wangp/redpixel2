@@ -15,8 +15,8 @@ local Crate = function (t)
 	    function self:receive_damage (amount)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion ("basic-explo42", self.x, self.y)
-		    spawn_sparks (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
+		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
 		    self:hide ()
 		    function the_hook (self)
 			if _internal_would_collide_with_objects (self) then
@@ -68,8 +68,8 @@ local Barrel = function (t)
 	    function self:receive_damage (amount, killer_id)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion ("basic-explo42", self.x, self.y)
-		    spawn_sparks (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
+		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
 		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then
