@@ -2,7 +2,11 @@
 ## Makefile for Red Pixel II
 ##
 
-include config.linux
+ifdef MINGDIR
+	include config.mingw
+else
+	include config.linux
+endif
 
 SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/loadaud src/gui src/ug src/editor src/server
@@ -163,12 +167,22 @@ $(PLAT_LIBNET):
 	cp libnet/makfiles/linux.mak libnet/port.mak
 	$(MAKE) -C libnet lib
 
-endif
-
-## other OSes here
-
 $(PLAT_LIBLUA):
 	$(MAKE) -C lua-4.1-work3
+
+endif
+
+ifeq "$(PLATFORM)" "MINGW"
+
+$(PLAT_LIBNET):
+	copy libnet\makfiles\mingw.mak libnet\port.mak
+	$(MAKE) -C libnet lib
+
+$(PLAT_LIBLUA):
+	$(MAKE) -C lua-4.1-work3/src
+	$(MAKE) -C lua-4.1-work3/src/lib
+	$(MAKE) -C lua-4.1-work3/src/lua
+endif
 
 #----------------------------------------------------------------------
 
@@ -213,14 +227,19 @@ EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
 EXCLUDE := $(addprefix --exclude , $(EXCLUDE_LIST))
 
 backup:
-	cd ../ && tar zcvf `date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
+	cd ../ && tar zcvf redstone-`date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
 
 suidroot:
 	chown root.games $(PROGRAM)
 	chmod 4750 $(PROGRAM)
 
+prepare-dist: cleaner
+	$(MAKE) depend
+	$(MAKE) -C libnet cleaner
+	rm libnet/port.mak
+	$(MAKE) -C lua-4.1-work3 clean
 
-.PHONY: clean cleaner backup suidroot lua
+.PHONY: clean cleaner backup suidroot prepare-dist
 
 
 ##

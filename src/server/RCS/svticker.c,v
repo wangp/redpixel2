@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.02.01.14.53.50;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.24.07.12.25;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Updated mingw port.
 @
 text
 @/* svticker.c - ticker using gettimeofday
@@ -34,7 +39,7 @@ text
 struct svticker {
     int msecs_per_tick;
     unsigned long ticks;
-    struct timeval last_update;
+    struct pwtimeval last_update;
 };
 
 
@@ -52,7 +57,7 @@ svticker_t *svticker_create (int ticks_per_sec)
 
 int svticker_poll (svticker_t *t)
 {
-    struct timeval now;
+    struct pwtimeval now;
     unsigned long elapsed_msec;
 
     gettimeofday (&now, NULL);
@@ -86,4 +91,18 @@ unsigned long svticker_ticks (svticker_t *t)
 {
     return t->ticks;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 1
+a15 1
+    struct timeval last_update;
+d33 1
+a33 1
+    struct timeval now;
 @

@@ -1,9 +1,19 @@
-head	1.11;
+head	1.13;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.13
+date	2002.02.01.15.04.16;	author tjaden;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2002.02.01.14.51.51;	author tjaden;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2002.01.31.12.21.36;	author tjaden;	state Exp;
@@ -65,16 +75,20 @@ desc
 @@
 
 
-1.11
+1.13
 log
-@Changes for client-server mode.
+@Minor: put prefix before date in backup archive file names.
 @
 text
 @##
 ## Makefile for Red Pixel II
 ##
 
-include config.linux
+ifdef MINGDIR
+	include config.mingw
+else
+	include config.linux
+endif
 
 SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/loadaud src/gui src/ug src/editor src/server
@@ -235,12 +249,22 @@ $(PLAT_LIBNET):
 	cp libnet/makfiles/linux.mak libnet/port.mak
 	$(MAKE) -C libnet lib
 
-endif
-
-## other OSes here
-
 $(PLAT_LIBLUA):
 	$(MAKE) -C lua-4.1-work3
+
+endif
+
+ifeq "$(PLATFORM)" "MINGW"
+
+$(PLAT_LIBNET):
+	copy libnet\makfiles\mingw.mak libnet\port.mak
+	$(MAKE) -C libnet lib
+
+$(PLAT_LIBLUA):
+	$(MAKE) -C lua-4.1-work3/src
+	$(MAKE) -C lua-4.1-work3/src/lib
+	$(MAKE) -C lua-4.1-work3/src/lua
+endif
 
 #----------------------------------------------------------------------
 
@@ -285,19 +309,57 @@ EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
 EXCLUDE := $(addprefix --exclude , $(EXCLUDE_LIST))
 
 backup:
-	cd ../ && tar zcvf `date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
+	cd ../ && tar zcvf redstone-`date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
 
 suidroot:
 	chown root.games $(PROGRAM)
 	chmod 4750 $(PROGRAM)
 
+prepare-dist: cleaner
+	$(MAKE) depend
+	$(MAKE) -C libnet cleaner
+	rm libnet/port.mak
+	$(MAKE) -C lua-4.1-work3 clean
 
-.PHONY: clean cleaner backup suidroot lua
+.PHONY: clean cleaner backup suidroot prepare-dist
 
 
 ##
 ## End of Makefile
 ##
+@
+
+
+1.12
+log
+@Updated mingw port.
+@
+text
+@d230 1
+a230 1
+	cd ../ && tar zcvf `date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
+@
+
+
+1.11
+log
+@Changes for client-server mode.
+@
+text
+@d5 5
+a9 1
+include config.linux
+d170 3
+d175 5
+a179 1
+## other OSes here
+d182 4
+a185 1
+	$(MAKE) -C lua-4.1-work3
+d236 5
+d242 1
+a242 1
+.PHONY: clean cleaner backup suidroot lua
 @
 
 

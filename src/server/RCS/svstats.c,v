@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.02.01.14.54.09;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.24.07.12.20;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Updated mingw port.
 @
 text
 @/* svstats.c - network stats
@@ -29,7 +34,7 @@ text
 #include "timeval.h"
 
 
-static struct timeval count_start_time;
+static struct pwtimeval count_start_time;
 
 int svstats_incoming_bytes;
 int svstats_outgoing_bytes;
@@ -49,7 +54,7 @@ void svstats_init (void)
 
 int svstats_poll (void)
 {
-    struct timeval now;
+    struct pwtimeval now;
     unsigned long elapsed_msec;
 
     gettimeofday (&now, 0);
@@ -76,4 +81,18 @@ int svstats_poll (void)
 void svstats_shutdown (void)
 {
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d10 1
+a10 1
+static struct timeval count_start_time;
+d30 1
+a30 1
+    struct timeval now;
 @

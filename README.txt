@@ -147,6 +147,14 @@ RUNNING A DEDICATED SERVER AND DEDICATED CLIENT ON THE SAME MACHINE
 
 	program [-n MY.NICK]
 
+  Side note: This doesn't work as well as it should under Windows 95/98.
+  The movement is slightly jerky (either the server not responsive
+  enough or it is taking too much CPU time from the client (probably the
+  latter)), on a Pentium-III 800.  Under Linux on the same machine I can
+  run two clients and a server under X11, so something is not right.
+  (I have very little experience with Windows, so I'm really looking for
+  someone else to have a look.)
+
 
 RUNNING THE MAP EDITOR
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -161,14 +169,20 @@ RUNNING THE MAP EDITOR
 FINALLY...
 ~~~~~~~~~~
 
-  A lot of stuff is missing or incomplete, and the pickups have not been
-  balanced at all.  Sound support was very quickly hacked in.  Still,
-  this demo is out because some people have wanted to see it for a long
-  time (we're talkin' years), and uni will restart soon (shrug ;-)
+  A lot of stuff is missing or incomplete, the pickups aren't balanced,
+  and the code is mostly unoptimised.  Still, this demo is out because
+  some people have wanted to see it for a long time (we're talkin'
+  years), and uni will restart soon (shrug ;-)
 
   If you have any suggestions or non-obvious bug reports, email
-  tjaden@users.sf.net.  No complaints for now.  (Well, if you complain
-  there's too much violence, I'll be happy, but there's really not
-  enough of it yet.  Don't complaint about the lack of violence.)
+  me at tjaden@users.sf.net.
 
   Happy killing! :-)
+
+
+P.S. MUSICIANS?
+~~~~~~~~~~~~~~~
+
+  I'd like to have some original music for the game.  I'll accept
+  anything, as long as you think it would fit.  In case anyone is
+  interested in this, the music should be in .XM or .IT formats.

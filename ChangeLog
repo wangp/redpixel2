@@ -1,3 +1,18 @@
+2002-02-02  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* client.c: Added how to abort connection in temp message.
+
+	* sync.c: Changed the Windows port to use critical sections
+	instead of semaphores for synchronisation between client and
+	server.  Also made the client not yield() in non-multithreaded, as
+	it's really not necessary and worsens performance under Windows
+	(see also recent change to yield.c).
+
+	* yield.c, svclient.h, server.c, svstats.c, svticker.c, svgame.c,
+	* timeval.h, timeval.c, timeout.h, timeout.c, particle.c, packet.c,
+	* objtypes.c, config.mingw, Makefile, server.c:
+	Updated mingw port.
+
 2002-01-31  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* svgame.c: Fixed some missing unlockings that somehow only

@@ -881,7 +881,7 @@ typedef struct _wins
 typedef struct		/* structure for ripped off lines */
 {
 	int line;
-	int (*init)();
+	int (*init)(void);
 } RIPPEDOFFLINE;
 
 

@@ -28,9 +28,10 @@
 
 #ifdef TARGET_WINDOWS
 
+#include <allegro.h>
 #include <winalleg.h>
 
-int gettimeofday (struct timeval *tp, void *unused_tz)
+int gettimeofday (struct pwtimeval *tp, void *unused_tz)
 {
     SYSTEMTIME st;
     time_t tt;

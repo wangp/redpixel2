@@ -1,10 +1,14 @@
 # Configuration for Mingw Win32 build.  -*- makefile -*-
-# This needs updating.
 
+PLATFORM := MINGW
 PLAT_TARGET := -DTARGET_WINDOWS
 PLAT_CFLAGS := -DTHREADS_WIN32 -Iwin32/pdcurses/pdcurses
+# XXX change this to non-depreciated option
 PLAT_LDFLAGS := -mwindows
 PLAT_OBJDIR := obj/mingw
-PLAT_LIBS := -lalleg -llua -llualib -lnet -lwsock32 \
+PLAT_LIBNET := libnet/lib/libnet.a
+PLAT_LUABIN := lua-4.1-work3/bin/lua
+PLAT_LIBLUA := lua-4.1-work3/lib/liblua.a lua-4.1-work3/lib/liblualib.a
+PLAT_LIBS := -lalleg $(PLAT_LIBNET) -lwsock32 $(PLAT_LIBLUA) \
 		win32/pdcurses/pdcurses/win32/pdcurses.a
 PLAT_EXE := .exe

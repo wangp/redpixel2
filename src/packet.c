@@ -5,7 +5,11 @@
 
 
 #include <stdarg.h>
-#include <netinet/in.h>
+#ifndef TARGET_WINDOWS
+# include <netinet/in.h>
+#else
+# include <winsock.h>
+#endif
 
 #ifndef TEST
 # include "packet.h"
@@ -161,7 +165,7 @@ int main ()
     char buf[512];
     long a, b, c;
     float f;
-    long len;
+    short len;
     char s[80];
 
     packet_encode (buf, "lflsl", 1, 101.101, -1, "[my string]", 0xbeefcafe);

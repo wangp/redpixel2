@@ -1,9 +1,14 @@
-head	1.30;
+head	1.31;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.31
+date	2002.02.01.14.57.50;	author tjaden;	state Exp;
+branches;
+next	1.30;
 
 1.30
 date	2002.01.31.12.20.58;	author tjaden;	state Exp;
@@ -160,10 +165,9 @@ desc
 @@
 
 
-1.30
+1.31
 log
-@Changes for client-server mode (mostly hacks which will need fixing
-later :-P)
+@Added how to abort connection in temp message.
 @
 text
 @/* client.c
@@ -1013,7 +1017,8 @@ void client_run (int client_server)
     {
 	int status;
 
-	temporary_message ("Connecting to server...", NULL);
+	temporary_message ("Connecting to server...",
+			   "Press Q to cancel", NULL);
 
 	do {
 	    if (key[KEY_Q])
@@ -1439,6 +1444,18 @@ void client_shutdown (void)
     free (client_name);
     net_closeconn (conn);
 }
+@
+
+
+1.30
+log
+@Changes for client-server mode (mostly hacks which will need fixing
+later :-P)
+@
+text
+@d848 2
+a849 1
+	temporary_message ("Connecting to server...", NULL);
 @
 
 

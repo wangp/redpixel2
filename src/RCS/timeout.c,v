@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.02.01.14.52.44;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Updated mingw port.
 @
 text
 @/* timeout.c
@@ -34,7 +39,7 @@ text
 
 void timeout_set (timeout_t *timeout, unsigned long msec)
 {
-    struct timeval now;
+    struct pwtimeval now;
 
     gettimeofday (&now, NULL);
     timeout->timeout.tv_sec = now.tv_sec + (msec / 1000);
@@ -44,7 +49,7 @@ void timeout_set (timeout_t *timeout, unsigned long msec)
 
 int timeout_test (timeout_t *timeout)
 {
-    struct timeval now;
+    struct pwtimeval now;
 
     gettimeofday (&now, NULL);
 
@@ -52,4 +57,18 @@ int timeout_test (timeout_t *timeout)
 	    ((now.tv_sec == timeout->timeout.tv_sec) &&
 	     (now.tv_usec > timeout->timeout.tv_usec)));
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 1
+a15 1
+    struct timeval now;
+d25 1
+a25 1
+    struct timeval now;
 @

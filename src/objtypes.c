@@ -92,7 +92,7 @@ int objtypes_register (const char *type, const char *name,
 
     icon_bmp = store_dat (icon);
     if (!icon_bmp) {
-	snprintf (buf, sizeof buf, "Bad icon %s\n", icon);
+	uszprintf (buf, sizeof buf, "Bad icon %s\n", icon);
 	error (buf);
     }
 

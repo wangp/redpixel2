@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.3
+date	2002.02.01.14.51.57;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.15.10.16.19;	author tjaden;	state Exp;
@@ -20,21 +25,40 @@ desc
 @@
 
 
+1.3
+log
+@Updated mingw port.
+@
+text
+@# Configuration for Mingw Win32 build.  -*- makefile -*-
+
+PLATFORM := MINGW
+PLAT_TARGET := -DTARGET_WINDOWS
+PLAT_CFLAGS := -DTHREADS_WIN32 -Iwin32/pdcurses/pdcurses
+# XXX change this to non-depreciated option
+PLAT_LDFLAGS := -mwindows
+PLAT_OBJDIR := obj/mingw
+PLAT_LIBNET := libnet/lib/libnet.a
+PLAT_LUABIN := lua-4.1-work3/bin/lua
+PLAT_LIBLUA := lua-4.1-work3/lib/liblua.a lua-4.1-work3/lib/liblualib.a
+PLAT_LIBS := -lalleg $(PLAT_LIBNET) -lwsock32 $(PLAT_LIBLUA) \
+		win32/pdcurses/pdcurses/win32/pdcurses.a
+PLAT_EXE := .exe
+@
+
+
 1.2
 log
 @Change main makefile a bit (Lua source now included in our tree).
 @
 text
-@# Configuration for Mingw Win32 build.  -*- makefile -*-
+@a1 1
 # This needs updating.
-
-PLAT_TARGET := -DTARGET_WINDOWS
-PLAT_CFLAGS := -DTHREADS_WIN32 -Iwin32/pdcurses/pdcurses
-PLAT_LDFLAGS := -mwindows
-PLAT_OBJDIR := obj/mingw
+d3 1
+d6 1
+d9 4
+a12 1
 PLAT_LIBS := -lalleg -llua -llualib -lnet -lwsock32 \
-		win32/pdcurses/pdcurses/win32/pdcurses.a
-PLAT_EXE := .exe
 @
 
 

@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.02.01.14.53.28;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.01.31.12.19.49;	author tjaden;	state Exp;
@@ -45,10 +50,9 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Fixed some missing unlockings that somehow only showed up in
-client-server mode.
+@Updated mingw port.
 @
 text
 @/* svgame.c
@@ -75,6 +79,11 @@ text
 #include "svintern.h"
 #include "svstats.h"
 #include "svticker.h"
+
+
+#ifndef M_PI
+# define M_PI   3.14159265358979323846
+#endif
 
 
 /* Keep this in sync with the client. */
@@ -950,10 +959,10 @@ static void svgame_poll (void)
 
     if (svstats_poll ()) {
 	char buf[1024];
-	snprintf (buf, sizeof buf,
-		  "Incoming %.1f, outgoing %.1f  (avg bytes per sec)",
-		  svstats_average_incoming_bytes,
-		  svstats_average_outgoing_bytes);
+	uszprintf (buf, sizeof buf,
+		   "Incoming %.1f, outgoing %.1f  (avg bytes per sec)",
+		   svstats_average_incoming_bytes,
+		   svstats_average_outgoing_bytes);
 	server_interface_set_status (buf);
     }
 }
@@ -1039,6 +1048,22 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.7
+log
+@Fixed some missing unlockings that somehow only showed up in
+client-server mode.
+@
+text
+@d27 5
+d905 4
+a908 4
+	snprintf (buf, sizeof buf,
+		  "Incoming %.1f, outgoing %.1f  (avg bytes per sec)",
+		  svstats_average_incoming_bytes,
+		  svstats_average_outgoing_bytes);
 @
 
 

@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.02.01.14.52.15;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.24.07.23.01;	author tjaden;	state Exp;
@@ -30,9 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Changed all "()" declarations to "(void)".
+@Updated mingw port.
 @
 text
 @/* objtypes.c
@@ -129,7 +134,7 @@ int objtypes_register (const char *type, const char *name,
 
     icon_bmp = store_dat (icon);
     if (!icon_bmp) {
-	snprintf (buf, sizeof buf, "Bad icon %s\n", icon);
+	uszprintf (buf, sizeof buf, "Bad icon %s\n", icon);
 	error (buf);
     }
 
@@ -188,6 +193,17 @@ bitmask_t *objtype_icon_mask (objtype_t *type)
 {
     return type->icon_mask;
 }
+@
+
+
+1.4
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d95 1
+a95 1
+	snprintf (buf, sizeof buf, "Bad icon %s\n", icon);
 @
 
 

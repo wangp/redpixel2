@@ -6,7 +6,7 @@
 
 
 typedef struct {
-    struct timeval timeout;
+    struct pwtimeval timeout;
 } timeout_t;
 
 

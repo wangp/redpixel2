@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.02.01.14.52.58;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Updated mingw port.
 @
 text
 @/* timeval.c - struct timeval replacement for those without it
@@ -50,9 +55,10 @@ text
 
 #ifdef TARGET_WINDOWS
 
+#include <allegro.h>
 #include <winalleg.h>
 
-int gettimeofday (struct timeval *tp, void *unused_tz)
+int gettimeofday (struct pwtimeval *tp, void *unused_tz)
 {
     SYSTEMTIME st;
     time_t tt;
@@ -73,4 +79,16 @@ int gettimeofday (struct timeval *tp, void *unused_tz)
 }
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d31 1
+d34 1
+a34 1
+int gettimeofday (struct timeval *tp, void *unused_tz)
 @

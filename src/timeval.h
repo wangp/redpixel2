@@ -3,16 +3,18 @@
 
 #ifdef TARGET_WINDOWS
 
-struct timeval {
+struct pwtimeval {
     long tv_sec;
     long tv_usec;
 };
 
-int gettimeofday (struct timeval *tp, void *unused_tz);
+int gettimeofday (struct pwtimeval *tp, void *unused_tz);
 
 #else
 
 #include <sys/time.h>
+
+#define pwtimeval timeval
 
 #endif
 
