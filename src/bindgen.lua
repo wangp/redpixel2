@@ -14,12 +14,12 @@ date = os.date
 ctypes = {
     -- builtin types
     Float	= { "n", "float", "lua_tonumber" },
-    Function 	= { "f", "lua_ref_t", "lua_ref" },
+    Function 	= { "f", "lua_ref_t", "lua_toref" },
     Int	 	= { "n", "int", "lua_tonumber" },
     Bool	= { "b", "int", "lua_toboolean" },
     String	= { "s", "const char *", "lua_tostring" },
     -- custom and readability types
-    Method   	= { "f", "lua_ref_t", "lua_ref" },
+    Method   	= { "f", "lua_ref_t", "lua_toref" },
     Object	= { "u", "object_t *", "lua_toobject", "!$" },
     ObjId	= { "n", "objid_t", "lua_tonumber" },
     ObjTag	= { "n", "objtag_t", "lua_tonumber" },
@@ -227,7 +227,7 @@ generate_init {
     		   { String, "name" },
 		   { String, "icon" },
 		   { Method, "func", nil, 
-		     "$ = (lua_isnoneornil(L, $#) ? LUA_NOREF : lua_ref(L, $#));" }},
+		     "$ = (lua_isnoneornil(L, $#) ? LUA_NOREF : lua_toref(L, $#));" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
