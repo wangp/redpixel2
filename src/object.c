@@ -72,8 +72,6 @@ struct object {
     float xa, ya;
     float old_xa, old_ya;
 
-    char _ramp;
-    char jump;
     char collision_flags;
     char collision_tag;
     objmask_t mask[OBJECT_MASK_MAX];
@@ -241,7 +239,7 @@ void object_run_init_func (object_t *obj)
     lua_State *L = lua_state;
 
     /* Call base object init hook.  */
-    lua_getglobal (L, "_object_init_hook");
+    lua_getglobal (L, "_internal_object_init_hook");
     lua_pushobject (L, obj);
     lua_call (L, 1, 0);
     
@@ -426,25 +424,25 @@ void object_set_mass (object_t *obj, float mass)
 
 int object_ramp (object_t *obj)
 {
-    return obj->_ramp;
+    return object_get_number (obj, "_internal_ramp");
 }
 
 
 void object_set_ramp (object_t *obj, int ramp)
 {
-    obj->_ramp = ramp;
+    object_set_number (obj, "_internal_ramp", ramp);
 }
 
 
 int object_jump (object_t *obj)
 {
-    return obj->jump;
+    return object_get_number (obj, "_internal_jump");
 }
 
 
 void object_set_jump (object_t *obj, int jump)
 {
-    obj->jump = jump;
+    object_set_number (obj, "_internal_jump", jump);
 }
 
 
@@ -1141,7 +1139,7 @@ static inline int object_move (object_t *obj, int mask_num, map_t *map, float dx
     int dont_fall_into_ladder;
 
     dont_fall_into_ladder = ((is_player (obj)) && (dy > 0) &&
-			     !(object_get_number (obj, "internal: down ladder")));
+			     !(object_get_number (obj, "_internal_down_ladder")));
 
     while ((dx) || (dy)) {
 	idx = (ABS (dx) < 1) ? dx : SIGN (dx);
@@ -1216,9 +1214,10 @@ void object_do_physics (object_t *obj, map_t *map)
     obj->yv = (obj->yv + obj->ya) * obj->yv_decay;
 
     if (obj->xv != 0) {
-	if (obj->_ramp) {
+	int ramp = is_player (obj) ? object_ramp (obj) : 0;
+	if (ramp) {
 	    if (object_move_x_with_ramp (obj, ((obj->xv < 0) ? OBJECT_MASK_LEFT : OBJECT_MASK_RIGHT),
-					 map, obj->xv, obj->_ramp) < 0) {
+					 map, obj->xv, ramp) < 0) {
 		/* object stopped short of an entire xv */
 		obj->xa = 0;
 		obj->xv = 0;
