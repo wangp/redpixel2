@@ -2,9 +2,13 @@
 #include "fe-lobby.h"
 #include "fe-main.h"
 #include "fe-widgets.h"
+#include "music.h"
 #include "screen.h"
+#include "sound.h"
 #include "store.h"
 
+
+static float old_music_desired_volume;
 
 static DIALOG options_menu[];
 #define DEFAULT_FOCUS			-1
@@ -76,8 +80,15 @@ static int test_sound (void)
 {
     SAMPLE *sample = store_get_dat ("/basic/explosion/explo42/sound");
 
-    /* XXX */
     play_sample (sample, SFX_SLIDER.d2, 128, 1000, FALSE);
+
+    return D_O_K;
+}
+
+
+static int music_slider_changed (DIALOG *d)
+{
+    music_desired_volume = (float)d->d2 / 255.0;
 
     return D_O_K;
 }
@@ -109,6 +120,9 @@ static int options_menu_modify_changes_pressed (void)
 
     screen_blitter_shutdown ();
     screen_blitter_init (stretch_method, d);
+
+    /* Sound. */
+    sound_volume_factor = SFX_SLIDER.d2 / 255.0;
 
     /* The menu should try to be in the same resolution as the game to
        minimize the screen changing between the battle field and the
@@ -142,6 +156,14 @@ static int options_menu_modify_changes_pressed (void)
 }
 
 
+static int cancel_changes_pressed (void)
+{
+    music_desired_volume = old_music_desired_volume;
+
+    return D_EXIT;
+}
+
+
 static DIALOG options_menu[] =
 {
     { fancy_bitmap_proc,     0,   0, 640, 480, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL }, /* 0 */
@@ -160,11 +182,11 @@ static DIALOG options_menu[] =
     { fancy_slider_proc,   220, 220, 300,  30, 0,  0, 0, 0, 255, 0, NULL, NULL, NULL }, /* 14 */
     { fancy_button_proc,   540, 220,  60,  30, 0, -1, 0, 0, 0, 0x80, "Play", NULL, test_sound }, /* 15 */
     { fancy_checkbox_proc, 120, 260, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Music", NULL, NULL }, /* 16 */
-    { fancy_slider_proc,   220, 260, 300,  30, 0,  0, 0, 0, 255, 0, NULL, NULL, NULL }, /* 17 */
+    { fancy_slider_proc,   220, 260, 300,  30, 0,  0, 0, 0, 255, 0, NULL, music_slider_changed, NULL }, /* 17 */
     { fancy_label_proc,    150, 300, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Gamma", NULL, NULL }, /* 18 */
     { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 4, 0, NULL, NULL, NULL }, /* 19 */
     { fancy_button_proc,   360, 340, 100,  40, 0, -1, 0, 0, 0, 0x80, "Ok", NULL, options_menu_modify_changes_pressed }, /* 20 */
-    { fancy_button_proc,   480, 340, 110,  40, 0, -1, 0, D_EXIT, 0, 0x80, "Cancel", NULL, NULL }, /* 21 */
+    { fancy_button_proc,   480, 340, 110,  40, 0, -1, 0, 0, 0, 0x80, "Cancel", NULL, cancel_changes_pressed }, /* 21 */
     { d_yield_proc,          0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
     { NULL }
 };
@@ -185,6 +207,11 @@ void options_menu_run (void)
 	    RESOLUTION_640x480_RADIOBUTTON.flags |= D_SELECTED;
 	enable_stretching ();
     }
+
+    /* Sound & music. */
+    SFX_SLIDER.d2 = sound_volume_factor * 255;
+    MUSIC_SLIDER.d2 = music_desired_volume * 255;
+    old_music_desired_volume = music_desired_volume;
 
     fancy_do_dialog (options_menu, DEFAULT_FOCUS);
 }
