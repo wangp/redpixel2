@@ -23,11 +23,7 @@
 #include "svintern.h"
 #include "svstats.h"
 #include "svticker.h"
-
-
-/* Keep this in sync with the client. */
-#define TICKS_PER_SECOND	(50)
-#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
+#include "ticks.h"
 
 
 static map_t *map;

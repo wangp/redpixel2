@@ -32,6 +32,7 @@
 #include "store.h"
 #include "sync.h"
 #include "textout.h"
+#include "ticks.h"
 #include "timeout.h"
 
 
@@ -132,11 +133,6 @@ static void display_switch_shutdown (void)
  *	Tick counter
  *----------------------------------------------------------------------
  */
-
-
-/* keep in sync with server */
-#define TICKS_PER_SECOND	(50)
-#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
 
 
 static volatile ulong_t ticks;
