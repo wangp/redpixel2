@@ -29,6 +29,7 @@
 #include "sound.h"
 #include "store.h"
 #include "sync.h"
+#include "textout.h"
 #include "timeout.h"
 
 
@@ -164,7 +165,7 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
     list_head_t *object_list;
     object_t *obj;
     int i;
-    
+
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
 	if (!object_is_client_processed (obj)) {
@@ -211,7 +212,7 @@ static void poll_update_hooks (int elapsed_msecs)
 
     if (elapsed_msecs <= 0)
 	return;
-    
+
     object_list = map_object_list (map);
     list_for_each (obj, object_list)
 	if (!object_stale (obj))
@@ -239,7 +240,7 @@ static void send_gameinfo_controls (void)
 	if (key[KEY_S]) controls |= CONTROL_DOWN;
 	if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
     }
-    
+
     if (mouse_b & 1) controls |= CONTROL_FIRE;
 
     if (controls != last_controls)
@@ -312,12 +313,12 @@ SC_GAMEINFO_HANDLER (sc_mapload)
 {
     char filename[NETWORK_MAX_PACKET_SIZE];
     short len;
-    
+
     buf += packet_decode (buf, "s", &len, filename);
     if (map)
 	map_destroy (map);
     map = map_load (filename, 1, NULL);
-    
+
     return buf;
 }
 
@@ -326,7 +327,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
 {
     lua_State *L = lua_state;
     int top = lua_gettop (L);
-    
+
     char type[NETWORK_MAX_PACKET_SIZE];
     short len;
     objid_t id;
@@ -371,7 +372,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
 	char type;
 	char name[NETWORK_MAX_PACKET_SIZE];
 	short len;
-		    
+
 	do {
 	    buf += packet_decode (buf, "c", &type);
 	    if (type == 'f') {
@@ -466,7 +467,7 @@ SC_GAMEINFO_HANDLER (sc_object_call)
     short arg_len;
     char arg[NETWORK_MAX_PACKET_SIZE];
     object_t *obj;
-		
+
     buf += packet_decode (buf, "lss", &id, &method_len, method, &arg_len, arg);
     if ((obj = map_find_object (map, id))) {
 	lua_pushstring (lua_state, arg);
@@ -521,7 +522,7 @@ SC_GAMEINFO_HANDLER (sc_blod_create)
     float x;
     float y;
     long nparticles;
-		
+
     buf += packet_decode (buf, "ffl", &x, &y, &nparticles);
     blod_spawn (map, x, y, nparticles);
 
@@ -535,7 +536,7 @@ SC_GAMEINFO_HANDLER (sc_explosion_create)
     short len;
     float x;
     float y;
-    
+
     buf += packet_decode (buf, "sff", &len, name, &x, &y);
     map_explosion_create (map, name, x, y);
 
@@ -549,7 +550,7 @@ SC_GAMEINFO_HANDLER (sc_blast_create)
     float y;
     float rad;
     long damage;
-    
+
     buf += packet_decode (buf, "fffl", &x, &y, &rad, &damage);
     map_blast_create (map, x, y, rad, damage, 1);
 
@@ -562,7 +563,7 @@ SC_GAMEINFO_HANDLER (sc_client_status)
     long id;
     char type;
     long val;
-    
+
     buf += packet_decode (buf, "lcl", &id, &type, &val);
     if (id == client_id) {
 	switch (type) {
@@ -587,7 +588,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
     const void *end = buf + size;
 
     dbg ("process gameinfo packet");
-    
+
     while (buf != end) {
 
 	switch (*buf++) {
@@ -639,7 +640,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 	    case MSG_SC_GAMEINFO_CLIENT_STATUS:
 		buf = sc_client_status (buf);
 		break;
-		
+
 	    default:
 		error ("error: unknown code in gameinfo packet (client)\n");
 	}
@@ -675,7 +676,7 @@ void client_send_text_message (const char *text)
 void client_play_sound (object_t *obj, const char *sample)
 {
     SAMPLE *spl = store_get_dat (sample);
-    
+
     if (spl)
 	sound_play_once (spl, object_x (obj), object_y (obj));
 }
@@ -705,7 +706,7 @@ static int update_camera (void)
 
     if (!tracked_object)
 	return 0;
-    
+
     oldx = camera_x (cam);
     oldy = camera_y (cam);
 
@@ -723,31 +724,18 @@ static int update_camera (void)
  */
 
 
-static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
-			      int color, const char *fmt, ...)
-{
-    va_list ap;
-    BITMAP *tmp;
-    char buf[1024];
-
-    va_start (ap, fmt);
-    uvszprintf (buf, sizeof buf, fmt, ap);
-    va_end (ap);
-    
-    tmp = create_magic_bitmap (text_length (font, buf), text_height (font));
-    clear_bitmap (tmp);
-    textout (tmp, font, buf, 0, 0, color);
-    draw_trans_magic_sprite (bmp, tmp, x, y);
-    destroy_bitmap (tmp);
-}
-
-
 static void draw_status (BITMAP *bmp)
 {
     FONT *f = store_get_dat ("/basic/font/ugly");
+    int col = makecol24 (0xfb, 0xf8, 0xf8);
 
-    textprintf_right (bmp, f, bmp->w - 40, bmp->h - text_height (f) - 2, -1, "%d", health);
-    textprintf_right (bmp, f, bmp->w - 2, bmp->h - text_height (f) - 2, -1, "%d", ammo);
+    text_mode (-1);
+    textprintf_right_trans_magic (
+	bmp, f, bmp->w/3 - 40, bmp->h - text_height (f) - 2, col,
+	"%d", health);
+    textprintf_right_trans_magic (
+	bmp, f, bmp->w/3 - 2, bmp->h - text_height (f) - 2, col,
+	"%d", ammo);
 }
 
 
@@ -755,7 +743,7 @@ static void update_screen (void)
 {
     if (backgrounded)
 	return;
-    
+
     clear_bitmap (bmp);
 
     if (bkgd) {
@@ -763,7 +751,7 @@ static void update_screen (void)
 	int y = -(camera_y (cam) / parallax_y);
 	int w = bkgd->w;
 	int h = bkgd->h;
-	
+
 	blit (bkgd, bmp, 0, 0, x, y, w, h);
 	blit (bkgd, bmp, 0, 0, x, y+h, w, h);
 	blit (bkgd, bmp, 0, 0, x+w, y, w, h);
@@ -775,12 +763,12 @@ static void update_screen (void)
     if (local_object) {
 	int x = object_x (local_object) - camera_x (cam);
 	int y = object_y (local_object) - camera_y (cam);
-	
+
 	aim_angle = atan2 (mouse_y - y, mouse_x - x);
 
- 	pivot_trans_magic_sprite (bmp, store_get_dat ("/basic/player/torch"),
- 				  x, y, 0, 115/2,
- 				  fatan2 (mouse_y - y, mouse_x - x));
+	pivot_trans_magic_sprite (bmp, store_get_dat ("/basic/player/torch"),
+				  x, y, 0, 115/2,
+				  fatan2 (mouse_y - y, mouse_x - x));
     }
 
     if (crosshair) {
@@ -793,8 +781,8 @@ static void update_screen (void)
     messages_render (bmp);
 
     text_mode (-1);
-    trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
-		      "%d FPS", fps);
+    textprintf_trans_magic (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
+			    "%d FPS", fps);
     scare_mouse ();
     acquire_screen ();
     blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
@@ -819,7 +807,7 @@ static void temporary_message (char *s, ...)
     int y = 0;
 
     va_start (ap, s);
-    
+
     clear_bitmap (screen);
 
     do {
@@ -884,9 +872,9 @@ void client_run (int client_server)
 	    sync_client_unlock ();
 	}
     }
-    
+
   lobby:
-    
+
     dbg ("lobby");
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
@@ -997,9 +985,9 @@ void client_run (int client_server)
 	    sync_client_unlock ();
 	}
     }
-	
+
   pause:
-        
+
     dbg ("pause");
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
@@ -1007,7 +995,7 @@ void client_run (int client_server)
 
 	while (1) {
 	    sync_client_lock ();
-	    
+
 	    if (key[KEY_Q]) {
 		sync_client_unlock ();
 		goto disconnect;
@@ -1042,7 +1030,7 @@ void client_run (int client_server)
     }
 
   game:
-    
+
     dbg ("game");
     {
 	ulong_t last_ticks, t;
@@ -1098,7 +1086,7 @@ void client_run (int client_server)
 			case MSG_SC_TEXT: {
 			    char string[NETWORK_MAX_PACKET_SIZE];
 			    short len;
-			    
+
 			    packet_decode (buf+1, "s", &len, string);
 			    messages_add ("%s", string);
 			    break;
@@ -1121,7 +1109,7 @@ void client_run (int client_server)
 		if (lobby_later) { sync_client_unlock (); goto lobby; }
 		if (end_later) { sync_client_unlock (); goto end; }
 	    }
-	    
+
 	    t = ticks;
 	    if (last_ticks != t) {
 		dbg ("send gameinfo");
@@ -1163,7 +1151,7 @@ void client_run (int client_server)
 
 		last_ticks = t;
 	    }
-	    
+
 	    dbg ("handling pinging");
 	    if ((!pinging) && (ticks > last_ping_time + (2 * TICKS_PER_SECOND))) {
 		pinging = 1;
@@ -1176,7 +1164,7 @@ void client_run (int client_server)
 
 	ticks_shutdown ();
     }
-    
+
   disconnect:
 
     dbg ("disconnect");
@@ -1192,7 +1180,7 @@ void client_run (int client_server)
 
 	while (!timeout_test (&timeout)) {
 	    sync_client_lock ();
-	    if (net_receive_rdm (conn, &c, 1) > 0) 
+	    if (net_receive_rdm (conn, &c, 1) > 0)
 		if (c == MSG_SC_DISCONNECTED) {
 		    dbg ("server confirmed disconnect");
 		    sync_client_unlock ();
@@ -1223,7 +1211,7 @@ int client_init (const char *name, int net_driver, const char *addr)
     if (!(conn = net_openconn (net_driver, NULL)))
 	return -1;
     net_connect (conn, addr);
-    
+
     client_name = ustrdup (name);
 
     bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
