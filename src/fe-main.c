@@ -149,7 +149,8 @@ static DIALOG client_server_dialog[];
 #define CLIENT_SERVER_DLG_PORT_EDITBOX	 (client_server_dialog[CLIENT_SERVER_DLG_PORT_EDITBOX_N])
 #define CLIENT_SERVER_DLG_DEFAULT_BUTTON (client_server_dialog[5])
 #define CLIENT_SERVER_DLG_CREATE_BUTTON	 (client_server_dialog[6])
-#define CLIENT_SERVER_DLG_BACK_BUTTON	 (client_server_dialog[7])
+#define CLIENT_SERVER_DLG_BACK_BUTTON_N	 7
+#define CLIENT_SERVER_DLG_BACK_BUTTON	 (client_server_dialog[CLIENT_SERVER_DLG_BACK_BUTTON_N])
 #define CLIENT_SERVER_DLG_STATUSBAR	 (client_server_dialog[8])
 
 
@@ -236,7 +237,8 @@ static DIALOG client_dialog[];
 #define CLIENT_DLG_ADDRESS_EDITBOX_N	4
 #define CLIENT_DLG_ADDRESS_EDITBOX	(client_dialog[CLIENT_DLG_ADDRESS_EDITBOX_N])
 #define CLIENT_DLG_JOIN_SERVER_BUTTON	(client_dialog[5])
-#define CLIENT_DLG_BACK_BUTTON		(client_dialog[6])
+#define CLIENT_DLG_BACK_BUTTON_N	6
+#define CLIENT_DLG_BACK_BUTTON		(client_dialog[CLIENT_DLG_BACK_BUTTON_N])
 
 
 static int client_finished_entering_name (void)
@@ -304,8 +306,10 @@ static DIALOG client_dialog[] =
 
 static int client_server_button_pressed (void)
 {
+    int exitter;
+
     CLIENT_SERVER_DLG_STATUSBAR.flags |= D_HIDDEN;
-    fancy_do_dialog (client_server_dialog, CLIENT_SERVER_DLG_DEFAULT_FOCUS);
+    exitter = fancy_do_dialog (client_server_dialog, CLIENT_SERVER_DLG_DEFAULT_FOCUS);
 
     /* In case the client server was stupid enough to kick itself. */
     if (client_was_kicked) {
@@ -314,13 +318,16 @@ static int client_server_button_pressed (void)
 	show_mouse (screen);
     }
 
-    return D_EXIT;
+    if (exitter == CLIENT_SERVER_DLG_BACK_BUTTON_N)
+	return D_REDRAW;
+    else
+	return D_EXIT;		/* game was successfully played */
 }
 
 
 static int client_button_pressed (void)
 {
-    fancy_do_dialog (client_dialog, CLIENT_DLG_DEFAULT_FOCUS);
+    int exitter = fancy_do_dialog (client_dialog, CLIENT_DLG_DEFAULT_FOCUS);
 
     /* Let the clients know if they were forcefully disconnected. */
     if (client_was_kicked) {
@@ -329,7 +336,10 @@ static int client_button_pressed (void)
 	fancy_do_dialog (kicked_dialog, KICKED_DLG_DEFAULT_FOCUS);
     }
 
-    return D_EXIT;
+    if (exitter == CLIENT_DLG_BACK_BUTTON_N)
+	return D_REDRAW;
+    else
+	return D_EXIT;		/* game was successfully played */
 }
 
 
