@@ -57,7 +57,7 @@ local Standard_Projectile = function (t)
 	    end
 	    self.damage = t.damage
 	    function self:collide_hook (obj)
-		obj:receive_damage (self.damage, self.owner)
+		obj:receive_damage (self.damage, self.owner, self.x, self.y)
 		self:set_stale ()
 	    end
 	    function self:tile_collide_hook ()
@@ -462,7 +462,7 @@ Objtype {
     nonproxy_init = function (self)
 	self.damage = 50
 	function self:collide_hook (obj)
-	    obj:receive_damage (self.damage, self.owner)
+	    obj:receive_damage (self.damage, self.owner, self.x, self.y)
 	    self:set_stale ()
 	end
 	function self:tile_collide_hook (obj)

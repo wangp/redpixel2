@@ -346,14 +346,14 @@ local player_nonproxy_init = function (self)
     self.armour = 0
     _internal_tell_armour (self, self.armour)
 
-    function self:receive_damage (damage, attacker)
+    function self:receive_damage (damage, attacker, collision_x, collision_y)
 	if self.health <= 0 then
 	    -- This is to prevent a bug that we only saw once.
 	    -- A player managed to die three times at once.
 	    return
 	end
 
-	spawn_blood_on_clients (self.x + cx, self.y + cy, 200, 2)
+	spawn_blood_on_clients (collision_x, collision_y, 200, 2)
 	if damage/3 >= 1 then
 	    spawn_blod_on_clients (self.x, self.y, damage/3)
 	end

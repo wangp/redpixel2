@@ -16,6 +16,9 @@
 #include "object.h"
 
 
+#define Lsrv  server_lua_namespace
+
+
 /* forward declaractions for helpers */
 typedef struct vector vector_t;
 static vector_t *create_vector (int nslots);
@@ -88,9 +91,13 @@ static inline void do_blast_check (blast_t *blast, list_head_t *object_list)
 		   (1.5 - (fast_fsqrt (manhattan_dist) / blast->max_radius)));
 	    dmg = MIN (dmg, blast->max_damage);
 	    if (dmg > 0) {
-		lua_pushnumber (server_lua_namespace, dmg);
-		lua_pushnumber (server_lua_namespace, blast->owner);
-		object_call (server_lua_namespace, obj, "receive_damage", 2);
+		float angle = atan2 (dy, dx);
+		float r = blast->r - SPREAD_SPEED;
+		lua_pushnumber (Lsrv, dmg);
+		lua_pushnumber (Lsrv, blast->owner);
+		lua_pushnumber (Lsrv, blast->x + r * cos (angle));
+		lua_pushnumber (Lsrv, blast->y + r * sin (angle));
+		object_call (Lsrv, obj, "receive_damage", 4);
 
 		if (object_is_client (obj)) {
 		    double angle = atan2 (dy, dx);

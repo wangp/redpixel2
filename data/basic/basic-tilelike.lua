@@ -14,11 +14,11 @@ local Crate = function (t)
 	nonproxy_init = function (self)
 	    self.health = t.health
 
-	    function self:receive_damage (amount)
+	    function self:receive_damage (amount, attacker, collision_x, collision_y)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
-		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", collision_x, collision_y)
+		    spawn_sparks_on_clients (collision_x, collision_y, 30, 3)
 		    self.health = t.health
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
@@ -97,11 +97,11 @@ local Barrel = function (t)
 	nonproxy_init = function (self)
 	    self.health = t.health
 
-	    function self:receive_damage (amount, killer_id)
+	    function self:receive_damage (amount, killer_id, collision_x, collision_y)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
-		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", collision_x, collision_y)
+		    spawn_sparks_on_clients (collision_x, collision_y, 30, 3)
 		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then
