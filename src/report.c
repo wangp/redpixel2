@@ -1,12 +1,12 @@
-/* Error reporting functions */
+/* report.c : Error reporting functions */
 
 #include <stdio.h>
 #include <stdarg.h>
 #include <allegro.h>
 
-#ifdef Xwin_ALLEGRO
+//#ifdef Xwin_ALLEGRO
 
-void errprintf(char *fmt, ...)
+void errprintf(char *fmt, ...)	       /* FIXME, dos can't use this */
 {
     char buf[256];
     va_list ap;
@@ -17,8 +17,8 @@ void errprintf(char *fmt, ...)
     printf("Error: %s", buf);
 }
 
-#else				       
+//#else				       
 
 
 
-#endif
+//#endif

@@ -4,16 +4,15 @@
 #include <allegro.h>
 
 #include "report.h"
-#include "df.h"
-#include "hash.h"
+#include "wrapper.h"
 #include "convtbl.h"
 
 
 struct convtable *tiles;
 
 
-/* create_tiles_hash_table: (SeeR exported)
- * destroy_tiles: (not exported)
+/* create_tiles_table:
+ * destroy_tiles: 
  *  Do what they are called.
  */
 void create_tiles_table(int size)
@@ -33,7 +32,7 @@ void destroy_tiles_table(void)
 }
 
 
-/* add_tiles_pack: (SeeR exported)
+/* add_tiles_pack:
  *  Reads a datafile, loading in each BMP as a new tile, generating entries
  *  in the conversion table. 
  */

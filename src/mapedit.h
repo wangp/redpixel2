@@ -7,6 +7,8 @@
 
 typedef struct editmode {
     
+    int switchkey;
+    
     void (*mdown)(int x, int y, int b);
     void (*mup)(int x, int y, int b);
     void (*drag)(int x, int y, int b);
@@ -21,7 +23,7 @@ typedef struct editmode {
 } editmode_t;
 
 
-extern BITMAP *dbuf;
+extern BITMAP *dbuf;		       /* $-export */
 
 extern int top, left;
 extern int palette_x;

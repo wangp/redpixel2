@@ -1,5 +1,6 @@
 /* hash.c : hashing functions
- * modified from snippets collection 
+ * modified from snippets collection
+ * -- currently unused
  */
 
 #include <string.h>

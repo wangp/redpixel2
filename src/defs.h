@@ -10,4 +10,9 @@
 #define RPX_MAX_HEIGHT	256
 
 
+/* messages */
+
+typedef unsigned int msg_t;	       /* $-export */
+
+
 #endif

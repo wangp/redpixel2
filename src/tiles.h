@@ -11,8 +11,8 @@ typedef unsigned short tile_t;
 extern struct convtable *tiles;
 
 
-void create_tiles_table(int size);
+void create_tiles_table(int size);     /* $-export */
+void add_tiles_pack(char *filename);   /* $-export */
 void destroy_tiles_table(void);
-void add_tiles_pack(char *filename);
 
 #endif

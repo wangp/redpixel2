@@ -42,7 +42,7 @@ static void mark_region(int x1, int y1, int x2, int y2)
     px1 = (rx1 - left) * TILE_W;
     px2 = (rx2 - left) * TILE_W;
     py1 = (ry1 - top) * TILE_H;
-    py2 = (ry2 - top) * TILE_H;
+    py2 = (ry2 - top + 1) * TILE_H;
 
     mark_dirty(px1, py1, px2-px1, py2-py1);
 }
@@ -207,6 +207,8 @@ static void palette_select(int x, int y, int b)
 
 struct editmode mode_tiles =
 {
+    KEY_1,
+    
     mdown, 
     mup, 
     drag,

@@ -3,6 +3,31 @@
 #include <allegro.h>
 
 
+/* df_get_item:
+ *  Returns the datafile->dat corresponding to NAME.
+ *  EXPORTED.
+ */
+void *df_get_item(DATAFILE *dat, char *name)
+{
+    DATAFILE *entry;
+    int i = 0;
+    
+    if (!dat)
+      return 0;
+    
+    entry = &dat[0];
+    while (entry->type != DAT_END)
+    {
+	if (strcmp(name, get_datafile_property(entry, DAT_NAME)) == 0)
+	  return entry->dat;
+	else
+	  entry = &dat[++i];
+    }
+    
+    return NULL;    
+}
+
+
 /* df_count:
  *  Returns number of entries of TYPE (-1 = *) in datafile.
  */

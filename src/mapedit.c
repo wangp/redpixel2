@@ -1,6 +1,4 @@
-/* Red Pixel II Map Editor
- */
-
+/* mapedit.c : Red Pixel II el-cheapo map editor */
 
 #include <stdio.h>
 #include <allegro.h>
@@ -8,13 +6,14 @@
 
 #include "defs.h"
 #include "script.h"
-#include "df.h"
 #include "report.h"
 #include "tiles.h"
 #include "dirty.h"
 #include "mapedit.h"
 #include "maptiles.h"
 #include "rpx.h"
+#include "export.h"
+
 
 
 BITMAP *dbuf;			   
@@ -32,17 +31,6 @@ struct editmode *mode_tbl[] =
     &mode_tiles, 
     NULL
 };
-
-
-/* export_functions:
- *  Exports a few functions for use with SeeR scripts.
- */
-static void export_functions()
-{
-    /* tiles.c */
-    scLazy(create_tiles_table);
-    scLazy(add_tiles_pack);
-}
 
 
 /* halcyon:
@@ -81,6 +69,16 @@ static void halcyon()
     mode = mode_tbl[0];
  
     for (;;) {
+	
+	/* mode switching */
+	i = 0;
+	while ((tmp = mode_tbl[i++])) {
+	    if (key[tmp->switchkey]) {
+		mode = tmp;
+		break;
+	    }
+	}	
+	
 	
 	if (mouse_x < screen_w)	       /* inside editing area */
 	{
@@ -177,13 +175,19 @@ static void halcyon()
 }
 
 
+#define LOGFILE	"seer-debug.log"
+
+
 /* main:
  *  What else.
  */
 int main(int argc, char **argv)
 {
     int w = 400, h = 300, bpp = 16;
-    
+
+    scOpen_Debug(LOGFILE);
+    scToggle_Debug(true);                                
+
     allegro_init();
     install_keyboard();
     install_timer();
@@ -200,8 +204,8 @@ int main(int argc, char **argv)
     
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     
-    export_functions();
-    exec_script("scripts/mapedit.sc", "init");
+    export();
+    exec_script("scripts/init.sc", "init");
     
     reset_rpx();
     
@@ -213,5 +217,10 @@ int main(int argc, char **argv)
     
     destroy_tiles_table();
     destroy_bitmap(dbuf);
+    
+    free_scripts();
+    
+    scClose_Debug();            
+                             
     return 0;
 }

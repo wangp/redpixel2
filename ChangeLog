@@ -16,3 +16,14 @@ April 1999
 
 12	Block editing.  
 	Expanded mouse events (click, drag, up, down).
+
+13	Improved Makefile to support multiple platforms (a.k.a. DOS)
+
+24	Lot of changes:
+	Scripting really beefed up.
+	Framework of items/weapons/etc. scripting almost in place.
+	Bloody SeeR is hard to debug!
+	
+25	autoexp!
+	Fixed bug in tile mode.
+	
