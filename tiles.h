@@ -5,6 +5,8 @@
 
 typedef unsigned short tile_t;
 
+#define TILE_BLANK	0xffff
+
 
 extern struct convtable *tiles;
 

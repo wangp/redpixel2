@@ -7,7 +7,11 @@
 
 typedef struct editmode {
     
-    void (*click)(int x, int y, int b);
+    void (*mdown)(int x, int y, int b);
+    void (*mup)(int x, int y, int b);
+    void (*drag)(int x, int y, int b);
+    void (*clicked)(int x, int y, int b);
+    
     void (*draw)(int x, int y);
     
     void (*palette_key)(void);

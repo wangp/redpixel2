@@ -70,7 +70,7 @@ void add_tiles_pack(char *filename)
     
     debugprintf("adding %s...\n", filename);
     
-    _fn = filename;
+    _fn = get_filename(filename);
     df_foreach(dat, _add_cb);
     
     unload_datafile(dat);

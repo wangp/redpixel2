@@ -1,3 +1,4 @@
+/* defs.h : some #defines */
 #ifndef _included_defs_h_
 #define _included_defs_h_
 

@@ -12,4 +12,7 @@ April 1999
 	Map editing system working.
 	Primitive tile editing done.
 	
-	
+9	Expanded palette to two tiles wide.
+
+12	Block editing.  
+	Expanded mouse events (click, drag, up, down).

@@ -49,10 +49,28 @@ static void export_functions()
  *  ... + On + On.
  */
 
+#define MOVE_THRESHOLD	3
+static int moved(int posa, int posb)
+{
+    int x1, x2, y1, y2;
+    
+    x1 = posa >> 16;
+    x2 = posb >> 16;
+    y1 = posa & 0xffff;
+    y2 = posb & 0xffff;
+    
+    if ((ABS(x1-x2) > MOVE_THRESHOLD) || (ABS(y1-y2) > MOVE_THRESHOLD))
+      return TRUE;
+    else
+      return FALSE;   
+}
+
 static void halcyon()
 {
     struct editmode *mode, *tmp;
     int i, force_draw;
+    int x, y, b, p;
+    int last_mouse_b = 0, last_mouse_pos = -1, first_mouse_pos = 0;
     
     top = left = 0;
     
@@ -66,7 +84,8 @@ static void halcyon()
 	
 	if (mouse_x < screen_w)	       /* inside editing area */
 	{
-	    /* scrolling */
+	    /* scrolling 
+	     */
 	    if (key[KEY_A] && left > 0) { 
 		left--;
 		force_draw = 1;
@@ -87,18 +106,43 @@ static void halcyon()
 		force_draw = 1;
 	    }
 	    
-	    /* mouse events */
-	    if (mouse_b)	
-	    {
-		mode->click(left*TILE_W+mouse_x, top*TILE_H+mouse_y, mouse_b);
+	    /* mouse events 
+	     */	    
+	    x = left*TILE_W+mouse_x;
+	    y = top*TILE_H+mouse_y;
+	    
+	    b = mouse_b;	       /* XWinAllegro is so slow we have to */
+	    p = mouse_pos;	       /* save the values here ... */
+	    
+	    if (b) {
+		
+		if (!last_mouse_b) {
+		    if (mode->mdown)
+		      mode->mdown(x, y, b);
+		    first_mouse_pos = p;
+		} 
+		else if (moved(p, last_mouse_pos) && mode->drag) 
+       	  	  mode->drag(x, y, b);
+	    } 
+	    else if (last_mouse_b) 
+	    {		
+		if (!moved(first_mouse_pos, p) && mode->clicked)
+		  mode->clicked(x, y, b);
+		
+		if (mode->mup)
+		  mode->mup(x, y, b);
 	    }
+	    
+	    last_mouse_b = b;
+	    last_mouse_pos = p;
+
 	} else {		       /* in palette area */
 	    
-	    mode->palette_key();
+	    if (mode->palette_key)
+	      mode->palette_key();
 	    
-	    if (mouse_b) {
-		mode->palette_click(mouse_x, mouse_y, mouse_b);
-	    }
+	    if (mouse_b && mode->palette_click)
+	      mode->palette_click(mouse_x, mouse_y, mouse_b);
 	}			    
 	
 	/* update screen */
@@ -121,6 +165,7 @@ static void halcyon()
 	    
 	    show_mouse(NULL);    
 	    draw_dirty(screen, dbuf);
+	    textprintf(screen, font, 0, 0, makecol(0xff,0xff,0xff), "(%d, %d)", left, top);
 	    show_mouse(screen);
 
 	    force_draw = 0;
@@ -158,11 +203,9 @@ int main(int argc, char **argv)
     export_functions();
     exec_script("scripts/mapedit.sc", "init");
     
-    /* defaults */
-    rpx.w = 64;
-    rpx.h = 64;
+    reset_rpx();
     
-    palette_x = SCREEN_W-TILE_W;
+    palette_x = SCREEN_W-TILE_W*2;
     screen_w = palette_x;
     screen_h = SCREEN_H;
    
