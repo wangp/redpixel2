@@ -21,7 +21,7 @@ struct file {
 static int file_id;
 static struct file file_list;
 
-static void list_init ()
+static void list_init (void)
 {
     file_list.next = 0;
     file_id = 0;
@@ -72,7 +72,7 @@ static void list_remove (int id)
     }
 }
 
-static void list_shutdown ()
+static void list_shutdown (void)
 {
     while (file_list.next)
 	list_remove (file_list.next->id);
@@ -83,13 +83,13 @@ static void list_shutdown ()
 static int idx;
 DATAFILE **store;
 
-static void data_init ()
+static void data_init (void)
 {
     store = 0;
     idx = 1;
 }
 
-static void data_shutdown ()
+static void data_shutdown (void)
 {
     free (store);
 }
@@ -117,7 +117,7 @@ static int table_init (int size)
     return !hash_construct (&table, size) ? (-1) : 0;
 }
 
-static void table_shutdown ()
+static void table_shutdown (void)
 {
     if (table.size)
 	hash_free (&table, 0);
@@ -194,7 +194,7 @@ int store_load (AL_CONST char *filename, AL_CONST char *prefix)
     return store_load_ex (filename, prefix, load_datafile);
 }
 
-static void refresh ()
+static void refresh (void)
 {
     int size;
     struct file *p;

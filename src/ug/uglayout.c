@@ -9,7 +9,7 @@
 #include "ug.h"
 
 
-ug_dialog_layout_t *ug_dialog_layout_create ()
+ug_dialog_layout_t *ug_dialog_layout_create (void)
 {
     ug_dialog_layout_t *p, end = { UG_DIALOG_LAYOUT_END };
 

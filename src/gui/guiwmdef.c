@@ -355,14 +355,16 @@ static void window_set_self (gui_window_t *w, void *self)
 }
 
 
-static void window_set_draw_proc (gui_window_t *w, void (*draw) (void *, BITMAP *))
+static void window_set_draw_proc (gui_window_t *w,
+				  void (*draw) (void *, BITMAP *))
 {
     w->draw = draw;
     window_user_dirty (w);
 }
 
 
-static void window_set_event_proc (gui_window_t *w, void (*event) (void *, gui_event_t, int))
+static void window_set_event_proc (gui_window_t *w,
+				   void (*event) (void *, gui_event_t, int))
 {
     w->event = event;
 }
@@ -468,7 +470,8 @@ static void wm_handle_event (gui_event_t event, int d)
 
 	    /* unghost */
 	    if ((tmp) && (tmp->ghosted)) {
-		if ((d == MB1) && on_ghost_icon (tmp, gui_mouse.x, gui_mouse.y))
+		if ((d == MB1) &&
+		    on_ghost_icon (tmp, gui_mouse.x, gui_mouse.y))
 		    window_ghost (tmp, 0), tmp = 0;
 		else
 		    tmp = get_focused (gui_mouse.x, gui_mouse.y, 0);
@@ -521,7 +524,8 @@ static void wm_handle_event (gui_event_t event, int d)
     if (!focus)
 	goto more;
     
-    if ((moving) || (resizing) || (!in_user_area (focus, gui_mouse.x, gui_mouse.y))) {
+    if ((moving) || (resizing) ||
+	(!in_user_area (focus, gui_mouse.x, gui_mouse.y))) {
 	switch (event) {
 	    case GUI_EVENT_MOUSE_DOWN:
 	    	if (d == MB1) {
@@ -570,7 +574,7 @@ static const char *ghost_image[] =
 
 static BITMAP *ghost_icon;
 
-static void create_ghost_icon ()
+static void create_ghost_icon (void)
 {
     int x, y;
 
@@ -583,7 +587,7 @@ static void create_ghost_icon ()
 					 : bitmap_mask_color (ghost_icon)));
 }
 
-static void destroy_ghost_icon ()
+static void destroy_ghost_icon (void)
 {
     destroy_bitmap (ghost_icon);
 }
@@ -693,13 +697,13 @@ static int wm_update_screen (BITMAP *bmp)
 
 /*----------------------------------------------------------------------*/
 
-static void wm_init ()
+static void wm_init (void)
 {
     create_ghost_icon ();
     focus = 0;
 }
 
-static void wm_shutdown ()
+static void wm_shutdown (void)
 {
     while (windows.next)
 	window_destroy (windows.next);

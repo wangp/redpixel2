@@ -9,8 +9,8 @@ int gui_accel_handle_key (int key);
 
 /* guidirty.c */
 
-void gui_dirty_init ();
-void gui_dirty_shutdown ();
+void gui_dirty_init (void);
+void gui_dirty_shutdown (void);
 void gui_dirty_add_rect (int x, int y, int w, int h);
 void gui_dirty_clear (struct BITMAP *);
 void gui_dirty_blit (struct BITMAP *bmp, struct BITMAP *dest);
@@ -18,14 +18,14 @@ void gui_dirty_blit (struct BITMAP *bmp, struct BITMAP *dest);
 
 /* guimouse.c */
 
-void gui_mouse_update ();
+void gui_mouse_update (void);
 
 
 /* guiwm.c */
 
 struct gui_wm {
-    void (*wm_init) ();
-    void (*wm_shutdown) ();
+    void (*wm_init) (void);
+    void (*wm_shutdown) (void);
     void (*wm_event) (gui_event_t, int);
     int (*wm_update_screen) (struct BITMAP *);
     
@@ -54,8 +54,8 @@ struct gui_wm {
 
 extern gui_wm_t *gui_wm;
 
-void gui_wm_init ();
-void gui_wm_shutdown ();
+void gui_wm_init (void);
+void gui_wm_shutdown (void);
 void gui_wm_event (gui_event_t, int d);
 int gui_wm_update_screen (struct BITMAP *);
 

@@ -10,8 +10,8 @@
 
 
 struct ug_theme {
-    int (*init) ();
-    void (*shutdown) ();
+    int (*init) (void);
+    void (*shutdown) (void);
     
     void (*tile) (struct BITMAP *, int, int, int, int, int);
     void (*bevel) (struct BITMAP *, int, int, int, int, int);
@@ -21,8 +21,8 @@ struct ug_theme {
 };
 
     
-int ug_theme_init ();
-void ug_theme_shutdown ();
+int ug_theme_init (void);
+void ug_theme_shutdown (void);
 
 void ug_theme_tile (struct BITMAP *, int x, int y, int w, int h, int type);
 void ug_theme_bevel (struct BITMAP *, int x, int y, int w, int h, int invert);

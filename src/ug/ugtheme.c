@@ -16,12 +16,12 @@ extern struct ug_theme ug_theme_motif;
 static struct ug_theme *theme = &ug_theme_thepaw;
 
 
-int ug_theme_init ()
+int ug_theme_init (void)
 {
     return theme->init ();
 }
 
-void ug_theme_shutdown ()
+void ug_theme_shutdown (void)
 {
     theme->shutdown ();
 }

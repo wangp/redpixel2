@@ -9,10 +9,10 @@ struct BITMAP;
 /* ug.c */
 
 /*: Initialise the UG subsystem.  */
-int ug_init ();
+int ug_init (void);
 
 /*: Shutdown the UG subsystem.  */
-void ug_shutdown ();
+void ug_shutdown (void);
 
 
 /* ugwidget.c */
@@ -203,7 +203,7 @@ typedef struct ug_dialog_layout {
 
 /*: Create a dynamic dialog layout and return a pointer to it.  If 
  *  possible, you should use a static dialog layout instead of this.  */
-ug_dialog_layout_t *ug_dialog_layout_create ();
+ug_dialog_layout_t *ug_dialog_layout_create (void);
 
 /*: Free the memory associated with a dynamic dialog layout.  */
 void ug_dialog_layout_destroy (ug_dialog_layout_t *);

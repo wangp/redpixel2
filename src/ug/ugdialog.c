@@ -29,7 +29,7 @@ struct ug_dialog {
 #define is_real_widget(x)	(x != 0)
 
 
-static ug_dialog_t *create_dialog ()
+static ug_dialog_t *create_dialog (void)
 {
     ug_dialog_t *d = malloc (sizeof *d);
     if (d) memset (d, 0, sizeof *d);

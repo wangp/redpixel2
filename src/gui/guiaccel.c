@@ -11,7 +11,7 @@
 
 struct gui_accel {
     int key;
-    void (*proc) ();
+    void (*proc) (void);
     void *param;
     struct gui_accel *next;
 };
@@ -39,7 +39,7 @@ static void unlink_accel (gui_accel_t *p, gui_accel_t *q)
 }
 
 
-gui_accel_t *gui_accel_create (int key, void (*proc) ())
+gui_accel_t *gui_accel_create (int key, void (*proc) (void))
 {
     gui_accel_t *p;
 

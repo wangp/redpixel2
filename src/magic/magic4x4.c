@@ -95,7 +95,7 @@ BITMAP *unget_magic_bitmap_format(BITMAP *orig)
  * alpha levels, or for doing additive color, which can work happily
  * in parallel with the light blending.
  */
-void generate_magic_color_map()
+void generate_magic_color_map(void)
 {
    int x, y, c, xc, yc, l, xl, yl;
 
@@ -124,7 +124,7 @@ void generate_magic_color_map()
 }
 
 
-void free_magic_color_map ()
+void free_magic_color_map(void)
 {
    free(color_map);
    color_map = 0;
@@ -138,7 +138,7 @@ static unsigned short gbtable[0x10000];
 
 
 /* Builds some helper tables for doing color conversions.  */
-void generate_magic_conversion_tables()
+void generate_magic_conversion_tables(void)
 {
    int r, g, b;
    int cr, cg, cb;
