@@ -71,8 +71,8 @@ static int bind_objtype_register (lua_State *L)
 void bindings_init ()
 {
     lua_State *L = lua_state;
-    register (L, "store_load", bind_store_load);
-    register (L, "objtype_register", bind_objtype_register);
+    lregister (L, "store_load", bind_store_load);
+    lregister (L, "objtype_register", bind_objtype_register);
 }
 
 void bindings_shutdown ()

@@ -142,15 +142,18 @@ cleaner: clean
 
 #----------------------------------------------------------------------
 
+EXCLUDE_LIST = *.o $(PROGRAM) TAGS tags depend
+EXCLUDE = $(addprefix --exclude , $(EXCLUDE_LIST))
+
 backup:
-	cd ../ && tar zcvf `date +%Y%m%d`.tar.gz redstone
+	cd ../ && tar zcvf `date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
 
 suidroot:
-	chown root.allegro $(PROGRAM)
+	chown root.games $(PROGRAM)
 	chmod 4750 $(PROGRAM)
 
 
-.PHONY: clean cleaner backup suidroot 
+.PHONY: clean cleaner backup suidroot
 
 
 ##

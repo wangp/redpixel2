@@ -12,9 +12,6 @@
 #include "store.h"
 
 
-static bitmask_t *bitmask_create_from_magic_bitmap (BITMAP *bmp);
-
-
 static unsigned int next_id;
 
 
@@ -49,7 +46,6 @@ object_t *object_create (const char *type_name)
 	getref (L, obj->type->init_func);
 	getref (L, obj->table);
 	call (L, 1, 0);
-	pop (L, 1);
     }
     
     return obj;
@@ -60,22 +56,4 @@ void object_destroy (object_t *obj)
 {
     unref (lua_state, obj->table);
     free (obj);
-}
-
-
-static bitmask_t *bitmask_create_from_magic_bitmap (BITMAP *bmp)
-{
-    bitmask_t *mask;
-    int x, y;
-
-    if (!(mask = bitmask_create (bmp->w / 3, bmp->h)))
-	return NULL;
-
-    for (y = 0; y < bmp->h; y++)
-	for (x = 0; x < bmp->w / 3; x++)
-	    bitmask_set_point (mask, x, y,
-			       (bmp->line[y][x * 3    ] ||
-				bmp->line[y][x * 3 + 1] ||
-				bmp->line[y][x * 3 + 2]));
-    return mask;
 }

@@ -92,17 +92,16 @@ void map_generate_tile_mask (map_t *map)
 
     map->tile_mask = bitmask_create (map->width * 16, map->height * 16);
 
-    for (y = 0; y < map->height; y++)
-	for (x = 0; x < map->width; x++)
-	    if ((t = map->tile[y][x])) {
-		b = store[t]->dat;
-		for (yy = 0; yy < 16; yy++)
-		    for (xx = 0; xx < 16; xx++)
-			bitmask_set_point (map->tile_mask, (x * 16 + xx), (y * 16 + yy),
-					   (b->line[yy][xx * 3]
-					    || b->line[yy][xx * 3 + 1]
-					    || b->line[yy][xx * 3 + 2]));
-	    }
+    for (y = 0; y < map->height; y++) for (x = 0; x < map->width; x++)
+	if ((t = map->tile[y][x])) {
+	    b = store[t]->dat;
+	    for (yy = 0; yy < 16; yy++) for (xx = 0; xx < 16; xx++)
+		bitmask_set_point (map->tile_mask,
+				   (x * 16 + xx), (y * 16 + yy),
+				   (b->line[yy][xx * 3]
+				    || b->line[yy][xx * 3 + 1]
+				    || b->line[yy][xx * 3 + 2]));
+	}
 }
 
 

@@ -83,16 +83,16 @@ int map_save (map_t *map, const char *filename)
     {
 	light_t *p;
 	int num;
-    
-	for (p = map->lights.next, num = 0; p; p = p->next)
-	    num++;
+	
+	num = 0;
+    	foreach (p, map->lights) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_LIGHTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
 	
-	    for (p = map->lights.next; p; p = p->next)
+	    foreach (p, map->lights)
 		if ((pack_iputl (p->x, f) == EOF)
 		    || (pack_iputl (p->y, f) == EOF)
 		    || (pack_fputs_nl (store_key (p->lightmap), f) == EOF))
@@ -105,15 +105,15 @@ int map_save (map_t *map, const char *filename)
 	object_t *p;
 	int num;
 
-	for (p = map->objects.next, num = 0; p; p = p->next)
-	    num++;
+	num = 0;
+	foreach (p, map->objects) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_OBJECTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
 	
-	    for (p = map->objects.next; p; p = p->next) {
+	    foreach (p, map->objects) {
 		const char *name = p->type->name;
 		
 		if ((pack_fputs_nl (name, f) == EOF)
@@ -129,15 +129,15 @@ int map_save (map_t *map, const char *filename)
 	start_t *p;
 	int num;
 
-	for (p = map->starts.next, num = 0; p; p = p->next)
-	    num++;
+	num = 0;
+	foreach (p, map->starts) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_STARTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
 	
-	    for (p = map->starts.next; p; p = p->next)
+	    foreach (p, map->starts)
 		if ((pack_iputl (p->x, f) == EOF)
 		    || (pack_iputl (p->y, f) == EOF))
 		    goto error;

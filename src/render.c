@@ -38,7 +38,7 @@ static void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
     light_t *p;
     BITMAP *b;
 
-    for (p = map->lights.next; p; p = p->next) {
+    foreach (p, map->lights) {
 	b = store[p->lightmap]->dat;
 	draw_trans_sprite (bmp, b,
 			   ((p->x - offx) - (b->w / 6)) * 3,

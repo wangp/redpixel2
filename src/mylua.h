@@ -36,7 +36,7 @@ int lua_checkargs (lua_State *L, const char *argtypes);
 */
 
 #define type(L, index)		  	(lua_type (L, index))
-#define typename(L, t)		  	(lua_typename (L, t))
+#define ltypename(L, t)		  	(lua_typename (L, t))
 #define isnumber(L, index)		(lua_isnumber (L, index))
 #define isstring(L, index)		(lua_isstring (L, index))
 #define iscfunction(L, index)	  	(lua_iscfunction (L, index))
@@ -47,7 +47,7 @@ int lua_checkargs (lua_State *L, const char *argtypes);
 
 #define tonumber(L, index)		(lua_tonumber (L, index))
 #define tostring(L, index)		(lua_tostring (L, index))
-#define strlen(L, index)		(lua_strlen (L, index))
+#define lstrlen(L, index)		(lua_strlen (L, index))
 #define tocfunction(L, index)	  	(lua_tocfunction (L, index))
 #define touserdata(L, index)	  	(lua_touserdata (L, index))
 #define topointer(L, index)	  	(lua_topointer (L, index))
@@ -117,7 +117,7 @@ int lua_checkargs (lua_State *L, const char *argtypes);
 
 #define pop(L, index)			(lua_pop (L, index))
 
-#define register(L, n, f)		(lua_register (L, n, f))
+#define lregister(L, n, f)		(lua_register (L, n, f))
 #define pushuserdata(L, u)		(lua_pushuserdata (L, u))
 #define pushcfunction(L, f)		(lua_pushcfunction (L, f))
 

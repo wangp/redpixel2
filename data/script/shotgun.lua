@@ -2,7 +2,9 @@
 
 local init_shotgun = function (self)
     self.player_touched = function (self)
--- 	object_destroy (self)
+	-- object_destroy (self)
+	-- Or a more object-oriented style.
+	-- self:destroy ()
     end
 end
 
