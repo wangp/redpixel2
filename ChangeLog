@@ -68,3 +68,7 @@ May 1999
 
 29	Investigating other scripting languages, as SeeR is shitting me.
 	(Lua in particular)
+
+30	Trying to "export" Allegro functions to Lua scripts.
+
+31	Tried again (from scratch).  It works! (but with a few glitches)

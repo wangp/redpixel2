@@ -6,19 +6,18 @@ rpg_data = { dat, bammo, bweapon, bstatus, bproj }
 ammo = {
 }
 
-
 weapon = {
 }
 
 rpg = {
 
-	new = function(self,it)
-		-- do stuff here
-	end,
+    new = function(self,it)
+        -- do stuff here
+    end,
 
-	draw_status = function(self,dest,x,y)
-		draw_sprite(dest,rpg_data.bstatus,x,y)
-	end
+    draw_status = function(self,dest,x,y)
+        draw_sprite(dest,rpg_data.bstatus,x,y)
+    end
 }
 
 
