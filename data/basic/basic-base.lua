@@ -166,6 +166,10 @@ Objtype {
     end,
     proxy_init = function (self)
 	self.frame = 0
+	self.theta = 0
+	self.dtheta = random (8) + 8
+	self:add_light ("/basic/respawning-ball/light", 0, 0)
+	self:add_light ("/basic/respawning-ball/light", 0, 0)
 	self:set_update_hook (
 	    1000 / respawning_ball_frames,
 	    function (self)
@@ -175,6 +179,10 @@ Objtype {
 		else
 		    self:replace_layer (0, respawning_ball_anim[self.frame], 8, 8)
 		end
+		self.theta = self.theta + self.dtheta
+		local dx, dy = cos (self.theta) * 4, sin (self.theta) * 4
+		self:move_light (0, dx, dy)
+		self:move_light (1, -dx, -dy)
 	    end
 	)
     end
