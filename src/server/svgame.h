@@ -29,6 +29,7 @@ void svgame_set_score (int client_id, const char *score);
 void svgame_play_sound_on_clients (struct object *obj, const char *sound);
 const char *svgame_get_client_name (int client_id);
 void svgame_broadcast_text_message (const char *msg);
+void svgame_send_text_message (int client_id, const char *msg);
 /* end Lua bindings */
 
 

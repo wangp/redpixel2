@@ -589,6 +589,13 @@ generate_server {
     args	= {{ String, "message" }}
 }
 
+generate_server {
+    cname	= "svgame_send_text_message",
+    lname	= "send_text_message",
+    args	= {{ Int, "clientid" },
+		   { String, "message" }}
+}
+
 
 --------------
 -- client.h --

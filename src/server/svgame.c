@@ -894,6 +894,17 @@ void svgame_broadcast_text_message (const char *msg)
 }
 
 
+void svgame_send_text_message (int client_id, const char *msg)
+{
+    svclient_t *c = svclients_find_by_id (client_id);
+    if (c) {
+	char buf[64];
+	ustrzcpy (buf, sizeof buf, msg);
+	svclient_send_rdm_encode (c, "cs", MSG_SC_TEXT, buf);
+    }
+}
+
+
 
 /*
  *----------------------------------------------------------------------
