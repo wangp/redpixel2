@@ -27,8 +27,10 @@ types = {
 
 
 -- variables from struct object that should be read/write from Lua
+-- XXX: actually, most should probably be read-only
 
-cvars = {{ Float, 'x' },
+cvars = {{ Int, 'id' },
+	 { Float, 'x' },
 	 { Float, 'y' },
 	 { Float, 'xv' },
 	 { Float, 'yv' },
