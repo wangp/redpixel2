@@ -7,6 +7,7 @@
 #include <allegro.h>
 #include "bindings.h"
 #include "bitmaskr.h"
+#include "comm.h"
 #include "fastsqrt.h"
 #include "gameinit.h"
 #include "loaddata.h"
@@ -35,15 +36,21 @@ void game_init ()
     tiles_load ();
     lights_load ();
     objtypes_init ();
+
     object_init ();
 
     lua_dofile_path (lua_state, "script/init.lua");
+
+    comm_init ();
 }
 
 
 void game_shutdown ()
 {
+    comm_shutdown ();
+
     object_shutdown ();
+
     objtypes_shutdown ();
     lights_unload ();
     tiles_unload ();

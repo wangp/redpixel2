@@ -2,7 +2,7 @@
 ## Makefile for Red Pixel II
 ##
 
-SRCDIRS = src src/net src/store src/magic src/fastsqrt \
+SRCDIRS = src src/store src/magic src/fastsqrt \
 	  src/gui src/ug src/editor
 
 CC = gcc
@@ -62,11 +62,6 @@ MODULES_EDITOR =				\
 	modemgr					\
 	selbar
 
-MODULES_NET =					\
-	netclnt					\
-	netmain					\
-	netserv
-
 MODULES_GAME =					\
 	alloc					\
 	bindings				\
@@ -74,11 +69,15 @@ MODULES_GAME =					\
 	bitmaskg				\
 	bitmaskr				\
 	camera					\
+	comm					\
+	commmsg					\
 	error					\
 	extdata					\
 	fps					\
 	game					\
 	gameinit				\
+	gameclt					\
+	gamesrv					\
 	loaddata				\
 	main					\
 	map					\
@@ -97,7 +96,6 @@ MODULES = 					\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\
-	$(MODULES_NET)				\
 	$(MODULES_GAME)
 
 OBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))

@@ -2,7 +2,7 @@
 #define __included_game_h
 
 
-int game ();
+/* int game_loop (game_state_t *gs, int (*looper)(), void *looper_arg); */
 
 
 #endif

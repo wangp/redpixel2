@@ -9,6 +9,8 @@
 #include "editor.h"
 #include "game.h"
 #include "gameinit.h"
+#include "gameclt.h"
+#include "gamesrv.h"
 
 
 static int setup_video (int w, int h, int d)
@@ -57,14 +59,23 @@ static void setup_allegro (int w, int h, int d)
 int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1;
-    int run_game = 0;
+    int run_editor = 0;
+    int run_server = 0;
+    int num_clients = 1;
     const char *map = "test.pit";
+    const char *addr = "127.0.0.1";
     int c;
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":w:h:d:gm:")) != -1) {
+    while ((c = getopt (argc, argv, "a:e:w:h:d:m:n:s")) != -1) {
 	switch (c) {
+	    case 'a':
+		addr = optarg;
+		break;
+	    case 'e':
+		run_editor = 1;
+		break;
 	    case 'w':
 		w = atoi (optarg);
 		break;
@@ -78,11 +89,14 @@ int main (int argc, char *argv[])
 		    return 1;
 		}
 		break;
-	    case 'g':
-		run_game = 1;
-		break;
 	    case 'm':
 		map = optarg;
+		break;
+	    case 'n':
+		num_clients = atoi (optarg);
+		break;
+	    case 's':
+		run_server = 1;
 		break;
 	    case ':':
 	    	fprintf (stderr, "Option `%c' missing argument.\n", optopt);
@@ -99,10 +113,12 @@ int main (int argc, char *argv[])
 
     game_init ();
 
-    if (run_game)
-	game (map);
-    else
+    if (run_editor)
 	editor ();
+    else if (run_server)
+	game_server (map, num_clients);
+    else
+	game_client (map, addr);
     
     game_shutdown ();
 

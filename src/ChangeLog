@@ -1,4 +1,12 @@
+2001-07-04  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c, gameclt.c: New files, split from game.c.
+
+	* game.c: Started writing new cruddy network code.
+
 2001-07-03  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* comm.c: New file for networking stuff.
 
 	* bindgen.lua: Updated.
 

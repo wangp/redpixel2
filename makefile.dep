@@ -36,9 +36,6 @@ obj/linux/path.o: src/path.c src/path.h
 obj/linux/render.o: src/render.c src/camera.h src/list.h src/magic/magic4x4.h \
  src/map.h src/object.h src/mylua.h src/store/store.h src/render.h
 obj/linux/yield.o: src/yield.c src/yield.h
-obj/linux/netclnt.o: src/net/netclnt.c src/net/net.h src/net/netinter.h
-obj/linux/netmain.o: src/net/netmain.c src/net/net.h src/net/netinter.h
-obj/linux/netserv.o: src/net/netserv.c src/net/net.h src/net/netinter.h
 obj/linux/example.o: src/store/example.c src/store/store.h
 obj/linux/hash.o: src/store/hash.c src/store/hash.h
 obj/linux/store.o: src/store/store.c src/store/hash.h src/store/store.h
