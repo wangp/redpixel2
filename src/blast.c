@@ -120,11 +120,11 @@ void blast_draw (BITMAP *dest, blast_t *blast, int offset_x, int offset_y)
 {
     /* XXX this whole function is trash */
 
-    set_add_blender (0xf,0,0,5);
+    set_add_blender (0, 0, 0, 5);
     drawing_mode (DRAW_MODE_TRANS,0,0,0);
 
     {
-	int br = (int) (15 * (1. - blast->r/blast->max_radius)) << 4;
+	int br = (int) (7 + 8 * (1. - blast->r/blast->max_radius)) << 4;
 	br |= 0xf;
 
 	dest->cl /= 3;
