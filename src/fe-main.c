@@ -49,6 +49,12 @@ static void *server_thread (void *arg)
 }
 
 
+static void select_editor_music (void)
+{
+    music_select_playlist ("data/music/music-editor.txt");
+}
+
+
 static void select_frontend_music (void)
 {
     music_select_playlist ("data/music/music-frontend.txt");
@@ -371,7 +377,7 @@ static int options_pressed (void)
 
 static int editor_pressed (void)
 {
-    music_stop_playlist ();
+    select_editor_music ();
 
     if (editor_init () == 0) {
 	editor_run ();

@@ -1,0 +1,4 @@
+data/music/credits-new.xm
+data/music/creepy1.it
+data/music/effects.it
+data/music/nowhere-to-hide.it
