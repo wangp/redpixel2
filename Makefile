@@ -128,6 +128,7 @@ MODULES_GAME :=					\
 	render					\
 	sound					\
 	sync					\
+	textout					\
 	timeout					\
 	timeval					\
 	yield
