@@ -1068,7 +1068,7 @@ static void server_handle_client_controls ()
 		if (object_standing_on_ladder (obj) ||
 		    object_head_above_ladder (obj) ||
 		    object_in_ladder (obj)) {
-		    object_set_number (obj, "internal: down ladder", 1);
+		    object_set_number (obj, "_internal_down_ladder", 1);
 		    object_set_ya (obj, 4);
 		}
 		break;
@@ -1077,7 +1077,7 @@ static void server_handle_client_controls ()
 		object_set_jump (obj, 0);
 		/* test against old_controls to save a lua table lookup */		    
 		if (c->old_controls & CONTROL_DOWN)
-		    object_set_number (obj, "internal: down ladder", 0);
+		    object_set_number (obj, "_internal_down_ladder", 0);
 		break;
 	}
 
@@ -1085,7 +1085,7 @@ static void server_handle_client_controls ()
 	 * Fire.
 	 */
 	if (c->controls & CONTROL_FIRE)
-	    object_call (obj, "_fire_hook");
+	    object_call (obj, "_internal_fire_hook");
     }
 }
 
