@@ -126,6 +126,26 @@ Standard_Projectile {
 --  Bow and arrow
 ----------------------------------------------------------------------
 
+Weapon {
+    name = "basic-bow",
+    ammo_type = "basic-arrow",
+    fire = function (player)
+	spawn_projectile ("basic-arrow-projectile", player, 12,
+			  ((random(10) - 5) / 10) * (PI/48))
+	player.fire_delay = 0.3 * 50
+	player:deduct_ammo ("basic-arrow")
+    end,
+    arm_anim = {
+	"/basic/weapon/bow/2arm000",
+	"/basic/weapon/bow/2arm001",
+	"/basic/weapon/bow/2arm002",
+	"/basic/weapon/bow/2arm003",
+	"/basic/weapon/bow/2arm004",
+	"/basic/weapon/bow/2arm005";
+	cx = 4, cy = 5, tics = 3
+    }
+}
+
 Standard_Pickup {
     name = "basic-bow",
     icon = "/basic/weapon/bow/pickup",
@@ -143,11 +163,16 @@ Standard_Pickup {
     respawn_secs = 10
 }
 
-Standard_Projectile {
+Explosive_Projectile {
     name = "basic-arrow-projectile",
     alias = "~ap",
     icon = "/basic/weapon/bow/projectile",
-    damage = 10
+    radius = 35,
+    damage = 40,
+    explosion = "basic-simple42",
+    proxy_init = function (self)
+	self:rotate_layer (0, radian_to_bangle (self.angle))
+    end
 }
 
 
