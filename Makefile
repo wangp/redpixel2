@@ -236,12 +236,9 @@ cleaner: clean
 
 .PHONY: ChangeLog
 ChangeLog:
-	( echo '	This ChangeLog is automatically produced from RCS logs.'; \
-	  echo '	See the Makefile for details.'; echo; \
-	  find . -path '*/RCS*/*,v' -print | \
-		sed -e 's:^\./\(.*\),v$$:\1: ; s:RCS/::' | \
-		xargs rlog | \
-		tools/cvs2cl.pl --stdin --stdout ) > ChangeLog
+	( echo '	This ChangeLog is automatically produced from CVS logs.'; \
+	  echo '	See also ChangeOld and ChangeOlder files.'; echo; \
+	  tools/cvs2cl.pl --stdout ) > ChangeLog
 
 EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
 EXCLUDE := $(addprefix --exclude , $(EXCLUDE_LIST))
