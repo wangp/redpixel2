@@ -124,9 +124,9 @@ int main (int argc, char *argv[])
 	editor ();
     }
     else if (run_server) {
-	if (game_server_init (&game_server_text_interface) == 0) {
-	    game_server ();
-	    game_server_shutdown ();
+	if (ng_game_server_init (&game_server_text_interface) == 0) {
+	    ng_game_server ();
+	    ng_game_server_shutdown ();
 	}
     }
     else {

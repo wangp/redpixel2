@@ -1,0 +1,15 @@
+Anticipating "bug" reports
+--------------------------
+
+
+(1)  The lights go through walls.
+
+This is deliberate.  It's already very dark, so stopping light rays at
+walls would severely limit visibility and reduce the game flow.
+Besides, it'd be slow.
+
+
+(2)  Some objects float in mid-air.
+
+This is deliberate.  Some objects have mass, others don't.
+

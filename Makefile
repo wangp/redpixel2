@@ -84,6 +84,7 @@ MODULES_GAME =					\
 	objtypes				\
 	packet					\
 	path					\
+	physics					\
 	render					\
 	textface				\
 	timeout					\

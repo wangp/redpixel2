@@ -50,11 +50,21 @@ static void put_float (unsigned char *buf, float f)
 
 int packet_encode (unsigned char *buf, const char *fmt, ...)
 {
-    unsigned char *orig = buf;
     va_list ap;
+    int size;
 
     va_start (ap, fmt);
+    size = packet_encode_v (buf, fmt, ap);
+    va_end (ap);
 
+    return size;
+}
+
+
+int packet_encode_v (unsigned char *buf, const char *fmt, va_list ap)
+{
+    unsigned char *orig = buf;
+    
     for (; *fmt; fmt++) switch (*fmt) {
 
 	case 'c':
@@ -86,8 +96,6 @@ int packet_encode (unsigned char *buf, const char *fmt, ...)
 	    error ("internal error: unrecognised format specifier in packet_encode\n");
 	    break;
     }
-
-    va_end (ap);
 
     return buf - orig;
 }

@@ -21,7 +21,7 @@ void object_shutdown ();
 
 
 object_t *object_create (const char *type_name);
-object_t *object_create_ex (const char *type_name, objid_t id);
+object_t *object_create_ex (const char *type_name, objid_t id, int check_collision_with_objects);
 void object_destroy (object_t *obj);
 
 struct objtype *object_type (object_t *obj);
@@ -37,6 +37,8 @@ float object_mass (object_t *obj);
 void object_set_mass (object_t *obj, float mass);
 float object_ramp (object_t *obj);
 void object_set_ramp (object_t *obj, float ramp);
+float object_jump (object_t *obj);
+void object_set_jump (object_t *obj, float jump);
 
 
 /* Layers.  */

@@ -1,3 +1,22 @@
+2001-07-10  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* physics.c: New module to contain simple physics code, which is
+	shared between server and client.
+
+	* gamesrv.c: More of the next gen game server.
+
+2001-07-09  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c: Next generation game server.
+
+2001-07-08  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* I forgot.
+	
+2001-07-07  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* [fixme]
+
 2001-07-06  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* gamesrv.c (process_command): Common command processor.

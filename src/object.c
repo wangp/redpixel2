@@ -31,12 +31,14 @@ struct object {
     object_t *prev;
     objtype_t *type;
     objid_t id;
+    int check_collision_with_objects;
 
     /* C variables.  */
     float x, y;
     float xv, yv;
     float mass;
     float ramp;
+    float jump;
     struct list_head layers;
     struct list_head lights;
     objmask_t mask[5];
@@ -74,7 +76,7 @@ object_t *object_create (const char *type_name)
 {
     object_t *obj;
 
-    obj = object_create_ex (type_name, next_id);
+    obj = object_create_ex (type_name, next_id, 1);
     if (obj)
 	next_id++;
 
@@ -84,7 +86,7 @@ object_t *object_create (const char *type_name)
 
 /* Only use this when you know what you are doing.  If you mix this
  * with `object_create', two objects may end up with the same id.  */
-object_t *object_create_ex (const char *type_name, objid_t id)
+object_t *object_create_ex (const char *type_name, objid_t id, int check_collision_with_objects)
 {
     lua_State *L = lua_state;
     objtype_t *type;
@@ -97,6 +99,7 @@ object_t *object_create_ex (const char *type_name, objid_t id)
 
     obj->type = type;
     obj->id = id;
+    obj->check_collision_with_objects = check_collision_with_objects;
 
     /* C object references Lua table.  */
     lua_newtable (L);
@@ -212,6 +215,18 @@ float object_ramp (object_t *obj)
 void object_set_ramp (object_t *obj, float ramp)
 {
     obj->ramp = ramp;
+}
+
+
+float object_jump (object_t *obj)
+{
+    return obj->jump;
+}
+
+
+void object_set_jump (object_t *obj, float jump)
+{
+    obj->jump = jump;
 }
 
 
@@ -548,7 +563,8 @@ static inline int check_collision (object_t *obj, int mask_num, map_t *map,
 				   float x, float y)
 {
     return (check_collision_with_tiles (obj, mask_num, map, x, y) ||
-	    check_collision_with_objects (obj, mask_num, map, x, y));
+	    (obj->check_collision_with_objects &&
+	     check_collision_with_objects (obj, mask_num, map, x, y)));
 }
 
 

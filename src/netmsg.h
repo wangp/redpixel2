@@ -15,7 +15,16 @@ enum {
        Args: long client_id  (4 bytes).
      */
 
-    MSG_SC_POST_JOIN = 'j',
+    MSG_SC_JOININFO = 'j',
+
+
+    /* The client sends this to the server after it joins and receives
+       the MSG_SC_POST_JOIN message.
+
+       Args: long len, char name[]  (4 + len bytes).
+     */
+
+    MSG_CS_JOININFO = 'J',
 
 
     /* The server sends this to a client to notify that it is going to
@@ -28,6 +37,13 @@ enum {
        the game state.  */
 
     MSG_CS_GAMESTATEFEED_ACK = 'F',
+
+
+    /* The server sends this to a client after the game state feed is
+       done.  After a client receives this, it will enter the 'paused'
+       state.  */
+
+    MSG_SC_GAMESTATEFEED_DONE = '*',
 
 
     /* The server broadcasts this to clients to notify that the game
@@ -49,23 +65,11 @@ enum {
     MSG_CS_GAMEINFO = 'g',
 
 
-    /* The client sends this to the server when it has sent all the
-       game update messages it wants to send for the tick.  */
-
-    MSG_CS_GAMEINFO_DONE = 'G',
-
-
     /* The server broadcasts this to clients to tell them about
        changes to the game state.  This message type has many
        sub-messages, see below.  */
 
     MSG_SC_GAMEINFO = 'h',
-
-
-    /* The server broadcasts this to clients when it has sent all the
-       game update messages it wants for the tick.  */
-
-    MSG_SC_GAMEINFO_DONE = 'H',
 
 
     /* The server broadcasts this to clients when it is returning to
@@ -146,6 +150,14 @@ enum {
      */
 
     MSG_SC_GAMEINFO_OBJECTDESTROY = 'd',
+
+
+    /* Tell clients that an object's velocities has changed.
+
+       Args: long object_id, float xv, float yv  (12 bytes).
+     */
+
+    MSG_SC_GAMEINFO_OBJECTSETVEL = 'v',
 
 
     /* Tell clients that an object has been moved.

@@ -21,7 +21,8 @@ cvars = {{ Float, 'x' },
 	 { Float, 'xv' },
 	 { Float, 'yv' },
 	 { Float, 'mass' },
-	 { Float, 'ramp' }}
+	 { Float, 'ramp' },
+	 { Float, 'jump' }}
 
 
 -- helpers

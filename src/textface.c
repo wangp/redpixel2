@@ -17,7 +17,7 @@
 #include "textface.h"
 
 
-static void move_to_input_cursor ();
+static void refresh_all ();
 
 
 #define CTRL(k)		(k - 'A' + 1)
@@ -78,13 +78,11 @@ static void add_logline (const char *prefix, const char *text)
 	free (loglines[0].prefix);
 	free (loglines[0].text);
 	memmove (loglines, loglines+1, (MAXLOGLINES-1) * (sizeof (struct logline)));
-	loglines[nloglines].prefix = prefix ? strdup (prefix) : NULL;
-	loglines[nloglines].text = strdup (text);
+	loglines[nloglines-1].prefix = prefix ? strdup (prefix) : NULL;
+	loglines[nloglines-1].text = strdup (text);
     }
 
-    repaint_loglines ();
-    move_to_input_cursor ();
-    refresh ();
+    refresh_all ();
 }
 
 static void init_loglines ()
@@ -172,8 +170,7 @@ static const char *poll_input ()
 	    break;
 
 	case CTRL('L'):
-	    wrefresh (curscr);
-	    refresh ();
+	    refresh_all ();
 	    break;
 
 	case '\r':
@@ -262,20 +259,20 @@ static void end_input ()
 
 static void (*old_sigwinch_handler)(int);
 
-static void repaint_all ()
-{
-    repaint_loglines ();
-    repaint_status ();
-    repaint_input ();
-}
-
 static void sigwinch_handler (int num)
 {
     /* pick up new screen size */
     endwin ();
     refresh ();
 
-    repaint_all ();
+    refresh_all ();
+}
+
+static void refresh_all ()
+{
+    repaint_loglines ();
+    repaint_status ();
+    repaint_input ();
     move_to_input_cursor ();
     refresh ();
 }
@@ -308,18 +305,14 @@ static void end_curses ()
 
 /* External interface.  */
 
-static int textface_init ()
+static void textface_init ()
 {
     init_curses ();
     init_loglines ();
     init_status ();
     init_input ();
 
-    repaint_all ();
-    move_to_input_cursor ();
-    refresh ();
-
-    return 0;
+    refresh_all ();
 }
 
 static void textface_shutdown ()

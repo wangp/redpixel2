@@ -4,16 +4,16 @@
 
 
 typedef struct {
-    int (*init) ();
+    void(*init) ();
     void (*shutdown) ();
     void (*add_log) (const char *prefix, const char *text);
     const char *(*poll) ();
 } game_server_interface_t;
 
 
-int game_server_init (game_server_interface_t *);
-void game_server ();
-void game_server_shutdown ();
+int ng_game_server_init (game_server_interface_t *);
+void ng_game_server ();
+void ng_game_server_shutdown ();
 
 
 #endif
