@@ -1,0 +1,146 @@
+Red Pixel II Engine Design: Details
+-----------------------------------
+
+The Engine
+--------------------------------------------------------------------------------
+
+** Thing **
+
+	Every *engine* entity in RP2 is a ``Thing''.  The structure is something
+	like:
+	
+		Thing {
+			var name;
+			var x, y;
+			var pic;
+			var stats;
+			var input;	/* piping */
+			var output;
+			var glow;
+			var transp;	/* 0 = opaque */
+		}
+		
+	The piping is to allow something like the piping in Unix.  Practical
+	example: An Alien is shot and killed, sending off a ``blip'' to a
+	Bridge, which tells ten more Aliens to awaken and kill the player.
+
+
+** InvisibleThing **
+
+	Things which are invisible are, not surprisingly, called
+	InvisibleThings.  These things cannot be ``touched'' (or shot, etc.)
+	
+	
+** VisibleThing **
+
+	The solid stuff, including Creatures, Walls, Pickups, etc.
+	
+	
+** Gate **
+
+	Gates should allow some interesting maps in RP2.  For example, the AND
+	gate might have two input attachments A and B, and one output, R.
+	
+		     ____   
+		A --|    \
+		    | and | -- R
+		B --|____/
+	
+	R would receive a blip only when A and B both report TRUE.
+	
+	``Special'' gates:
+	
+	** Pulse gate **
+	
+		Every X seconds the gate send a blip.  Good for flashing
+		EnvLights.
+		
+	** Delay **
+	
+		Recieves a blip, but does not send it until X number of seconds.
+		
+		
+** Trigger **
+
+	I don't like this being separate from Gates.  They are about the same,
+	but somehow different.
+	
+	** Area trigger **
+	
+		When a Human enters the area (x1,y1) - (x2,y2) it generates
+		event onEnter().  Likewise for onExit().
+		
+	** Timer **
+	
+		Generates onTimer() every X seconds.
+		
+** Snippet **
+
+	A scrap of JavaScript code, floating in mid-air.  Triggers and Gates can
+	connect to this to execute the script whenever a blip is sent.
+	
+	
+** EnvLight **
+
+	Environmental light.  For mood setting.  Size, brightness and colour
+	adjustable.
+	
+	
+** Wall **
+
+	This needs no explaination, except that there are two categories.
+	
+	
+** Door **
+
+	Perhaps this should be in with Wall.  Opens and closes according to
+	blips.
+	
+	
+** Pickup **
+
+	Yep.
+	
+	
+** Missle **
+
+	The stuff that the guns fire.  Things that can hurt Creatures.  Note
+	that Mine is also in the category, even though it doesn't move like a
+	bullet.  
+
+	
+** Creature **
+
+	The organic Things in the game that generate blood.  Enemies, a.k.a.
+	Aliens in single player mode are included in this category.  These are
+
+	
+The Additional Stuff
+--------------------------------------------------------------------------------
+
+Not Things, but still important.
+
+** Glow **
+
+	Every Thing can have a Glow attached to it.  A Glow is a light source,
+	with brightness, size, colour.
+	
+
+** Explosion **
+
+** Particle **
+	
+	** Spark **
+
+
+Stats
+--------------------------------------------------------------------------------
+
+** WeaponStats **
+
+** MissleStats **
+
+** ExploSeq **
+
+	Explosion sequence, containing frame names and tic times.
+	
