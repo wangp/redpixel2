@@ -78,6 +78,7 @@ static int backgrounded;
 
 /* keep in sync with gamesrv.c */
 #define TICKS_PER_SECOND	(50)
+#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
 
 
 static volatile ulong_t ticks;
@@ -144,6 +145,24 @@ static void perform_simple_physics ()
     blood_particles_update (map_blood_particles (map), map);
     /* XXX no good because blood particles can only be updated at a
        regular rate */
+}
+
+
+/*----------------------------------------------------------------------*/
+
+
+static void poll_update_hooks (int elapsed_msecs)
+{
+    list_head_t *object_list;
+    object_t *obj;
+
+    if (elapsed_msecs <= 0)
+	return;
+    
+    object_list = map_object_list (map);
+    list_for_each (obj, object_list)
+	if (!object_stale (obj))
+	    object_poll_update_hook (obj, elapsed_msecs);
 }
 
 
@@ -585,7 +604,10 @@ void game_client_run ()
     
     dbg ("game");
     {
+	ulong_t last_ticks;
+
 	ticks_init ();
+	last_ticks = ticks;
 
 	pinging = 0;
 	last_ping_time = 0;
@@ -656,22 +678,26 @@ void game_client_run ()
 		if (end_later) { sync_client_unlock (); goto end; }
 	    }
 	    
-	    dbg ("send gameinfo");
-	    send_gameinfo_controls ();
+	    if (last_ticks != ticks) {
+		dbg ("send gameinfo");
+		send_gameinfo_controls ();
 
-	    dbg ("do physics");
-	    perform_simple_physics ();
+		dbg ("do physics");
+		perform_simple_physics ();
 
-	    if (local_object)
-		object_call (local_object, "_client_update_hook");
+		dbg ("poll update hooks");
+		poll_update_hooks ((ticks - last_ticks) * MSECS_PER_TICK);
 
-	    map_destroy_stale_objects (map);
+		map_destroy_stale_objects (map);
 
-	    messages_poll_input ();
+		messages_poll_input ();
 
-	    dbg ("update screen");
-	    update_camera ();
-	    update_screen ();
+		dbg ("update screen");
+		update_camera ();
+		update_screen ();
+
+		last_ticks = ticks;
+	    }
 	    
 	    dbg ("handling pinging");
 	    if ((!pinging) && (ticks > last_ping_time + (2 * TICKS_PER_SECOND))) {
