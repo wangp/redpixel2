@@ -501,7 +501,7 @@ Weapon_With_Firer {
 	"/basic/weapon/vulcan/2arm002",
 	"/basic/weapon/vulcan/2arm003",
 	"/basic/weapon/vulcan/2arm004";
-	cx = 0, cy = 3
+	cx = 0, cy = 3, tics = 2
     },
     sound = "/basic/weapon/vulcan/sound"
 }
