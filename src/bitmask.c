@@ -9,20 +9,10 @@
 #include "bitmask.h"
 
 
-/* Set this to a 32 bit unsigned integer on your machine, or
- * alternatively, check the code works with other sizes.  */
-typedef unsigned long u32_t;
-
-#define u32_bytes	(sizeof (u32_t))
-#define u32_bits	(u32_bytes * 8)
-
-
-struct bitmask {
-    int w, h;
-    int line_w;		/* width of a line[] in bytes */
-    void *dat;
-    u32_t *line[0];
-};
+/* aliases */
+#define u32_t		_bitmask_u32_t
+#define u32_bytes	_bitmask_u32_bytes
+#define u32_bits	_bitmask_u32_bits
 
 
 bitmask_t *bitmask_create (int width, int height)
@@ -92,17 +82,6 @@ void bitmask_set_point (bitmask_t *p, int x, int y, int value)
 	    p->line[y][u] |=  1 << ((u32_bits - 1) - (x - (u * u32_bits)));
 	else
 	    p->line[y][u] &=~ 1 << ((u32_bits - 1) - (x - (u * u32_bits)));
-    }
-}
-
-
-int bitmask_point (bitmask_t *p, int x, int y)
-{
-    if ((x < 0) || (y < 0) || (x >= p->w) || (y >= p->h))
-	return -1;
-    else {    
-	int u = x / u32_bits;
-	return  p->line[y][u] & (1 << ((u32_bits - 1) - (x - (u * u32_bits))));
     }
 }
 
