@@ -1,0 +1,34 @@
+In case I forget:
+-----------------------------------------------------------------
+
+BaseArray - ctor for list of base tiles (basehelp.c)
+
+base_array - global instance of BaseArray
+
+base_blocking - toggle whether base block editing is on
+
+base_selected - string of the current selected base list
+
+base_palette - pointer to gridpalette widget inside Base window
+
+change_base_selected - function to change global `base_selected'
+
+gridpalette - widget for lists (such as BaseArray)
+
+popup_base_palette - create the "base" window 
+
+-----------------------------------------------------------------
+
+TheMap - ctor of storage area for map data and information 
+
+the_map - global instance of TheMap
+
+mapviewport - widget for TheMap
+
+Canvas - window dressing for mapviewport
+
+-----------------------------------------------------------------
+
+PrefabArray - ctor for list of Prefab'd bases (prefabs.xml)
+
+prefabs - global instance of PrefabArray
