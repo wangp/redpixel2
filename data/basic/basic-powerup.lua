@@ -56,8 +56,7 @@ Item {
     icon = "/basic/powerup/lightamp/000", 
     respawn_secs = 10,
     collide_hook = function (self, player)
-	call_method_on_clients (player, "start_alt_light",
-	    "return '/basic/powerup/lightamp/light', 3000, 20")
+	call_method_on_clients (player, "get_lightamp_hook")
     end,
     proxy_init = function (self)
 	self:add_light ("/basic/light/blue-16", 0, 0)
