@@ -29,9 +29,11 @@ typedef struct objmask {
 
 /* collision flags */
 #define CNFLAG_IS_PLAYER	0x01
-#define CNFLAG_TOUCH_TILES	0x02
-#define CNFLAG_TOUCH_PLAYERS	0x04
-#define CNFLAG_TOUCH_NONPLAYERS	0x08
+#define CNFLAG_IS_LADDER	0x02
+#define CNFLAG_IS_BITS		(CNFLAG_IS_PLAYER | CNFLAG_IS_LADDER)
+#define CNFLAG_TOUCH_TILES	0x04
+#define CNFLAG_TOUCH_PLAYERS	0x08
+#define CNFLAG_TOUCH_NONPLAYERS	0x10
 #define CNFLAG_TOUCH_OBJECTS	(CNFLAG_TOUCH_PLAYERS | CNFLAG_TOUCH_NONPLAYERS)
 #define CNFLAG_DEFAULT		(CNFLAG_TOUCH_TILES | CNFLAG_TOUCH_OBJECTS)
 
@@ -80,6 +82,17 @@ struct object {
     /* A list of table fields whose values we need to replicate to the
      * client when CREATING the object. */
     list_head_t creation_fields;
+
+    /* Player only: where the player is in relation to ladders.
+     * - in ladder means the whole body is in a ladder;
+     * - head above means the head is poking out the top;
+     * - standing on means a ladder is one pixel below the player's feet.
+     */
+    enum {
+	IN_LADDER = 1,
+	HEAD_ABOVE_LADDER,
+	STANDING_ON_LADDER,
+    } ladder_state;
 
 
     /*
@@ -448,10 +461,19 @@ void object_set_collision_is_player (object_t *obj)
 }
 
 
+void object_set_collision_is_ladder (object_t *obj)
+{
+    /* Ladders are a special case: we treat them as if they do not
+     * collide with anything, but they get a special function which
+     * tests if they collide with players.  */
+    obj->collision_flags = CNFLAG_IS_LADDER;
+}
+
+
 void object_set_collision_flags (object_t *obj, int tiles, int players,
 				 int nonplayers)
 {
-    obj->collision_flags &= CNFLAG_IS_PLAYER;
+    obj->collision_flags &= CNFLAG_IS_BITS;
     obj->collision_flags |= ((tiles ? CNFLAG_TOUCH_TILES : 0)
 			     | (players ? CNFLAG_TOUCH_PLAYERS : 0)
 			     | (nonplayers ? CNFLAG_TOUCH_NONPLAYERS : 0));
@@ -702,7 +724,9 @@ void object_remove_all_layers (object_t *obj)
 
 
 
-/* Lights.  */
+/*
+ * Lights.
+ */
 
 
 typedef struct objlight objlight_t;
@@ -896,6 +920,7 @@ static void set_default_masks (object_t *obj)
 
 #define is_player(o)		((o)->collision_flags & CNFLAG_IS_PLAYER)
 #define is_nonplayer(o)		(!is_player (o))
+#define is_ladder(o)		((o)->collision_flags & CNFLAG_IS_LADDER)
 #define touch_tiles(o)		((o)->collision_flags & CNFLAG_TOUCH_TILES)
 #define touch_players(o)	((o)->collision_flags & CNFLAG_TOUCH_PLAYERS)
 #define touch_nonplayers(o)	((o)->collision_flags & CNFLAG_TOUCH_NONPLAYERS)
@@ -1012,15 +1037,94 @@ static inline int check_collision (object_t *obj, int mask_num, map_t *map,
 
 int object_supported (object_t *obj, map_t *map)
 {
-    return object_supported_at (obj, map, obj->x, obj->y);
+    return obj->ladder_state
+	|| check_collision (obj, OBJECT_MASK_BOTTOM, map, obj->x, obj->y+1);
 }
 
 
-int object_supported_at (object_t *obj, map_t *map, float x, float y)
+
+/*
+ * Ladders.
+ */
+
+
+static int check_player_collision_with_ladders (object_t *obj, int mask_num,
+						map_t *map, int x, int y)
 {
-    return check_collision (obj, 2, map, x, y+1);
+    list_head_t *list;
+    objmask_t *mask;
+    object_t *p;
+
+    if (object_stale (obj) || object_hidden (obj) || is_nonplayer (obj))
+	return 0;
+
+    mask = obj->mask;
+    if (!mask[mask_num].ref)
+	return 0;
+
+    list = map_object_list (map);
+    list_for_each (p, list) {
+	if ((p == obj) || (object_stale (p)) || (object_hidden (p)))
+	    continue;
+
+	if (!is_ladder (p))
+	    continue;
+
+	if (!p->mask[0].ref)
+	    continue;
+	
+	if (!(bitmask_check_collision
+	      (bitmask_ref_bitmask (mask[mask_num].ref),
+	       bitmask_ref_bitmask (p->mask[0].ref),
+	       x - mask[mask_num].centre_x, y - mask[mask_num].centre_y,
+	       p->x - p->mask[0].centre_x,
+	       p->y - p->mask[0].centre_y)))
+	    continue;
+
+	/* Ladders have no collision hooks.  */
+
+	return 1;
+    }
+    
+    return 0;
 }
 
+
+void object_update_ladder_state (object_t *obj, map_t *map)
+{
+#define do_check(mask, dy)	check_player_collision_with_ladders (obj, mask, map, obj->x, obj->y + dy)
+
+    if (do_check (OBJECT_MASK_MAIN, 0)) {
+	if (!do_check (OBJECT_MASK_TOP, 0))
+	    obj->ladder_state = HEAD_ABOVE_LADDER;
+	else
+	    obj->ladder_state = IN_LADDER;
+    }
+    else if (do_check (OBJECT_MASK_BOTTOM, 1))
+	obj->ladder_state = STANDING_ON_LADDER;
+    else
+	obj->ladder_state = 0;
+
+#undef do_check
+}
+
+
+int object_in_ladder (object_t *obj)
+{
+    return obj->ladder_state == IN_LADDER;
+}
+
+
+int object_head_above_ladder (object_t *obj)
+{
+    return obj->ladder_state == HEAD_ABOVE_LADDER;
+}
+
+
+int object_standing_on_ladder (object_t *obj)
+{
+    return obj->ladder_state == STANDING_ON_LADDER;
+}
 
 
 /*
@@ -1034,12 +1138,19 @@ int object_supported_at (object_t *obj, map_t *map, float x, float y)
 static inline int object_move (object_t *obj, int mask_num, map_t *map, float dx, float dy)
 {
     float idx, idy;
+    int dont_fall_into_ladder;
+
+    dont_fall_into_ladder = ((is_player (obj)) && (dy > 0) &&
+			     !(object_get_number (obj, "internal: down ladder")));
 
     while ((dx) || (dy)) {
 	idx = (ABS (dx) < 1) ? dx : SIGN (dx);
 	idy = (ABS (dy) < 1) ? dy : SIGN (dy);
 
-	if (check_collision (obj, mask_num, map, obj->x + idx, obj->y + idy))
+	if (check_collision (obj, mask_num, map, obj->x + idx, obj->y + idy) ||
+	    (dont_fall_into_ladder &&
+	     check_player_collision_with_ladders (obj, OBJECT_MASK_BOTTOM,
+						  map, obj->x + idx, obj->y + idy)))
 	    return -1;
 
 	obj->x += idx;
@@ -1095,7 +1206,11 @@ void object_do_physics (object_t *obj, map_t *map)
     int rep = 0;
     float old_yv = obj->yv;
 
-    obj->ya += obj->mass;
+    if (!obj->ladder_state) {
+	obj->ya += obj->mass;
+	if ((obj->ya > 0) && (object_supported (obj, map)))
+	    obj->ya = 0;
+    }
 
     obj->xv = (obj->xv + obj->xa) * obj->xv_decay;
     obj->yv = (obj->yv + obj->ya) * obj->yv_decay;
@@ -1127,6 +1242,12 @@ void object_do_physics (object_t *obj, map_t *map)
 	}
     }
 
+    if (obj->ladder_state == IN_LADDER) {
+	obj->xa = 0;
+	obj->ya = 0;
+	rep = 1;
+    }
+
     if ((obj->old_xa != obj->xa) || (obj->old_ya != obj->ya)) {
 	obj->old_xa = obj->xa;
 	obj->old_ya = obj->ya;
@@ -1141,7 +1262,9 @@ void object_do_physics (object_t *obj, map_t *map)
 
 
 
-/* Proxy simulation.  */
+/*
+ * Proxy simulation.
+ */
 
 
 void object_set_auth_info (object_t *obj,

@@ -209,6 +209,11 @@ generate {
 }
 
 generate {
+    cname	= "object_set_collision_is_ladder",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
     cname	= "object_set_collision_flags_string",
     lname	= "object_set_collision_flags",
     args	= {{ Object, "obj" },

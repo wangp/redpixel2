@@ -62,6 +62,7 @@ void object_set_jump (object_t *, int);
 int object_moving_horizontally (object_t *);
 
 void object_set_collision_is_player (object_t *);
+void object_set_collision_is_ladder (object_t *);
 void object_set_collision_flags (object_t *, int tiles, int players, int nonplayers);
 void object_set_collision_flags_string (object_t *, const char *flags);
 int object_collision_tag (object_t *);
@@ -131,7 +132,14 @@ void object_remove_all_masks (object_t *);
 /* Collisions.  */
 
 int object_supported (object_t *, struct map *);
-int object_supported_at (object_t *, struct map *, float x, float y);
+
+
+/* Ladder.  */
+
+void object_update_ladder_state (object_t *, struct map *);
+int object_in_ladder (object_t *);
+int object_head_above_ladder (object_t *);
+int object_standing_on_ladder (object_t *);
 
 
 /* Movement.  */
