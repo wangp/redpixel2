@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.22.04.04.23;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.19.01.35.55;	author tjaden;	state Exp;
@@ -20,9 +25,10 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Return error code if registering an object type failed.
+@Abort with an error if icon argument to objtype_register() does not
+point to a valid bitmap.
 @
 text
 @/* objtypes.c
@@ -35,6 +41,7 @@ text
 #include "alloc.h"
 #include "bitmask.h"
 #include "bitmaskg.h"
+#include "error.h"
 #include "mylua.h"
 #include "objtypes.h"
 #include "store.h"
@@ -113,8 +120,17 @@ void objtypes_shutdown ()
 int objtypes_register (const char *type, const char *name,
 			const char *icon, lua_ref_t init_func)
 {
+    BITMAP *icon_bmp;
+    char buf[512];
+
+    icon_bmp = store_dat (icon);
+    if (!icon_bmp) {
+	snprintf (buf, sizeof buf, "Bad icon %s\n", icon);
+	error (buf);
+    }
+
     return (create (type, name, icon, init_func,
-		    bitmask_create_from_magic_bitmap (store_dat (icon)))
+		    bitmask_create_from_magic_bitmap (icon_bmp))
 	    ? 0 : -1);
 }
 
@@ -168,6 +184,19 @@ bitmask_t *objtype_icon_mask (objtype_t *type)
 {
     return type->icon_mask;
 }
+@
+
+
+1.2
+log
+@Return error code if registering an object type failed.
+@
+text
+@d11 1
+d90 9
+d100 1
+a100 1
+		    bitmask_create_from_magic_bitmap (store_dat (icon)))
 @
 
 

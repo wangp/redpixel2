@@ -2,8 +2,8 @@
 
 store_load ("basic/basic-tilelike.dat", "/basic/tilelike/")
 
-objtype_register ("objtile", "basic-barrel-red", "/basic/tilelike/barrel000")
-objtype_register ("objtile", "basic-barrel-grey", "/basic/tilelike/barrel001")
+objtype_register ("objtile", "basic-barrel-red", "/basic/tilelike/barrel-red/main")
+objtype_register ("objtile", "basic-barrel-grey", "/basic/tilelike/barrel-gray/main")
 
 
 
@@ -50,11 +50,33 @@ Objtype {
 --  Ladders
 ----------------------------------------------------------------------
 
-Objtype {
-    category = "basic-ladder",
-    name = "basic-ladder-main",
-    icon = "/basic/tilelike/ladder/000",
-    nonproxy_init = function (self)
-	object_set_collision_is_ladder (self)
-    end
+local Ladder = function (t)
+    return Objtype (t, {
+	category = "basic-ladder",
+	nonproxy_init = function (self)
+	    object_set_collision_is_ladder (self)
+	    self:set_mask (mask_main, t.mask, t.cx, t.cy)
+	end
+    })
+end
+
+Ladder {
+    name = "basic-ladder-gray1",
+    icon = "/basic/tilelike/ladder-gray1",
+    mask = "/basic/tilelike/ladder-gray1-mask",
+    cx = 8, cy = 8
+}
+
+Ladder {
+    name = "basic-ladder-gray3",
+    icon = "/basic/tilelike/ladder-gray3",
+    mask = "/basic/tilelike/ladder-gray3-mask",
+    cx = 8, cy = 24
+}
+
+Ladder {
+    name = "basic-ladder-gray5",
+    icon = "/basic/tilelike/ladder-gray5",
+    mask = "/basic/tilelike/ladder-gray5-mask",
+    cx = 8, cy = 40
 }

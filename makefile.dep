@@ -1,8 +1,8 @@
 $(OBJDIR)/alloc.o: src/alloc.c src/alloc.h src/error.h
 $(OBJDIR)/bindings.o: src/bindings.c src/bindings.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
- src/extdata.h src/gamesrv.h src/loaddata.h src/store/store.h \
- src/object.h src/objtypes.h src/bindings.inc
+ src/extdata.h src/gameclt.h src/gamesrv.h src/loaddata.h \
+ src/store/store.h src/object.h src/objtypes.h src/bindings.inc
 $(OBJDIR)/bitmask.o: src/bitmask.c src/bitmask.h
 $(OBJDIR)/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
@@ -56,7 +56,7 @@ $(OBJDIR)/object.o: src/object.c src/alloc.h src/bitmask.h src/bitmaskg.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
  src/object.h src/objtypes.h src/store/store.h src/objectet.inc
 $(OBJDIR)/objtypes.o: src/objtypes.c src/alloc.h src/bitmask.h src/bitmaskg.h \
- src/mylua.h lua-4.1-work3/include/lua.h \
+ src/error.h src/mylua.h lua-4.1-work3/include/lua.h \
  lua-4.1-work3/include/lauxlib.h src/objtypes.h src/store/store.h
 $(OBJDIR)/packet.o: src/packet.c src/packet.h src/error.h
 $(OBJDIR)/path.o: src/path.c src/path.h

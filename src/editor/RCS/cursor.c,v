@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.01.22.04.03.20;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.18.08.38.43;	author tjaden;	state Exp;
@@ -25,10 +30,10 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Fixed a problem where the dynamically created mouse cursor was
-destroyed while in use by Allegro.
+@Made cursor_set_magic_bitmap's hotx argument not need to be multiplied
+by three.
 @
 text
 @/* cursor.c
@@ -96,7 +101,6 @@ void cursor_set_magic_bitmap (BITMAP *bmp, int hotx, int hoty)
 	    if (getpixel (tmp, x, y) == makecol (0, 0, 0))
 		putpixel (tmp, x, y, bitmap_mask_color (screen));
 
-    hotx /= 3;
     putpixel (tmp, hotx, hoty, HIGHLIGHT);
 
     change (tmp, hotx, hoty);
@@ -118,6 +122,17 @@ void cursor_set_default ()
     change (0, 0, 0);
     destroy_dynamic_cursor ();
 }
+@
+
+
+1.3
+log
+@Fixed a problem where the dynamically created mouse cursor was
+destroyed while in use by Allegro.
+@
+text
+@a65 1
+    hotx /= 3;
 @
 
 

@@ -1,9 +1,14 @@
-head	1.11;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.12
+date	2002.01.21.17.35.14;	author tjaden;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2002.01.21.17.07.45;	author tjaden;	state Exp;
@@ -65,7 +70,7 @@ desc
 @@
 
 
-1.11
+1.12
 log
 @Allow a second argument to Objtype and Weapon, which should contain a
 table of fields to add into or override in the first argument.
@@ -163,7 +168,7 @@ end
 -- objtype_register wrapper
 
 function Objtype (t, u)
-    if u then t = merge (t, u) end
+    t = merge (t, u)
     local result =
     objtype_register (t.category, t.name, t.icon,
 	function (self)
@@ -184,8 +189,7 @@ end
 weapons = {}
 
 function Weapon (t, u)
-    if u then t = merge (t, u) end
-    weapons[t.name] = u and merge (t, u) or t
+    weapons[t.name] = merge (t, u)
 end
 
 
@@ -195,12 +199,42 @@ function radian_to_bangle (rads)
     return rads * 128 / PI
 end
 
+-- Merge t1 and t2, t2 taking precedence in case of clashes.
+-- For convenience, if t2 is omitted, this is the identity function
+-- (i.e. the table returned is NOT a new table.
 function merge (t1, t2)
+    local t
+    if not t2 then
+	t = t1
+    else
+	t = {}
+	for i,v in t1 do t[i] = v end
+	for i,v in t2 do t[i] = v end
+    end
+    return t
+end
+@
+
+
+1.11
+log
+@Allow a second argument to Objtype and Weapon, which should contain a
+table of fields to add into or override in the first argument.
+@
+text
+@d93 1
+a93 1
+    if u then t = merge (t, u) end
+d114 1
+a114 2
+    if u then t = merge (t, u) end
+    weapons[t.name] = u and merge (t, u) or t
+d124 3
+d128 8
+a135 3
     local t = {}
     for i,v in t1 do t[i] = v end
     for i,v in t2 do t[i] = v end
-    return t
-end
 @
 
 

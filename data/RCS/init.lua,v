@@ -1,9 +1,20 @@
-head	1.2;
+head	1.4;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.4; strict;
 comment	@# @;
 
+
+1.4
+date	2002.01.22.04.00.51;	author tjaden;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2002.01.22.01.49.11;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.15.10.16.44;	author tjaden;	state Exp;
@@ -20,9 +31,10 @@ desc
 @@
 
 
-1.2
+1.4
 log
-@Updated to Lua 4.1-work3.
+@Only run editor-init.lua when actually running the editor.
+This allows us to put in editor-specific code in there.
 @
 text
 @-- init.lua
@@ -69,16 +81,51 @@ function dofile (filename)
 end
 
 
+-- object type name aliases (long name -> short name)
+
+object_alias = {}
+reverse_object_alias = {}
+
+function add_alias (long, short)
+    if reverse_object_alias[short] then
+	print ("Alias short-name "..short.." already exists, ignoring")
+    else
+	object_alias[long] = short
+	reverse_object_alias[short] = long
+    end
+end
+
+
 -- modules to load
 
 local files = {
-    "basic/basic-init.lua",
-    "editor/editor-init.lua"
+    "basic/basic-init.lua"
 }
 
 for _,filename in files do
     dofile (filename)
 end
+@
+
+
+1.3
+log
+@Added object type aliases.
+@
+text
+@d63 1
+a63 2
+    "basic/basic-init.lua",
+    "editor/editor-init.lua"
+@
+
+
+1.2
+log
+@Updated to Lua 4.1-work3.
+@
+text
+@d45 15
 @
 
 

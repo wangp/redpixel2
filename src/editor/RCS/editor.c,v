@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.22.04.02.21;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.08;	author tjaden;	state Exp;
@@ -15,9 +20,10 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Only run editor-init.lua when actually running the editor.
+This allows us to put in editor-specific code in there.
 @
 text
 @/* editor.c
@@ -30,6 +36,7 @@ text
 #include "gui.h"
 #include "ug.h"
 #include "cursor.h"
+#include "mylua.h"
 #include "store.h"
 #include "path.h"
 
@@ -50,6 +57,8 @@ map_t *editor_map;
 int editor ()
 {
     FONT *f;
+
+    lua_dofile_path (lua_state, "editor/editor-init.lua");
 
     if ((f = store_dat ("/editor/font")))
 	font = f;
@@ -96,4 +105,14 @@ int editor ()
 
     return 0;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d11 1
+d32 2
 @

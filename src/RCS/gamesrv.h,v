@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.01.22.01.48.52;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.01.21.00.20.57;	author tjaden;	state Exp;
@@ -45,10 +50,9 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Added mechanism for server scripts to tell clients to execute object
-methods (i.e. remote calls).
+@Added set_status() method to game_server_interface.
 @
 text
 @#ifndef __included_gamesrv_h
@@ -62,6 +66,7 @@ typedef struct {
     void(*init) ();
     void (*shutdown) ();
     void (*add_log) (const char *prefix, const char *text);
+    void (*set_status) (const char *text);
     const char *(*poll) ();
 } game_server_interface_t;
 
@@ -80,6 +85,16 @@ void game_server_call_method_on_clients (struct object *, const char *method, co
 
 
 #endif
+@
+
+
+1.7
+log
+@Added mechanism for server scripts to tell clients to execute object
+methods (i.e. remote calls).
+@
+text
+@d12 1
 @
 
 

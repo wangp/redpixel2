@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.22.04.01.59;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.13.40;	author tjaden;	state Exp;
@@ -15,12 +20,27 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Some functions cannot be run while in the editor or it will crash, so
+we make them into dummy functions.
 @
 text
 @-- editor-init.lua
 
 store_load ("editor/editor-support.dat", "/editor/")
+
+-- Some functions cannot be run while in the editor or it will crash.
+function spawn_blood () end
+function spawn_blod () end
+function call_method_on_clients () end
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 5
 @

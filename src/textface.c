@@ -112,20 +112,35 @@ static void end_loglines ()
 
 #define STATUS_ROW	(LINES-2)
 
+static char status_line[128];
+
 static void repaint_status ()
 {
     bkgdset (COLOR_PAIR (PAIR_STATUS));
-    mvaddstr (STATUS_ROW, 0, "Red Pixel II server [nothing here yet]");
+    mvaddstr (STATUS_ROW, 0,
+	      status_line[0] ? status_line : "Red Pixel II server");
     clrtoeol ();
     bkgdset (A_NORMAL);
 }
 
 static void init_status ()
 {
+    status_line[0] = 0;
 }
 
 static void end_status ()
 {
+}
+
+static void set_status (const char *text)
+{
+    if (!text)
+	status_line[0] = 0;
+    else {
+	strncpy (status_line, text, sizeof status_line);
+	status_line[sizeof status_line-1] = 0;
+    }
+    refresh_all ();
 }
 
 
@@ -346,6 +361,11 @@ static void textface_add_log (const char *prefix, const char *text)
     add_logline (prefix, text);
 }
 
+static void textface_set_status (const char *text)
+{
+    set_status (text);
+}
+
 static const char *textface_poll ()
 {
     return poll_input ();
@@ -355,5 +375,6 @@ game_server_interface_t game_server_text_interface = {
     textface_init,
     textface_shutdown,
     textface_add_log,
+    textface_set_status,
     textface_poll
 };

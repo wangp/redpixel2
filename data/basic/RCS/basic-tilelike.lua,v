@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.4
+date	2002.01.22.04.05.10;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.20.06.58.54;	author tjaden;	state Exp;
@@ -25,17 +30,17 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Some initial code to make crates destructible.
+@Updated for changes to datafiles.
 @
 text
 @-- basic-tilelike.lua
 
 store_load ("basic/basic-tilelike.dat", "/basic/tilelike/")
 
-objtype_register ("objtile", "basic-barrel-red", "/basic/tilelike/barrel000")
-objtype_register ("objtile", "basic-barrel-grey", "/basic/tilelike/barrel001")
+objtype_register ("objtile", "basic-barrel-red", "/basic/tilelike/barrel-red/main")
+objtype_register ("objtile", "basic-barrel-grey", "/basic/tilelike/barrel-gray/main")
 
 
 
@@ -82,6 +87,50 @@ Objtype {
 --  Ladders
 ----------------------------------------------------------------------
 
+local Ladder = function (t)
+    return Objtype (t, {
+	category = "basic-ladder",
+	nonproxy_init = function (self)
+	    object_set_collision_is_ladder (self)
+	    self:set_mask (mask_main, t.mask, t.cx, t.cy)
+	end
+    })
+end
+
+Ladder {
+    name = "basic-ladder-gray1",
+    icon = "/basic/tilelike/ladder-gray1",
+    mask = "/basic/tilelike/ladder-gray1-mask",
+    cx = 8, cy = 8
+}
+
+Ladder {
+    name = "basic-ladder-gray3",
+    icon = "/basic/tilelike/ladder-gray3",
+    mask = "/basic/tilelike/ladder-gray3-mask",
+    cx = 8, cy = 24
+}
+
+Ladder {
+    name = "basic-ladder-gray5",
+    icon = "/basic/tilelike/ladder-gray5",
+    mask = "/basic/tilelike/ladder-gray5-mask",
+    cx = 8, cy = 40
+}
+@
+
+
+1.3
+log
+@Some initial code to make crates destructible.
+@
+text
+@d5 2
+a6 2
+objtype_register ("objtile", "basic-barrel-red", "/basic/tilelike/barrel000")
+objtype_register ("objtile", "basic-barrel-grey", "/basic/tilelike/barrel001")
+d53 29
+a81 7
 Objtype {
     category = "basic-ladder",
     name = "basic-ladder-main",
@@ -89,7 +138,6 @@ Objtype {
     nonproxy_init = function (self)
 	object_set_collision_is_ladder (self)
     end
-}
 @
 
 

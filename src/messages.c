@@ -69,6 +69,7 @@ void messages_render (BITMAP *bmp)
 {
     FONT *fnt = font;		/* XXX current font doesn't work yet */
     int i, y, h;
+    fnt = store_dat ("/basic/font/mini");
     
     y = YMARGIN;
     h = text_height (fnt);

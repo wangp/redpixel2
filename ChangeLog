@@ -1,4 +1,40 @@
+2002-01-23  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* mylua.c: Seed lua random() function.
+
+	* gamesrv.c: Changed the test for a very small yv from
+	0 <= yv < 0.0000001 to 0 <= yv < 0.0001.
+
+	* basic-player.lua: Added rest of death animations.
+
 2002-01-22  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-powerup.lua, basic-player.lua:
+	Made lightamp powerup give player a big blue light.
+
+	* basic-player.lua: Made local player's light turn red if gotten
+	shot, and made corpses use the red light.
+
+	* basic-player.lua:
+	Added start of backpacks.  Also minor clean up for walking anim.
+
+	* editor-init.lua:
+	Some functions cannot be run while in the editor or it will crash, so
+	we make them into dummy functions.
+	
+	* init.lua, editor/editor.c:
+	Only run editor-init.lua when actually running the editor.
+	This allows us to put in editor-specific code in there.
+
+	* gamesrv.c, gameclt.c, basic-weapon.lua, init.lua:
+	Added object type aliases.
+
+	* gamesrv.c: Added network traffic monitoring.
+	* textface.c, gamesrv.h: Added set_status() method to
+	game_server_interface.
+
+	* basic-player.lua, basic-powerup.lua:
+	Made health items give health.
 
 	* basic-weapon.lua, basic-powerup.lua, basic-base.lua:
 	Allow a second argument to Objtype and Weapon, which should

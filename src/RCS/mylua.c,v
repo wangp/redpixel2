@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.01.22.13.03.59;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.15.10.13.01;	author tjaden;	state Exp;
@@ -25,9 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Updated to Lua 4.1-work3.
+@Seed lua random() function.
 @
 text
 @/* mylua.c
@@ -36,6 +41,7 @@ text
  */
 
 
+#include <time.h>
 #include <allegro.h>
 #include "lua.h"
 #include "lualib.h"
@@ -50,9 +56,16 @@ int mylua_open (int stacksize)
 {
     if (!(lua_state = lua_open (stacksize)))
 	return -1;
+
     lua_baselibopen (lua_state);
     lua_mathlibopen (lua_state); /* XXX: needed? */
     lua_strlibopen (lua_state);
+
+    /* seed RNG */
+    lua_getglobal (lua_state, "randomseed");
+    lua_pushnumber (lua_state, time (0));
+    lua_call (lua_state, 1, 0);
+
     return 0;
 }
 
@@ -135,6 +148,17 @@ int lua_checkargs (lua_State *L, const char *argtypes)
 
     return 1;
 }
+@
+
+
+1.3
+log
+@Updated to Lua 4.1-work3.
+@
+text
+@d7 1
+d22 1
+d26 6
 @
 
 
