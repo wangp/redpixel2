@@ -368,7 +368,18 @@ static int multiplayer_pressed (void)
 
 static int options_pressed (void)
 {
+    int old_music_allowed = music_allowed;
+
     options_menu_run ();
+
+    /* Handle changes of music allowedness. */
+    if (old_music_allowed != music_allowed) {
+	if (music_allowed)
+	    select_frontend_music ();
+	else
+	    music_stop_playlist ();
+    }
+
     show_mouse (screen);
     return D_REDRAW;
 }

@@ -158,6 +158,9 @@ static int options_menu_modify_changes_pressed (void)
     /* Sound. */
     sound_volume_factor = SFX_SLIDER.d2 / 255.0;
 
+    /* Music. */
+    music_allowed = MUSIC_CHECKBOX.flags & D_SELECTED;
+
     if (menu_screen_resolution_needs_resetting ()) {
 	if (reset_menu_screen_resolution () < 0) {
 	    alert ("Error setting video mode.", allegro_error, NULL, "Ok", NULL, 0, 0);
@@ -212,7 +215,7 @@ static DIALOG options_menu[] =
     { fancy_label_proc,    150, 220, 100,  30, 0, -1, 0, 0, 0, 0xa0, "SFX", NULL, NULL }, /* 13 */
     { fancy_slider_proc,   220, 220, 300,  30, 0,  0, 0, 0, 255, 0, NULL, NULL, NULL }, /* 14 */
     { fancy_button_proc,   540, 220,  60,  30, 0, -1, 0, 0, 0, 0x80, "Play", NULL, test_sound }, /* 15 */
-    { fancy_checkbox_proc, 120, 260, 100,  30, 0, -1, 0, D_DISABLED | D_SELECTED, 0, 0xa0, "Music", NULL, NULL }, /* 16 */
+    { fancy_checkbox_proc, 120, 260, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Music", NULL, NULL }, /* 16 */
     { fancy_slider_proc,   220, 260, 300,  30, 0,  0, 0, 0, 255, 0, NULL, music_slider_changed, NULL }, /* 17 */
     { fancy_label_proc,    120, 300, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Brightness", NULL, NULL }, /* 18 */
     { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 10, 0, NULL, NULL, NULL }, /* 19 */
@@ -241,6 +244,10 @@ void options_menu_run (void)
 
     /* Sound & music. */
     SFX_SLIDER.d2 = sound_volume_factor * 255;
+    if (music_allowed)
+	MUSIC_CHECKBOX.flags |= D_SELECTED;
+    else
+	MUSIC_CHECKBOX.flags &= ~D_SELECTED;
     MUSIC_SLIDER.d2 = music_desired_volume * 255;
     old_music_desired_volume = music_desired_volume;
 
@@ -308,6 +315,7 @@ void load_config (int *desired_stretch_method)
 
     /* Sound & music. */
     sound_volume_factor = get_config_float (CONFIG_SECTION, "sound_volume_factor", 1.0);
+    music_allowed = get_config_int (CONFIG_SECTION, "music_allowed", 1);
     music_desired_volume = get_config_float (CONFIG_SECTION, "music_volume_factor", 1.0);
 
     /* Brightness. */
@@ -347,6 +355,7 @@ void save_config (void)
 
     /* Sound & music. */
     set_config_float (CONFIG_SECTION, "sound_volume_factor", sound_volume_factor);
+    set_config_int (CONFIG_SECTION, "music_allowed", music_allowed);
     set_config_float (CONFIG_SECTION, "music_volume_factor", music_desired_volume);
 
     /* Brightness. */
