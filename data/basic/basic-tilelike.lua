@@ -17,7 +17,7 @@ local Crate = function (t)
 	    function self:receive_damage (amount, attacker, collision_x, collision_y)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion_on_clients ("basic-explo42", collision_x, collision_y)
+		    spawn_explosion_on_clients (t.explosion, collision_x, collision_y)
 		    spawn_sparks_on_clients (collision_x, collision_y, 40, 3)
 		    self.health = t.health
 		    self:hide ()
@@ -68,21 +68,24 @@ Crate {
     name = "basic-crate-000",
     icon = "/basic/tilelike/crate-normal000",
     health = 15,
-    respawn_secs = 20
+    respawn_secs = 20,
+    explosion = "basic-explo20"
 }
 
 Crate {
     name = "basic-crate-001",
     icon = "/basic/tilelike/crate-normal001",
     health = 15,
-    respawn_secs = 20
+    respawn_secs = 20,
+    explosion = "basic-explo20"
 }
 
 Crate {
     name = "basic-crate-large-000",
     icon = "/basic/tilelike/crate-large000",
     health = 30,
-    respawn_secs = 20
+    respawn_secs = 20,
+    explosion = "basic-explo42"
 }
 
 
