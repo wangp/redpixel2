@@ -4,9 +4,59 @@
  */
 
 
+#include "alloc.h"
 #include "camera.h"
 #include "fastsqrt.h"
 #include "object.h"
+
+
+struct camera {
+    float x, y;
+    float xv, yv;
+    int target_x;
+    int target_y;
+    int view_width;
+    int view_height;
+};
+
+
+camera_t *camera_create (int view_width, int view_height)
+{
+    camera_t *cam = alloc (sizeof *cam);
+    cam->view_width = view_width;
+    cam->view_height = view_height;
+    return cam;
+}
+
+
+void camera_destroy (camera_t *cam)
+{
+    free (cam);
+}
+
+
+float camera_x (camera_t *cam)
+{
+    return cam->x;
+}
+
+
+float camera_y (camera_t *cam)
+{
+    return cam->y;
+}
+
+
+int camera_view_width (camera_t *cam)
+{
+    return cam->view_width;
+}
+
+
+int camera_view_height (camera_t *cam)
+{
+    return cam->view_height;
+}
 
 
 static void move_camera_closer_to_target (camera_t *cam)

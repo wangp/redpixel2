@@ -66,6 +66,16 @@ int gui_window_w (gui_window_t *);
 int gui_window_h (gui_window_t *);
 
 
+/* guiaccel.c */
+
+#define GUI_ACCEL_CTRL(x)	((x) - 'a' + 1)
+
+typedef struct gui_accel gui_accel_t;
+
+gui_accel_t *gui_accel_create (int key, void (*proc) ());
+void gui_accel_destroy (gui_accel_t *accel);
+
+
 /* guimouse.c */
 
 struct gui_mouse_state {

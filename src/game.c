@@ -20,7 +20,7 @@
 
 static BITMAP *bmp;
 static map_t *map;
-static camera_t cam;
+static camera_t *cam;
 
 static objid_t local_player;
 
@@ -33,8 +33,7 @@ static int do_init ()
     if (!bmp)
 	return -1;
 
-    cam.view_width = SCREEN_W;
-    cam.view_height = SCREEN_H;
+    cam = camera_create (SCREEN_W, SCREEN_H);
 
     /* This is temporary until a menu system is in place and some
        proper networking.  */
@@ -68,8 +67,8 @@ static int do_init ()
 static void do_shutdown ()
 {
     map_destroy (map);
+    camera_destroy (cam);
     destroy_bitmap (bmp);
-
     fps_shutdown ();
 }
 
@@ -107,7 +106,7 @@ static void do_input ()
 
     object_call (obj, "walk_hook");
 
-    camera_track_object_with_mouse (&cam, obj, mouse_x, mouse_y, 80);
+    camera_track_object_with_mouse (cam, obj, mouse_x, mouse_y, 80);
 }
 
 
@@ -171,7 +170,7 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 static void do_render ()
 {
     clear (bmp);
-    render (bmp, map, &cam);
+    render (bmp, map, cam);
 
     {
 	object_t *obj;
@@ -180,7 +179,8 @@ static void do_render ()
 	    if (obj->id == local_player) break;
 
 	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
-				  obj->x - cam.x, obj->y - cam.y, 0, 36,
+				  obj->x - camera_x (cam),
+				  obj->y - camera_y (cam), 0, 36,
 				  fatan2 (mouse_y - 100, mouse_x - 160));
     }
 

@@ -460,6 +460,11 @@ static void wm_handle_event (int event, int d)
 	    if (hasmouse && in_title_area (hasmouse, gui_mouse.x, gui_mouse.y))
 		window_shade (hasmouse, d > 0);
 	    break;
+
+	case GUI_EVENT_KEY_TYPE:
+	    if (gui_accel_handle_key (d))
+		goto more;
+	    break;
     }
     
     /* the following commands require focus */

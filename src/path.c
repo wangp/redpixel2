@@ -10,7 +10,7 @@
 char *path_share[] = {
     "data/",
     "/usr/local/share/redpixel2/",
-    "/usr/share/games/redpixel2/",
+    "/usr/share/redpixel2/",
     0
 };
 

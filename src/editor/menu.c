@@ -13,11 +13,12 @@
 #include "mapfile.h"
 
 
-static int prompt (const char *msg, const char *true, const char *false)
+static int prompt (const char *msg, const char *true, const char *false,
+		   int truekey, int falsekey)
 {
-    gui_fg_color = makecol (0xb0, 0xd0, 0xb0);
+    gui_fg_color = makecol (0xc0, 0xd0, 0xc0);
     gui_bg_color = makecol (0, 0, 0);
-    return (alert (msg, "", "", true, false, 13, 27) == 1);
+    return (alert (msg, "", "", true, false, truekey, falsekey) == 1);
 }
 
 
@@ -31,7 +32,7 @@ static int prompt_filename (const char *msg, char *path, const char *ext)
     blit (screen, bmp, 0, 0, 0, 0, bmp->w, bmp->h);
     unscare_mouse ();
 
-    gui_fg_color = makecol (0xb0, 0xd0, 0xb0);
+    gui_fg_color = makecol (0xc0, 0xd0, 0xc0);
     gui_bg_color = makecol (0, 0, 0);
     ret = file_select (msg, path, ext);
 
@@ -46,7 +47,7 @@ static int prompt_filename (const char *msg, char *path, const char *ext)
 
 static void new ()
 {
-    if (prompt ("Erase current map?", "Yes", "No")) {
+    if (prompt ("Erase current map?", "&Yes", "&No", 'y', 'n')) {
 	map_destroy (map);
 
 	map = map_create ();
@@ -68,10 +69,10 @@ static void load ()
     
     m = map_load (filename, 1, &warning);
     if (!m)
-	prompt ("Error loading map", "Ok", 0);
+	prompt ("Error loading map", "&Ok", 0, 'o', 0);
     else {
 	if (warning)
-	    prompt ("Warnings loading map", "Ok", 0);
+	    prompt ("Warnings loading map", "&Ok", 0, 'o', 0);
 
 	map_destroy (map);
 	map = m;
@@ -86,13 +87,13 @@ static void save ()
 
     if (prompt_filename ("Save as...", filename, "pit"))
 	if (map_save (map, filename) < 0)
-	    prompt ("Error saving map", "Ok", 0);
+	    prompt ("Error saving map", "&Ok", 0, 'o', 0);
 }
 
 
 static void quit ()
 {
-    if (prompt ("Are you sure you want to quit?", "Yes", "No"))
+    if (prompt ("Are you sure you want to quit?", "&Yes", "&No", 'y', 'n'))
 	gui_quit ();
 }
 
@@ -127,6 +128,9 @@ static ug_dialog_layout_t layout[] = {
 
 static gui_window_t *window;
 static ug_dialog_t *dialog;
+static gui_accel_t *accel_load;
+static gui_accel_t *accel_save;
+static gui_accel_t *accel_quit;
 
 
 void menu_install (int x, int y, int w, int h)
@@ -134,11 +138,17 @@ void menu_install (int x, int y, int w, int h)
     window = gui_window_create (x, y, w, h, GUI_HINT_NOFRAME);
     gui_window_set_depth (window, -1);
     dialog = ug_dialog_create (window, layout, 0);
+    accel_load = gui_accel_create (GUI_ACCEL_CTRL ('l'), load);
+    accel_save = gui_accel_create (GUI_ACCEL_CTRL ('s'), save);
+    accel_quit = gui_accel_create (GUI_ACCEL_CTRL ('q'), quit);
 }
 
 
 void menu_uninstall ()
 {
+    gui_accel_destroy (accel_quit);
+    gui_accel_destroy (accel_save);
+    gui_accel_destroy (accel_load);
     ug_dialog_destroy (dialog);
     gui_window_destroy (window);
 }

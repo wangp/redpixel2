@@ -68,10 +68,10 @@ static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 
 void render (BITMAP *bmp, map_t *map, camera_t *cam)
 {
-    int x = cam->x;
-    int y = cam->y;
-    int w = cam->view_width;
-    int h = cam->view_height;
+    int x = camera_x (cam);
+    int y = camera_y (cam);
+    int w = camera_view_width (cam);
+    int h = camera_view_height (cam);
 
     render_tiles (bmp, map, x, y, w, h);
     render_object_layers (bmp, map, x, y);

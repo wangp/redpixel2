@@ -2,6 +2,11 @@
 #define __included_guiinter_h
 
 
+/* guiaccel.c */
+
+int gui_accel_handle_key (int key);
+
+
 /* guidirty.c */
 
 void gui_dirty_init ();

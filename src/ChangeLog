@@ -1,3 +1,31 @@
+2001-04-26  Peter Wang  <tjaden@psynet.net>
+
+	* Now store_load is exported straight to Lua (path unaware).  The
+	path aware version is implemented in Lua in init.lua.
+	* This initiated some changes to bindgen.lua, and now all bindings
+	are generated (the old store_load was not).
+
+	* mylua.c (lua_dofile_path): New function.
+	(lua_dofiles): Removed function.
+
+	* data/script/init.lua: New file.  Instead of loading *.lua from
+	the script directory, we load script/init.lua, which in turn loads
+	a list of files.
+
+2001-04-15  Peter Wang  <tjaden@psynet.net>
+
+	* Little changes (lighter green for text colours, prompt hotkeys).
+
+2001-04-09  Peter Wang  <tjaden@psynet.net>
+
+	* editor/menu.c: Added accelerator keys for load, save, quit.
+
+	* gui/guiaccel.c: New module for GUI accelerator keys.
+
+	* camera.c: Properly encapsulate.
+
+	* object.c (object_add_layer): Later layers go on top.
+
 2001-04-08  Peter Wang  <tjaden@psynet.net>
 
 	* bindgen.lua: New file to generate bindings.

@@ -15,7 +15,7 @@ extern lua_State *lua_state;
 int mylua_open (int stacksize);
 void mylua_close ();
 
-void lua_dofiles (lua_State *L, const char *filenames);
+int lua_dofile_path (lua_State *L, const char *filename);
 int lua_checkargs (lua_State *L, const char *argtypes);
 
 
@@ -133,7 +133,7 @@ int lua_checkargs (lua_State *L, const char *argtypes);
 ** my stuff
 */
 
-#define dofiles(L, filenames)		(lua_dofiles (L, filenames))
+#define dofile_path(L, filename)	(lua_dofile_path (L, filename))
 #define checkargs(L, argtypes)		(lua_checkargs (L, argtypes))
 
 

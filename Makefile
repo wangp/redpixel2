@@ -8,7 +8,7 @@ SRCDIRS = src src/net src/store src/magic src/fastsqrt \
 CC = gcc
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
 CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -mpentium
-LOADLIBES = `allegro-config --libs` -llua -llualib -lnet
+LOADLIBES = `allegro-config --libs` -llua -llualib -lnet -lpthread
 
 PROGRAM = program
 OBJDIR = obj/linux
@@ -29,6 +29,7 @@ MODULES_FASTSQRT =				\
 
 MODULES_GUI =					\
 	gui					\
+	guiaccel				\
 	guidirty				\
 	guimouse				\
 	guiwm					\

@@ -142,7 +142,7 @@ int object_add_layer (object_t *obj, const char *key,
 	free (layer);
 	return -1;
     }
-    add_to_list (obj->layers, layer);
+    append_to_list (obj->layers, layer);
     return id;
 }
 

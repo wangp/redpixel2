@@ -16,7 +16,7 @@ static int theme_init ()
 {
     fg = makecol (0xa0, 0xa0, 0xa0);
     bg = makecol (0x40, 0x40, 0x40);
-    textcol = makecol (0xb0, 0xd0, 0xb0);
+    textcol = makecol (0xc0, 0xd0, 0xc0);
 
     tile = load_bitmap ("tile.bmp", 0);
    

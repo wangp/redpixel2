@@ -1,0 +1,168 @@
+								-*- outline -*-
+
+* Game
+
+** [DONE] looking feel (mouse pushes view)
+
+** gates
+Gates are connected to objects and can send and receive pulses, or
+maybe other types of message (undecided).  Or follow real electronics,
+e.g. flip-flops act on change of state, etc.  Gates are really just
+invisible objects.
+- normal logic gates: AND, OR, XOR, NOT, NAND, NOR, XNOR
+- multiplexer: pings each object in turn when receiving ping
+- delay: passes on a ping after a set time
+- clock: sends a ping every n usecs; turned on/off with a ping
+- executor: runs a script when pinged; may be attached to objects to
+  run scripts on the objects
+
+** triggers
+Triggers call functions upon some event.  They may be wired up to
+objects or gates if necessary (e.g. open a door, etc.)
+- area triggers: execute same/different functions if an object
+  enters/exits the area; 
+- push against trigger: triggered when an object pushes against it
+
+** grouping mulitiple things as one object (e.g. blown up at same time)
+- probably can be implemented with gates and triggers only
+
+** base defence turrets
+
+** radar thing (player can look at any part of map)
+
+** set-able gravity for different maps
+
+** gravity pulls down bullets slightly
+
+** [?] mouse locking onto map
+
+** [?] grappling hook/ninja rope
+
+** [?] accuracies vary depending on gun / weapon weight
+
+** [?] accuracies vary depending on arms used to hold it
+
+** [?] scout / helicopter (like tribes)
+
+** [?] slowly bleed to death when on _very_ low health
+
+** [?] AI scripts
+
+* Eye candy
+
+** blood-trails when low health (around 50%), spew more when almost dead
+
+** [DONE] environmental lights
+
+** explosion circles like in `rtl'
+
+** [DONE] torch light
+
+** respawning-ball glows and shoots out sparks
+
+** smoke puffs
+
+** small flash when a player w/ shields is shot (like in StarCraft)
+
+** barrels spawn chunks & particles when exploded
+
+** particles
+- different sized particles (not just single pixels)
+- translucency and lighting
+- [?] scripts control particles (movement and look)
+- [?] sprite particles (i.e. particles which are actually BITMAPs)
+
+** [?] players glow like in `pandemonium'
+
+** [?] glows used to separate teams (red, green, blue, purple)
+
+** [?] light-amp tints the screen (0x182b65 at 50%)
+
+** [?] bloodlusted-bullets glows red
+
+** [?] player hit by a bloodlusted-bullet glow red
+
+** [?] lights have settable strength
+
+** [?] smoke behind rockets
+
+** [?] water
+- with swimming
+- floating bloods
+- turns red tint on lots of blood in water (might be too hard)
+- can be implemented with area triggers (lower object's mass or
+  gravity while in area) and a transparent secondary object layer
+
+** [?] rain
+- can be done with particles or secondary object layer
+
+** [?] snow
+- can be done with particles
+- player can "kick" them up when running over?
+- might be slippery like ice
+
+** [?] ice tiles (slippery to walk on)
+- can be done with an area trigger on top (lower walking friction upon
+  entering the area
+- or maybe a push-against trigger
+
+** [?] secondary object layer
+- on top of main object layer, but under the light layer
+- might give more depth to game?  might be distracting or slow
+- for example, water objtiles on the secondary layer (above the
+  primary object layer) can be translucent to give the water look; 
+  can also animate them for the wavy effect
+
+** [?] Lua scripted looks of the screen layout
+
+* Tiles
+
+** grates are not blow-up-able, objects can stand on them
+
+** grates can have diffent size holes, letting different sized bullets through
+
+** force-field thingy allows slow things through (like in Dune)
+
+** portals
+
+** [?] springs
+
+** [?] slippery tiles
+
+** [?] pushable objects
+
+* Weapons
+
+** guns can have frames that don't rotate (eg. 1 arm shotty)
+
+** guns can choose a random frame when shooting (eg. uzi, minigun)
+
+** recoil
+
+* Other
+
+** frags per minute
+
+** spectators
+
+** demos
+
+** death viewer
+
+** proper chat screen (maybe in-game)
+
+** [?] person with `flag' has a cow head sticking out of backpack
+
+** [?] single player mode
+
+** [?] up to 8 players in deathmatches
+
+** [?] microphone chat
+
+** [?] rp1 and rp2 differences
+
+** [?] intro movie
+
+** [?] name of player above/below their icon, colours shows the team
+
+** [NO] arrow points at person w/ flag (colour depends on flags owner)

@@ -29,22 +29,18 @@ void mylua_close ()
 }
 
 
-static void do_file (const char *filename, int attrib, int param)
-{
-    lua_State *L = (lua_State *) param;	/* Portability... */
-    lua_dofile (L, filename);
-}
-
-
-void lua_dofiles (lua_State *L, const char *filenames)
+int lua_dofile_path (lua_State *L, const char *filename)
 {
     char **p, tmp[1024];
 
     for (p = path_share; *p; p++) {
 	ustrncpy (tmp, *p, sizeof tmp);
-	ustrncat (tmp, filenames, sizeof tmp);
-	for_each_file (tmp, FA_RDONLY | FA_ARCH, do_file, (int) L);
+	ustrncat (tmp, filename, sizeof tmp);
+	if (lua_dofile (L, tmp) == 0)
+	    return 0;
     }
+
+    return -1;
 }
 
 
