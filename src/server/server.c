@@ -1173,7 +1173,7 @@ static void server_handle_client_controls ()
 		    }
 		    else if ((jump == 0) && (object_supported (obj, map))) {
 			float yv = object_yv (obj);
-			if ((yv >= 0.0) && (yv < 0.0000001))
+			if ((yv >= 0.0) && (yv < 0.0001))
 			    object_set_jump (obj, 1);
 		    }
 		}
