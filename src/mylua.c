@@ -10,6 +10,7 @@
 #include "lualib.h"
 #include "mylua.h"
 #include "path.h"
+#include "ticks.h"
 
 
 /*
@@ -66,6 +67,11 @@ int mylua_open (void)
 
     /* register bindings */
     DO_REGISTRATION_INIT (the_lua_state);
+
+    lua_pushnumber (the_lua_state, TICKS_PER_SECOND);
+    lua_setglobal (the_lua_state, "ticks_per_second");
+    lua_pushnumber (the_lua_state, MSECS_PER_TICK);
+    lua_setglobal (the_lua_state, "msecs_per_tick");
 
     /* for debugging */
     lua_pushstring (the_lua_state, "initial");

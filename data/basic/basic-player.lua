@@ -20,6 +20,8 @@ function install_multiple_update_hook_system (obj, speed)
     obj._update_hooks = {}
 
     -- Add a new hook PROC to be called every NTICS.
+    -- These "tics" are NOT the same as game time ticks, but are
+    -- related to the update hook's speed.
     -- Returns a new hook structure (don't touch it!)
     function obj:add_update_hook (ntics, enabled, proc)
 	local t = {
@@ -80,11 +82,9 @@ local xv_decay, yv_decay = 0.7, 0.45
 -- centre of the player sprites (really?)
 local cx, cy = 5, 5
 
-local player_update_hook_speed = 1000/50
-  -- try not to change this, a lot of things are currently
-  -- determined from this and not from "real-time" time
+local player_update_hook_speed = msecs_per_tick
 
-function secs_to_tics (secs)
+function secs_to_ticks (secs)
     return (secs * 1000) / player_update_hook_speed
 end
 
@@ -266,7 +266,7 @@ local player_nonproxy_init = function (self)
 
     function self:set_fire_delay (secs)
 	self.can_fire = false
-	self:adjust_update_hook_speed (reenable_firing_hook, secs_to_tics (secs))
+	self:adjust_update_hook_speed (reenable_firing_hook, secs_to_ticks (secs))
 	self:enable_update_hook (reenable_firing_hook)
     end
 
@@ -275,7 +275,7 @@ local player_nonproxy_init = function (self)
     self.damage_factor = 1
 
     self.revert_damage_factor_hook = self:add_update_hook (
-	secs_to_tics (30),
+	secs_to_ticks (30),
 	false,
 	function (self)
 	    self.damage_factor = 1
@@ -435,7 +435,7 @@ local player_nonproxy_init = function (self)
     --------------------------------------------------
 
     self:add_update_hook (
-	secs_to_tics (1),
+	secs_to_ticks (1),
 	true,
 	function (self)
 	    if self.health <= 20 then
