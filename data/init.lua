@@ -60,8 +60,7 @@ end
 -- modules to load
 
 local files = {
-    "basic/basic-init.lua",
-    "editor/editor-init.lua"
+    "basic/basic-init.lua"
 }
 
 for _,filename in files do

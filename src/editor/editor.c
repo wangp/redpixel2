@@ -8,6 +8,7 @@
 #include "gui.h"
 #include "ug.h"
 #include "cursor.h"
+#include "mylua.h"
 #include "store.h"
 #include "path.h"
 
@@ -28,6 +29,8 @@ map_t *editor_map;
 int editor ()
 {
     FONT *f;
+
+    lua_dofile_path (lua_state, "editor/editor-init.lua");
 
     if ((f = store_dat ("/editor/font")))
 	font = f;
