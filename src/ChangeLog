@@ -1,3 +1,61 @@
+2001-04-07  Peter Wang  <tjaden@psynet.net>
+
+	* render.c (render_lights): Made public.
+	* editor/mdlights.c (draw_layer): Use render_lights.
+
+	* editor/mdobject.c (event_layer): Cleaned up.
+	* editor/mdlights.c (event_layer): Cleaned up.
+
+	* editor/mdstarts.c, editor/mdlights.c: Use path_share for icon.
+
+	* map.c, map.h (map_link_object_bottom): Added.
+
+	* editor/mdobject.c (do_object_pickup): Whoops, a tiny mistake
+	made this not work (it searched for icon instead of name).
+
+	* game.c: Basic testing collision detection.
+	
+	* object.c (object_collides_with_map_tiles,
+	object_will_collide_with_map_tiles,
+	object_move_until_collision_with_map_tiles): Added.
+	
+	* object.c (object_destroy): Free layers, lights and mask.
+
+	* object.c, object.h (object_set_collision_mask,
+	object_remove_collision_mask): Added.
+	* bindings.c (bind_object_set_collision_mask,
+	bind_object_set_collision_mask): Added.
+
+	* editor/mdobject.c: Highlight object if mouse moves over it.
+
+	* object.c (object_draw_lit_layers): Added.
+	* magic/magic4x4.c (draw_lit_magic_sprite): Added.
+
+	* object.c (object_bounding_box): Added.
+
+	* editor/mdobject.c (draw_layer): Use object_draw_layers and
+	object_draw_lights.
+
+	* object.c: object.cvar.x and object.cvar.y now represent the
+	centre of the object.
+
+	* bindings.c: Added bindings for object_move_layer and
+	object_move_light.
+
+	* object.c (object_draw_layers): Added.
+	(object_draw_lights): Added.
+	* render.c: Use object_draw_layers and object_draw_lights.
+
+	* objmin.h: New header to minimise dependence on object.h.
+
+	* map.c, map.h: Removed unused variable map_filename.
+
+	* object.c (object_move_layer, object_move_light): Added.
+
+	* objlayer.h, objlight.h: New files.  Move object layer and object
+	light structs from object.h.
+	* Renamed object_layer to objlayer and object_light to objlight.
+
 2001-04-05  Peter Wang  <tjaden@psynet.net>
 
 	* Makefile: Added optimisations.

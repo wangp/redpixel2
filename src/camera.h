@@ -2,7 +2,7 @@
 #define __included_camera_h
 
 
-#include "object.h"
+#include "objmin.h"
 
 
 typedef struct camera {

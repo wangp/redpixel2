@@ -12,6 +12,7 @@
 #include "magicrt.h"
 #include "map.h"
 #include "mapfile.h"
+#include "object.h"
 #include "render.h"
 #include "store.h"
 #include "yield.h"
@@ -57,7 +58,7 @@ static int do_init ()
 	}
     }
     
-    show_mouse (screen);
+//    show_mouse (screen);
 
     /* end XXX */
 
@@ -86,10 +87,10 @@ static void do_input ()
 	obj->cvar.xv += 1.4;
     if (key[KEY_LEFT])
 	obj->cvar.xv -= 1.4;
-    if (key[KEY_DOWN])
-	obj->cvar.y += 4;
+/*      if (key[KEY_DOWN]) */
+/*  	obj->cvar.yv += 1.4; */
     if (key[KEY_UP])
-	obj->cvar.y -= 4;
+	obj->cvar.yv -= 5;
 
     {
 	lua_State *L = lua_state;
@@ -111,11 +112,20 @@ static void do_physics ()
     object_t *obj;
 
     foreach (obj, map->objects) {
-	obj->cvar.x += obj->cvar.xv;
-	obj->cvar.y += obj->cvar.yv;
-	obj->cvar.xv *= 0.75;
-	if (ABS (obj->cvar.xv) < 0.25)
+	if (object_will_collide_with_map_tiles (obj, map)) {
+	    object_move_until_collision_with_map_tiles (obj, map);
 	    obj->cvar.xv = 0;
+	    obj->cvar.yv = 0;
+	}
+	else {	
+	    obj->cvar.x += obj->cvar.xv;
+	    obj->cvar.y += obj->cvar.yv;
+	    obj->cvar.yv += 1.5;
+	    obj->cvar.xv *= 0.75;
+	    if (ABS (obj->cvar.xv) < 0.25)
+		obj->cvar.xv = 0;
+	    obj->cvar.yv *= 0.75;
+	}
     }
 }
 
@@ -144,8 +154,18 @@ static void do_render ()
     clear (bmp);
     render (bmp, map, &cam);
 
-    pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"), 160, 100,
-			      0, 36, fatan2 (mouse_y - 100, mouse_x - 160));
+    {
+	object_t *obj;
+
+	foreach (obj, map->objects)
+	    if (obj->id == local_player)
+		break;
+
+	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
+				  obj->cvar.x - cam.x,
+				  obj->cvar.y - cam.y, 0, 36,
+				  fatan2 (mouse_y - 100, mouse_x - 160));
+    }
 
     text_mode (-1);
     trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),

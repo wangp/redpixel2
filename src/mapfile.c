@@ -7,6 +7,7 @@
 #include <allegro.h>
 #include "map.h"
 #include "mapfile.h"
+#include "object.h"
 #include "objtypes.h"
 #include "store.h"
 

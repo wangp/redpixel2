@@ -7,15 +7,13 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "map.h"
-#include "objtypes.h"
+#include "object.h"
 #include "store.h"
 
 
 /* This is only here because both the game and the editor use it, and
  * I didn't know where to put it.  */
 map_t *map;
-
-char map_filename[1024];
 
     
 map_t *map_create (void)
@@ -108,6 +106,12 @@ void map_generate_tile_mask (map_t *map)
 void map_link_object (map_t *map, object_t *p)
 {
     append_to_list (map->objects, p);
+}
+
+
+void map_link_object_bottom (map_t *map, object_t *p)
+{
+    add_to_list (map->objects, p);
 }
 
 

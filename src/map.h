@@ -5,7 +5,7 @@
 
 #include "bitmask.h"
 #include "list.h"
-#include "object.h"
+#include "objmin.h"
 
 
 typedef struct light {
@@ -34,8 +34,6 @@ typedef struct map {
 
 extern map_t *map;
 
-extern char map_filename[1024];
-
 
 map_t *map_create (void);
 void map_destroy (map_t *map);
@@ -44,6 +42,7 @@ int map_resize (map_t *map, int width, int height);
 void map_generate_tile_mask (map_t *map);
 
 void map_link_object (map_t *map, object_t *obj);
+void map_link_object_bottom (map_t *map, object_t *obj);
 void map_unlink_object (object_t *obj);
 object_t *map_find_object (map_t *map, int id);
 

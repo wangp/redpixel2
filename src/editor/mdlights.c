@@ -14,7 +14,9 @@
 #include "map.h"
 #include "modemgr.h"
 #include "modes.h"
+#include "path.h"
 #include "rect.h"
+#include "render.h"
 #include "selbar.h"
 #include "store.h"
 #include "vtree.h"
@@ -170,26 +172,19 @@ static struct editmode light_mode = {
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
     light_t *p;
-    BITMAP *b;
 
     offx *= 16;
     offy *= 16;
 
     foreach (p, map->lights)
-	draw_trans_sprite (bmp, icon, 
-			   ((p->x - offx) - (icon->w / 6)) * 3,
-			   ((p->y - offy) - (icon->h / 2)));
+	draw_trans_magic_sprite (bmp, icon, 
+				 (p->x - offx) - (icon->w / 3 / 2),
+				 (p->y - offy) - (icon->h / 2));
 
     if (full_brightness)
 	set_magic_bitmap_brightness (bmp, 0xf, 0xf, 0xf);
-    else {
-	foreach (p, map->lights) {
-	    b = store[p->lightmap]->dat;
-	    draw_trans_sprite(bmp, b,
-			      ((p->x - offx) - (b->w / 6)) * 3,
-			      (p->y - offy) - (b->h / 2));
-	}
-    }
+    else
+	render_lights (bmp, map, offx, offy);
 }
 
 static light_t *find_light (int x, int y)
@@ -211,39 +206,42 @@ static int event_layer (int event, struct editarea_event *d)
     static light_t *old;    
     light_t *p;
     int x, y;
-	
-    if (event == EDITAREA_EVENT_MOUSE_DOWN) {
-	x = (d->offx * 16) + d->mouse.x;
-	y = (d->offy * 16) + d->mouse.y;
-	
-	if (d->mouse.b == 0) {
-	    old = p = find_light (x, y);
 
-	    if (!p) {
-		old = map_light_create (map, x, y,
-					store_index (selectbar_selected_name ()) - 1);
-		return 1;
-	    }
-	}
-	else if (d->mouse.b == 1) {
+    #define map_x(x)	((d->offx * 16) + (x))
+    #define map_y(y)	((d->offy * 16) + (y))
+
+    switch (event) {
+	    
+	case EDITAREA_EVENT_MOUSE_DOWN:
+	    x = map_x (d->mouse.x);
+	    y = map_y (d->mouse.y);
 	    p = find_light (x, y);
-	    if (p) {
+	    
+	    if (d->mouse.b == 0) {
+		if (p)
+		    old = p;
+		else {
+		    old = map_light_create (map, x, y, store_index (selectbar_selected_name ()) - 1);
+		    return 1;
+		}
+	    }
+	    else if ((d->mouse.b == 1) && (p)) {
 		map_light_destroy (p);
 		return 1;
 	    }
-	}
-    }
-    else if (event == EDITAREA_EVENT_MOUSE_MOVE) {
-	if (old) {
-	    x = (d->offx * 16) + d->mouse.x;
-	    y = (d->offy * 16) + d->mouse.y;
-	    old->x = x;
-	    old->y = y;
-	    return 1;
-	}
-    }
-    else if (event ==  EDITAREA_EVENT_MOUSE_UP) {
-	old = 0;
+	    break;
+	    
+	case EDITAREA_EVENT_MOUSE_MOVE:
+	    if (old) {
+		old->x = map_x (d->mouse.x);
+		old->y = map_y (d->mouse.y);
+		return 1;
+	    }
+	    break;
+	    
+	case EDITAREA_EVENT_MOUSE_UP:
+	    old = NULL;
+	    break;
     }
     
     return 0;
@@ -251,6 +249,29 @@ static int event_layer (int event, struct editarea_event *d)
 
 
 /* Module init / shutdown.  */
+
+static BITMAP *load_light_icon ()
+{
+    char **path;
+    char tmp[1024];
+    PALETTE pal;
+    BITMAP *bmp;
+    BITMAP *icon;
+	
+    for (path = path_share; *path; path++) {
+	ustrncpy (tmp, *path, sizeof tmp);
+	ustrncat (tmp, "misc/light.bmp", sizeof tmp);
+
+	bmp = load_bitmap (tmp, pal);
+	if (bmp) {
+	    icon = get_magic_bitmap_format (bmp, pal);
+	    destroy_bitmap (bmp);
+	    return icon;
+	}
+    }
+    
+    return NULL;
+}
 
 int mode_lights_init ()
 {
@@ -261,15 +282,10 @@ int mode_lights_init ()
     modemgr_register (&light_mode);
     editarea_layer_register ("lights", draw_layer, event_layer, DEPTH_LIGHTS);
 
-    {
-	PALETTE pal;
-	BITMAP *tmp = load_bitmap ("data/icon/light.bmp", pal); /* XXX: path */
-	if (tmp) {
-	    icon = get_magic_bitmap_format (tmp, pal);
-	    destroy_bitmap (tmp);
-	}
-    }
-
+    icon = load_light_icon ();
+    if (!icon) 
+	return -1;
+    
     return 0;
 }
 

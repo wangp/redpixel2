@@ -77,6 +77,13 @@ all type names start with a capital letter.
 	Returns nil on error.
 
 
+- Function: object_move_layer (Object object, Int layerid, Int xoffset,
+			       Int yoffset)
+
+	Moves the layer source of OBJECT identified by LAYERID to a
+	new offset.  Returns nil on error.
+
+
 - Function: object_remove_layer (Object object, Int layerid)
 
 	Removes an image layer from OBJECT.  Returns nil on error.
@@ -103,6 +110,13 @@ all type names start with a capital letter.
 	Returns nil on error.
 
 
+- Function: object_move_light (Object object, Int lightid, Int xoffset,
+			       Int yoffset)
+
+	Moves the light source of OBJECT identified by LIGHTID to a
+	new offset.  Returns nil on error.
+
+
 - Function: object_remove_light (Object object, Int lightid)
 
 	Removes an light source from OBJECT.  Returns nil on error.
@@ -111,4 +125,15 @@ all type names start with a capital letter.
 - Function: object_remove_all_lights (Object object)
 
 	Removes all light sources from OBJECT.  Return nil on error.
+
+
+- Function: object_set_collision_mask (Object object, StoreKey mask, 
+				       Int xoffset, Int yoffset)
+
+	Set collision mask of OBJECT to MASK.  Returns nil on error.
+
+
+- Function: object_remove_collision_mask (Object object)
+
+	Remove collision mask of OBJECT.  Returns nil on error.
 

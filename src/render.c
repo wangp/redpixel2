@@ -38,7 +38,7 @@ static void render_tiles (BITMAP *bmp, map_t *map, int offx, int offy,
 /*----------------------------------------------------------------------*/
 
 
-static void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
+void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
     BITMAP *b;
     light_t *l;
@@ -55,72 +55,21 @@ static void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 /*----------------------------------------------------------------------*/
 
 
-/*
- * Old code.
- */
-#if 0
-static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
-{
-    object_t *p;
-    BITMAP *b;
-    object_layer_t *l;
-    int i;
-
-    for (p = map->objects.next; p; p = p->next)
-	switch (p->render) {
-	    case OBJECT_RENDER_MODE_BITMAP:
-		if ((b = p->bitmap))
-		    draw_magic_sprite (bmp, b, p->x - offx, p->y - offy);
-		break;
-
-	    case OBJECT_RENDER_MODE_IMAGE:
-		for (i = 0; i < p->image->num; i++) {
-		    l = p->image->layer[i];
-		    if (l->angle == OBJECT_LAYER_NO_ANGLE)
-			draw_magic_sprite (bmp, l->bitmap,
-					   p->x + l->offsetx - offx,
-					   p->y + l->offsety - offy);
-		    else
-			rotate_magic_sprite (bmp, l->bitmap,
-					     p->x + l->offsetx - offx,
-					     p->y + l->offsety - offy, l->angle);
-		}
-		break;
-
-	    case OBJECT_RENDER_MODE_ANIM: 
-		draw_magic_sprite (bmp, p->anim->bitmap[p->anim->current],
-				   p->x - offx, p->y - offy);
-		break;
-	}
-}
-#endif
-
-
 static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
 {
     object_t *obj;
-    struct object_layer *layer;
 
-    foreach (obj, map->objects) {
-	foreach (layer, obj->cvar.layers) 
-	    draw_magic_sprite (bmp, layer->bmp,
-			       obj->cvar.x - offx + layer->offset_x,
-			       obj->cvar.y - offy + layer->offset_y);
-    }
+    foreach (obj, map->objects)
+	object_draw_layers (bmp, obj, offx, offy);
 }
 
 
 static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
     object_t *obj;
-    struct object_light *light;
 
-    foreach (obj, map->objects) {
-	foreach (light, obj->cvar.lights)
-	    draw_trans_magic_sprite (bmp, light->bmp,
-				     obj->cvar.x - offx + light->offset_x,
-				     obj->cvar.y - offy + light->offset_y);
-    }
+    foreach (obj, map->objects)
+	object_draw_lights (bmp, obj, offx, offy);
 }
 
 

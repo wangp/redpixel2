@@ -298,3 +298,8 @@ void draw_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y)
 {
     draw_trans_sprite(bmp, sprite, x * 3, y);
 }
+
+void draw_lit_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int color)
+{
+    draw_lit_sprite(bmp, sprite, x * 3, y, color);
+}

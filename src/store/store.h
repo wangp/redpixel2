@@ -6,6 +6,9 @@ extern "C" {
 #endif
 
 
+#include <allegro.h>
+
+
 extern DATAFILE **store;
 
 

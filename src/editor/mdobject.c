@@ -11,14 +11,13 @@
 #include "editarea.h"
 #include "edselect.h"
 #include "list.h"
-#include "magic4x4.h"
 #include "map.h"
 #include "modemgr.h"
 #include "modes.h"
 #include "selbar.h"
 #include "store.h"
+#include "object.h"
 #include "objtypes.h"
-#include "path.h"
 #include "rect.h"
 
 
@@ -50,9 +49,12 @@ static struct type *create_type (const char *name)
 static struct type *find_type (const char *name)
 {
     struct type *p;
+
     foreach (p, type_list)
-	if (!ustrcmp (name, p->name)) return p;
-    return 0;
+	if (!ustrcmp (name, p->name)) 
+	    return p;
+
+    return NULL;
 }
 
 static void callback (objtype_t *objtype)
@@ -92,11 +94,25 @@ static void free_type_list ()
 }
 
 
+/* Cursor.  */
+
+static int cursor_offset_x;
+static int cursor_offset_y;
+
 static void cursor_set_selected ()
 {
-    BITMAP *bmp = store_dat (objtypes_lookup (selectbar_selected_name ())->icon);
-    if (bmp) cursor_set_magic_bitmap (bmp, 0, 0);
+    BITMAP *bmp;
+
+    bmp = store_dat (objtypes_lookup (selectbar_selected_name ())->icon);
+    if (bmp) {
+	cursor_set_magic_bitmap (bmp, 0, 0);
+	cursor_offset_x = bmp->w/3/2;
+	cursor_offset_y = bmp->h/2;
+    }
 }
+
+#define cursor_x(x)	((x) + cursor_offset_x)
+#define cursor_y(y)	((y) + cursor_offset_y)
 
 
 /* Save / restore selectbar state.  */
@@ -175,6 +191,8 @@ static struct editmode object_mode = {
 
 /* Editarea callbacks.  */
 
+static object_t *highlighted;
+
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
     object_t *p;
@@ -183,19 +201,23 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offy *= 16;
 
     foreach (p, map->objects)
-	draw_magic_sprite (bmp, store_dat (p->type->icon),
-			   (p->cvar.x - offx), (p->cvar.y - offy));
+	if (p == highlighted)
+	    object_draw_lit_layers (bmp, p, offx, offy, 0x88);
+	else
+	    object_draw_layers (bmp, p, offx, offy);
+
+    foreach (p, map->objects)
+	object_draw_lights (bmp, p, offx, offy);
 }
 
 static object_t *find_object (int x, int y)
 {
-    object_t *p, *last = 0;
-    BITMAP *b;
+    object_t *p, *last = NULL;
+    int x1, y1, x2, y2;
     
     foreach (p, map->objects) {
-	b = store_dat (p->type->icon);
-
-	if (in_rect (x, y, p->cvar.x, p->cvar.y, b->w / 3, b->h))
+	object_bounding_box (p, &x1, &y1, &x2, &y2);
+	if (in_rect (x, y, p->cvar.x + x1, p->cvar.y + y1, x2-x1+1, y2-y1+1))
 	    last = p;
     }
 
@@ -207,7 +229,7 @@ static void do_object_pickup (object_t *p)
     const char *key;
     struct type *type;
 
-    key = p->type->icon;
+    key = p->type->name;
 
     foreach (type, type_list) {
 	int i = ed_select_list_item_index (type->list, key);
@@ -226,58 +248,79 @@ static int event_layer (int event, struct editarea_event *d)
     object_t *p;
     int x, y;
 
-    if (event == EDITAREA_EVENT_MOUSE_DOWN) {
-	x = (d->offx * 16) + d->mouse.x;
-	y = (d->offy * 16) + d->mouse.y;
+    #define map_x(x)	((d->offx * 16) + (x))
+    #define map_y(y)	((d->offy * 16) + (y))
 
-	if (d->mouse.b == 0) {
+    switch (event) {
+
+	case EDITAREA_EVENT_MOUSE_DOWN:
+	    x = map_x (cursor_x (d->mouse.x));
+	    y = map_y (cursor_y (d->mouse.y));
 	    p = find_object (x, y);
 
-	    move = p;
-	    if (move) {
-		move_offx = d->mouse.x - (move->cvar.x - d->offx * 16);
-		move_offy = d->mouse.y - (move->cvar.y - d->offy * 16);
-	    }
+	    if (d->mouse.b == 0) {
+		if (key_shifts & KB_SHIFT_FLAG) {
+		    if (p) do_object_pickup (p);
+		    move = NULL;
+		}
+		else if (key_shifts & KB_CTRL_FLAG) {
+		    if (p) {
+			map_unlink_object (p);
+			map_link_object (map, p);
+			return 1;
+		    }
+		}
+		else if (p) {
+		    move = p;
+		    move_offx = map_x (cursor_x (d->mouse.x)) - p->cvar.x;
+		    move_offy = map_y (cursor_y (d->mouse.y)) - p->cvar.y;
+		}
+		else {
+		    p = object_create (selectbar_selected_name ());
+		    p->cvar.x = x;
+		    p->cvar.y = y;
+		    map_link_object (map, p);
 
-	    if (key_shifts & KB_SHIFT_FLAG) {
-		if (p) do_object_pickup (p);
-		move = 0;
+		    highlighted = move = p;
+		    move_offx = move_offy = 0;
+		    cursor_set_dot ();
+		    return 1;
+		}
 	    }
-	    else if (!p) {
-		p = object_create (selectbar_selected_name ());
-		p->cvar.x = x;
-		p->cvar.y = y;
-		map_link_object (map, p);
-
-		move = p;
-		move_offx = move_offy = 0;
-		return 1;
-	    }
-	}
-	else if (d->mouse.b == 1) {
-	    p = find_object (x, y);
-	    if (p) {
+	    else if ((d->mouse.b == 1) && (p)) {
 		map_unlink_object (p);
-		object_destroy (p);
+		if (key_shifts & KB_CTRL_FLAG)
+		    map_link_object_bottom (map, p);
+		else
+		    object_destroy (p);
 		return 1;
 	    }
-	}
+	    break;
+	    
+	case EDITAREA_EVENT_MOUSE_MOVE:
+	    if (move) {
+		x = map_x (cursor_x (d->mouse.x)) - move_offx;
+		y = map_y (cursor_y (d->mouse.y)) - move_offy;
+		move->cvar.x = x;
+		move->cvar.y = y;
+		cursor_set_dot ();
+		return 1;
+	    }
+	    
+	    p = find_object (map_x (cursor_x (d->mouse.x)),
+			     map_y (cursor_y (d->mouse.y)));
+	    if (highlighted != p) {
+		highlighted = p;
+		return 1;
+	    }
+	    break;
+
+	case EDITAREA_EVENT_MOUSE_UP:
+	    cursor_set_selected ();
+	    move = 0;
+	    break;
     }
-    else if (event == EDITAREA_EVENT_MOUSE_MOVE) {
-	if (move) {
-	    x = (d->offx * 16) + d->mouse.x - move_offx;
-	    y = (d->offy * 16) + d->mouse.y - move_offy;
-	    move->cvar.x = x;
-	    move->cvar.y = y;
-	    cursor_set_dot ();
-	    return 1;
-	}
-    }
-    else if (event ==  EDITAREA_EVENT_MOUSE_UP) {
-	cursor_set_selected ();
-	move = 0;
-    }
-    
+
     return 0;
 }
 

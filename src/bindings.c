@@ -135,6 +135,30 @@ static int bind_object_replace_layer (LS)
 }
 
 
+static int bind_object_move_layer (LS)
+    /* (object, layer id, x offset, y offset) : (nil on error) */
+{
+    object_t *obj;
+
+    if (!checkargs (L, "tnnn"))
+	goto error;
+    if (!(obj = table_object (L, 1)))
+	goto error;
+
+    if (object_move_layer (obj, tonumber (L, 2), tonumber (L, 3),
+			   tonumber (L, 4)) < 0)
+	goto error;
+
+    pushnumber (L, 1);
+    return 1;
+
+  error:
+
+    pushnil (L);
+    return 1;
+}
+
+
 static int bind_object_remove_layer (LS)
     /* (object, layer id) : (nil on error) */
 {
@@ -232,6 +256,30 @@ static int bind_object_replace_light (LS)
 }
 
 
+static int bind_object_move_light (LS)
+    /* (object, light id, x offset, y offset) : (nil on error) */
+{
+    object_t *obj;
+
+    if (!checkargs (L, "tnnn"))
+	goto error;
+    if (!(obj = table_object (L, 1)))
+	goto error;
+
+    if (object_move_light (obj, tonumber (L, 2), tonumber (L, 3),
+			   tonumber (L, 4)) < 0)
+	goto error;
+
+    pushnumber (L, 1);
+    return 1;
+
+  error:
+
+    pushnil (L);
+    return 1;
+}
+
+
 static int bind_object_remove_light (LS)
     /* (object, light id) : (nil on error) */
 {
@@ -277,6 +325,55 @@ static int bind_object_remove_all_lights (LS)
 }
 
 
+/* Collision.  */
+
+
+static int bind_object_set_collision_mask (LS)
+    /* (object, key, offsetx, offsety) : (nil on error) */
+{
+    object_t *obj;
+
+    if (!checkargs (L, "tsnn"))
+	goto error;
+    if (!(obj = table_object (L, 1)))
+	goto error;
+
+    if (object_set_collision_mask (obj, tostring (L, 2),
+				   tonumber (L, 3), tonumber (L, 4)) < 0)
+	goto error;
+
+    pushnumber (L, 1);
+    return 1;
+    
+  error:
+
+    pushnil (L);
+    return 1;    
+}
+
+
+static int bind_object_remove_collision_mask (LS)
+    /* (object) : (nil on error) */
+{
+    object_t *obj;
+
+    if (!istable (L, 1))
+	goto error;
+    if (!(obj = table_object (L, 1)))
+	goto error;
+	
+    object_remove_collision_mask (obj);
+
+    pushnumber (L, 1);
+    return 1;
+
+  error:
+
+    pushnil (L);
+    return 1;
+}
+
+
 /*----------------------------------------------------------------------*/
 /* Module stuff.  							*/
 /*----------------------------------------------------------------------*/
@@ -292,12 +389,16 @@ void bindings_init ()
     
     lregister (L, "object_add_layer", bind_object_add_layer);
     lregister (L, "object_replace_layer", bind_object_replace_layer);
+    lregister (L, "object_move_layer", bind_object_move_layer);
     lregister (L, "object_remove_layer", bind_object_remove_layer);
     lregister (L, "object_remove_all_layers", bind_object_remove_all_layers);
     lregister (L, "object_add_light", bind_object_add_light);
     lregister (L, "object_replace_light", bind_object_replace_light);
+    lregister (L, "object_move_light", bind_object_move_light);
     lregister (L, "object_remove_light", bind_object_remove_light);
     lregister (L, "object_remove_all_lights", bind_object_remove_all_lights);
+    lregister (L, "object_set_collision_mask", bind_object_set_collision_mask);
+    lregister (L, "object_remove_collision_mask", bind_object_remove_collision_mask);
 }
 
 

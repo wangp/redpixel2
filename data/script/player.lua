@@ -1,11 +1,15 @@
 -- player.lua
 
 function init_player (self)
-    object_add_light (self, "/lights/white-64", -64, -64)
+    object_add_light (self, "/lights/white-64", 0, 0)
 
+    object_move_layer (self, 0, -1, -4)
+
+    object_set_collision_mask (self, "/player/mask-whole", -3, -8)
+    
     self.walk_frame = 0
     self.leg_layer = 
-    object_add_layer (self, "/player/legs-walk-0", -2, 9)
+    object_add_layer (self, "/player/legs-walk-0", 0, 4)
 
     self.walk_hook = function (self)
 	if self.walk_frame < 7
@@ -13,7 +17,7 @@ function init_player (self)
 	else self.walk_frame = 0 
 	end
 	object_replace_layer 
-	(self, self.leg_layer, "/player/legs-walk-" .. self.walk_frame, -2, 9)
+	(self, self.leg_layer, "/player/legs-walk-" .. self.walk_frame, 0, 4)
     end
 end
 

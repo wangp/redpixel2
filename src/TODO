@@ -1,29 +1,5 @@
-------------------------------------------------------------
-		 This file is out of date.
-------------------------------------------------------------
-
-eliminate "stutter" effect
-better console
-
-
----- code that needs scrapping or rethinking ----
-
-hub.c is written in a very messy way, and has code duplication.  In
-particular, the game starting code and synchronising the start between
-the server and clients is very bad
-
-cannot join halfway through a game
-
-no "stop game, but enter lobby" yet
-
-gameloop.c has lots of testing stuff in there
-
-gamenet.c is not great 
-
-gameinit.c may require renaming
+place object where the cursor really is
 
 split loaddata? 
-
-vars.c is silly
 
 the modes in editor/ may be able to share code

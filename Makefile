@@ -7,7 +7,7 @@ SRCDIRS = src src/net src/store src/magic src/fastsqrt \
 
 CC = gcc
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -ffast-math -mpentium
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -mpentium
 LOADLIBES = `allegro-config --libs` -llua -llualib -lnet
 
 PROGRAM = program

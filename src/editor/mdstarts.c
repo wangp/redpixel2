@@ -12,6 +12,7 @@
 #include "map.h"
 #include "modes.h"
 #include "modemgr.h"
+#include "path.h"
 #include "selbar.h"
 #include "rect.h"
 
@@ -133,19 +134,37 @@ static int event_layer (int event, struct editarea_event *d)
 
 /* Module init / shutdown.  */
 
+static BITMAP *load_start_icon ()
+{
+    char **path;
+    char tmp[1024];
+    PALETTE pal;
+    BITMAP *bmp;
+    BITMAP *icon;
+	
+    for (path = path_share; *path; path++) {
+	ustrncpy (tmp, *path, sizeof tmp);
+	ustrncat (tmp, "misc/start.bmp", sizeof tmp);
+
+	bmp = load_bitmap (tmp, pal);
+	if (bmp) {
+	    icon = get_magic_bitmap_format (bmp, pal);
+	    destroy_bitmap (bmp);
+	    return icon;
+	}
+    }
+    
+    return NULL;
+}
+
 int mode_starts_init ()
 {
     modemgr_register (&start_mode);
     editarea_layer_register ("starts", draw_layer, event_layer, DEPTH_STARTS);
 
-    {
-	PALETTE pal;
-	BITMAP *tmp = load_bitmap ("data/icon/start.bmp", pal); /* XXX: path */
-	if (tmp) {
-	    icon = get_magic_bitmap_format (tmp, pal);
-	    destroy_bitmap (tmp);
-	}
-    }
+    icon = load_start_icon ();
+    if (!icon)
+	return -1;
 
     list = ed_select_list_create ();
     ed_select_list_add_item (list, "start", icon);
