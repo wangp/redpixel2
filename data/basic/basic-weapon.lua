@@ -53,7 +53,7 @@ local Standard_Projectile = function (t)
 	    end
 	    function self:tile_collide_hook ()
 		if t.sparks then
-		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		    spawn_sparks_on_clients (self.x, self.y, t.sparks, 2)
 		end
 		self:set_stale ()
 	    end	
@@ -69,17 +69,32 @@ local Explosive_Projectile = function (t)
 	    object_set_collision_is_projectile (self)
 	    local hook = function (self, obj)
 		if t.explosion then
-		    spawn_explosion (t.explosion, self.x, self.y)
+		    spawn_explosion_on_clients (t.explosion, self.x, self.y)
 		end
 		if t.sparks then
-		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		    spawn_sparks_on_clients (self.x, self.y, t.sparks, 2)
 		end
 		spawn_blast (self.x, self.y, t.radius, t.damage, self.owner)
 		self:set_stale ()
 	    end
 	    self.collide_hook = hook
 	    self.tile_collide_hook = hook
-	end
+	end,
+
+	proxy_init = function (self)
+            if t.proxy_init then
+		t.proxy_init (self)
+	    end
+
+	    if t.smoke_trails then
+		self:set_update_hook (
+		    60,
+		    function (self)
+			spawn_explosion (t.smoke_trails, self.x, self.y)
+		    end
+		)
+	    end
+	end,
     })
 end
 
@@ -311,11 +326,18 @@ Explosive_Projectile {
     radius = 75,
     damage = 80,
     explosion = "basic-explo42",
+    smoke_trails = "basic-rocket-smoke",
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
 
+explosion_type_register (
+    "basic-rocket-smoke",
+    "/basic/weapon/rpg/smoke/000", 16, 50/16,
+    "/basic/light/white-16",
+    nil  -- no sound
+)
 
 ----------------------------------------------------------------------
 --  Shotgun
@@ -413,7 +435,7 @@ Objtype {
 	function self:tile_collide_hook (obj)
 	    -- sniper rifle slugs don't collide with tiles, but for fun
 	    -- we make them spawn sparks the first time they hit one 
-	    spawn_sparks (self.x, self.y, 30, 2)
+	    spawn_sparks_on_clients (self.x, self.y, 30, 2)
 	    self:set_collision_flags ("pn")
 	    self.tile_collide_hook = nil
 	    return false
