@@ -51,7 +51,6 @@ static char *client_name;
 /* for rendering */
 static BITMAP *bmp;
 static camera_t *cam;
-static int cam_allow_push;
 
 static BITMAP *bkgd;
 static int parallax_x = 2;
@@ -415,6 +414,12 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 /*----------------------------------------------------------------------*/
 
 
+void game_client_set_camera (int pushable, int max_dist)
+{
+    camera_set (cam, pushable, max_dist);
+}
+
+
 static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 			      int color, const char *fmt, ...)
 {
@@ -447,8 +452,7 @@ static int update_camera ()
     oldx = camera_x (cam);
     oldy = camera_y (cam);
 
-    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y,
-				    cam_allow_push ? 300 : 96, cam_allow_push);
+    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y);
 
     return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
 }

@@ -276,7 +276,10 @@ Weapon_With_Firer {
 	"/basic/weapon/rifle/1arm001",
 	"/basic/weapon/rifle/1arm002";
 	cx = -2, cy = 4
-    }
+    },
+    client_switch_to_hook = function ()
+	_internal_set_camera (1, 300)
+    end
 }
 
 Weapon_Pickup {

@@ -31,6 +31,8 @@ struct camera {
     int target_y;
     int view_width;
     int view_height;
+    int pushable;
+    int max_dist;
 };
 
 
@@ -70,6 +72,13 @@ int camera_view_width (camera_t *cam)
 int camera_view_height (camera_t *cam)
 {
     return cam->view_height;
+}
+
+
+void camera_set (camera_t *cam, int pushable, int max_dist)
+{
+    cam->pushable = pushable;
+    cam->max_dist = max_dist;
 }
 
 
@@ -149,8 +158,7 @@ static void handle_push (camera_t *cam, int mouse_x, int mouse_y)
 
 /* Camera tracks the point between an object and the mouse position.  */
 void camera_track_object_with_mouse (camera_t *cam, object_t *obj,
-				     int mouse_x, int mouse_y, int max_dist,
-				     int allow_push)
+				     int mouse_x, int mouse_y)
 {
     int cx, cy;
     int dx, dy;
@@ -160,7 +168,7 @@ void camera_track_object_with_mouse (camera_t *cam, object_t *obj,
     dx = mouse_x - cx;
     dy = mouse_y - cy;
 
-    if (allow_push)
+    if (cam->pushable)
 	handle_push (cam, mouse_x, mouse_y);
     else {
 	cam->push_x *= PUSH_DECAY;
@@ -170,10 +178,10 @@ void camera_track_object_with_mouse (camera_t *cam, object_t *obj,
     dx += cam->push_x;
     dy += cam->push_y;
 
-    if (fast_fsqrt ((dx * dx) + (dy * dy)) > max_dist) {
+    if (fast_fsqrt ((dx * dx) + (dy * dy)) > cam->max_dist) {
 	float angle = atan2 (dy, dx);
-	dx = max_dist * cos (angle);
-	dy = max_dist * sin (angle);
+	dx = cam->max_dist * cos (angle);
+	dy = cam->max_dist * sin (angle);
     }
 
     cam->target_x = (object_x (obj) + cam->x - cx + dx) / 2;

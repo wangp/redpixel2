@@ -413,6 +413,13 @@ generate {
 		   { String, "arg" }}	-- XXX this should be optional
 }
 
+generate {
+    cname	= "game_client_set_camera",
+    lname	= "_internal_set_camera",
+    args	= {{ Int, "pushable" },	-- XXX should be Bool
+		   { Int, "max_dist" }}
+}
+
 print (reg)
 
 
