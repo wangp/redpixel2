@@ -1,9 +1,14 @@
-head	1.10;
+head	1.11;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.11
+date	2002.01.31.12.21.36;	author tjaden;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2002.01.29.14.53.02;	author tjaden;	state Exp;
@@ -60,9 +65,9 @@ desc
 @@
 
 
-1.10
+1.11
 log
-@Added loadaud support.
+@Changes for client-server mode.
 @
 text
 @##
@@ -147,12 +152,14 @@ MODULES_EDITOR :=				\
 	selbar
 
 MODULES_SERVER :=				\
+	clsvface				\
 	server					\
 	svclient				\
 	svgame					\
 	svlobby					\
 	svstats					\
-	svticker
+	svticker				\
+	textface				\
 
 MODULES_GAME :=					\
 	alloc					\
@@ -184,7 +191,6 @@ MODULES_GAME :=					\
 	path					\
 	render					\
 	sync					\
-	textface				\
 	timeout					\
 	timeval					\
 	yield
@@ -292,6 +298,20 @@ suidroot:
 ##
 ## End of Makefile
 ##
+@
+
+
+1.10
+log
+@Added loadaud support.
+@
+text
+@d83 1
+d89 2
+a90 1
+	svticker
+a121 1
+	textface				\
 @
 
 

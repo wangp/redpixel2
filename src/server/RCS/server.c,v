@@ -1,9 +1,15 @@
-head	1.32;
+head	1.33;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.33; strict;
 comment	@ * @;
 
+
+1.33
+date	2002.01.31.12.20.06;	author tjaden;	state Exp;
+branches;
+next	1.32;
 
 1.32
 date	2002.01.26.12.14.58;	author tjaden;	state Exp;
@@ -170,9 +176,9 @@ desc
 @@
 
 
-1.32
+1.33
 log
-@Use shorts instead of longs to specify lengths of strings in packets.
+@Changes for client-server mode.
 @
 text
 @/* server.c
@@ -207,7 +213,10 @@ string_t server_next_map_file;
 
 /* Single hack: waits for one client, then starts, and quits when that
  * client leaves.  For testing the client-server.  */
-static int single_hack = 0;
+static int single_hack;
+
+/* Client-server mode: if this client quits, the server quits too.  */
+static int client_to_quit_with;
 
 
 
@@ -451,16 +460,16 @@ static void poll_interface (void)
     if (word) {
 	if (wordis ("help") || wordis ("?")) {
 	    server_log ("Commands:");
-	    server_log ("  MAP <filename>           - select a map");
-	    server_log ("  MAP                      - display current map");
-	    server_log ("  START                    - enter game mode");
-	    server_log ("  STOP                     - return to the lobby");
-	    server_log ("  RESTART                  - restart game mode (with new map)");
-	    server_log ("  QUIT                     - quit completely");
-	    server_log ("  LIST                     - list clients");
-	    server_log ("  KICK <id|name> [reason]  - forcefully disconnect a client");
-	    server_log ("  MSG <message>            - broadcast text message to clients");
-	    server_log ("  CONTEXT                  - show current context");
+            server_log ("  MAP <filename> - select a map (effective next START command)");
+            server_log ("  MAP            - display current map");
+            server_log ("  START          - enter game mode");
+            server_log ("  STOP           - return to the lobby");
+            server_log ("  RESTART        - restart game mode (with new map)");
+            server_log ("  QUIT           - quit completely");
+            server_log ("  LIST           - list clients");
+            server_log ("  KICK <id|name> - forcefully disconnect a client");
+            server_log ("  MSG <message>  - broadcast text message to clients");
+            server_log ("  CONTEXT        - show current context");
 	}
 
 	else if (wordis ("map")) {
@@ -589,6 +598,12 @@ void server_run (void)
 	 */
 	handle_bit_off_clients ();
 
+	if (client_to_quit_with) {
+	    svclient_t *c = svclients_find_by_id (client_to_quit_with);
+	    if (c->state == SVCLIENT_STATE_STALE)
+		next_state = SERVER_STATE_QUIT;
+	}
+
 	if (p->poll)
 	    p->poll ();
 
@@ -655,6 +670,9 @@ int server_init (server_interface_t *iface, int net_driver)
     string_set (server_current_map_file, "test.pit");
     string_set (server_next_map_file,  "test.pit");
 
+    single_hack = 0;
+    client_to_quit_with = 0;
+
     return 0;    
 }
 
@@ -662,6 +680,12 @@ int server_init (server_interface_t *iface, int net_driver)
 void server_enable_single_hack (void)
 {
     single_hack = 1;
+}
+
+
+void server_set_client_to_quit_with (int id)
+{
+    client_to_quit_with = id;
 }
 
 
@@ -702,6 +726,32 @@ void server_interface_set_status (const char *text)
     if (interface)
 	interface->set_status (text);
 }
+@
+
+
+1.32
+log
+@Use shorts instead of longs to specify lengths of strings in packets.
+@
+text
+@d33 4
+a36 1
+static int single_hack = 0;
+d280 10
+a289 10
+	    server_log ("  MAP <filename>           - select a map");
+	    server_log ("  MAP                      - display current map");
+	    server_log ("  START                    - enter game mode");
+	    server_log ("  STOP                     - return to the lobby");
+	    server_log ("  RESTART                  - restart game mode (with new map)");
+	    server_log ("  QUIT                     - quit completely");
+	    server_log ("  LIST                     - list clients");
+	    server_log ("  KICK <id|name> [reason]  - forcefully disconnect a client");
+	    server_log ("  MSG <message>            - broadcast text message to clients");
+	    server_log ("  CONTEXT                  - show current context");
+d418 6
+d490 3
+d500 6
 @
 
 

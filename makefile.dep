@@ -9,9 +9,10 @@ $(OBJDIR)/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
 $(OBJDIR)/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
  src/list.h
-$(OBJDIR)/blast.o: src/blast.c src/alloc.h src/blast.h src/fastsqrt/fastsqrt.h \
- src/list.h src/mylua.h lua-4.1-work3/include/lua.h \
- lua-4.1-work3/include/lauxlib.h src/object.h
+$(OBJDIR)/blast.o: src/blast.c src/alloc.h src/blast.h src/error.h \
+ src/fastsqrt/fastsqrt.h src/list.h src/mylua.h \
+ lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
+ src/object.h
 $(OBJDIR)/blod.o: src/blod.c src/blod.h src/map.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
  src/object.h src/objtypes.h
@@ -19,11 +20,12 @@ $(OBJDIR)/camera.o: src/camera.c src/alloc.h src/camera.h \
  src/fastsqrt/fastsqrt.h src/object.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h
 $(OBJDIR)/client.o: src/client.c libnet/include/libnet.h src/blod.h src/camera.h \
- src/client.h src/error.h src/fps.h src/list.h src/magic/magic4x4.h \
- src/map.h src/mapfile.h src/messages.h src/mylibnet.h src/netmsg.h \
- src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
- lua-4.1-work3/include/lauxlib.h src/packet.h src/particle.h \
- src/render.h src/store/store.h src/sync.h src/timeout.h src/timeval.h
+ src/client.h src/server/clsvface.h src/error.h src/fps.h src/list.h \
+ src/magic/magic4x4.h src/map.h src/mapfile.h src/messages.h \
+ src/mylibnet.h src/netmsg.h src/object.h src/mylua.h \
+ lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
+ src/packet.h src/particle.h src/render.h src/server/server.h \
+ src/store/store.h src/sync.h src/timeout.h src/timeval.h
 $(OBJDIR)/error.o: src/error.c src/error.h
 $(OBJDIR)/explo.o: src/explo.c src/alloc.h src/explo.h src/list.h \
  src/magic/magic4x4.h src/store/store.h
@@ -33,15 +35,16 @@ $(OBJDIR)/fps.o: src/fps.c src/fps.h
 $(OBJDIR)/gameinit.o: src/gameinit.c libnet/include/libnet.h src/bindings.h \
  src/bitmaskr.h src/blod.h src/explo.h src/extdata.h \
  src/fastsqrt/fastsqrt.h src/gameinit.h src/jpgalleg/jpgalleg.h \
- src/loaddata.h src/magic/magic4x4.h src/mylua.h \
+ src/loadaud/loadaud.h src/loaddata.h src/magic/magic4x4.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
  src/object.h src/objtypes.h src/path.h src/store/store.h
 $(OBJDIR)/getoptc.o: src/getoptc.c
 $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
  src/loaddata.h src/path.h src/store/store.h
 $(OBJDIR)/main.o: src/main.c libnet/include/libnet.h src/client.h \
- src/editor/editor.h src/gameinit.h src/getoptc.h src/server/server.h \
- src/sync.h src/server/textface.h
+ src/server/clsvface.h src/editor/editor.h src/gameinit.h \
+ src/getoptc.h src/messages.h src/server/server.h src/sync.h \
+ src/server/textface.h
 $(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blast.h src/explo.h \
  src/list.h src/map.h src/object.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
@@ -49,8 +52,8 @@ $(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blast.h src/explo.h \
 $(OBJDIR)/mapfile.o: src/mapfile.c src/list.h src/map.h src/mapfile.h \
  src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
  lua-4.1-work3/include/lauxlib.h src/objtypes.h src/store/store.h
-$(OBJDIR)/messages.o: src/messages.c src/client.h src/magic/magic4x4.h \
- src/messages.h src/store/store.h src/timeout.h src/timeval.h
+$(OBJDIR)/messages.o: src/messages.c src/magic/magic4x4.h src/messages.h \
+ src/store/store.h src/timeout.h src/timeval.h
 $(OBJDIR)/mylibnet.o: src/mylibnet.c libnet/include/libnet.h src/netmsg.h \
  src/packet.h
 $(OBJDIR)/mylua.o: src/mylua.c lua-4.1-work3/include/lua.h \
@@ -84,6 +87,7 @@ $(OBJDIR)/magicrot.o: src/magic/magicrot.c src/magic/magicrot.inc
 $(OBJDIR)/bmark.o: src/fastsqrt/bmark.c src/fastsqrt/fastsqrt.h
 $(OBJDIR)/fastsqrt.o: src/fastsqrt/fastsqrt.c src/fastsqrt/fastsqrt.h
 $(OBJDIR)/jpeg.o: src/jpgalleg/jpeg.c
+$(OBJDIR)/loadaud.o: src/loadaud/loadaud.c src/loadaud/loadaud.h
 $(OBJDIR)/gui.o: src/gui/gui.c src/gui/gui.h src/gui/guiinter.h src/yield.h
 $(OBJDIR)/guiaccel.o: src/gui/guiaccel.c src/gui/gui.h src/gui/guiinter.h
 $(OBJDIR)/guidirty.o: src/gui/guidirty.c src/gui/gui.h src/gui/guiinter.h
@@ -145,6 +149,8 @@ $(OBJDIR)/modemgr.o: src/editor/modemgr.c src/gui/gui.h src/ug/ug.h \
  src/editor/modemgr.h
 $(OBJDIR)/selbar.o: src/editor/selbar.c src/gui/gui.h src/ug/ug.h \
  src/editor/edselect.h src/editor/selbar.h
+$(OBJDIR)/clsvface.o: src/server/clsvface.c src/server/clsvface.h src/messages.h \
+ src/server/server.h src/server/svintern.h
 $(OBJDIR)/server.o: src/server/server.c libnet/include/libnet.h src/error.h \
  src/list.h src/netmsg.h src/object.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \

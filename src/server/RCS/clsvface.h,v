@@ -1,0 +1,33 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.31.12.22.11;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_clsvface_h
+#define __included_clsvface_h
+
+
+void client_server_interface_add_input (const char *line);
+
+extern struct server_interface *client_server_interface;
+
+
+#endif
+@

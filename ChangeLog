@@ -1,56 +1,36 @@
+2002-01-31  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* svgame.c: Fixed some missing unlockings that somehow only
+	showed up in client-server mode.
+
+	* messages.h, messages.c, main.c, client.h, client.c,
+	* server.h, server.c, clsvface.h, clsvface.c:
+	Added client-server mode.
+
 2002-01-30  Peter Wang  <tjaden@users.sourceforge.net>
 
-	* data/basic/basic-player.lua:
-	Added initial (very incomplete) sound support.
+	* basic-weapon.lua, basic-tilelike.lua, basic-explosion.lua:
+	Renamed the "basic-simple42" explosion to "basic-explo42".
 
-	* Makefile, src/gameinit.c: Added loadaud support.
+	* explo.c: Made explosions play more loudly.
 
-	* src/loadaud/MODIFIED.txt, src/loadaud/loadaud.h, src/loadaud/loadaud.c, src/loadaud/README, src/loadaud/LICENCE.txt:
-	New file.
+	* client.h, client.c, bindgen.lua, basic-weapon.lua,
+	* basic-player.lua:
+	Added initial (very incomplete) sound support for weapons.
+
+	* gameinit.c, loadaud/*: Added loadaud support.
 
 2002-01-29  Peter Wang  <tjaden@users.sourceforge.net>
 
-	* src/main.c: install_sound
+	* explo.h, explo.c, bindgen.lua: Added sound to explosions.
+	* basic-explosion.lua: Added sound to explosions.
 
-	* src/explo.h, src/explo.c, src/bindgen.lua: Added sound to explosions.
+	* basic-weapon.lua: Added bow.
 
-	* data/basic/basic-weapon.lua: Added bow.
+	* blast.c: Made it so that objects can only be hit by a single
+	blast once, even if it moves while the blast is expanding.
 
-	* data/basic/basic-explosion.lua: Added sound to explosions.
-
-	* src/object.h, src/object.c, src/bindgen.lua, data/basic/basic-weapon.lua:
-	Made it so that projectiles cannot hit other projectiles.
-
-	* data/basic/basic-player.lua: Fixed an oversight.
-
-	* src/blast.c:
-	Made it so that objects can only be hit by a single blast once, even
-	if it moves while the blast is expanding.
-
-	* src/blast.c:
-	Changed the blast collision detection so that a distance of zero will
-	register as a hit.
-
-	* data/basic/basic-player.lua: Changes for health and ammo displays.
-
-	* src/client.c: Fixed bugs in send_gameinfo_weapon_switch().
-
-	* data/basic/basic-weapon.lua, data/basic/basic-player.lua:
-	Changes for health and ammo displays.
-
-	* src/bindgen.lua, src/client.c, src/netmsg.h, src/server/svgame.h, src/server/svgame.c:
-	Added client health and ammo displays.
-
-2002-01-28  Peter Wang  <tjaden@users.sourceforge.net>
-
-	* data/basic/basic-player.lua:
-	Don't auto-switch to a new weapon if our current weapon is not an
-	auto-switchable one.
-
-	* data/basic/basic-tilelike.lua, data/basic/basic-weapon.lua, src/server/svgame.h, src/server/svgame.c, src/render.c, src/netmsg.h, src/map.h, src/map.c, src/client.c, src/bindgen.lua, Makefile:
-	Added blasts.
-
-	* src/blast.h, src/blast.c: New file.
+	* client.c: Fixed bugs in send_gameinfo_weapon_switch().
 
 2002-01-28  Peter Wang  <tjaden@users.sourceforge.net>
 
@@ -70,7 +50,7 @@
 	current weapon is not an auto-switchable one.
 
 	* basic-tilelike.lua, basic-weapon.lua, svgame.h, svgame.c,
-	* render.c, netmsg.h, map.h, map.c, client.c, bindgen.lua, Makefile,
+	* render.c, netmsg.h, map.h, map.c, client.c, bindgen.lua,
 	* blast.h, blast.c: 
 	Added blasts.
 
@@ -84,7 +64,8 @@
 	handling (which didn't work).
 
 	* svgame.c, server.c, packet.c, netmsg.h, client.c:
-	Use shorts instead of longs to specify lengths of strings in packets.
+	Use shorts instead of longs to specify lengths of strings in
+	packets.
 
 	* basic-tilelike.lua: Made crates spawn explosion and sparks when
 	destroyed.  Also made barrels shootable.

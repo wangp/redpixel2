@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.01.31.12.21.04;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.29.14.57.54;	author tjaden;	state Exp;
@@ -35,9 +40,9 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Added initial (very incomplete) sound support for weapons.
+@Changes for client-server mode.
 @
 text
 @#ifndef __included_client_h
@@ -48,7 +53,7 @@ struct object;
 
 
 int client_init (const char *name, int net_driver, const char *addr);
-void client_run (void);
+void client_run (int client_server);
 void client_shutdown (void);
 
 void client_send_text_message (const char *text);
@@ -59,6 +64,17 @@ void client_set_camera (int pushable, int max_dist);
 
 
 #endif
+@
+
+
+1.5
+log
+@Added initial (very incomplete) sound support for weapons.
+@
+text
+@d9 1
+a9 1
+void client_run (void);
 @
 
 

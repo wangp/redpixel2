@@ -1,9 +1,14 @@
-head	1.12;
+head	1.13;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.13
+date	2002.01.31.12.20.11;	author tjaden;	state Exp;
+branches;
+next	1.12;
 
 1.12
 date	2002.01.24.07.12.57;	author tjaden;	state Exp;
@@ -70,9 +75,9 @@ desc
 @@
 
 
-1.12
+1.13
 log
-@Overhauled the server code and split into multiple files.
+@Changes for client-server mode.
 @
 text
 @#ifndef __included_server_h
@@ -84,11 +89,21 @@ struct server_interface;
 
 int server_init (struct server_interface *, int net_driver);
 void server_enable_single_hack (void);
+void server_set_client_to_quit_with (int id);
 void server_run (void);
 void server_shutdown (void);
 
 
 #endif
+@
+
+
+1.12
+log
+@Overhauled the server code and split into multiple files.
+@
+text
+@d10 1
 @
 
 

@@ -8,9 +8,11 @@
 #include <allegro.h>
 #include "libnet.h"
 #include "client.h"
+#include "clsvface.h"
 #include "editor.h"
 #include "gameinit.h"
 #include "getoptc.h"
+#include "messages.h"
 #include "server.h"
 #include "sync.h"
 #include "textface.h"
@@ -58,7 +60,6 @@ static void setup_allegro (int w, int h, int d)
 	exit (1);
     }
 
-    set_volume_per_voice (1);
     install_sound (DIGI_AUTODETECT, MIDI_NONE, 0);
 
     set_window_title ("Red Pixel II");
@@ -89,10 +90,91 @@ static void *server_thread (void *arg)
 }
 
 
+static void do_run_parallel (const char *name)
+{
+    messages_init ();
+
+    if ((server_init (NULL, NET_DRIVER_LOCAL) < 0) ||
+	(client_init (name, NET_DRIVER_LOCAL, "0") < 0)) {
+	allegro_message (
+	    "Error initialising game server or client.  Perhaps another\n"
+	    "game server is already running on the same port?\n");
+    } else {
+	server_enable_single_hack ();
+
+	sync_init (server_thread);
+	client_run (0);
+	sync_shutdown ();
+
+	client_shutdown ();
+	server_shutdown ();
+
+	allegro_errno = &errno;	/* errno is thread-specific */
+    }
+
+    messages_shutdown ();
+}
+
+
+static void do_run_client_server (const char *name)
+{
+    messages_init ();
+	
+    /* XXX should make server support multiple network types
+       then use NET_DRIVER_LOCAL for the client */
+    if ((server_init (client_server_interface, INET_DRIVER) < 0) ||
+	(client_init (name, INET_DRIVER, "127.0.0.1") < 0)) {
+	allegro_message (
+	    "Error initialising game server or client.  Perhaps another\n"
+	    "game server is already running on the same port?\n");
+    } else {
+	sync_init (server_thread);
+	client_run (1);
+	sync_server_stop_requested ();
+	sync_shutdown ();
+
+	client_shutdown ();
+	server_shutdown ();
+
+	allegro_errno = &errno;	/* errno is thread-specific */
+    }
+
+    messages_shutdown ();
+}
+
+
+static void do_run_server (void)
+{
+    if (server_init (server_text_interface, INET_DRIVER) < 0) {
+	allegro_message ("Error initialising game server.  Perhaps another\n"
+			 "game server is already running on the same port?\n");
+    } else {
+	sync_init (NULL);
+	server_run ();
+	sync_shutdown ();
+	server_shutdown ();
+    }
+}
+
+
+static void do_run_client (const char *name, const char *addr)
+{
+    messages_init ();
+    if (client_init (name, INET_DRIVER, addr) == 0) {
+	sync_init (NULL);
+	client_run (0);
+	sync_shutdown ();
+	client_shutdown ();
+    }
+    messages_shutdown ();
+}
+
+
 int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1;
     int run_server = 0;
+    int run_client_server = 0;
     int run_parallel = 0;
     int run_editor = 0;
     const char *name = "noname";
@@ -101,10 +183,13 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":spa:n:ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":scpa:n:ew:h:d:")) != -1) {
 	switch (c) {
 	    case 's':
 		run_server = 1;
+		break;
+	    case 'c':
+		run_client_server = 1;
 		break;
 	    case 'p':
 		run_parallel = 1;
@@ -142,8 +227,10 @@ int main (int argc, char *argv[])
 	}
     }
 
-    if ((run_server) && (run_parallel))
-	run_server = 0;
+    if ((run_server + run_client_server + run_parallel + run_editor) > 1) {
+	fprintf (stderr, "Incompatible operation modes.\n");
+	return 1;
+    }
 
     if (run_server)
 	setup_minimal_allegro ();
@@ -152,54 +239,16 @@ int main (int argc, char *argv[])
 
     game_init ();
 
-    if (run_editor) {
+    if (run_editor)
 	editor ();
-	goto end;
-    }
-    
-    if (run_parallel) {
-	if ((server_init (NULL, NET_DRIVER_LOCAL) < 0) ||
-	    (client_init (name, NET_DRIVER_LOCAL, "0") < 0)) {
-	    allegro_message (
-		"Error initialising game server or client.  Perhaps another\n"
-		"game server is already running on the same port?\n");
-	} else {
-	    server_enable_single_hack ();
-
-	    sync_init (server_thread);
-	    client_run ();
-	    sync_shutdown ();
-
-	    client_shutdown ();
-	    server_shutdown ();
-
-	    allegro_errno = &errno;	/* errno is thread-specific */
-	}
-	goto end;
-    }
-    
-    if (run_server) {
-	if (server_init (server_text_interface, INET_DRIVER) < 0) {
-	    allegro_message ("Error initialising game server.  Perhaps another\n"
-			     "game server is already running on the same port?\n");
-	} else {
-	    sync_init (NULL);
-	    server_run ();
-	    sync_shutdown ();
-	    server_shutdown ();
-	}
-	goto end;
-    }
-
-    /* run client */
-    if (client_init (name, INET_DRIVER, addr) == 0) {
-	sync_init (NULL);
-	client_run ();
-	sync_shutdown ();
-	client_shutdown ();
-    }
-
-  end:
+    else if (run_parallel)
+	do_run_parallel (name);
+    else if (run_client_server)
+	do_run_client_server (name);
+    else if (run_server)
+	do_run_server ();
+    else
+	do_run_client (name, addr);
     
     game_shutdown ();
 

@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.01.31.12.21.18;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.26.12.45.07;	author tjaden;	state Exp;
@@ -30,10 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Reject characters < space in input, and removed ^U handling (which
-didn't work).
+@Changes for client-server mode.
 @
 text
 @/* messages.c - client message interface
@@ -45,7 +49,6 @@ text
 #include <stdarg.h>
 #include <string.h>
 #include <allegro.h>
-#include "client.h"
 #include "magic4x4.h"
 #include "messages.h"
 #include "store.h"
@@ -192,7 +195,7 @@ void messages_add (const char *fmt, ...)
 }
 
 
-void messages_poll_input (void)
+const char *messages_poll_input (void)
 {
     if ((num_lines > 0) && timeout_test (&next_scroll))
 	scroll_line ();
@@ -203,9 +206,9 @@ void messages_poll_input (void)
 
 	if (sc == KEY_ENTER) {
 	    if (input_enabled) {
-		if (input_line[0])
-		    client_send_text_message (ucs16_to_utf8 (input_line));
 		input_enabled = 0;
+		if (input_line[0])
+		    return ucs16_to_utf8 (input_line);
 	    }
 	    else {
 		input_line[0] = 0;
@@ -248,6 +251,8 @@ void messages_poll_input (void)
 		break;
 	}
     }
+
+    return NULL;
 }
 
 
@@ -255,6 +260,26 @@ int messages_grabbed_keyboard (void)
 {
     return input_enabled;
 }
+@
+
+
+1.4
+log
+@Reject characters < space in input, and removed ^U handling (which
+didn't work).
+@
+text
+@a9 1
+#include "client.h"
+d156 1
+a156 1
+void messages_poll_input (void)
+d167 1
+d169 1
+a169 2
+		    client_send_text_message (ucs16_to_utf8 (input_line));
+		input_enabled = 0;
+d212 2
 @
 
 

@@ -10,6 +10,7 @@
 #include "blod.h"
 #include "camera.h"
 #include "client.h"
+#include "clsvface.h"
 #include "error.h"
 #include "fps.h"
 #include "list.h"
@@ -23,6 +24,7 @@
 #include "packet.h"
 #include "particle.h"
 #include "render.h"
+#include "server.h"
 #include "store.h"
 #include "sync.h"
 #include "timeout.h"
@@ -819,11 +821,31 @@ static void update_screen (void)
  */
 
 
-void client_run (void)
+static void temporary_message (char *s, ...)
+{
+    va_list ap;
+    int y = 0;
+
+    va_start (ap, s);
+    
+    clear_bitmap (screen);
+
+    do {
+	textout (screen, font, s, 0, y, makecol (255, 255, 255));
+	y += text_height (font);
+    } while ((s = va_arg (ap, char *)));
+
+    va_end (ap);
+}
+
+
+void client_run (int client_server)
 {
     dbg ("connecting (state 1)");
     {
 	int status;
+
+	temporary_message ("Connecting to server...", NULL);
 
 	do {
 	    if (key[KEY_Q])
@@ -841,6 +863,8 @@ void client_run (void)
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 
+	temporary_message ("Having a chat with the server...", NULL);
+
 	while (1) {
 	    sync_client_lock ();
 
@@ -854,6 +878,8 @@ void client_run (void)
 		    packet_decode (buf+1, "l", &client_id);
 		    net_send_rdm_encode (conn, "ccs", MSG_CS_JOININFO,
 					 NETWORK_PROTOCOL_VERSION, client_name);
+		    if (client_server)
+			server_set_client_to_quit_with (client_id);
 		    sync_client_unlock ();
 		    goto lobby;
 
@@ -872,13 +898,47 @@ void client_run (void)
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 
+	/* XXX */
+	BITMAP *load_jpg(AL_CONST char *filename, RGB *pal);
+	BITMAP *lobby_bmp;
+
+	lobby_bmp = load_jpg ("data/lobby-tmp.jpg", 0);
+	if (lobby_bmp) {
+	    BITMAP *tmp = get_magic_bitmap_format (lobby_bmp, 0);
+	    destroy_bitmap (lobby_bmp);
+	    lobby_bmp = tmp;
+	    set_magic_bitmap_brightness (lobby_bmp, 0xf, 0xf, 0xf);
+	}
+	/* end XXX */
+
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_Q]) {
-		sync_client_unlock ();
-		goto disconnect;
+	    if (!messages_grabbed_keyboard ()) {
+		if (key[KEY_Q]) {
+		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
+		    sync_client_unlock ();
+		    goto disconnect;
+		}
 	    }
+
+	    {
+		const char *s = messages_poll_input ();
+
+		if (s) {
+		    if (client_server && (s[0] == ','))
+			client_server_interface_add_input (s+1);
+		    else
+			client_send_text_message (s);
+		}
+	    }
+
+	    if (!lobby_bmp)
+		clear_bitmap (bmp);
+	    else
+		blit (lobby_bmp, bmp, 0, 0, 0, 0, bmp->w, bmp->h);
+	    messages_render (bmp);
+	    blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
 
 	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
 		sync_client_unlock ();
@@ -887,10 +947,12 @@ void client_run (void)
 
 	    switch (buf[0]) {
 		case MSG_SC_GAMESTATEFEED_REQ:
+		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
 		    sync_client_unlock ();
 		    goto receive_game_state;
 
 		case MSG_SC_DISCONNECTED:
+		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
 		    sync_client_unlock ();
 		    goto end;
 	    }
@@ -1078,7 +1140,16 @@ void client_run (void)
 
 		map_destroy_stale_objects (map);
 
-		messages_poll_input ();
+		{
+		    const char *s;
+
+		    if ((s = messages_poll_input ())) {
+			if (client_server && (s[0] == ','))
+			    client_server_interface_add_input (s+1);
+			else
+			    client_send_text_message (s);
+		    }
+		}
 
 		dbg ("update camera");
 		{
@@ -1152,11 +1223,6 @@ int client_init (const char *name, int net_driver, const char *addr)
 	return -1;
     net_connect (conn, addr);
     
-    if (messages_init () < 0) {
-	net_closeconn (conn);
-	return -1;
-    }
-    
     client_name = ustrdup (name);
 
     bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
@@ -1203,6 +1269,5 @@ void client_shutdown (void)
     camera_destroy (cam);
     destroy_bitmap (bmp);
     free (client_name);
-    messages_shutdown ();
     net_closeconn (conn);
 }

@@ -7,6 +7,7 @@ struct server_interface;
 
 int server_init (struct server_interface *, int net_driver);
 void server_enable_single_hack (void);
+void server_set_client_to_quit_with (int id);
 void server_run (void);
 void server_shutdown (void);
 

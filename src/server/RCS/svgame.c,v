@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.01.31.12.19.49;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.01.28.13.00.53;	author tjaden;	state Exp;
@@ -40,9 +45,10 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Added client health and ammo displays.
+@Fixed some missing unlockings that somehow only showed up in
+client-server mode.
 @
 text
 @/* svgame.c
@@ -470,16 +476,20 @@ static void perform_single_game_state_feed (svclient_t *c)
 	if (svclient_timed_out (c)) {
 	    svclient_set_state (c, SVCLIENT_STATE_STALE);
 	    server_log ("Client %s timed out during game state feed", c->name);
+	    sync_server_unlock ();
 	    break;
 	}
 
-	if (svclient_receive_rdm (c, &byte, 1) <= 0)
+	if (svclient_receive_rdm (c, &byte, 1) <= 0) {
+	    sync_server_unlock ();
 	    continue;
+	}
 
 	if (byte == MSG_CS_GAMESTATEFEED_ACK) {
 	    feed_game_state_to (c);
 	    svclient_set_ready (c);
 	    svclient_clear_cantimeout (c);
+	    sync_server_unlock ();
 	    break;
 	}
 
@@ -1029,6 +1039,20 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.6
+log
+@Added client health and ammo displays.
+@
+text
+@d426 1
+d430 2
+a431 1
+	if (svclient_receive_rdm (c, &byte, 1) <= 0)
+d433 1
+d439 1
 @
 
 
