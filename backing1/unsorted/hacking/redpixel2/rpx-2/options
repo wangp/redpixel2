@@ -1,0 +1,42 @@
+#
+# Common makefile options
+#
+
+CC = gcc
+
+# change this to `-pg' to enable profiling
+PROFILE = 
+
+JSFLAGS = -DXP_UNIX -DJSFILE
+INCLUDES = -I. -I$(basedir)/jsgui -I$(basedir)/wumpus
+CFLAGS = -Wall -O3 $(INCLUDES) $(JSFLAGS) -g $(PROFILE)
+LDFLAGS = -g $(PROFILE)
+
+LIBS = -L$(basedir)/jsgui -L$(basedir)/wumpus \
+       -lwum -ljsgui -ljs -lfdm \
+       -lxmlparse -lxmltok `allegro-config --libs`
+EXE =
+
+
+#
+# Directories
+#
+
+objdir = $(basedir)/obj
+editordir = $(basedir)/editor
+srcdir = $(basedir)/src
+
+
+
+#
+# Rules
+#
+
+VPATH = $(editordir)
+
+$(objdir)/%.o: %.c
+	$(COMPILE.c) -o $@ $<
+
+
+
+
