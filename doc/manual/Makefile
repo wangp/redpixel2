@@ -16,6 +16,8 @@ pdf: manual.pdf
 
 manual.pdf: manual.tex
 	pdflatex manual.tex
+	pdflatex manual.tex
+	pdflatex manual.tex
 
 clean:
 	rm -f manual.aux manual.dvi manual.log manual.out manual.pdf manual.toc
