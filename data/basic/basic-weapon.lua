@@ -335,7 +335,7 @@ Explosive_Projectile {
 explosion_type_register (
     "basic-rocket-smoke",
     "/basic/weapon/rpg/smoke/000", 16, 50/16,
-    "/basic/light/white-16",
+    nil, -- no light
     nil  -- no sound
 )
 
