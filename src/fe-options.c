@@ -36,8 +36,34 @@ static DIALOG options_menu[];
 #define MUSIC_SLIDER			(options_menu[16])
 #define GAMMA_LABEL			(options_menu[17])
 #define GAMMA_SLIDER			(options_menu[18])
-#define OK_BUTTON			(options_menu[19])
-#define CANCEL_BUTTON			(options_menu[20])
+#define GAMMA_PREVIEW			(options_menu[19])
+#define OK_BUTTON			(options_menu[20])
+#define CANCEL_BUTTON			(options_menu[21])
+
+
+static float gamma_slider_d2_to_gamma_factor (int d2)
+{
+    /*
+     * d2 =  0/10 --> gamma = 1.5
+     * d2 =  5/10 --> gamma = 1.0
+     * d2 = 10/10 --> gamma = 0.5
+     */
+    return 0.5 + ((10 - d2) / 10.);
+}
+
+
+static int gamma_factor_to_gamma_slider_d2 (float gamma)
+{
+    /*
+     * gamma = 1.5 --> d2 =  0/10
+     * gamma = 1.0 --> d2 =  5/10
+     * gamma = 0.5 --> d2 = 10/10
+     */
+    /* The 0.1 is there to avoid floating point inaccuracies that end
+     * up being rounded downwards, e.g. 1.99999 -> 1.
+     */
+    return (10. - ((gamma_factor - 0.5) * 10.)) + 0.1;
+}
 
 
 static int menu_screen_resolution_needs_resetting (void)
@@ -128,6 +154,24 @@ static int music_slider_changed (DIALOG *d)
 }
 
 
+static void update_gamma_preview (float gamma)
+{
+    BITMAP *src = store_get_dat ("/frontend/menu/gamma-preview");
+
+    blit (src, GAMMA_PREVIEW.dp, 0, 0, 0, 0, src->w, src->h);
+    apply_gamma (GAMMA_PREVIEW.dp, gamma);
+}
+
+
+static int gamma_slider_changed (DIALOG *d)
+{
+    update_gamma_preview (gamma_slider_d2_to_gamma_factor (d->d2));
+    object_message (&GAMMA_PREVIEW, MSG_DRAW, 0);
+
+    return D_O_K;
+}
+
+
 static int options_menu_modify_changes_pressed (void)
 {
     /* XXX */
@@ -178,12 +222,7 @@ static int options_menu_modify_changes_pressed (void)
     if (GAMMA_SLIDER.d2 != old_desired_brightness) {
 	alert ("You must restart Red Pixel for brightness to take effect.", 
 	       NULL, NULL, "Ok", NULL, 0, 0);
-	/*
-	 * d2 =  0/10 --> gamma = 1.5
-	 * d2 =  5/10 --> gamma = 1.0
-	 * d2 = 10/10 --> gamma = 0.5
-	 */
-	gamma_factor = 0.5 + ((10 - GAMMA_SLIDER.d2) / 10.);
+	gamma_factor = gamma_slider_d2_to_gamma_factor (GAMMA_SLIDER.d2);
     }
 
     return D_EXIT;
@@ -218,9 +257,10 @@ static DIALOG options_menu[] =
     { fancy_checkbox_proc, 120, 260, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Music", NULL, NULL }, /* 15 */
     { fancy_slider_proc,   220, 260, 300,  30, 0,  0, 0, 0, 255, 0, NULL, music_slider_changed, NULL }, /* 16 */
     { fancy_label_proc,    120, 300, 100,  30, 0, -1, 0, 0, 0, 0xa0, "Brightness", NULL, NULL }, /* 17 */
-    { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 10, 0, NULL, NULL, NULL }, /* 18 */
-    { fancy_button_proc,   360, 340, 100,  40, 0, -1, 0, 0, 0, 0x80, "Ok", NULL, options_menu_modify_changes_pressed },	/* 19 */
-    { fancy_button_proc,   480, 340, 110,  40, 0, -1, 0, 0, 0, 0x80, "Cancel", NULL, cancel_changes_pressed }, /* 20 */
+    { fancy_slider_proc,   220, 300, 300,  30, 0,  0, 0, 0, 10, 0, NULL, gamma_slider_changed, NULL }, /* 18 */
+    { fancy_bitmap_proc,   540, 300,  32,  32, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL }, /* 19 */
+    { fancy_button_proc,   360, 340, 100,  40, 0, -1, 0, 0, 0, 0x80, "Ok", NULL, options_menu_modify_changes_pressed },	/* 20 */
+    { fancy_button_proc,   480, 340, 110,  40, 0, -1, 0, 0, 0, 0x80, "Cancel", NULL, cancel_changes_pressed }, /* 21 */
     { d_yield_proc,          0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
     { NULL }
 };
@@ -252,16 +292,9 @@ void options_menu_run (void)
     old_music_desired_volume = music_desired_volume;
 
     /* Brightness. */
-    /*
-     * gamma = 1.5 --> d2 =  0/10
-     * gamma = 1.0 --> d2 =  5/10
-     * gamma = 0.5 --> d2 = 10/10
-     */
-    /* The 0.1 is there to avoid floating point inaccuracies that end
-     * up being rounded downwards, e.g. 1.99999 -> 1.
-     */
-    GAMMA_SLIDER.d2 = (10. - ((gamma_factor - 0.5) * 10.)) + 0.1;
+    GAMMA_SLIDER.d2 = gamma_factor_to_gamma_slider_d2 (gamma_factor);
     old_desired_brightness = GAMMA_SLIDER.d2;
+    update_gamma_preview (gamma_factor);
 
     fancy_do_dialog (options_menu, DEFAULT_FOCUS);
 }
@@ -273,12 +306,17 @@ int options_menu_init (BITMAP *background)
     int bg = makecol (0xbf, 0x8f, 0x3f);
 
     initialize_fancy_dialog (options_menu, background, fg, bg);
+
+    GAMMA_PREVIEW.dp = create_bitmap (GAMMA_PREVIEW.w, GAMMA_PREVIEW.h);
+
     return 0;
 }
 
 
 void options_menu_shutdown (void)
 {
+    destroy_bitmap (GAMMA_PREVIEW.dp);
+
     shutdown_fancy_dialog (options_menu);
 }
 
