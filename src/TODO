@@ -1,3 +1,8 @@
+create generalised timer-function system instead of object update hooks
+
+server will think send error if our game state is plainly too big to
+	fit into libnet's conn outqueue
+
 split objects into different areas?
 	probably good because soon particles will need collision
 	detection against objects

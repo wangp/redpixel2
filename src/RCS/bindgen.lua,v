@@ -1,9 +1,19 @@
-head	1.9;
+head	1.11;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.11
+date	2002.01.17.14.28.12;	author tjaden;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2002.01.17.13.31.43;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.01.15.13.28.36;	author tjaden;	state Exp;
@@ -55,9 +65,10 @@ desc
 @@
 
 
-1.9
+1.11
 log
-@Made the spread parameter to spawn blood a float (instead of int).
+@Prefixed internal functions/variables that are somehow accessible from
+Lua with "_internal".
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -256,17 +267,20 @@ generate {
     args	= {{ Object, "obj" }}
 }
 
--- little hack for player walking animation code in basic-player.lua
--- don't use it!
 generate {
     cname	= "object_moving_horizontally",
-    lname	= "_object_moving_horizontally",
+    lname	= "_internal_object_moving_horizontally",
     args	= {{ Object, "obj" }},
     ret		= { Int, "ret", "!$" }
 }
 
 generate {
     cname	= "object_set_collision_is_player",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_set_collision_is_ladder",
     args	= {{ Object, "obj" }}
 }
 
@@ -454,6 +468,29 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.10
+log
+@Added support for ladders.
+@
+text
+@a196 2
+-- little hack for player walking animation code in basic-player.lua
+-- don't use it!
+d199 1
+a199 1
+    lname	= "_object_moving_horizontally",
+@
+
+
+1.9
+log
+@Made the spread parameter to spawn blood a float (instead of int).
+@
+text
+@d212 5
 @
 
 

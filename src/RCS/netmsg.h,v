@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.01.17.13.29.50;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.01.15.13.28.28;	author tjaden;	state Exp;
@@ -40,9 +45,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Made the spread parameter to spawn blood a float (instead of int).
+@Added DOWN as a possible input.
 @
 text
 @#ifndef __included_netmsg_h
@@ -193,8 +198,9 @@ enum {
 	CONTROL_LEFT    = 0x01,
 	CONTROL_RIGHT   = 0x02,
 	CONTROL_UP      = 0x04,
-	CONTROL_FIRE    = 0x08,
-	CONTROL_RESPAWN = 0x10,
+	CONTROL_DOWN    = 0x08,
+	CONTROL_FIRE    = 0x10,
+	CONTROL_RESPAWN = 0x20,
 
 
     /* Tell server to broadcast text message to all clients.
@@ -286,6 +292,18 @@ enum {
 
 
 #endif
+@
+
+
+1.6
+log
+@Made the spread parameter to spawn blood a float (instead of int).
+@
+text
+@d149 3
+a151 2
+	CONTROL_FIRE    = 0x08,
+	CONTROL_RESPAWN = 0x10,
 @
 
 

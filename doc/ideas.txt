@@ -24,3 +24,17 @@ Cells
 		    return ((ABS (cell_x1 - cell_x2) < 2) &&
   			    (ABS (cell_y1 - cell_y2) < 2));
 		}
+
+
+[Jan 2002:
+
+     Actually, an implementation like that would be stupid as there is
+     a bounding box check anyway, which would be faster than
+     cells_in_contact (obj1, obj2) + bb_check (obj1, obj2).
+
+     However, if objects in different cells were in different linked
+     lists then there might be a speed up available.  But again, many
+     bb checks might be faster than having to update the linked lists
+     everytime an object moves.
+
+]

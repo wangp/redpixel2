@@ -1,4 +1,27 @@
+2002-01-18  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* object.c, objgen.lua:
+	Removed player-only `jump' and `_ramp' variables from object
+	struc, and used the generic lua table instead.
+
+	* gamesrv.c, bindgen.lua, object.c, basic/basic-player.lua,
+	* basic/basic-base.lua:
+	Prefixed internal functions/variables that are somehow accessible
+	from Lua with "_internal".
+
+	* bindgen.lua, basic/basic-tilelike.lua, gamesrv.c, object.h,
+	* object.c:
+	Added support for ladders.
+
+	* netmsg.h, gameclt.c: Added DOWN as a possible input.
+
 2002-01-16  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* extdata.h:
+	Removed dependency on including allegro.h before including extdata.h.
+
+	* editor/menu.c:
+	Wasn't loading objects because I changed the parameters of map_load.
 
 	* blood.c: Changed colour of blood particles to less red and
 	closer to colours in death fountain anim.  Also cleaned up the

@@ -108,6 +108,7 @@ struct client {
     string_t name;
     int flags;
     int controls;
+    int old_controls;    
     float aim_angle;
     float last_sent_aim_angle;
     timeout_t timeout;
@@ -369,6 +370,7 @@ static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, 
     while (buf != end) {
 	switch (*buf++) {
 	    case MSG_CS_GAMEINFO_CONTROLS:
+		c->old_controls = c->controls;
 		buf += packet_decode (buf, "cf", &c->controls, &c->aim_angle);
 		break;
 
@@ -1020,55 +1022,70 @@ static void server_handle_client_controls ()
 	    continue;
 	}
 
-	/* left */
-	if (c->controls & CONTROL_LEFT) {
-/*  	    object_set_xv (obj, object_xv (obj) - 1.4); */
-/*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
-	    object_set_xa (obj, -2);
-	}
+	object_update_ladder_state (obj, map);
 
-	/* right */
-	else if (c->controls & CONTROL_RIGHT) {
-/*  	    object_set_xv (obj, object_xv (obj) + 1.4); */
-/*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
-	    object_set_xa (obj, +2);
+	/*
+	 * Left and right.
+	 */
+	switch (c->controls & (CONTROL_LEFT | CONTROL_RIGHT)) {
+	    case CONTROL_LEFT:
+		object_set_xa (obj, -2);
+		break;
+	    case CONTROL_RIGHT:
+		object_set_xa (obj, +2);
+		break;
+	    default:
+		object_set_xa (obj, 0);
 	}
-
-	else
-	    object_set_xa (obj, 0);
 	    
-	/* up */
-	if (c->controls & CONTROL_UP) {
-	    float jump = object_jump (obj);
+	/*
+	 * Up and down.
+	 */
+	switch (c->controls & (CONTROL_UP | CONTROL_DOWN)) {
 
-	    if (jump > 0) {
-/*  		object_set_yv (obj, object_yv (obj) - MIN (8, 20 / jump)); */
-/*  		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0); */
-/*  		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+	    case CONTROL_UP:
+		if (object_head_above_ladder (obj)) {
+		    object_set_ya (obj, -8);
+		    object_set_jump (obj, 4);
+		}
+		else if (object_in_ladder (obj)) {
+		    object_set_ya (obj, -4);
+		    object_set_jump (obj, 0);
+		}
+		else {
+		    int jump = object_jump (obj);
+		    if (jump > 0) {
+			object_set_ya (obj, object_ya (obj) - object_mass (obj) - 4/object_jump(obj));
+			object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
+		    }
+		    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
+			object_set_jump (obj, 1);
+		    }
+		}
+		break;
 
-		/* new jump based on accel */
-/*  		object_set_ya (obj, object_ya (obj) - object_mass (obj) - .7); */
-		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
-		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); /* XXX --- maybe this can be avoided */
-	    }
-	    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
-/*  		object_set_yv (obj, object_yv (obj) - 4); */
-/*  		object_set_jump (obj, 1); */
-/*  		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+	    case CONTROL_DOWN:
+		if (object_standing_on_ladder (obj) ||
+		    object_head_above_ladder (obj) ||
+		    object_in_ladder (obj)) {
+		    object_set_number (obj, "_internal_down_ladder", 1);
+		    object_set_ya (obj, 4);
+		}
+		break;
 
-		/* new jump based on accel */
-		object_set_ya (obj, object_ya (obj) - 15);
-		object_set_jump (obj, 1);
-		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
-	    }
+	    default:
+		object_set_jump (obj, 0);
+		/* test against old_controls to save a lua table lookup */		    
+		if (c->old_controls & CONTROL_DOWN)
+		    object_set_number (obj, "_internal_down_ladder", 0);
+		break;
 	}
-	else {
-	    object_set_jump (obj, 0);
-	}
-	
-	/* fire */
+
+	/*
+	 * Fire.
+	 */
 	if (c->controls & CONTROL_FIRE)
-	    object_call (obj, "_fire_hook");
+	    object_call (obj, "_internal_fire_hook");
     }
 }
 

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.15.23.59.58;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.08;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Wasn't loading objects because I changed the parameters of map_load.
 @
 text
 @/* menu.c
@@ -89,7 +94,7 @@ static void load ()
     if (!prompt_filename ("Load...", filename, "pit", sizeof filename))
 	return;
     
-    m = map_load (filename, 1, &warning);
+    m = map_load (filename, 0, &warning);
     if (!m)
 	prompt ("Error loading map", "&Ok", 0, 'o', 0);
     else {
@@ -174,4 +179,15 @@ void menu_uninstall ()
     ug_dialog_destroy (dialog);
     gui_window_destroy (window);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d70 1
+a70 1
+    m = map_load (filename, 1, &warning);
 @

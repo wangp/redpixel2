@@ -22,8 +22,8 @@ local player_nonproxy_init = function (self)
     -- some properties
     self.xv_decay = xv_decay
     self.yv_decay = yv_decay
-    self._ramp = 6
     self.mass = 0.9
+    self._internal_ramp = 6
 
     -- collision stuff
     object_set_collision_is_player (self)
@@ -47,7 +47,7 @@ local player_nonproxy_init = function (self)
 
     -- firing stuff
     self.fire_delay = 0
-    function self:_fire_hook ()
+    function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
 	    local w = self.current_weapon
 	    if w and w.can_fire (self) then
@@ -84,7 +84,7 @@ end
 --
 
 local animate_player_proxy = function (self)
-    if not _object_moving_horizontally (self) then
+    if not _internal_object_moving_horizontally (self) then
 	return
     end
     

@@ -14,7 +14,7 @@ mask_right = 4
 
 local dummy = function () end
 
-function _internal_object_init_hook (self)
+function _object_init_hook (self)
 
     self.set_update_hook = object_set_update_hook
     self.remove_update_hook = object_remove_update_hook

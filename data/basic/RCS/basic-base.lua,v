@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.6
+date	2002.01.17.14.27.32;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.15.10.16.54;	author tjaden;	state Exp;
@@ -35,9 +40,10 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Updated to Lua 4.1-work3.
+@Prefixed internal functions/variables that are somehow accessible from
+Lua with "_internal".
 @
 text
 @-- basic-base.lua -- XXX: rename this file?
@@ -56,7 +62,7 @@ mask_right = 4
 
 local dummy = function () end
 
-function _object_init_hook (self)
+function _internal_object_init_hook (self)
 
     self.set_update_hook = object_set_update_hook
     self.remove_update_hook = object_remove_update_hook
@@ -148,6 +154,17 @@ end
 function radian_to_bangle (rads)
     return rads * 128 / PI
 end
+@
+
+
+1.5
+log
+@Updated to Lua 4.1-work3.
+@
+text
+@d17 1
+a17 1
+function _object_init_hook (self)
 @
 
 

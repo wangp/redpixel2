@@ -1,9 +1,14 @@
-head	1.9;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.10
+date	2002.01.17.14.27.52;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.01.15.13.29.12;	author tjaden;	state Exp;
@@ -55,9 +60,10 @@ desc
 @@
 
 
-1.9
+1.10
 log
-@Made the spread parameter to spawn blood a float (instead of int).
+@Prefixed internal functions/variables that are somehow accessible from
+Lua with "_internal".
 @
 text
 @-- basic-player.lua
@@ -84,8 +90,8 @@ local player_nonproxy_init = function (self)
     -- some properties
     self.xv_decay = xv_decay
     self.yv_decay = yv_decay
-    self._ramp = 6
     self.mass = 0.9
+    self._internal_ramp = 6
 
     -- collision stuff
     object_set_collision_is_player (self)
@@ -109,7 +115,7 @@ local player_nonproxy_init = function (self)
 
     -- firing stuff
     self.fire_delay = 0
-    function self:_fire_hook ()
+    function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
 	    local w = self.current_weapon
 	    if w and w.can_fire (self) then
@@ -146,7 +152,7 @@ end
 --
 
 local animate_player_proxy = function (self)
-    if not _object_moving_horizontally (self) then
+    if not _internal_object_moving_horizontally (self) then
 	return
     end
     
@@ -254,6 +260,23 @@ Objtype {
 	death_fountain_update_hook (self) -- set the initial layer
     end
 }
+@
+
+
+1.9
+log
+@Made the spread parameter to spawn blood a float (instead of int).
+@
+text
+@a24 1
+    self._ramp = 6
+d26 1
+d50 1
+a50 1
+    function self:_fire_hook ()
+d87 1
+a87 1
+    if not _object_moving_horizontally (self) then
 @
 
 
