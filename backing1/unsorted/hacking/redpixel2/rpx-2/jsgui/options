@@ -1,0 +1,3 @@
+# FIXME: autodetect platform?
+
+include options.linux
