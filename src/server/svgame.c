@@ -6,6 +6,7 @@
 
 #include <math.h>
 #include <stdarg.h>
+#include <string.h>
 #include <allegro.h>
 #include "alloc.h"
 #include "error.h"

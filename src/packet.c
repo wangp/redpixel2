@@ -5,6 +5,7 @@
 
 
 #include <stdarg.h>
+#include <string.h>
 #ifndef TARGET_WINDOWS
 # include <netinet/in.h>
 #else
