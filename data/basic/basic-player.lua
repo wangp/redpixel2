@@ -35,22 +35,23 @@ local player_nonproxy_init = function (self)
     self:set_mask (mask_right, "/basic/player/mask/right", cx, cy)
 
     -- weapon stuff
-    self.current_weapon = weapons["basic-blaster"] -- XXX temp
+    self.have_weapon = {}
     function self:receive_weapon (weapon_name)
-	if not weapons[weapon_name] then
+	if weapons[weapon_name] then
 	    self.have_weapon[weapon_name] = 1
-	    if not self.current_weapon then
-		self.current_weapon = weapon[weapon_name]
-	    end
+--	    if not self.current_weapon then
+		self.current_weapon = weapons[weapon_name]
+--	    end
 	end
     end
+    self:receive_weapon ("basic-blaster")
 
     -- firing stuff
     self.fire_delay = 0
     function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
 	    local w = self.current_weapon
-	    if w and w.can_fire (self) then
+	    if w and (not w.can_fire or w.can_fire (self)) then
 		w.fire (self)
 	    end
 	end
