@@ -1,0 +1,8 @@
+# makefile options for Linux
+
+JSFLAGS = -DXP_UNIX -DJSFILE
+
+include options.common
+
+EXE = 
+LIBM = -lm
