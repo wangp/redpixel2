@@ -10,6 +10,7 @@
 #include "magic4x4.h"
 #include "messages.h"
 #include "store.h"
+#include "textout.h"
 #include "timeout.h"
 
 
@@ -72,29 +73,14 @@ void messages_shutdown (void)
 #define YMARGIN	2
 
 
-static void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf,
-				 int x, int y, int color)
-{
-    int len = text_length (font, buf);
-    int rtm = text_mode (-1);
-    BITMAP *tmp;
-
-    tmp = create_magic_bitmap (len, text_height (font));
-    clear_bitmap (tmp);
-    textout (tmp, font, buf, 0, 0, color);
-    draw_magic_sprite (bmp, tmp, x - len, y);
-    destroy_bitmap (tmp);
-
-    text_mode (rtm);
-}
-
-
 void messages_render (BITMAP *bmp)
 {
     int i, y, h;
     
     y = YMARGIN;
     h = text_height (fnt);
+
+    text_mode (-1);
 
     for (i = top_line; i < num_lines; i++, y += h)
 	textout_right_magic (bmp, fnt, lines[i], bmp->w/3 - XMARGIN, y,
