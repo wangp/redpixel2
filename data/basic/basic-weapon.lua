@@ -499,7 +499,7 @@ Standard_Projectile {
     name = "basic-vulcan-projectile",
     alias = "~vp",
     icon = "/basic/weapon/vulcan/projectile",
-    damage = 5,
+    damage = 7,
     sparks = 40,
 }
 
