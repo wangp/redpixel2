@@ -23,6 +23,10 @@ struct editarea_event {
 };
 
 
+extern int editarea_grid_x;
+extern int editarea_grid_y;
+
+
 void editarea_install (int x, int y, int w, int h);
 void editarea_uninstall ();
 void editarea_reset_offset ();
