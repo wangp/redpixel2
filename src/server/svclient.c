@@ -5,7 +5,7 @@
 
 
 #include <stdarg.h>
-#include <string.h>
+#include <allegro.h>
 #include "libnet.h"
 #include "alloc.h"
 #include "list.h"
@@ -35,7 +35,7 @@ svclient_t *svclient_create (NET_CONN *conn)
     svclient_t *c = alloc (sizeof *c);
     c->conn = conn;
     c->id = svclients_next_id++;
-    c->name = strdup ("(unknown)");
+    c->name = ustrdup ("(unknown)");
     list_append (svclients, c);
     return c;
 }
@@ -192,7 +192,7 @@ svclient_t *svclients_find_by_name (const char *name)
     svclient_t *c;
 
     for_each_svclient (c)
-	if (!strcasecmp (c->name, name)) return c;
+	if (!ustricmp (c->name, name)) return c;
 
     return NULL;
 }

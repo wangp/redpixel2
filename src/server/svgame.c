@@ -6,7 +6,7 @@
 
 #include <math.h>
 #include <stdarg.h>
-#include <string.h>
+#include <allegro.h>
 #include "alloc.h"
 #include "error.h"
 #include "list.h"
@@ -450,9 +450,6 @@ static void perform_single_game_state_feed (svclient_t *c)
  */
 
 
-#define ABS(x)	(((x) < 0) ? -(x) : (x))
-
-
 static void send_svclient_aim_angles (void)
 {
     svclient_t *c;
@@ -772,7 +769,7 @@ static void handle_new_svclient_feeds (void)
     svclients_broadcast_rdm_byte (MSG_SC_PAUSE);
 
     for_each_svclient (c) if (svclient_wantfeed (c)) {
-	server_log ("Feeding new svclient %s", c->name);
+	server_log ("Feeding new client %s", c->name);
 	perform_single_game_state_feed (c);
 
 	/* XXX */

@@ -5,7 +5,7 @@
 typedef char *string_t;
 
 #define string_init(var)	(var = NULL)
-#define string_set(var,str)	({ free (var); var = strdup (str); })
+#define string_set(var,str)	({ free (var); var = ustrdup (str); })
 #define string_free(var)	({ free (var); var = NULL; })
 
 
