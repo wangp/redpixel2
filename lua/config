@@ -43,8 +43,8 @@ WARN= -ansi -pedantic -Wall
 # You can also add -fomit-frame-pointer to get even faster code at the cost
 # of losing debug information.
 # If you only want the shared libraries, you may want to add -fPIC to MYCFLAGS
-MYCFLAGS= -O2
-#MYCFLAGS= -O3 -fomit-frame-pointer
+#MYCFLAGS= -O2
+MYCFLAGS= -O3 -fomit-frame-pointer
 
 # Write here any options you may need for your C linker.
 MYLDFLAGS=
