@@ -954,11 +954,11 @@ static void call_collide_hook (object_t *obj, object_t *touched_obj)
     lua_State *L = lua_state;
     int top = lua_gettop (L);
 
-    lua_pushobject (L, obj);
+    lua_getref (L, obj->table);
     lua_pushliteral (L, "collide_hook");
     lua_gettable (L, -2);
     if (lua_isfunction (L, -1)) {
-	lua_pushvalue (L, -2);
+	lua_pushobject (L, obj);
 	lua_pushobject (L, touched_obj);
 	lua_call (L, 2, 0);
     }
@@ -1358,11 +1358,11 @@ void object_call (object_t *obj, const char *method)
     lua_State *L = lua_state;
     int top = lua_gettop (L);
 
-    lua_pushobject (L, obj);
+    lua_getref (L, obj->table);
     lua_pushstring (L, method);
-    lua_gettable (L, -2);
+    lua_rawget (L, -2);
     if (lua_isfunction (L, -1)) {
-	lua_pushvalue (L, -2);
+	lua_pushobject (L, obj);
 	lua_call (L, 1, 0);
     }
 
@@ -1375,9 +1375,9 @@ float object_get_number (object_t *obj, const char *var)
     lua_State *L = lua_state;
     float val = 0.0;
 
-    lua_pushobject (L, obj);
+    lua_getref (L, obj->table);
     lua_pushstring (L, var);
-    lua_gettable (L, -2);
+    lua_rawget (L, -2);
     if (lua_isnumber (L, -1))
 	val = lua_tonumber (L, -1);
     lua_pop (L, 2);
@@ -1390,10 +1390,10 @@ void object_set_number (object_t *obj, const char *var, float value)
 {
     lua_State *L = lua_state;
 
-    lua_pushobject (L, obj);
+    lua_getref (L, obj->table);
     lua_pushstring (L, var);
     lua_pushnumber (L, value);
-    lua_settable (L, -3);
+    lua_rawset (L, -3);
     lua_pop (L, 1);
 }
 
@@ -1403,9 +1403,9 @@ const char *object_get_string (object_t *obj, const char *var)
     lua_State *L = lua_state;
     const char *str = NULL;
 
-    lua_pushobject (L, obj);
+    lua_getref (L, obj->table);
     lua_pushstring (L, var);
-    lua_gettable (L, -2);
+    lua_rawget (L, -2);
     if (lua_isstring (L, -1))
 	str = lua_tostring (L, -1);
     lua_pop (L, 2);
@@ -1418,10 +1418,10 @@ void object_set_string (object_t *obj, const char *var, const char *value)
 {
     lua_State *L = lua_state;
 
-    lua_pushobject (L, obj);
+    lua_getref (L, obj->table);
     lua_pushstring (L, var);
     lua_pushstring (L, value);
-    lua_settable (L, -3);
+    lua_rawset (L, -3);
     lua_pop (L, 1);
 }
 
