@@ -1,0 +1,63 @@
+#
+#  Example script for the EGG system, by Shawn Hargreaves.
+#
+#  This is a fire effect, similar to the Allegro ex11 program. The hotspot
+#  particles move randomly across the bottom of the screen, creating a
+#  constant stream of flame particles, which move upwards and gradually
+#  fade out.
+
+
+type flame
+{
+   size := 20;
+   aa := 1;
+
+   r := 255;
+   g := 200;
+   b := 100;
+   a := 128;
+
+   r = r*0.92;
+   g = g*0.88;
+   b = b*0.85;
+
+   y = y-2;
+
+   x = x+(rand-0.5)*3;
+   y = y+(rand-0.5)*3;
+
+   if (y < -64) {
+      die; 
+   }
+}
+
+
+type hotspot
+{
+   size := 16;
+   aa := 1;
+
+   r := 100;
+   g := 50;
+   b := 0;
+
+   y := 64;
+
+   x = x+(rand-0.5)*10;
+
+   if (x < -64) {
+      x = 64;
+   }
+
+   if (x > 64) {
+      x = -64;
+   }
+
+   lay flame { 
+      x = _x;
+      y = _y;
+   }
+}
+
+
+lay (24) hotspot;

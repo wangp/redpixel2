@@ -94,6 +94,7 @@ MODULES_GAME :=					\
 	camera					\
 	client					\
 	error					\
+	explo					\
 	extdata					\
 	fps					\
 	gameinit				\

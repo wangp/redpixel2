@@ -21,6 +21,13 @@ local cx, cy = 5, 5
 -- Non-proxy
 --
 
+local index_of = function (t, v)
+    for i, x in t do
+	if x == v then return i end
+    end
+    return false
+end
+
 local player_nonproxy_init = function (self)
     -- some properties
     self.xv_decay = xv_decay
@@ -44,7 +51,13 @@ local player_nonproxy_init = function (self)
 	if weapons[name] and not self.have_weapon[name] then
 	    self.have_weapon[name] = true
 	    if contains (weapon_auto_switch_order, name) then
-		self:switch_weapon (name)
+		if ((not self.current_weapon) or
+		    (not self.current_weapon.can_fire (self)) or
+		    (index_of (weapon_auto_switch_order, name) < 
+		     index_of (weapon_auto_switch_order, self.current_weapon.name)))
+		then
+		    self:switch_weapon (name)
+		end
 	    end
 	end
     end

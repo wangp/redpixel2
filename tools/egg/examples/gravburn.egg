@@ -1,0 +1,33 @@
+#
+#  Example script for the EGG system, by Shawn Hargreaves.
+#
+#  Similar concept to fireball.egg, but with the addition of gravity.
+
+
+type fragment
+{
+   size := 16;
+   aa := 1;
+
+   r := 255;
+   g := 255;
+   b := 255;
+
+   angle := rand*180;
+   speed := rand;
+
+   dx := cos(angle)*speed;
+   dy := -sin(angle)*speed*2;
+
+   x = x+dx;
+   y = y+dy;
+
+   dy = dy+0.04;
+
+   r = r*0.92;
+   g = g*0.88;
+   b = b*0.8;
+}
+
+
+lay (256) fragment;

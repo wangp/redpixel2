@@ -8,6 +8,7 @@
 #include <string.h>
 #include "alloc.h"
 #include "bitmask.h"
+#include "explo.h"
 #include "list.h"
 #include "map.h"
 #include "object.h"
@@ -23,6 +24,7 @@ struct map {
     list_head_t objects;
     list_head_t starts;
     particles_t *particles;
+    list_head_t explosions;
 };
 
 
@@ -38,6 +40,8 @@ map_t *map_create (int is_client)
 
     if (is_client)
 	map->particles = particles_create ();
+
+    list_init (map->explosions);
 
     return map;
 }
@@ -59,6 +63,8 @@ void map_destroy (map_t *map)
     list_free (map->starts, map_start_destroy);
 
     particles_destroy (map->particles);
+
+    list_free (map->explosions, explosion_destroy);
     
     free (map);
 }
@@ -291,7 +297,6 @@ start_t *map_start_create (map_t *map, int x, int y)
     return p;
 }
 
-
 void map_start_destroy (start_t *start)
 {
     list_remove (start);
@@ -331,4 +336,50 @@ list_head_t *map_start_list (map_t *map)
 particles_t *map_particles (map_t *map)
 {
     return map->particles;
+}
+
+
+
+/* Explosions.  */
+
+
+void map_explosion_create (map_t *map, const char *name, int x, int y)
+{
+    explosion_t *e = explosion_create (name, x, y);
+
+    if (e)
+	list_add (map->explosions, e);
+}
+
+
+void map_explosions_update (map_t *map)
+{
+    explosion_t *e, *next;
+    
+    for (e = map->explosions.next; list_neq (e, &map->explosions); e = next) {
+	next = list_next (e);
+	if (explosion_update (e) < 0) {
+	    list_remove (e);
+	    explosion_destroy (e);
+	}
+    }
+}
+
+
+void map_explosions_draw (map_t *map, BITMAP *dest, int offset_x, int offset_y)
+{
+    explosion_t *e;
+
+    list_for_each (e, &map->explosions)
+	explosion_draw (dest, e, offset_x, offset_y);
+}
+
+
+void map_explosions_draw_lights (map_t *map, BITMAP *dest,
+				 int offset_x, int offset_y)
+{
+    explosion_t *e;
+
+    list_for_each (e, &map->explosions)
+	explosion_draw_lights (dest, e, offset_x, offset_y);
 }

@@ -1,10 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
-locks
-	tjaden:1.7; strict;
+locks; strict;
 comment	@# @;
 
+
+1.8
+date	2002.01.26.11.54.32;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.01.24.07.19.44;	author tjaden;	state Exp;
@@ -46,9 +50,9 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Changes following cleanup of server and client sources.
+@Added support for explosion graphics.
 @
 text
 @##
@@ -68,8 +72,7 @@ LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
-CFLAGS += -O2
-# -fomit-frame-pointer -funroll-loops
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
 else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
@@ -148,6 +151,7 @@ MODULES_GAME :=					\
 	camera					\
 	client					\
 	error					\
+	explo					\
 	extdata					\
 	fps					\
 	gameinit				\
@@ -273,6 +277,19 @@ suidroot:
 ##
 ## End of Makefile
 ##
+@
+
+
+1.7
+log
+@Changes following cleanup of server and client sources.
+@
+text
+@d18 1
+a18 2
+CFLAGS += -O2
+# -fomit-frame-pointer -funroll-loops
+d97 1
 @
 
 

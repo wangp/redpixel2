@@ -21,8 +21,7 @@ enum {
     /* The server sends this to a client right after it joins to
        notify it of its registration details.
        
-       Args: long client_id.
-     */
+       Args: long client_id.  */
 
     MSG_SC_JOININFO = 'j',
 
@@ -30,7 +29,7 @@ enum {
     /* The client sends this to the server after it joins and receives
        the MSG_SC_POST_JOIN message.
 
-       Args: char protocol_version, long len, char name[].
+       Args: char protocol_version, string name.
      */
 
     MSG_CS_JOININFO = 'J',
@@ -90,7 +89,7 @@ enum {
     /* The client sends this to the server to request sending a text
        message to all clients.
 
-       Args: long len, byte text[].
+       Args: string text.
     */
 
     MSG_CS_TEXT = 't',
@@ -99,7 +98,7 @@ enum {
     /* The server broadcasts this to clients to tell them to display a
        text message.
 
-       Args: long len, byte text[].
+       Args: string text.
     */
 
     MSG_SC_TEXT = 'T',
@@ -165,7 +164,7 @@ enum {
 
     /* Notify server of wish to change weapon.
 
-       Args: long len, byte weapon_name[].
+       Args: string weapon_name.
      */
 
     MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w'
@@ -178,7 +177,7 @@ enum {
     
     /* Tell clients to load a map.
 
-       Args: long len, string filename.
+       Args: string filename.
      */
 
     MSG_SC_GAMEINFO_MAPLOAD = 'l',
@@ -186,13 +185,13 @@ enum {
 
     /* Tell clients to create a new object.
 
-       Args: long len, char type[], long object_id, byte hidden_or_not,
+       Args: string type, long object_id, byte hidden_or_not,
 	     float x, float y, float xv, float yv, byte collision_tag.
 
        This is followed by extra fields for the proxy object.
        Each field is of the following format:
 
-       For a float: 'f', long len, char name[], float value
+       For a float: 'f', string name, float value
 
        The packet is terminated with a null character.
      */
@@ -227,7 +226,7 @@ enum {
 
     /* Tell clients to call an object method.
 
-       Args: long object_id, long len, byte method[], long len2, byte arg[].
+       Args: long object_id, string method, string arg.
      */
 
     MSG_SC_GAMEINFO_OBJECT_CALL = 'C',
@@ -256,7 +255,15 @@ enum {
        Args: float x, float y, long nparticles.
      */
 
-    MSG_SC_GAMEINFO_BLOD_CREATE = 'B'
+    MSG_SC_GAMEINFO_BLOD_CREATE = 'B',
+
+
+    /* Tell clients to create an explosion.
+
+       Args: string name, float x, float y, long nparticles.
+     */
+
+    MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e'
 };
 
 

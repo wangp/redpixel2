@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.26.11.55.32;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.24.07.12.14;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added support for explosion graphics.
 @
 text
 @#ifndef __included_svgame_h
@@ -39,6 +44,7 @@ void svgame_spawn_blood (float x, float y, long nparticles, float spread);
 void svgame_spawn_sparks (float x, float y, long nparticles, float spread);
 void svgame_spawn_respawn_particles (float x, float y, long nparticles, float spread);
 void svgame_spawn_blod (float x, float y, long nparticles);
+void svgame_spawn_explosion (const char *name, float x, float y);
 void svgame_call_method_on_clients (struct object *obj, const char *method, const char *arg);
 int svgame_object_would_collide_with_objects (struct object *obj);
 
@@ -47,4 +53,13 @@ extern struct server_state_procs *svgame_procs;
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d20 1
 @

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.26.12.14.50;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Use shorts instead of longs to specify lengths of strings in packets.
 @
 text
 @/* packet.c
@@ -38,7 +43,19 @@ text
 #endif
 
 
-static long get_long (const unsigned char *buf)
+static inline short get_short (const unsigned char *buf)
+{
+    return ntohs (*((short *) buf));
+}
+
+
+static inline void put_short (unsigned char *buf, short s)
+{
+    *((short *) buf) = htons (s);
+}
+
+
+static inline long get_long (const unsigned char *buf)
 {
     return ntohl (*((long *) buf));
 }
@@ -97,11 +114,11 @@ int packet_encode_v (unsigned char *buf, const char *fmt, va_list ap)
 
 	case 's': {
 	    const char *str;
-	    long len;
+	    short len;
 		
 	    str = va_arg (ap, const char *);
 	    len = strlen (str);
-	    put_long (buf, len); buf += 4;
+	    put_short (buf, len); buf += 2;
 	    memcpy (buf, str, len); buf += len;
 	    break;
 	}
@@ -138,11 +155,11 @@ int packet_decode (const unsigned char *buf, const char *fmt, ...)
 
 	case 's': {
 	    /* XXX possible buffer overflow */
-	    long *len;
+	    short *len;
 	    char *s;
 
-	    len = va_arg (ap, long *);
-	    *len = get_long (buf); buf += 4;
+	    len = va_arg (ap, short *);
+	    *len = get_short (buf); buf += 2;
 	    s = va_arg (ap, char *);
 	    memcpy (s, buf, *len);
 	    s[*len] = '\0';
@@ -187,4 +204,28 @@ int main ()
 }
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d19 13
+a31 1
+static long get_long (const unsigned char *buf)
+d90 1
+a90 1
+	    long len;
+d94 1
+a94 1
+	    put_long (buf, len); buf += 4;
+d131 1
+a131 1
+	    long *len;
+d134 2
+a135 2
+	    len = va_arg (ap, long *);
+	    *len = get_long (buf); buf += 4;
 @

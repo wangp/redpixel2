@@ -1,3 +1,13 @@
+2002-01-26  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-tilelike.lua: Made crates spawn explosion and sparks when
+	destroyed.  Also made barrels shootable.
+
+	* basic-init.lua, svgame.h, svgame.c, render.c, netmsg.h, map.h,
+	* map.c, gameinit.c, client.c, bindings.c, bindgen.lua,
+	* explo.h, explo.c, basic-explosion.lua:
+	Added support for explosion graphics.
+
 2002-01-25  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* messages.c:

@@ -1,9 +1,14 @@
-head	1.30;
+head	1.31;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.31
+date	2002.01.26.13.03.30;	author tjaden;	state Exp;
+branches;
+next	1.30;
 
 1.30
 date	2002.01.23.14.07.59;	author tjaden;	state Exp;
@@ -160,9 +165,10 @@ desc
 @@
 
 
-1.30
+1.31
 log
-@Added auto weapon switching.
+@When picking up a new weapon, don't switch to it unless it is better
+than the current weapon, or the current weapon is out of ammo.
 @
 text
 @-- basic-player.lua
@@ -188,6 +194,13 @@ local cx, cy = 5, 5
 -- Non-proxy
 --
 
+local index_of = function (t, v)
+    for i, x in t do
+	if x == v then return i end
+    end
+    return false
+end
+
 local player_nonproxy_init = function (self)
     -- some properties
     self.xv_decay = xv_decay
@@ -211,7 +224,13 @@ local player_nonproxy_init = function (self)
 	if weapons[name] and not self.have_weapon[name] then
 	    self.have_weapon[name] = true
 	    if contains (weapon_auto_switch_order, name) then
-		self:switch_weapon (name)
+		if ((not self.current_weapon) or
+		    (not self.current_weapon.can_fire (self)) or
+		    (index_of (weapon_auto_switch_order, name) < 
+		     index_of (weapon_auto_switch_order, self.current_weapon.name)))
+		then
+		    self:switch_weapon (name)
+		end
 	    end
 	end
     end
@@ -636,6 +655,18 @@ Objtype {
 	end
     end
 }
+@
+
+
+1.30
+log
+@Added auto weapon switching.
+@
+text
+@d24 7
+d54 7
+a60 1
+		self:switch_weapon (name)
 @
 
 

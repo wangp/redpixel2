@@ -187,8 +187,10 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
 	    object_do_physics (obj, map);
     }
 
-    for (i = 0; i < delta_ticks; i++)
+    for (i = 0; i < delta_ticks; i++) {
 	particles_update (map_particles (map), map);
+	map_explosions_update (map);
+    }
 }
 
 
@@ -308,7 +310,7 @@ static const uchar_t *NAME (const uchar_t *buf)
 SC_GAMEINFO_HANDLER (sc_mapload)
 {
     char filename[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     
     buf += packet_decode (buf, "s", &len, filename);
     if (map)
@@ -325,7 +327,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     int top = lua_gettop (L);
     
     char type[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     objid_t id;
     char hidden;
     float x, y;
@@ -367,7 +369,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     {
 	char type;
 	char name[NETWORK_MAX_PACKET_SIZE];
-	long len;
+	short len;
 	float f;
 		    
 	do {
@@ -452,9 +454,9 @@ SC_GAMEINFO_HANDLER (sc_object_hidden)
 SC_GAMEINFO_HANDLER (sc_object_call)
 {
     long id;
-    long method_len;
+    short method_len;
     char method[NETWORK_MAX_PACKET_SIZE];
-    long arg_len;
+    short arg_len;
     char arg[NETWORK_MAX_PACKET_SIZE];
     object_t *obj;
 		
@@ -520,6 +522,20 @@ SC_GAMEINFO_HANDLER (sc_blod_create)
 }
 
 
+SC_GAMEINFO_HANDLER (sc_explosion_create)
+{
+    char name[NETWORK_MAX_PACKET_SIZE];
+    short len;
+    float x;
+    float y;
+    
+    buf += packet_decode (buf, "sff", &len, name, &x, &y);
+    map_explosion_create (map, name, x, y);
+
+    return buf;
+}
+
+
 static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 {
     const void *end = buf + size;
@@ -564,6 +580,10 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 
 	    case MSG_SC_GAMEINFO_BLOD_CREATE:
 		buf = sc_blod_create (buf);
+		break;
+
+	    case MSG_SC_GAMEINFO_EXPLOSION_CREATE:
+		buf = sc_explosion_create (buf);
 		break;
 
 	    default:
@@ -930,7 +950,7 @@ void client_run (void)
 
 			case MSG_SC_TEXT: {
 			    char string[NETWORK_MAX_PACKET_SIZE];
-			    long len;
+			    short len;
 			    
 			    packet_decode (buf+1, "s", &len, string);
 			    messages_add ("%s", string);

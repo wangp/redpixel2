@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.26.11.55.51;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.13.22;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added support for explosion graphics.
 @
 text
 @-- basic-init.lua
@@ -32,4 +37,14 @@ dofile ("basic/basic-tilelike.lua")
 dofile ("basic/basic-powerup.lua")
 dofile ("basic/basic-weapon.lua")
 dofile ("basic/basic-player.lua")
+dofile ("basic/basic-explosion.lua")
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 1
 @

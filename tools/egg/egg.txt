@@ -1,0 +1,722 @@
+
+
+	      EGG 1.1 - the Explosion Graphics Generator
+	      ------------------------------------------
+
+
+		 A particle system script interpreter.
+
+		      By Shawn Hargreaves, 1998.
+
+		  Updated June 1999 to work with MSVC.
+
+		 Updated July 1999 to work under Linux.
+
+                           v1.1 December 1999
+
+
+
+
+
+#include <std_disclaimer.h>
+
+   "I do not accept responsibility for any effects, adverse or otherwise, 
+    that this code may have on you, your computer, your sanity, your dog, 
+    and anything else that you can think of. Use it at your own risk."
+
+
+
+======================================
+============ Introduction ============
+======================================
+
+   This program allows you to implement particle system graphics effects by 
+   writing simple ASCII script files. It is not at all optimised and 
+   therefore runs quite slowly, so it isn't suitable for realtime use, but 
+   it may be useful for making prerendered animations, as a testbed for 
+   designing effects that you will later reimplement in more efficient 
+   native C code, or as a library that can be linked into your program and 
+   used to generate some graphics when the program initialises.
+
+   I chose the name EGG partly because that is an acronym for "Explosion 
+   Graphics Generator", but mostly because I've always wanted to have a type 
+   of file with a .egg extension :-)
+
+   This program is freeware. You may do anything you like with it.
+
+   If you come up with any really cool scripts, it would be great if you 
+   could send them to me for inclusion in future versions of the package.
+
+
+
+======================================
+============ Installation ============
+======================================
+
+   EGG is distributed as source code, so the first step is to compile it.
+
+   The build process requires a working copy of DJGPP version 2.0 or 
+   greater, and Allegro version 3.9.18 or greater. If you don't already have 
+   these, they can be obtained from http://www.delorie.com/djgpp/ and 
+   http://www.talula.demon.co.uk/allegro respectively.
+
+   Assuming that you have unzipped EGG into a unique directory, eg. c:\egg, 
+   change into that directory and type "make". That's it!
+
+   To compile a Windows version using MSVC, run "make msvc".
+
+   To compile a Linux version, run "make linux".
+
+   Running "make clean" will delete all the temporary files that were 
+   generated during the build process, and if you want to distribute a 
+   modified version, "make zip" will create an archive of all the important 
+   files (this target requires the InfoZip zip and unzip programs to be 
+   installed on your machine).
+
+
+
+==============================================
+============ The EGGSHELL program ============
+==============================================
+
+   To run an EGG script and view the resulting graphics, you can use the 
+   EGGSHELL program. The simplest way to do this is to pass the name of an 
+   EGG script (which have a .egg extension) on the command line, in which 
+   case it will generate and display a sequence of frames, going as quickly 
+   as possible. Example command line:
+
+      eggshell script.egg
+
+   If you want to slow things down to see what is going on, you can add the 
+   -step option, which will cause it to wait for a keypress after each frame 
+   is displayed, eg:
+
+      eggshell script.egg -step
+
+   If you want more control over the playback, or if the script is running 
+   too slowly (this will often be a problem with complex sequences), you can 
+   tell the utility to pregenerate a whole sequence of frames and then 
+   display them in the more flexible animation viewer. To do this, you must 
+   specify how many frames to create, and use the -pregen switch, eg:
+
+      eggshell script.egg -frames 100 -pregen
+
+   Once in the animation viewer, you can use the arrow keys to move forward 
+   or backward one frame at a time, and the space bar to toggle playback on 
+   or off. The home/end keys move to the start and finish of the animation 
+   respectively, and pgup/pgdn alters the playback speed (specified in 
+   frames per second).
+
+   If you want to export graphics that can then be used with other programs, 
+   use the -o switch to specify an output filename, eg:
+
+      eggshell script.egg -frames 100 -o myfile
+
+   This will generate a sequence of numbered frames using filenames in the 
+   form myfile000.tga, myfile001.tga, etc.
+
+   By default, the generated graphics will be sized 128x128. You can alter 
+   this using the -size option, eg:
+
+      eggshell script.egg -size 48 100
+
+   If you don't specify a color depth, EGGSHELL will try to detect the 
+   highest possible video mode that your computer supports in 640x480 mode, 
+   trying first 32, then 24, 16, 15, and 8. You can select any other color 
+   depth with the -bpp switch, eg:
+
+      eggshell script.egg -bpp 15
+
+   When generating a 256 color paletted image, you can use the -pal option 
+   to specify which palette should be used during the color reduction 
+   process. Palettes can be read from 256 color BMP, LBM, PCX, and TGA 
+   files, for example:
+
+      eggshell script.egg -pal colors.pcx
+
+   By default, EGGSHELL will display the output using a 640x480 SVGA video 
+   mode, but you can specify any other screen resolution with the -mode 
+   switch, eg:
+
+      eggshell script.egg -mode 320 200
+
+   If the video card autodetection doesn't work properly on your machine, 
+   you may wish to use the Allegro mode selection dialog to choose a 
+   specific resolution, color depth, and video driver. This is done with the 
+   -modesel switch, eg:
+
+      eggshell script.egg -modesel
+
+   Useful tip: when using EGG to prerender graphics, you may find that you 
+   get much better results by creating them at a much larger size than you 
+   actually desire and then shrinking down the resulting image in Photoshop, 
+   or by applying some Photoshop filters to the output of the EGG system.
+
+   You may want to generate your animations in several 'slices', for example
+   to get a background part and a foreground part. This may be done by using
+   the -plane switch, specifying where to cut the animation. The following
+   example will generate two animations, one with all particles with depth
+   less than 0.5, the other one with all particles with depth more than 0.5.
+
+      eggshell script.egg -plane 0.5
+
+   Several planes can be set by using multiple -plane options: to divide an
+   animation into four 'stripes', you can use:
+
+      eggshell script.egg -plane -0.8 -plane -0.0 -plane 0.2
+
+
+
+=========================================
+============ Writing scripts ============
+=========================================
+
+   An EGG script is written as an ASCII text file with a .egg extension. 
+   Like C, this is a freeform language, so you can insert whatever spacing 
+   and indentation you like to make the layout more attractive.
+
+   Comments begin with a # character, and continue to the end of the line.
+
+   The language is case-insensitive, so you can use any mixture of upper and 
+   lowercase characters.
+
+   The fundamental building block of an EGG animation is the particle, which 
+   is a (usually small) blob that can move around the screen in whatever way 
+   you desire. A script can define any number of particle types, specifying 
+   the commands to control each one, and can then create any number of 
+   instances of each particle type. You can create particles either globally 
+   when the script initialises, or from within other particles in response 
+   to specific events.
+
+
+
+=========================================
+============ Script commands ============
+=========================================
+
+   The 'type' command
+   ------------------
+
+      Syntax:
+
+	 type <typename>
+	 {
+	    <commands>
+	 }
+
+      This defines a new type of particle. The type name can be of any 
+      length, and may contain alphabetic characters and '_' characters. The 
+      supplied list of commands will be used to control the behaviour of 
+      this type of particle, and can use any of the constructs listed below 
+      (it isn't possible to nest type definitions inside each other, 
+      though).
+
+
+   The initialisation command
+   --------------------------
+
+      Syntax:
+
+	 <var> := <value>;
+
+      This is used to specify the initial value of a variable, and will be 
+      executed only once when a particle is created. The variable name can 
+      be of any length, and may contain alphabetic characters and '_' 
+      characters. The value can be any arithmetic expression.
+      Such initializations can only be made at the top level of a particle
+      declaration (eg not in an if or a while construct).
+
+
+   The assignment command
+   ----------------------
+
+      Syntax:
+
+	 <var> = <value>;
+
+      This is used to modify the value of a variable, and will be executed 
+      once for every frame while the particle is active. The variable name 
+      can be of any length, and may contain alphabetic characters and '_' 
+      characters. The value can be any arithmetic expression.
+
+
+   The 'if/else' command
+   ---------------------
+
+      Syntax:
+
+	 if (expression) {
+	    <commands>
+	 }
+
+      or:
+
+	 if (expression) {
+	    <commands>
+	 }
+	 else {
+	    <commands>
+	 }
+
+      This is used to conditionally execute a block of commands based on the 
+      result of a boolean expression (as in C, zero represents false and 
+      nonzero is true).
+
+
+   The 'while' command
+   -----------------
+
+      Syntax:
+
+	 while (expression) {
+            <commands>
+         }
+
+      This command executes a block of commands while the boolean expression
+      is true (as in C, zero represents false and nonzero is true).
+
+
+   The 'lay' command
+   -----------------
+
+      Syntax:
+
+	 lay <typename>;
+
+      or:
+
+	 lay (<num>) <typename>;
+
+      or:
+
+	 lay <typename> {
+	    <commands>
+	 }
+
+      or:
+
+	 lay (<num>) <typename> {
+	    <commands>
+	 }
+
+      This command creates new particle(s). The type name must refer to a 
+      particle type which has been defined using a 'type' statement 
+      somewhere in the current script, although it is possible for the 
+      particle creation to be located earlier in the file than the type 
+      definition.
+
+      If the optional bracketed number is present, this specifies how many 
+      particles to create (it may be any arithmetic expression). If it is 
+      omitted, only one particle will be created.
+
+      If a list of commands is included, these will be executed once just 
+      after the particle is created, allowing you to customise this 
+      particle. Any variable references in this block of code will refer to 
+      the new particle: if you want to access variables belonging to the 
+      parent particle, prefix them with a leading '_'.
+
+
+   The 'die' command
+   -----------------
+
+      Syntax:
+
+	 die;
+
+      This command gets rid of a particle when it is no longer required. No 
+      subsequent commands will be interpreted, and the particle will 
+      instantly be stomped upon, flushed down the drain, and removed from 
+      the display.
+
+
+   The 'srand' command
+   -----------------
+
+      Syntax:
+
+	 srand(<num>);
+
+      This command reinitializes the random number generator with the given
+      value. This is particularly useful for generating looping animations,
+      where the particles must move in a cyclic fashion.
+
+
+
+=====================================
+============ Expressions ============
+=====================================
+
+   Numbers may be written in decimal (eg. 42, 1.2345) or in hex (eg. 
+   0xDEADBEEF). Variables are referenced directly by name. Boolean logic 
+   works identically to C, with zero representing false and nonzero being 
+   true.
+
+
+   Binary operators:
+
+      +        addition
+      -        subtraction (may be unary negation, depending on context)
+      *        multiplication
+      /        division
+      ^        raising to a power
+      %        integer modulus (remainder after division)
+      |        logical 'or'
+      &        logical 'and'
+      ==       equality test
+      !=       inequality test
+      <        less than test
+      <=       less than or equal to test
+      >        greater than test
+      >=       greater than or equal to test
+
+
+   Unary operators:
+
+      -        negation (may be binary subtraction, depending on context)
+      !        logical 'not'
+      sqrt     square root
+      sin      sine (angle in degrees)
+      cos      cosine (angle in degrees)
+      tan      tangent (angle in degrees)
+      asin     inverse sine (angle in degrees)
+      acos     inverse cosine (angle in degrees)
+      atan     inverse tangent (angle in degrees)
+      log      base 10 logarithm
+      ln       natural logarithm
+      ceil     round up to the next larger integer
+      floor    round down to the next smaller integer
+      round    round to the closest integer
+      abs      absolute value
+
+
+   Special values: 
+
+      rand     a random number between zero and one (inclusive)
+      pi       3.14159...
+      e        2.71828...
+
+
+   Operator precedence (lowest at the top):
+
+      |  &
+      <  >  ==  !=  <=  >=
+      +  -
+      *  /  %
+      ^
+      !  sqrt sin cos tan asin acos atan log ln ceil floor round abs
+
+
+   Differences from C syntax:
+
+      The ^ operator raises a number to a power. There is no XOR facility.
+
+      The boolean logic operators are written with single | and & character, 
+      rather than || and &&. There are no binary logical operators.
+
+      The trig routines work with angles in degrees, rather than radians.
+
+      The 'log' routine returns a base 10 logarithm, and 'ln' returns a 
+      natural logarithm, unlike C where 'log' is a natural logarithm and 
+      'log10' is a base 10 logarithm.
+
+      EGG does not explicitly support function calls. Instead, what look 
+      like functions are implemented as high priority unary operators. This 
+      has an almost identical effect, but it means that it is technically 
+      possible to omit the usual brackets from these, allowing you to write 
+      "sqrt 10" in the place of "sqrt(10)".
+
+
+
+===================================
+============ Variables ============
+===================================
+
+   Variable names can be any length, and may contain alphabetic and '_' 
+   characters. They do not need to be declared prior to use, and any 
+   values which have not yet been set will be assumed to contain zero 
+   (except for a few variables which have special meanings and default 
+   values: see below).
+
+   When running the commands from inside a particle type definition, most 
+   variables have local scope, ie. they are specific to this particular 
+   particle. If the variable name has a leading '_', though, it will be 
+   treated as a global variable, which can be accessed by all particles.
+
+   When running global commands which are not inside any particle 
+   definition, you can only access global variables (those which have a 
+   leading '_').
+
+   When running the commands that are nested inside a "lay" particle 
+   creation, direct variable accesses will refer to the particle that has 
+   just been created. If the variable name has a leading '_', though, it 
+   will refer to the parent particle, ie. the one that is doing the 
+   creating. For example, if you wanted to make a new particle in the same 
+   position as the one which is currently running, you could write "x = _x; 
+   y = _y" inside the "lay" block.
+
+   The EGG system uses a number of special variables to represent the way in 
+   which a particle is drawn, and you can control the state of a particle by 
+   modifying these values. All other variable names are free to be used for 
+   whatever you like. The variables with special meanings are:
+
+
+   x, y     - default 0
+
+      Specify the position of the particle. Zero is the centre of the 
+      animation, x increases to the right, and y increases downwards.
+
+
+   z        - default 0
+
+      Specifies the depth of the particle. Altering this value will 
+      introduce 3d perspective effects, and will also control the order in 
+      which particles are drawn (further away ones are sorted to the back).
+
+
+   size     - default 1
+
+      Specifies the size of the particle.
+
+
+   aa       - default 0
+
+      If set to a nonzero value, the particle will be drawn in antialised 
+      mode. This softens it out around the edges which usually looks much 
+      better for large particles, but may cause very small particles to 
+      flicker or get lost altogether if they fall part way between two pixel 
+      positions.
+
+
+   focus    - default 1
+
+      This only has effect when the particle is being antialised. It 
+      controls the falloff rate towards the edge of the particle, allowing 
+      you to adjust between a very soft edge and a harder, more solid 
+      outline.
+
+
+   r, g, b  - default 255
+
+      Sets the color of the particle, ranging from 0 to 255.
+
+
+   a        - default 255
+
+      Sets the alpha (solidity) of the particle, ranging from 0 to 255.
+
+
+   add      - default 1
+
+      If set to a nonzero value, the particle will be drawn in additive 
+      color mode, where the particle RGB value is added to the existing 
+      color at that location.
+
+
+   mul      - default 0
+
+      If set to a nonzero value and the add flag is cleared, the particle 
+      will be drawn in multiplicative color mode, where the particle RGB 
+      value is multiplied with the existing color at that location.
+
+
+   sub      - default 0
+
+      If set to a nonzero value and the add and mul flags are cleared, the 
+      particle will be drawn in subtractive color mode, where the particle 
+      RGB value is subtracted from the existing color at that location.
+
+
+   If none of the add, mul, and sub flags are set, the particle will be 
+   drawn in normal translucent mode, where the particle alpha value is used 
+   to interpolate between the particle RGB and the existing color at that 
+   location.
+
+
+   id       - unique
+
+      A special read-only variable, containing an ID number that is unique 
+      for each particle. The first particle to be created will have an ID of 
+      1, the second will be 2, etc.
+
+
+   _scale   - default 1
+
+      Global variable, shared between all particles. This specifies a 
+      scaling factor to make the entire output image larger or smaller.
+
+
+   _dist    - default 100
+
+      Global variable, shared between all particles. This controls the 
+      position of the camera along the z axis, so you can move it closer in 
+      or further away from the animation.
+
+
+   _fov     - default 1
+
+      Global variable, shared between all particles. This controls the field 
+      of view for the 3d projection, allowing you to select a telephoto or 
+      fisheye lens.
+
+
+   _frame   - variable
+
+      Special read-only global variable, containing the current animation 
+      frame number.
+
+
+   _count   - variable
+
+      Special read-only global variable, containing the number of particles 
+      that are currently active.
+
+
+
+=====================================
+============ The EGG API ============
+=====================================
+
+   If you want to link the EGG interpreter directly into a program of your 
+   own, you should #include "egg.h" and link with libegg.a (this must come 
+   before Allegro in your linker command line). This will give you access to 
+   the functions:
+
+
+   EGG *load_egg(char *filename, char *error);
+
+      Reads and tokenises an EGG script from the specified disk file, 
+      returning a pointer to a structure describing the script. If an error 
+      occurs, it will return NULL and store a description of the problem in 
+      the provided error buffer, which should have room for at least 80 
+      characters.
+
+
+   EGG *use_egg(void *data, int length, char *error);
+
+      Tokenises an EGG script which has already been loaded into memory, 
+      returning a pointer to a structure describing the script. If an error 
+      occurs, it will return NULL and store a description of the problem in 
+      the provided error buffer, which should have room for at least 80 
+      characters.
+
+
+   void destroy_egg(EGG *egg);
+
+      Removes an EGG script from memory.
+
+
+   int update_egg(EGG *egg, char *error);
+
+      Advances to the next frame of the specified EGG script animation. If 
+      an error occurs, it will return a nonzero value and store a 
+      description of the problem in the provided error buffer, which should 
+      have room for at least 80 characters.
+
+
+   void lay_egg(EGG *egg, BITMAP *bmp);
+
+      Renders the current animation frame into the provided Allegro bitmap 
+      structure. The size and color depth of the bitmap control the format 
+      of the output, and if it is an 8 bit image, color reduction will be 
+      done using the currently selected palette.
+
+
+   double evaluate(char *equation, int *error, double (*var)(char *name));
+
+      Helper function for evaluating arithmetic expressions, which may be 
+      useful in your own programs (if you want to pinch this, you actually 
+      only need to link with eval.c rather than the entire libegg.a). It 
+      evaluates the provided equation, returning the result, and storing a 
+      nonzero value in error if anything goes wrong. If the var function is 
+      not NULL, this will be called whenever a variable is encountered in 
+      the equation, allowing you to look up and return a suitable value for 
+      it.
+
+
+
+=================================
+============ History ============
+=================================
+
+
+   Version 1.0
+
+      Original version, by Shawn Hargreaves.
+      Runs on DOS, Linux, and Windows
+
+
+   Version 1.1
+
+      Added alpha channel output.
+      Added support for tileable images, as well as a two file example,
+        examples/firemid.egg and examples fireedge.egg to demonstrate it.
+      Added the 'srand' keyword, useful for looping animations.
+      Added possibility to specify which frames to save, most notably to
+        allow a time of setup for animations which require it.
+      Added planes.
+      Added the 'while' keyword.
+
+
+
+===============================
+============ Files ============
+===============================
+
+   egg.mft                 - list of all files in the package
+
+   egg.txt                 - this document
+
+   makefile                - script for building the package
+
+   egg.h                   - structure definitions and function prototypes
+
+   eval.c                  - arithmetic expression evaluator
+   interp.c                - interprets the tokenised script format
+   load.c                  - reads a script into the tokenised memory format
+   render.c                - graphical output routines
+   unload.c                - frees memory when a script is no longer required
+   var.c                   - helpers for accessing and setting variables
+
+   evaltest.c              - test program for the code in eval.c
+
+   eggshell.c              - utility program for running scripts
+
+   examples/fireball.egg   - a very simple example script
+   examples/gravburn.egg   - using gravity and trig functions
+   examples/shock.egg      - specifying parameters when creating particles
+   examples/wheel.egg      - using one particle to create others on the fly
+   examples/burn.egg       - multiple particles that create others
+   examples/stars.egg      - a simple 3d effect
+   examples/orbit.egg      - a more complex 3d effect
+   examples/firework.egg   - interaction between several types of particle
+   examples/spiral.egg     - enhanced version of wheel.egg, by Arron Shutt
+   examples/comet.egg      - comet effect, by Jason Wilkins
+   examples/firemid.egg    - fire, showing the use of tileable animations, 1/2
+   examples/fireedge.egg   - fire, showing the use of tileable animations, 2/2
+
+
+
+======================================
+============ Contact info ============
+======================================
+
+   Shawn Hargreaves is the original author of EGG:
+
+   WWW:                 http://www.talula.demon.co.uk/
+
+   Email:               shawn@talula.demon.co.uk
+
+   Snail mail:          Shawn Hargreaves,
+			1 Salisbury Road,
+			Market Drayton,
+			Shropshire,
+			England, TF9 1AJ.
+
+
+
+   Vincent Penquerc'h is the current maintainer of EGG:
+
+   WWW:                 http://perso.wanadoo.fr/lyrian/egg/
+
+   Email:               lyrian@kezako.net
+

@@ -1,9 +1,19 @@
-head	1.23;
+head	1.25;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.25
+date	2002.01.26.12.14.36;	author tjaden;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	2002.01.26.11.54.57;	author tjaden;	state Exp;
+branches;
+next	1.23;
 
 1.23
 date	2002.01.24.15.32.32;	author tjaden;	state Exp;
@@ -125,9 +135,9 @@ desc
 @@
 
 
-1.23
+1.25
 log
-@Added client sending text messages.
+@Use shorts instead of longs to specify lengths of strings in packets.
 @
 text
 @/* client.c
@@ -319,8 +329,10 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
 	    object_do_physics (obj, map);
     }
 
-    for (i = 0; i < delta_ticks; i++)
+    for (i = 0; i < delta_ticks; i++) {
 	particles_update (map_particles (map), map);
+	map_explosions_update (map);
+    }
 }
 
 
@@ -440,7 +452,7 @@ static const uchar_t *NAME (const uchar_t *buf)
 SC_GAMEINFO_HANDLER (sc_mapload)
 {
     char filename[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     
     buf += packet_decode (buf, "s", &len, filename);
     if (map)
@@ -457,7 +469,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     int top = lua_gettop (L);
     
     char type[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     objid_t id;
     char hidden;
     float x, y;
@@ -499,7 +511,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     {
 	char type;
 	char name[NETWORK_MAX_PACKET_SIZE];
-	long len;
+	short len;
 	float f;
 		    
 	do {
@@ -584,9 +596,9 @@ SC_GAMEINFO_HANDLER (sc_object_hidden)
 SC_GAMEINFO_HANDLER (sc_object_call)
 {
     long id;
-    long method_len;
+    short method_len;
     char method[NETWORK_MAX_PACKET_SIZE];
-    long arg_len;
+    short arg_len;
     char arg[NETWORK_MAX_PACKET_SIZE];
     object_t *obj;
 		
@@ -652,6 +664,20 @@ SC_GAMEINFO_HANDLER (sc_blod_create)
 }
 
 
+SC_GAMEINFO_HANDLER (sc_explosion_create)
+{
+    char name[NETWORK_MAX_PACKET_SIZE];
+    short len;
+    float x;
+    float y;
+    
+    buf += packet_decode (buf, "sff", &len, name, &x, &y);
+    map_explosion_create (map, name, x, y);
+
+    return buf;
+}
+
+
 static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 {
     const void *end = buf + size;
@@ -696,6 +722,10 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 
 	    case MSG_SC_GAMEINFO_BLOD_CREATE:
 		buf = sc_blod_create (buf);
+		break;
+
+	    case MSG_SC_GAMEINFO_EXPLOSION_CREATE:
+		buf = sc_explosion_create (buf);
 		break;
 
 	    default:
@@ -1062,7 +1092,7 @@ void client_run (void)
 
 			case MSG_SC_TEXT: {
 			    char string[NETWORK_MAX_PACKET_SIZE];
-			    long len;
+			    short len;
 			    
 			    packet_decode (buf+1, "s", &len, string);
 			    messages_add ("%s", string);
@@ -1229,6 +1259,49 @@ void client_shutdown (void)
     messages_shutdown ();
     net_closeconn (conn);
 }
+@
+
+
+1.24
+log
+@Added support for explosion graphics.
+@
+text
+@d313 1
+a313 1
+    long len;
+d330 1
+a330 1
+    long len;
+d372 1
+a372 1
+	long len;
+d457 1
+a457 1
+    long method_len;
+d459 1
+a459 1
+    long arg_len;
+d528 1
+a528 1
+    size_t len;
+d953 1
+a953 1
+			    long len;
+@
+
+
+1.23
+log
+@Added client sending text messages.
+@
+text
+@d190 1
+a190 1
+    for (i = 0; i < delta_ticks; i++)
+d192 2
+d525 14
+d583 4
 @
 
 

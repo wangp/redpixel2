@@ -1,0 +1,120 @@
+#
+#  Example script for the EGG system, by Shawn Hargreaves.
+#
+#  This is the most complex example script, using three different types
+#  of particle. The rockets fire upwards, and leave a stream of trail
+#  particles behind them as they go. After a fixed amount of time they
+#  will explode in a shower of spark particles, and also create a new
+#  rocket to replace themselves so that the animation continues to run.
+
+
+type spark
+{
+   r := rand*255;
+   g := rand*255;
+   b := rand*255;
+   a := 255;
+
+   heading := rand*360;
+   speed := rand*1.5;
+
+   dx := cos(heading)*speed;
+   dy := -sin(heading)*speed;
+
+   x = x+dx;
+   y = y+dy;
+
+   a = a-15;
+
+   if (a <= 0) {
+      die;
+   }
+}
+
+
+type trail
+{
+   size := 3;
+   aa := 1;
+
+   r := 255;
+   g := 255;
+   b := 0;
+   a := 255;
+
+   g = g-20;
+
+   if (g < 0) {
+      g = 0;
+   }
+
+   a = a-15;
+
+   if (a <= 0) {
+      die;
+   }
+}
+
+
+type rocket
+{
+   size := 3;
+   aa := 1;
+
+   r := 255;
+   g := 255;
+   b := 255;
+
+   x := (rand-0.5)*32;
+   y := 64;
+
+   heading := (rand+0.5)*90;
+
+   dx := cos(heading)*2;
+   dy := -sin(heading)*2;
+
+   timer := 0;
+
+   delay := 0;
+
+   if (delay > 0) {
+      delay = delay-1;
+   }
+   else {
+      x = x+dx;
+      y = y+dy;
+
+      dy = dy+0.05;
+
+      if ((x < -64) | (x > 64) | (y < -64) | (y > 64)) {
+	 lay rocket {
+	    delay := rand*30;
+	 }
+
+	 die;
+      }
+
+      timer = timer+1;
+
+      if (timer > 40) {
+	 lay (100) spark {
+	    x = _x;
+	    y = _y;
+	 }
+
+	 lay rocket { 
+	    delay := rand*30;
+	 }
+
+	 die;
+      }
+
+      lay trail {
+	 x = _x;
+	 y = _y;
+      }
+   }
+}
+
+
+lay (3) rocket;

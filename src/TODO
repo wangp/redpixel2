@@ -1,28 +1,14 @@
+code consistency, (e.g. between map, object, particles, explosions, render)
+	the code has a stop-start-stop-start feel to it (but at least
+		it works :-)
+
+too many packets sent, e.g. for jumping
+
 server will think send error if our game state is plainly too big to
 	fit into libnet's conn outqueue
 
-split objects into different areas?
-	probably good because soon particles will need collision
-	detection against objects
-
-map_link_object and map_link_object_bottom may be reversed
-	(or the renderers are)
-
 spawning lots of projectiles makes server become really
 	slow, probably the do_physics function
-
-reread and recleanup network/physics code
-	(I think it's fixed now)
-
-save lua state at the start of the program (after init
-	scripts), then use copies of that (for hygiene)
-
-it seems I have been using the _t convention wrongly.
-	AFAICS, the _t suffix is used for types which you
-	can statically allocate (i.e. you know the size of
-	it; usually synonyms for int, long, etc.) All the
-	current structures which have _t suffix should
-	probably be "struct foobar".
 
 
 ------------------------------

@@ -1,9 +1,14 @@
-head	1.22;
+head	1.23;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.23
+date	2002.01.26.11.54.44;	author tjaden;	state Exp;
+branches;
+next	1.22;
 
 1.22
 date	2002.01.24.07.19.13;	author tjaden;	state Exp;
@@ -120,9 +125,9 @@ desc
 @@
 
 
-1.22
+1.23
 log
-@Changes following cleanup of server and client sources.
+@Added support for explosion graphics.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -304,6 +309,19 @@ generate {
 		   { String, "icon" },
 		   { Method, "func", nil, 
 		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
+    lname	= "explosion_type_register",
+    cname	= "explosion_type_register",
+    check	= "ssnn[sN-]",
+    args	= {{ String, "name" },
+		   { String, "first_frame" },
+		   { Int, "nframes" },
+		   { Int, "tics" },
+	       	   { String, "light", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -551,6 +569,14 @@ generate {
 }
 
 generate {
+    cname	= "svgame_spawn_explosion",
+    lname	= "spawn_explosion",
+    args	= {{ String, "name" },
+		   { Float, "x" },
+		   { Float, "y" }}
+}
+
+generate {
     cname	= "svgame_call_method_on_clients",
     lname	= "call_method_on_clients",
     check	= "us[sN-]",
@@ -578,6 +604,16 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.22
+log
+@Changes following cleanup of server and client sources.
+@
+text
+@d184 13
+d437 8
 @
 
 

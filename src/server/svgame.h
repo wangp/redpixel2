@@ -17,6 +17,7 @@ void svgame_spawn_blood (float x, float y, long nparticles, float spread);
 void svgame_spawn_sparks (float x, float y, long nparticles, float spread);
 void svgame_spawn_respawn_particles (float x, float y, long nparticles, float spread);
 void svgame_spawn_blod (float x, float y, long nparticles);
+void svgame_spawn_explosion (const char *name, float x, float y);
 void svgame_call_method_on_clients (struct object *obj, const char *method, const char *arg);
 int svgame_object_would_collide_with_objects (struct object *obj);
 

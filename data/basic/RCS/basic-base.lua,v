@@ -1,8 +1,7 @@
 head	1.17;
 access;
 symbols;
-locks
-	tjaden:1.17; strict;
+locks; strict;
 comment	@# @;
 
 

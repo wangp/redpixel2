@@ -202,13 +202,8 @@ void messages_poll_input (void)
 		/* todo */
 		break;
 
-	    case '':
-		input_line[0] = 0;
-		input_pos = 0;
-		break;
-
 	    default:
-		if ((c) && (input_pos < MAX_INPUT_LEN - 1)) {
+		if ((c >= ' ') && (input_pos < MAX_INPUT_LEN - 1)) {
 		    input_line[input_pos++] = c;
 		    input_line[input_pos] = 0;
 		}

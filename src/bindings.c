@@ -12,6 +12,7 @@
 
 #include <allegro.h>
 #include "client.h"
+#include "explo.h"
 #include "extdata.h"
 #include "loaddata.h"
 #include "svgame.h"

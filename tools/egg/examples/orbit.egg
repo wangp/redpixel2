@@ -1,0 +1,28 @@
+#
+#  Example script for the EGG system, by Shawn Hargreaves.
+#
+#  Lots of particles that orbit around the origin, forming a 3d sphere.
+
+
+type satellite
+{
+   size := 4;
+   aa := 1;
+
+   r := rand*255;
+   g := 0;
+   b := rand*255;
+
+   speed := (rand-0.5)*8;
+
+   rot := rand*360;
+
+   x = cos(_frame*speed)*32;
+   y = sin(_frame*speed)*32*cos(rot);
+   z = sin(_frame*speed)*32*sin(rot);
+
+   a = (32-z)*1;
+}
+
+
+lay (512) satellite;

@@ -1,0 +1,32 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2002.01.26.11.55.54;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@-- basic-explosion.lua
+
+store_load ("basic/basic-explosion.dat", "/basic/explosion/")
+
+explosion_type_register (
+    "basic-simple42",
+    "/basic/explosion/simple42/000", 17, 50/17,
+    "/basic/light/white-16"
+)
+@

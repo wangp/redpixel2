@@ -1,9 +1,14 @@
-head	1.31;
+head	1.32;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.32
+date	2002.01.26.12.14.58;	author tjaden;	state Exp;
+branches;
+next	1.31;
 
 1.31
 date	2002.01.24.15.34.13;	author tjaden;	state Exp;
@@ -165,9 +170,9 @@ desc
 @@
 
 
-1.31
+1.32
 log
-@Added client sending text messages.
+@Use shorts instead of longs to specify lengths of strings in packets.
 @
 text
 @/* server.c
@@ -241,7 +246,7 @@ static void poll_client_joining (svclient_t *c)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     char name[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     char version;
 
     if (svclient_receive_rdm (c, buf, sizeof buf) <= 0)
@@ -290,7 +295,7 @@ static void poll_client_joined (svclient_t *c)
 	    break;
 
 	case MSG_CS_TEXT: {
-	    long len;
+	    short len;
 	    char text[NETWORK_MAX_PACKET_SIZE];
 	    char tmp[NETWORK_MAX_PACKET_SIZE];
 
@@ -697,6 +702,20 @@ void server_interface_set_status (const char *text)
     if (interface)
 	interface->set_status (text);
 }
+@
+
+
+1.31
+log
+@Added client sending text messages.
+@
+text
+@d72 1
+a72 1
+    long len;
+d121 1
+a121 1
+	    long len;
 @
 
 

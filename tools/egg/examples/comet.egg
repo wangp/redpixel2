@@ -1,0 +1,56 @@
+#
+#  Example script for the EGG system, by Jason Wilkins.
+
+
+type gas
+{
+ size := 16;
+ aa   := 1;
+
+ r := rand * 255;
+ g := rand * 255;
+ b := 255;
+
+ dx := (rand-0.5) * 5;
+ dy := (rand-0.5) * 5;
+
+ timer := 15;
+
+ x = x+dx;
+ y = y+dy;
+
+ r = r*0.8;
+ g = g*0.9;
+ b = b*0.95;
+
+ timer = timer - 1;
+
+ if(timer <= 0)
+   {
+   die;
+   }
+}
+
+type comet
+{
+ size := 35;
+ aa   := 1;
+
+ r := 255;
+ g := 255;
+ b := 0;
+
+ x := -128;
+ y := -128;
+
+ lay (5) gas
+   {
+   x = _x;
+   y = _y;
+   }
+
+ x = x + 5;
+ y = y + 5;
+}
+
+lay comet;
