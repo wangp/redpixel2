@@ -1,0 +1,5 @@
+tolua -o al_bind.c allegro.pkg
+gcc -Wall -c -o al_bind.o al_bind.c
+gcc -Wall -c -o test.o test.c
+gcc -Wall -c -o test.o test.c
+gcc -o test test.o al_bind.o -ltolua -llua -lalleg
