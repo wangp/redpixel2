@@ -4,13 +4,14 @@
 #include "client.h"
 #include "clsvface.h"
 #include "editor.h"
-/* #include "error.h" */
+#include "error.h"
 #include "extdata.h"
 #include "fe-credits.h"
 #include "fe-lobby.h"
 #include "fe-main.h"
 #include "fe-options.h"
 #include "fe-widgets.h"
+#include "jpgalleg.h"
 #include "messages.h"
 #include "music.h"
 #include "server.h"
@@ -26,6 +27,7 @@
 #endif
 
 
+static BITMAP *background;
 static DIALOG_PLAYER *player;
 static char address_editbox_buf[32] = "localhost";
 static char name_editbox_buf[32] = "Gutless";
@@ -487,17 +489,18 @@ void gamemenu_run (void)
 
 int gamemenu_init (void)
 {
-    BITMAP *background;
     int fg = makecol (0xff, 0xff, 0xff);
     int bg = makecol (0xbf, 0x8f, 0x3f);
 
     menu_data_file = store_load ("data/frontend/frontend-menu.dat", "/frontend/menu/");
-    if (!menu_data_file)
-      return -1;
+    if (!menu_data_file) {
+	error ("Cannot load data files.  Did you download them?\n");
+	return -1;
+    }
 
     fancy_gui_init ();
 
-    background = store_get_dat ("/frontend/menu/background");
+    background = load_jpg ("data/frontend/frontend-menuback.jpg", NULL);
     fancy_edit_font = store_get_dat ("/frontend/menu/lucida-12");
     fancy_font = store_get_dat ("/frontend/menu/font");
     type_sound = store_get_dat ("/frontend/menu/type-sound");
@@ -538,4 +541,6 @@ void gamemenu_shutdown (void)
     fancy_gui_shutdown ();
 
     store_unload (menu_data_file);
+
+    destroy_bitmap (background);
 }
