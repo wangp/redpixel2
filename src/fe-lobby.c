@@ -7,6 +7,7 @@
 #include "fe-widgets.h"
 #include "messages.h"
 #include "server.h"
+#include "sound.h"
 #include "store.h"
 #include "svintern.h"
 
@@ -84,8 +85,6 @@ static int send_chat_message (void)
 
     new_input = strdup (chat_editbox_buf);
     chat_editbox_buf[0] = '\0';
-
-    play_sample (store_get_dat ("/frontend/menu/send-message"), 255, 128, 1000, FALSE);
 
     return D_REDRAWME;
 }
@@ -512,8 +511,13 @@ static int messages_list_proc (int msg, DIALOG *d, int c)
 
 	/* Received new text. */
 	if (n != old_n) {
+	    SAMPLE *samp = store_get_dat ("/frontend/menu/send-message");
+
 	    old_n = n;
 	    _fancy_list_proc (MSG_CHAR, d, (KEY_END << 8), store_get_dat ("/frontend/menu/lucida-08"));
+
+	    play_sample (samp, 255 * sound_volume_factor, 128, 1000, FALSE);
+
 	    return D_REDRAWME;
 	}
     }
