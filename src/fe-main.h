@@ -2,6 +2,9 @@
 #define __included_fe_main_h
 
 
+extern char address_editbox_buf[32];
+extern char name_editbox_buf[32];
+extern char port_editbox_buf[8];
 extern int client_was_kicked;
 extern int desired_menu_screen_w, desired_menu_screen_h;
 

@@ -29,14 +29,14 @@
 
 static BITMAP *background;
 static DIALOG_PLAYER *player;
-static char address_editbox_buf[32] = "localhost";
-static char name_editbox_buf[32] = "Gutless";
-static char port_editbox_buf[8] = "23415";
 static char statusbar_buf[64] = "";
 static store_file_t menu_data_file;
 
+char address_editbox_buf[32] = "localhost";
+char name_editbox_buf[32] = "Gutless";
+char port_editbox_buf[8] = "23415";
 int client_was_kicked = 0;
-int desired_menu_screen_w, desired_menu_screen_h;
+int desired_menu_screen_w = 640, desired_menu_screen_h = 400;
 
 
 static void *server_thread (void *arg)
