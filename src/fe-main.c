@@ -33,7 +33,6 @@ static char statusbar_buf[64] = "";
 static store_file_t menu_data_file;
 
 int client_was_kicked = 0;
-int desired_game_screen_w, desired_game_screen_h;
 int desired_menu_screen_w, desired_menu_screen_h;
 
 

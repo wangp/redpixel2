@@ -3,7 +3,6 @@
 
 
 extern int client_was_kicked;
-extern int desired_game_screen_w, desired_game_screen_h;
 extern int desired_menu_screen_w, desired_menu_screen_h;
 
 int set_menu_gfx_mode (void);

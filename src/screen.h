@@ -22,6 +22,8 @@
 #define STRETCH_METHOD_SUPER2XSAI  2
 #define STRETCH_METHOD_SUPEREAGLE  3
 
+extern int desired_game_screen_w, desired_game_screen_h;
+
 
 void screen_blitter_init (int stretch_method, int colour_depth);
 void screen_blitter_shutdown (void);

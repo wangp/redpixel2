@@ -15,6 +15,8 @@ static int stretch_method;
 static BITMAP *plain_bmp;
 static BITMAP *big_bmp;
 
+int desired_game_screen_w, desired_game_screen_h;
+
 
 void screen_blitter_init (int method, int colour_depth)
 {
@@ -35,7 +37,8 @@ void screen_blitter_init (int method, int colour_depth)
 
 	    stretch_method = method;
 	    plain_bmp = create_bitmap (screen_width, screen_height);
-	    big_bmp = create_bitmap (SCREEN_W, SCREEN_H);
+	    big_bmp = create_bitmap (desired_game_screen_w, desired_game_screen_h);
+	    clear_bitmap (big_bmp);
 	    Init_2xSaI (colour_depth);
 	    break;
 
@@ -78,13 +81,15 @@ void blit_magic_bitmap_to_screen (BITMAP *bmp)
 
 	case STRETCH_METHOD_SUPER2XSAI:
 	    blit_magic_format (bmp, plain_bmp, plain_bmp->w, plain_bmp->h);
-	    Super2xSaI (plain_bmp, big_bmp, 0, 0, 0, 0, plain_bmp->w, plain_bmp->h);
+	    Super2xSaI (plain_bmp, big_bmp, 0, 0, 0, big_bmp->h / 2 - plain_bmp->h,
+			plain_bmp->w, plain_bmp->h);
 	    blit (big_bmp, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 	    break;
 
 	case STRETCH_METHOD_SUPEREAGLE:
 	    blit_magic_format (bmp, plain_bmp, plain_bmp->w, plain_bmp->h);
-	    SuperEagle (plain_bmp, big_bmp, 0, 0, 0, 0, plain_bmp->w, plain_bmp->h);
+	    SuperEagle (plain_bmp, big_bmp, 0, 0, 0, big_bmp->h / 2 - plain_bmp->h,
+			plain_bmp->w, plain_bmp->h);
 	    blit (big_bmp, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 	    break;
     }
