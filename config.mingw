@@ -1,4 +1,5 @@
-# Configuration for Mingw Win32 build.
+# Configuration for Mingw Win32 build.  -*- makefile -*-
+# This needs updating.
 
 PLAT_TARGET := -DTARGET_WINDOWS
 PLAT_CFLAGS := -DTHREADS_WIN32 -Iwin32/pdcurses/pdcurses
