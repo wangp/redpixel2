@@ -19,7 +19,7 @@
 
 
 #define INITIAL_PARTICLES	1024
-#define MAX_PARTICLES		8192
+#define MAX_PARTICLES		32768
 
 
 typedef struct particle {
@@ -99,7 +99,7 @@ void particles_update (particles_t *part, map_t *map)
 	p->y += p->yv;
 	if (!p->weightless) {
 	    p->xv *= 0.995;
-	    p->yv += 0.05;
+	    p->yv += 0.035;
 	}
 
 	if (bitmask_point (mask, p->x, p->y)) {
@@ -173,7 +173,7 @@ static void particles_spawn (particles_t *part, int type,
 		p->y = y + rnd (-3, 3);
 		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
 		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
-		p->life = rnd (350, 500);
+		p->life = rnd (500, 1000);
 		p->weightless = 0;
 		p->death_on_impact = 0;
 

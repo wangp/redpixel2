@@ -374,9 +374,9 @@ local player_nonproxy_init = function (self)
 	    return
 	end
 
-	spawn_blood_on_clients (collision_x, collision_y, damage * 40, 2)
-	if damage/3 >= 1 then
-	    spawn_blod_on_clients (self.x, self.y, damage/3)
+	spawn_blood_on_clients (collision_x, collision_y, damage * 100, 2)
+	if damage/2 >= 1 then
+	    spawn_blod_on_clients (self.x, self.y, damage/2)
 	end
 
 	local dmg = damage/2	-- armour absorbs half damage
@@ -464,7 +464,7 @@ local player_nonproxy_init = function (self)
 	true,
 	function (self)
 	    if self.health <= 20 then
-		spawn_blood_on_clients (self.x, self.y, 40, 2)
+		spawn_blood_on_clients (self.x, self.y, 80, 2)
 	    end
 	end
     )
@@ -772,7 +772,7 @@ local Corpse = function (t)
 
 	    function self:collide_hook (other)
 		-- assume we are getting shot, and spew a bit of blood
-		spawn_blood_on_clients (self.x, self.y+5, 4, 1.5)
+		spawn_blood_on_clients (self.x, self.y+5, 10, 1.5)
 		return false
 	    end
 	end,
