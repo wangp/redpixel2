@@ -69,7 +69,7 @@ local player_nonproxy_init = function (self)
     -- health stuff
     self.health = 100
     function self:receive_damage (damage)
-	spawn_blood (self.x + cx, self.y + cy, 100, 2000) -- XXX spread should be float
+	spawn_blood (self.x + cx, self.y + cy, 100, 2)
 	self.health = self.health - damage
 	if self.health <= 0 then
 	    spawn_object ("basic-player-death-fountain", self.x, self.y)

@@ -114,7 +114,7 @@ void blood_particles_update (blood_particles_t *blood, map_t *map)
 }
  
 
-void blood_particles_spawn (blood_particles_t *blood, float x, float y, long nparticles, long spread)
+void blood_particles_spawn (blood_particles_t *blood, float x, float y, long nparticles, float spread)
 {
     particle_t *p;
     double theta;
@@ -141,8 +141,8 @@ void blood_particles_spawn (blood_particles_t *blood, float x, float y, long npa
 	theta = (rand() % (int)(M_PI * 2. * 1000.)) / 1000.;
 	p->x = x + (rand()%7) - 6;
 	p->y = y + (rand()%7) - 6;
-	p->xv = (rand() % spread) * cos (theta) / 1000.;
-	p->yv = (rand() % spread) * sin (theta) / 1000.;
+	p->xv = (rand() % (int)(spread * 1000)) * cos (theta) / 1000.;
+	p->yv = (rand() % (int)(spread * 1000)) * sin (theta) / 1000.;
 	p->life = 100;
 	p->color = makecol24 (4 + (rand() % 8), 0, 0);
 

@@ -340,9 +340,9 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		float x;
 		float y;
 		long nparticles;
-		long spread;
+		float spread;
 
-		buf += packet_decode (buf, "ffll", &x, &y, &nparticles, &spread);
+		buf += packet_decode (buf, "fflf", &x, &y, &nparticles, &spread);
 		blood_particles_spawn (map_blood_particles (map), x, y, nparticles, spread);
 		break;
 	    }

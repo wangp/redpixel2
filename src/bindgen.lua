@@ -384,7 +384,7 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
-		   { Int, "spread" }},
+		   { Float, "spread" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 

@@ -674,12 +674,12 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
 
 /* Spawn some blood (Lua binding). */
 
-int game_server_spawn_blood (float x, float y, long nparticles, long spread)
+int game_server_spawn_blood (float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
     
-    size = packet_encode (buf, "cffll", MSG_SC_GAMEINFO_BLOOD_CREATE,
+    size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
     return 0;
