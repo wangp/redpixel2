@@ -70,22 +70,22 @@ static inline void do_blast_check (blast_t *blast, list_head_t *object_list)
 {
     object_t *obj;
     float dx, dy;
-    float dist;
+    float manhattan_dist;
     int dmg;
 
     list_for_each (obj, object_list) {
 	if (object_stale (obj) || object_hidden (obj))
 	    continue;
 
-	if (in_vector_p (blast->already_hit, obj))
-	    continue;
-
 	dx = object_x (obj) - blast->x;
 	dy = object_y (obj) - blast->y;
-	dist = fast_fsqrt ((dx * dx) + (dy * dy));
+	manhattan_dist = (dx * dx) + (dy * dy);
 	
-	if ((dist < blast->r) && (dist >= blast->r - SPREAD_SPEED)) {
-	    dmg = blast->max_damage * (1.5 - dist/blast->max_radius);
+	if ((manhattan_dist < blast->r * blast->r) &&
+	    (!in_vector_p (blast->already_hit, obj))) {
+
+	    dmg = (blast->max_damage *
+		   (1.5 - (fast_fsqrt (manhattan_dist) / blast->max_radius)));
 	    dmg = MIN (dmg, blast->max_damage);
 	    if (dmg > 0) {
 		lua_pushnumber (server_lua_namespace, dmg);
