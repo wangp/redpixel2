@@ -2,7 +2,7 @@
 ## Makefile for Red Pixel II
 ##
 
-SRCDIRS = src src/store src/magic src/fastsqrt \
+SRCDIRS = src src/store src/magic src/fastsqrt src/jpgalleg \
 	  src/gui src/ug src/editor
 
 CC = gcc
@@ -26,6 +26,9 @@ MODULES_MAGIC =					\
 
 MODULES_FASTSQRT =				\
 	fastsqrt
+
+MODULES_JPGALLEG =				\
+	jpeg
 
 MODULES_GUI =					\
 	gui					\
@@ -94,6 +97,7 @@ MODULES = 					\
 	$(MODULES_STORE) 			\
 	$(MODULES_MAGIC)			\
 	$(MODULES_FASTSQRT)			\
+	$(MODULES_JPGALLEG)			\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\

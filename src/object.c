@@ -70,7 +70,7 @@ static objid_t next_id;
 int object_init ()
 {
     object_tag = lua_newtag (lua_state);
-    REGISTER_OBJECT_TAG_METHODS(lua_state, object_tag);
+    REGISTER_OBJECT_TAG_METHODS (lua_state, object_tag);
     next_id = 0;
     return 0;
 }

@@ -18,9 +18,9 @@ $(OBJDIR)/gameclt.o: src/gameclt.c src/camera.h src/error.h src/fps.h \
  src/packet.h src/physics.h src/render.h src/store/store.h \
  src/timeout.h src/yield.h
 $(OBJDIR)/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h \
- src/fastsqrt/fastsqrt.h src/gameinit.h src/loaddata.h \
- src/magic/magic4x4.h src/mylua.h src/object.h src/objtypes.h \
- src/path.h src/store/store.h
+ src/fastsqrt/fastsqrt.h src/gameinit.h src/jpgalleg/jpgalleg.h \
+ src/loaddata.h src/magic/magic4x4.h src/mylua.h src/object.h \
+ src/objtypes.h src/path.h src/store/store.h
 $(OBJDIR)/gamesrv.o: src/gamesrv.c src/alloc.h src/error.h src/gamesrv.h \
  src/list.h src/map.h src/mapfile.h src/netmsg.h src/object.h \
  src/mylua.h src/objtypes.h src/packet.h src/physics.h src/timeout.h \
@@ -56,6 +56,7 @@ $(OBJDIR)/magicrot.o: src/magic/magicrot.c src/magic/magic4x4.h
 $(OBJDIR)/magicrt.o: src/magic/magicrt.c src/magic/magicrt.h
 $(OBJDIR)/bmark.o: src/fastsqrt/bmark.c src/fastsqrt/fastsqrt.h
 $(OBJDIR)/fastsqrt.o: src/fastsqrt/fastsqrt.c src/fastsqrt/fastsqrt.h
+$(OBJDIR)/jpeg.o: src/jpgalleg/jpeg.c
 $(OBJDIR)/gui.o: src/gui/gui.c src/gui/gui.h src/gui/guiinter.h src/yield.h
 $(OBJDIR)/guiaccel.o: src/gui/guiaccel.c src/gui/gui.h src/gui/guiinter.h
 $(OBJDIR)/guidirty.o: src/gui/guidirty.c src/gui/gui.h src/gui/guiinter.h

@@ -1,3 +1,9 @@
+2001-07-14  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Included JPGalleg so we can use jpegs for backgrounds.
+
+	* Wrote a `remap' utility to update old maps.
+
 2001-07-12  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* Added very hacked up code to try out projectiles.

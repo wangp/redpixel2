@@ -10,6 +10,7 @@
 #include "bitmaskr.h"
 #include "fastsqrt.h"
 #include "gameinit.h"
+#include "jpgalleg.h"
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "mylua.h"
@@ -25,6 +26,8 @@ void game_init ()
 
     generate_magic_color_map ();
     generate_magic_conversion_tables ();
+    
+    register_bitmap_file_type ("jpg", load_jpg, NULL);
 
     path_init ();
     store_init (200);

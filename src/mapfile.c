@@ -15,14 +15,8 @@
 
 static int pack_fputs_nl (const char *s, PACKFILE *f)
 {
-    int size;
-
-    size = pack_fputs (s, f);
-    if (size != EOF)
-	if (pack_putc ('\n', f) != EOF)
-	    return size + 1;
-
-    return EOF;
+    return ((pack_fputs (s, f) == EOF) 
+	    || (pack_putc ('\n', f) == EOF)) ? EOF : 0;
 }
 
 

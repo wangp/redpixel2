@@ -25,7 +25,7 @@
 #include "yield.h"
 
 
-#if 0
+#if 1
 # define dbg(msg)	puts ("[client] " msg)
 #else
 # define dbg(msg)
@@ -319,7 +319,7 @@ static void update_screen ()
 	aim_angle = atan2 (mouse_y - y, mouse_x - x);
 
 	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
-				  x, y, 0, 36,
+				  x, y, 0, 115/2,
 				  fatan2 (mouse_y - y, mouse_x - x));
     }
 
@@ -362,7 +362,7 @@ static void switch_out_callback ()
 
 void game_client_run ()
 {
-    dbg ("connecting");
+    dbg ("connecting (stage 2)");
     {
 	uchar_t buf[NET_MAX_PACKET_SIZE];
 
@@ -609,6 +609,8 @@ int game_client_init (const char *name, const char *addr)
 {
     int status;
 
+    dbg ("connecting (stage 1)");
+    
     if (!(conn = net_openconn (NET_DRIVER_SOCKETS, NULL)))
 	return -1;
 
@@ -622,6 +624,8 @@ int game_client_init (const char *name, const char *addr)
     if (status < 1)
 	goto error;
 
+    dbg ("connected (stage 1)");
+    
     client_name = ustrdup (name);
 
     bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
@@ -629,8 +633,8 @@ int game_client_init (const char *name, const char *addr)
     {
 	PALETTE pal;
 	BITMAP *tmp;
-	
-	bkgd = load_bitmap ("data/bkgd/fluorescence.pcx", pal);
+
+	bkgd = load_bitmap ("data/bkgd/fluorescence.jpg", pal);
 	if (bkgd) {
 	    tmp = get_magic_bitmap_format (bkgd, pal);
 	    destroy_bitmap (bkgd);

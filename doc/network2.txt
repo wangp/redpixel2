@@ -1,0 +1,22 @@
+| This is some more ideas I found, written ~10 Nov 2000.
+
+
+Server and client have to have an object in common.
+
+* Client moves the object, tells the server the new (x, y) coordinates.
+  PROBLEM: by the time the packet reaches server, it will be out of date
+
+* Instead of sending (x, y) send (dx, dy, timestamp-A)
+  Server calculates `delta_time' and uses (dx, dy) to update (x, y)
+  PROBLEM: client does not know state of other clients what it sends to
+  server could be wrong
+  
+* Server does above, but if new (x, y) positions invalid, tell the client
+  proper (x, y)
+  PROBLEM: correction packet will be out of date when it reaches client,
+  	   player will see a jerk
+
+* Server does above, but send new (x, y) along with timestamp-A.  Client
+  corrects according to correction packet, then moves again following list
+  of moves since timestamp-A.
+  PROBLEM: player will still see jerk, but less

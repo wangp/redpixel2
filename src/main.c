@@ -46,7 +46,7 @@ static void setup_allegro (int w, int h, int d)
         allegro_message ("Error initialising mouse.\n");
 	exit (1);
     }
-        
+
     set_window_title ("Red Pixel II");
 
     if (setup_video (w, h, d) < 0) {
@@ -79,7 +79,7 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, "sa:n:ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":sa:n:ew:h:d:")) != -1) {
 	switch (c) {
 	    case 's':
 		run_server = 1;
