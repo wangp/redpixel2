@@ -967,14 +967,14 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 	int top = lua_gettop (S);
 	int collide = 1;
 
-	/* if tile_collide_hook returns non-nil then no collision */
+	/* if tile_collide_hook returns false then no collision */
 	lua_getref (S, obj->table);
 	lua_pushstring (S, "tile_collide_hook");
 	lua_rawget (S, -2);
 	if (lua_isfunction (S, -1)) {
 	    lua_pushobject (S, obj);
 	    lua_call (S, 1, 1);
-	    if (!lua_isnil (S, -1))
+	    if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
 		collide = 0;
 	}
 
@@ -992,7 +992,7 @@ static int call_collide_hook (object_t *obj, object_t *touched_obj)
     int top = lua_gettop (S);
     int collide = 1;
 
-    /* if collide_hook returns non-nil then no collision */
+    /* if collide_hook returns false then no collision */
     lua_getref (S, obj->table);
     lua_pushstring (S, "collide_hook");
     lua_rawget (S, -2);
@@ -1000,7 +1000,7 @@ static int call_collide_hook (object_t *obj, object_t *touched_obj)
 	lua_pushobject (S, obj);
 	lua_pushobject (server_lua_namespace, touched_obj);
 	lua_call (S, 2, 1);
-	if (!lua_isnil (S, -1))
+	if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
 	    collide = 0;
     }
 

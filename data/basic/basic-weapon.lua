@@ -416,7 +416,7 @@ Objtype {
 	    spawn_sparks (self.x, self.y, 30, 2)
 	    self:set_collision_flags ("pn")
 	    self.tile_collide_hook = nil
-	    return true
+	    return false
 	end
     end
 }

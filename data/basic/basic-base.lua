@@ -184,8 +184,8 @@ function Respawning_Item (t, u)
 	nonproxy_init = function (self)
 	    self:set_collision_flags ("p")
 	    function self:collide_hook (player)
-		if t.collide_hook and t.collide_hook (self, player) then
-		    return 1
+		if t.collide_hook and t.collide_hook (self, player) == false then
+		    return false
 		end
 		self:hide ()
 		self:set_update_hook (
