@@ -206,35 +206,44 @@ static int options_menu_modify_changes_pressed (void)
 	gamma_factor = gamma_slider_d2_to_gamma_factor (GAMMA_SLIDER.d2);
     }
 
+    /* Test the desired video mode if it has been changed. */
     if ((w != old_desired_game_screen_w) ||
 	(h != old_desired_game_screen_h)) {
-	/* Test the desired video mode if it has been changed. */
-	if (setup_video (w, h, 0) == 0) {
-	    desired_game_screen_w = w;
-	    desired_game_screen_h = h;
-	    stretch_method_in_use = method;
 
-	    if (video_mode_is_big (w, h)) {
-		desired_menu_screen_w = w;
-		desired_menu_screen_h = h;
-
-		lobby_shutdown ();
-		lobby_init (NULL);
-		fancy_gui_shutdown ();
-		fancy_gui_init ();
-	    }
-	    else
-		set_menu_gfx_mode ();
-
-	    screen_blitter_shutdown ();
-	    screen_blitter_init (method, bitmap_color_depth (screen));
-	}
-	else {
+	/* If we can't set the video mode desired, don't let the user
+	 * out of the options screen.
+	 */
+	if (setup_video (w, h, 0) != 0) {
 	    set_menu_gfx_mode ();
 	    show_mouse (screen);
 	    alert ("Couldn't set the desired video mode.", NULL, NULL, "Ok", NULL, 0, 0);
 	    return D_REDRAW;
 	}
+
+	/* Otherwise the desired video mode is ok, and we re-setup
+	 * some modules.
+	 */
+	desired_game_screen_w = w;
+	desired_game_screen_h = h;
+
+	if (video_mode_is_big (w, h)) {
+	    desired_menu_screen_w = w;
+	    desired_menu_screen_h = h;
+
+	    lobby_shutdown ();
+	    lobby_init (NULL);
+	    fancy_gui_shutdown ();
+	    fancy_gui_init ();
+	}
+	else
+	    set_menu_gfx_mode ();
+    }
+
+    /* If the stretch method has changed, reinit the screen blitter. */
+    if (stretch_method_in_use != method) {
+	stretch_method_in_use = method;
+	screen_blitter_shutdown ();
+	screen_blitter_init (method, bitmap_color_depth (screen));
     }
 
     return D_EXIT;
