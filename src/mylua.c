@@ -66,10 +66,14 @@ int mylua_open (void)
     server_lua_namespace = NULL;
     client_lua_namespace = NULL;
 
-    lua_baselibopen (the_lua_state);
-    lua_tablibopen (the_lua_state);
-    lua_mathlibopen (the_lua_state);
-    lua_strlibopen (the_lua_state);
+    {
+	int top = lua_gettop (the_lua_state);
+	lua_baselibopen (the_lua_state);
+	lua_tablibopen (the_lua_state);
+	lua_mathlibopen (the_lua_state);
+	lua_strlibopen (the_lua_state);
+	lua_settop (the_lua_state, top);
+    }
 
     /* install _ALERT: this is for some lauxlib functions */
     lua_pushcfunction (the_lua_state, _my_alert);
