@@ -6,6 +6,7 @@
 struct object;
 struct blood_particles;
 struct spark_particles;
+struct BITMAP;
 
 
 typedef struct light light_t;
@@ -47,6 +48,12 @@ void map_start_move (start_t *start, int x, int y);
 struct list_head *map_start_list (map_t *map);
 
 struct particles *map_particles (map_t *map);
+
+
+void map_explosion_create (map_t *map, const char *name, int x, int y);
+void map_explosions_update (map_t *map);
+void map_explosions_draw (map_t *map, struct BITMAP *dest, int offset_x, int offset_y);
+void map_explosions_draw_lights (map_t *map, struct BITMAP *dest, int offset_x, int offset_y);
 
 
 #endif

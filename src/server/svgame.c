@@ -722,6 +722,17 @@ void svgame_spawn_blod (float x, float y, long nparticles)
 }
 
 
+void svgame_spawn_explosion (const char *name, float x, float y)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    size = packet_encode (buf, "csff", MSG_SC_GAMEINFO_EXPLOSION_CREATE,
+			  name, x, y);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
 /* XXX we only allow a single string arg at the moment
    XXX add more as they are required, somehow */
 void svgame_call_method_on_clients (object_t *obj, const char *method,

@@ -9,6 +9,7 @@
 #include "bindings.h"
 #include "bitmaskr.h"
 #include "blod.h"
+#include "explo.h"
 #include "extdata.h"
 #include "fastsqrt.h"
 #include "gameinit.h"
@@ -42,6 +43,7 @@ void game_init (void)
     tiles_init ();
     lights_init ();
     objtypes_init ();
+    explosion_init ();
 
     object_init ();
 
@@ -64,6 +66,7 @@ void game_shutdown (void)
 
     object_shutdown ();
 
+    explosion_shutdown ();
     objtypes_shutdown ();
     lights_shutdown ();
     tiles_shutdown ();

@@ -15,8 +15,7 @@ LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
-CFLAGS += -O2
-# -fomit-frame-pointer -funroll-loops
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
 else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
@@ -95,6 +94,7 @@ MODULES_GAME :=					\
 	camera					\
 	client					\
 	error					\
+	explo					\
 	extdata					\
 	fps					\
 	gameinit				\

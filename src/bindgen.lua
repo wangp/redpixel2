@@ -181,6 +181,19 @@ generate {
 }
 
 generate {
+    lname	= "explosion_type_register",
+    cname	= "explosion_type_register",
+    check	= "ssnn[sN-]",
+    args	= {{ String, "name" },
+		   { String, "first_frame" },
+		   { Int, "nframes" },
+		   { Int, "tics" },
+	       	   { String, "light", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
     cname	= "object_set_stale",
     lname	= "object_destroy",
     args	= {{ Object, "obj" }}
@@ -421,6 +434,14 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" }}
+}
+
+generate {
+    cname	= "svgame_spawn_explosion",
+    lname	= "spawn_explosion",
+    args	= {{ String, "name" },
+		   { Float, "x" },
+		   { Float, "y" }}
 }
 
 generate {

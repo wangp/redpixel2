@@ -256,7 +256,15 @@ enum {
        Args: float x, float y, long nparticles.
      */
 
-    MSG_SC_GAMEINFO_BLOD_CREATE = 'B'
+    MSG_SC_GAMEINFO_BLOD_CREATE = 'B',
+
+
+    /* Tell clients to create an explosion.
+
+       Args: long len, char name[], float x, float y, long nparticles.
+     */
+
+    MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e'
 };
 
 
