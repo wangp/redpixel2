@@ -393,7 +393,7 @@ static int credits_pressed (void)
     scare_mouse ();
     do_credits ();
     unscare_mouse ();
-    clear_keybuf ();
+    select_frontend_music ();
     return D_REDRAW;
 }
 
