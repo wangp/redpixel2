@@ -100,7 +100,8 @@ Weapon {
     fire = function (player)
 	spawn_projectile ("basic-blaster-projectile", player, 10)
 	player.fire_delay = 50 * 0.1
-    end
+    end,
+    sound = "/basic/weapon/blaster/sound"
 }
 
 Standard_Pickup {
@@ -143,7 +144,8 @@ Weapon {
 	"/basic/weapon/bow/2arm004",
 	"/basic/weapon/bow/2arm005";
 	cx = 4, cy = 5, tics = 3
-    }
+    },
+    sound = "/basic/weapon/bow/sound"
 }
 
 Standard_Pickup {
@@ -201,7 +203,8 @@ Weapon_With_Firer {
 	"/basic/weapon/ak/2arm003",
 	"/basic/weapon/ak/2arm004";
 	cx = 0, cy = 3
-    }
+    },
+    sound = "/basic/weapon/ak/sound"
 }
 
 Standard_Pickup {
@@ -239,7 +242,8 @@ Weapon {
 	"/basic/weapon/minigun/2arm005",
 	"/basic/weapon/minigun/2arm006";
 	cx = 0, cy = 1, tics = 2
-    }
+    },
+    sound = "/basic/weapon/minigun/sound"
 }
 
 Standard_Pickup {
@@ -278,7 +282,8 @@ Weapon_With_Firer {
 	"/basic/weapon/rpg/2arm004",
 	"/basic/weapon/rpg/2arm005";
 	cx = 13, cy = 3, tics = 3
-    }
+    },
+    sound = "/basic/weapon/rpg/sound"
 }
 
 Standard_Pickup {
@@ -334,7 +339,8 @@ Weapon {
 	"/basic/weapon/shotgun/2arm002",
 	"/basic/weapon/shotgun/2arm003";
 	cx = 1, cy = 4, tics = 4
-    }
+    },
+    sound = "/basic/weapon/shotgun/sound"
 }
 
 Standard_Pickup {
@@ -381,7 +387,8 @@ Weapon_With_Firer {
     },
     client_switch_to_hook = function ()
 	_internal_set_camera (1, 300)
-    end
+    end,
+    sound = "/basic/weapon/rifle/sound"
 }
 
 Standard_Pickup {

@@ -321,6 +321,9 @@ local player_proxy_init = function (self)
 	    self.arm_tics = 0
 	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
 	end
+	if self.current_weapon.sound then
+	    play_sound (self, self.current_weapon.sound)
+	end
     end
 
     -- animation and update hook

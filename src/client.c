@@ -661,6 +661,35 @@ void client_send_text_message (const char *text)
 
 /*
  *----------------------------------------------------------------------
+ *	Sound stuff
+ *----------------------------------------------------------------------
+ */
+
+
+/* (lua binding) */
+void client_play_sound (object_t *obj, const char *sample)
+{
+    SAMPLE *spl = store_dat (sample);
+    
+    if (spl)
+	play_sample (spl, 255, 128, 1000, FALSE); /* XXX */
+	/*
+	  what's really supposed to happen is that we allocate a voice
+	  and update the panning/volume with respect to the position
+	  between the client object and obj
+
+	  also, we need to be able to let lua code control
+	  start/stop/loop of the voices
+
+	  voices are released when they are stopped, or the owner
+	  object is destroyed
+	*/
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
  *	Camera stuff
  *----------------------------------------------------------------------
  */
