@@ -581,13 +581,10 @@ static void handle_svclient_controls (void)
 		    object_set_ya (obj, -8);
 		    object_set_jump (obj, 4);
 		}
-		else if (object_standing_on_ladder (obj)) {
+		else if (object_standing_on_ladder (obj) ||
+			 object_in_ladder (obj)) {
 		    object_set_ya (obj, -4);
 		    object_set_jump (obj, 2);
-		}
-		else if (object_in_ladder (obj)) {
-		    object_set_ya (obj, -4);
-		    object_set_jump (obj, 0);
 		}
 		else {
 		    int jump = object_jump (obj);

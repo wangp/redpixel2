@@ -1,9 +1,14 @@
-head	1.18;
+head	1.19;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.19
+date	2002.07.13.13.21.58;	author tjaden;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	2002.07.13.06.21.25;	author tjaden;	state Exp;
@@ -100,10 +105,9 @@ desc
 @@
 
 
-1.18
+1.19
 log
-@Added svgame_get_client_name and svgame_broadcast_text_message
-exports.
+@(Tentatively) made players capable of jumping off ladders a la RP1.
 @
 text
 @/* svgame.c
@@ -689,13 +693,10 @@ static void handle_svclient_controls (void)
 		    object_set_ya (obj, -8);
 		    object_set_jump (obj, 4);
 		}
-		else if (object_standing_on_ladder (obj)) {
+		else if (object_standing_on_ladder (obj) ||
+			 object_in_ladder (obj)) {
 		    object_set_ya (obj, -4);
 		    object_set_jump (obj, 2);
-		}
-		else if (object_in_ladder (obj)) {
-		    object_set_ya (obj, -4);
-		    object_set_jump (obj, 0);
 		}
 		else {
 		    int jump = object_jump (obj);
@@ -1172,6 +1173,23 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.18
+log
+@Added svgame_get_client_name and svgame_broadcast_text_message
+exports.
+@
+text
+@d584 2
+a585 1
+		else if (object_standing_on_ladder (obj)) {
+a587 4
+		}
+		else if (object_in_ladder (obj)) {
+		    object_set_ya (obj, -4);
+		    object_set_jump (obj, 0);
 @
 
 
