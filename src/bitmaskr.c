@@ -38,7 +38,7 @@ static bitmask_ref_t *create (bitmask_t *mask, int free)
     ref->mask = mask;
     ref->ref_count = 1;
     ref->free = free;
-    add_to_list (ref_list, ref);
+    list_add (ref_list, ref);
     return ref;
 }
 
@@ -48,7 +48,7 @@ static void destroy (bitmask_ref_t *ref)
     if (!ref)
 	return;
 
-    del_from_list (ref);
+    list_remove (ref);
     if (ref->free)
 	bitmask_destroy (ref->mask);
     free (ref);
@@ -57,14 +57,14 @@ static void destroy (bitmask_ref_t *ref)
 
 int bitmask_ref_init ()
 {
-    init_list (ref_list);
+    list_init (ref_list);
     return 0;
 }
 
 
 void bitmask_ref_shutdown ()
 {
-    free_list (ref_list, destroy);
+    list_free (ref_list, destroy);
 }
 
 
@@ -72,7 +72,7 @@ static bitmask_ref_t *find_bitmask (bitmask_t *mask)
 {
     bitmask_ref_t *ref;
 
-    foreach (ref, ref_list)
+    list_for_each (ref, ref_list)
 	if (mask == ref->mask)
 	    return ref;
 

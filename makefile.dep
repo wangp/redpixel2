@@ -1,47 +1,42 @@
 obj/linux/alloc.o: src/alloc.c src/alloc.h src/error.h
 obj/linux/bindings.o: src/bindings.c src/bindings.h src/mylua.h src/extdata.h \
- src/store/store.h src/object.h src/bitmaskr.h src/bitmask.h \
- src/list.h src/map.h src/objmin.h src/objtypes.h src/bindings.inc
+ src/store/store.h src/object.h src/list.h src/objtypes.h \
+ src/bindings.inc
 obj/linux/bitmask.o: src/bitmask.c src/bitmask.h
 obj/linux/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
 obj/linux/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
  src/list.h
-obj/linux/camera.o: src/camera.c src/alloc.h src/camera.h src/objmin.h \
- src/fastsqrt/fastsqrt.h src/object.h src/bitmaskr.h src/bitmask.h \
- src/list.h src/map.h src/mylua.h src/objtypes.h
+obj/linux/camera.o: src/camera.c src/alloc.h src/camera.h \
+ src/fastsqrt/fastsqrt.h src/object.h src/list.h src/mylua.h
 obj/linux/error.o: src/error.c src/error.h
-obj/linux/extdata.o: src/extdata.c src/bitmaskg.h src/bitmask.h src/extdata.h \
+obj/linux/extdata.o: src/extdata.c src/bitmaskg.h src/extdata.h \
  src/magic/magic4x4.h
 obj/linux/fps.o: src/fps.c src/fps.h
-obj/linux/game.o: src/game.c src/camera.h src/objmin.h src/fps.h src/game.h \
- src/magic/magic4x4.h src/magic/magicrt.h src/map.h src/bitmask.h \
- src/list.h src/mapfile.h src/object.h src/bitmaskr.h src/mylua.h \
- src/objtypes.h src/render.h src/store/store.h src/yield.h
-obj/linux/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h src/bitmask.h \
+obj/linux/game.o: src/game.c src/camera.h src/fps.h src/game.h \
+ src/magic/magic4x4.h src/magic/magicrt.h src/map.h src/list.h \
+ src/mapfile.h src/object.h src/mylua.h src/render.h src/store/store.h \
+ src/yield.h
+obj/linux/gameinit.o: src/gameinit.c src/bindings.h src/bitmaskr.h \
  src/fastsqrt/fastsqrt.h src/gameinit.h src/loaddata.h \
  src/magic/magic4x4.h src/mylua.h src/objtypes.h src/path.h \
  src/store/store.h
 obj/linux/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/loaddata.h \
  src/path.h src/store/store.h src/vtree.h
 obj/linux/main.o: src/main.c src/editor/editor.h src/game.h src/gameinit.h
-obj/linux/map.o: src/map.c src/alloc.h src/map.h src/bitmask.h src/list.h \
- src/objmin.h src/object.h src/bitmaskr.h src/mylua.h src/objtypes.h \
- src/store/store.h
-obj/linux/mapfile.o: src/mapfile.c src/map.h src/bitmask.h src/list.h \
- src/objmin.h src/mapfile.h src/object.h src/bitmaskr.h src/mylua.h \
- src/objtypes.h src/store/store.h
+obj/linux/map.o: src/map.c src/alloc.h src/map.h src/list.h src/object.h \
+ src/mylua.h src/store/store.h
+obj/linux/mapfile.o: src/mapfile.c src/map.h src/list.h src/mapfile.h \
+ src/object.h src/mylua.h src/objtypes.h src/store/store.h
 obj/linux/mylua.o: src/mylua.c src/mylua.h src/path.h
 obj/linux/object.o: src/object.c src/alloc.h src/bitmask.h src/bitmaskg.h \
- src/bitmaskr.h src/list.h src/magic/magic4x4.h src/mylua.h \
- src/object.h src/map.h src/objmin.h src/objtypes.h src/objlayer.h \
- src/objlight.h src/store/store.h
-obj/linux/objtypes.o: src/objtypes.c src/alloc.h src/bitmaskg.h src/bitmask.h \
+ src/bitmaskr.h src/list.h src/magic/magic4x4.h src/map.h src/mylua.h \
+ src/object.h src/objtypes.h src/store/store.h
+obj/linux/objtypes.o: src/objtypes.c src/alloc.h src/bitmask.h src/bitmaskg.h \
  src/mylua.h src/objtypes.h src/store/store.h
 obj/linux/path.o: src/path.c src/path.h
-obj/linux/render.o: src/render.c src/list.h src/magic/magic4x4.h src/map.h \
- src/bitmask.h src/objmin.h src/object.h src/bitmaskr.h src/mylua.h \
- src/objtypes.h src/store/store.h src/render.h src/camera.h
+obj/linux/render.o: src/render.c src/camera.h src/list.h src/magic/magic4x4.h \
+ src/map.h src/object.h src/mylua.h src/store/store.h src/render.h
 obj/linux/yield.o: src/yield.c src/yield.h
 obj/linux/netclnt.o: src/net/netclnt.c src/net/net.h src/net/netinter.h
 obj/linux/netmain.o: src/net/netmain.c src/net/net.h src/net/netinter.h
@@ -60,60 +55,56 @@ obj/linux/guidirty.o: src/gui/guidirty.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guimouse.o: src/gui/guimouse.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guiwm.o: src/gui/guiwm.c src/gui/gui.h src/gui/guiinter.h
 obj/linux/guiwmdef.o: src/gui/guiwmdef.c src/gui/gui.h src/gui/guiinter.h
-obj/linux/ug.o: src/ug/ug.c src/ug/ug.h src/gui/gui.h src/ug/ugtheme.h
-obj/linux/ugblank.o: src/ug/ugblank.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h
-obj/linux/ugbutton.o: src/ug/ugbutton.c src/ug/ug.h src/gui/gui.h \
- src/ug/uginter.h src/ug/ugtheme.h
+obj/linux/ug.o: src/ug/ug.c src/ug/ug.h src/ug/ugtheme.h
+obj/linux/ugblank.o: src/ug/ugblank.c src/ug/ug.h src/ug/uginter.h
+obj/linux/ugbutton.o: src/ug/ugbutton.c src/ug/ug.h src/ug/uginter.h \
+ src/ug/ugtheme.h
 obj/linux/ugdialog.o: src/ug/ugdialog.c src/gui/gui.h src/ug/ug.h \
  src/ug/uginter.h src/ug/ugtheme.h
-obj/linux/ugevent.o: src/ug/ugevent.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h
-obj/linux/uglayout.o: src/ug/uglayout.c src/ug/ug.h src/gui/gui.h
-obj/linux/ugmenu.o: src/ug/ugmenu.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h \
+obj/linux/ugevent.o: src/ug/ugevent.c src/ug/ug.h src/ug/uginter.h
+obj/linux/uglayout.o: src/ug/uglayout.c src/ug/ug.h
+obj/linux/ugmenu.o: src/ug/ugmenu.c src/gui/gui.h src/ug/ug.h src/ug/uginter.h \
  src/ug/ugtheme.h
 obj/linux/ugscroll.o: src/ug/ugscroll.c
 obj/linux/ugtheme.o: src/ug/ugtheme.c src/ug/ugtheme.h
 obj/linux/ugthmmot.o: src/ug/ugthmmot.c src/ug/ugtheme.h
 obj/linux/ugthmpaw.o: src/ug/ugthmpaw.c src/ug/ugtheme.h
-obj/linux/ugwidget.o: src/ug/ugwidget.c src/ug/ug.h src/gui/gui.h \
- src/ug/uginter.h
+obj/linux/ugwidget.o: src/ug/ugwidget.c src/ug/ug.h src/ug/uginter.h
 obj/linux/cursor.o: src/editor/cursor.c src/editor/cursor.h src/magic/magic4x4.h
 obj/linux/editarea.o: src/editor/editarea.c src/gui/gui.h src/alloc.h \
  src/editor/editarea.h src/list.h src/magic/magic4x4.h \
- src/editor/modes.h src/editor/selbar.h src/editor/edselect.h \
- src/ug/ug.h
+ src/editor/modes.h src/editor/selbar.h
 obj/linux/editor.o: src/editor/editor.c src/gui/gui.h src/ug/ug.h \
  src/editor/cursor.h src/store/store.h src/path.h src/vtree.h \
  src/editor/editarea.h src/editor/menu.h src/editor/modebar.h \
- src/editor/selbar.h src/editor/edselect.h src/editor/modemgr.h \
- src/editor/modes.h src/map.h src/bitmask.h src/list.h src/objmin.h
-obj/linux/edselect.o: src/editor/edselect.c src/ug/ug.h src/gui/gui.h \
- src/ug/uginter.h src/alloc.h src/editor/edselect.h \
- src/magic/magic4x4.h src/editor/rect.h
+ src/editor/selbar.h src/editor/modemgr.h src/editor/modes.h src/map.h \
+ src/list.h
+obj/linux/edselect.o: src/editor/edselect.c src/ug/ug.h src/ug/uginter.h \
+ src/alloc.h src/editor/edselect.h src/magic/magic4x4.h \
+ src/editor/rect.h
 obj/linux/mdlights.o: src/editor/mdlights.c src/alloc.h src/editor/depths.h \
- src/editor/editarea.h src/editor/edselect.h src/ug/ug.h src/gui/gui.h \
- src/loaddata.h src/magic/magic4x4.h src/map.h src/bitmask.h \
- src/list.h src/objmin.h src/editor/modemgr.h src/editor/modes.h \
- src/path.h src/editor/rect.h src/render.h src/camera.h \
- src/editor/selbar.h src/store/store.h src/vtree.h
-obj/linux/mdobject.o: src/editor/mdobject.c src/alloc.h src/editor/cursor.h \
- src/editor/depths.h src/editor/editarea.h src/editor/edselect.h \
- src/ug/ug.h src/gui/gui.h src/list.h src/map.h src/bitmask.h \
- src/objmin.h src/editor/modemgr.h src/editor/modes.h \
- src/editor/selbar.h src/store/store.h src/object.h src/bitmaskr.h \
- src/mylua.h src/objtypes.h src/editor/rect.h
+ src/editor/editarea.h src/editor/edselect.h src/ug/ug.h \
+ src/loaddata.h src/magic/magic4x4.h src/map.h src/list.h \
+ src/editor/modemgr.h src/editor/modes.h src/path.h src/editor/rect.h \
+ src/render.h src/editor/selbar.h src/store/store.h src/vtree.h
+obj/linux/mdobject.o: src/editor/mdobject.c src/gui/gui.h src/ug/ug.h \
+ src/alloc.h src/editor/cursor.h src/editor/depths.h \
+ src/editor/editarea.h src/editor/edselect.h src/list.h src/map.h \
+ src/editor/modemgr.h src/editor/modes.h src/editor/selbar.h \
+ src/store/store.h src/object.h src/mylua.h src/objtypes.h \
+ src/editor/rect.h
 obj/linux/mdstarts.o: src/editor/mdstarts.c src/editor/depths.h \
- src/editor/editarea.h src/editor/edselect.h src/ug/ug.h src/gui/gui.h \
- src/magic/magic4x4.h src/map.h src/bitmask.h src/list.h src/objmin.h \
- src/editor/modes.h src/editor/modemgr.h src/path.h \
- src/editor/selbar.h src/editor/rect.h
+ src/editor/editarea.h src/editor/edselect.h src/ug/ug.h \
+ src/magic/magic4x4.h src/map.h src/list.h src/editor/modes.h \
+ src/editor/modemgr.h src/path.h src/editor/selbar.h src/editor/rect.h
 obj/linux/mdtiles.o: src/editor/mdtiles.c src/alloc.h src/editor/depths.h \
- src/editor/editarea.h src/loaddata.h src/magic/magic4x4.h src/map.h \
- src/bitmask.h src/list.h src/objmin.h src/editor/modemgr.h \
- src/editor/modes.h src/editor/selbar.h src/editor/edselect.h \
- src/ug/ug.h src/gui/gui.h src/store/store.h src/vtree.h
+ src/editor/editarea.h src/editor/edselect.h src/ug/ug.h \
+ src/loaddata.h src/magic/magic4x4.h src/map.h src/list.h \
+ src/editor/modemgr.h src/editor/modes.h src/editor/selbar.h \
+ src/store/store.h src/vtree.h
 obj/linux/menu.o: src/editor/menu.c src/gui/gui.h src/ug/ug.h \
- src/editor/editarea.h src/editor/editor.h src/map.h src/bitmask.h \
- src/list.h src/objmin.h src/mapfile.h
+ src/editor/editarea.h src/editor/editor.h src/map.h src/list.h \
+ src/mapfile.h
 obj/linux/modemgr.o: src/editor/modemgr.c src/gui/gui.h src/ug/ug.h \
  src/editor/modemgr.h
 obj/linux/selbar.o: src/editor/selbar.c src/gui/gui.h src/ug/ug.h \

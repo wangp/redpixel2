@@ -3,9 +3,10 @@
 #define __included_map_h
 
 
-#include "bitmask.h"
 #include "list.h"
-#include "objmin.h"
+
+struct bitmask;
+struct object;
 
 
 typedef struct light {
@@ -25,7 +26,7 @@ typedef struct start {
 typedef struct map {
     int width, height;
     int **tile;
-    bitmask_t *tile_mask;
+    struct bitmask *tile_mask;
     struct list_head lights;
     struct list_head objects;
     struct list_head starts;
@@ -41,10 +42,10 @@ int map_resize (map_t *map, int width, int height);
 
 void map_generate_tile_mask (map_t *map);
 
-void map_link_object (map_t *map, object_t *obj);
-void map_link_object_bottom (map_t *map, object_t *obj);
-void map_unlink_object (object_t *obj);
-object_t *map_find_object (map_t *map, int id);
+void map_link_object (map_t *map, struct object *obj);
+void map_link_object_bottom (map_t *map, struct object *obj);
+void map_unlink_object (struct object *obj);
+struct object *map_find_object (map_t *map, int id);
 
 light_t *map_light_create (map_t *map, int x, int y, int lightmap);
 void map_light_destroy (light_t *light);

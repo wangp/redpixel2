@@ -2,29 +2,31 @@
 #define __included_object_h
 
 
-#include <allegro.h>
-#include "bitmaskr.h"
 #include "list.h"
-#include "map.h"
 #include "mylua.h"
-#include "objmin.h"
-#include "objtypes.h"
+
+struct BITMAP;
+struct bitmask_ref;
+struct map;
+struct objtype;
 
 
 typedef int objid_t;
 
 
 typedef struct objmask {
-    bitmask_ref_t *ref;
+    struct bitmask_ref *ref;
     int offset_x;
     int offset_y;
 } objmask_t;
 
 
+typedef struct object object_t;
+
 struct object {
     struct object *next;
     struct object *prev;
-    objtype_t *type;
+    struct objtype *type;
     objid_t id;
 
     /* Lua table ref.  */
@@ -94,13 +96,13 @@ void object_remove_all_masks (object_t *obj);
 
 /* Collisions.  */
 
-int object_supported_at (object_t *obj, map_t *map, float x, float y);
+int object_supported_at (object_t *obj, struct map *map, float x, float y);
 
 
 /* Movement.  */
 
-int object_move (object_t *obj, int mask_num, map_t *map, float xv, float yv);
-int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
+int object_move (object_t *obj, int mask_num, struct map *map, float xv, float yv);
+int object_move_x_with_ramp (object_t *obj, int mask_num, struct map *map,
 			     float dx, float ramp_amount);
 
 
@@ -117,11 +119,11 @@ object_t *table_object (lua_State *L, int index);
 
 /* Drawing.  */
 
-void object_draw_layers (BITMAP *dest, object_t *obj,
+void object_draw_layers (struct BITMAP *dest, object_t *obj,
 			 int offset_x, int offset_y);
-void object_draw_lit_layers (BITMAP *dest, object_t *obj,
+void object_draw_lit_layers (struct BITMAP *dest, object_t *obj,
 			     int offset_x, int offset_y, int color);
-void object_draw_lights (BITMAP *dest, object_t *obj,
+void object_draw_lights (struct BITMAP *dest, object_t *obj,
 			 int offset_x, int offset_y);
 
 

@@ -107,8 +107,8 @@ static void *loadhelp_load (void *filenames, const char *_vtree)
     vtree = _vtree;
     
     for (p = path_share; *p; p++) {
-	ustrncpy (tmp, *p, sizeof tmp);
-	ustrncat (tmp, filenames, sizeof tmp);
+	ustrzcpy (tmp, sizeof tmp, *p);
+	ustrzcat (tmp, sizeof tmp, filenames);
 	for_each_file (tmp, FA_RDONLY | FA_ARCH, loader, 0);
     }
 

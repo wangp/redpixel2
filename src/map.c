@@ -22,9 +22,9 @@ map_t *map_create (void)
 
     map = alloc (sizeof *map);
 
-    init_list (map->lights);
-    init_list (map->objects);
-    init_list (map->starts);
+    list_init (map->lights);
+    list_init (map->objects);
+    list_init (map->starts);
 
     return map;
 }
@@ -41,9 +41,9 @@ void map_destroy (map_t *map)
     if (map->tile_mask)
 	bitmask_destroy (map->tile_mask);
 
-    free_list (map->lights, map_light_destroy);
-    free_list (map->objects, object_destroy);
-    free_list (map->starts, map_start_destroy);
+    list_free (map->lights, map_light_destroy);
+    list_free (map->objects, object_destroy);
+    list_free (map->starts, map_start_destroy);
     free (map);
 }
 
@@ -105,19 +105,19 @@ void map_generate_tile_mask (map_t *map)
 
 void map_link_object (map_t *map, object_t *p)
 {
-    append_to_list (map->objects, p);
+    list_append (map->objects, p);
 }
 
 
 void map_link_object_bottom (map_t *map, object_t *p)
 {
-    add_to_list (map->objects, p);
+    list_add (map->objects, p);
 }
 
 
 void map_unlink_object (object_t *p)
 {
-    del_from_list (p);
+    list_remove (p);
     p->next = p->prev = NULL;
 }
 
@@ -126,7 +126,7 @@ object_t *map_find_object (map_t *map, int id)
 {
     object_t *p;
 
-    foreach (p, map->objects)
+    list_for_each (p, map->objects)
 	if (p->id == id)
 	    return p;
 
@@ -143,7 +143,7 @@ light_t *map_light_create (map_t *map, int x, int y, int lightmap)
     p->x = x;
     p->y = y;
     p->lightmap = lightmap;
-    append_to_list (map->lights, p);
+    list_append (map->lights, p);
 
     return p;
 }
@@ -151,7 +151,7 @@ light_t *map_light_create (map_t *map, int x, int y, int lightmap)
 
 void map_light_destroy (light_t *light)
 {
-    del_from_list (light);
+    list_remove (light);
     free (light);
 }
 
@@ -164,7 +164,7 @@ start_t *map_start_create (map_t *map, int x, int y)
     
     p->x = x;
     p->y = y;
-    append_to_list (map->starts, p);
+    list_append (map->starts, p);
 
     return p;
 }
@@ -172,6 +172,6 @@ start_t *map_start_create (map_t *map, int x, int y)
 
 void map_start_destroy (start_t *start)
 {
-    del_from_list (start);
+    list_remove (start);
     free (start);
 }

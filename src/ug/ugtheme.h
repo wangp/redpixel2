@@ -13,23 +13,23 @@ struct ug_theme {
     int (*init) ();
     void (*shutdown) ();
     
-    void (*tile) (BITMAP *, int, int, int, int, int);
-    void (*bevel) (BITMAP *, int, int, int, int, int);
-    void (*arrow) (BITMAP *, int, int, int, int, int);
-    FONT *(*font) (int);
-    void (*text) (BITMAP *, FONT *, int, int, const char *);
+    void (*tile) (struct BITMAP *, int, int, int, int, int);
+    void (*bevel) (struct BITMAP *, int, int, int, int, int);
+    void (*arrow) (struct BITMAP *, int, int, int, int, int);
+    struct FONT *(*font) (int);
+    void (*text) (struct BITMAP *, struct FONT *, int, int, const char *);
 };
 
     
 int ug_theme_init ();
 void ug_theme_shutdown ();
 
-void ug_theme_tile (BITMAP *, int x, int y, int w, int h, int type);
-void ug_theme_bevel (BITMAP *, int x, int y, int w, int h, int invert);
-void ug_theme_arrow (BITMAP *, int x, int y, int w, int h, int type);
-void ug_theme_text_centre (BITMAP *, int x, int y, int w, int h, int type, const char *fmt, ...);
+void ug_theme_tile (struct BITMAP *, int x, int y, int w, int h, int type);
+void ug_theme_bevel (struct BITMAP *, int x, int y, int w, int h, int invert);
+void ug_theme_arrow (struct BITMAP *, int x, int y, int w, int h, int type);
+void ug_theme_text_centre (struct BITMAP *, int x, int y, int w, int h, int type, const char *fmt, ...);
 
-FONT *ug_theme_font (int type);
+struct FONT *ug_theme_font (int type);
 
 
 #endif

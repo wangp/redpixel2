@@ -34,8 +34,8 @@ int lua_dofile_path (lua_State *L, const char *filename)
     char **p, tmp[1024];
 
     for (p = path_share; *p; p++) {
-	ustrncpy (tmp, *p, sizeof tmp);
-	ustrncat (tmp, filename, sizeof tmp);
+	ustrzcpy (tmp, sizeof tmp, *p);
+	ustrzcat (tmp, sizeof tmp, filename);
 	if (lua_dofile (L, tmp) == 0)
 	    return 0;
     }

@@ -134,15 +134,15 @@ static void table_add (DATAFILE *d, AL_CONST char *prefix)
 	    || !ustrcmp (name, "GrabberInfo"))
 	    continue;
 
-	ustrncpy (path, prefix, sizeof path);
-	ustrncat (path, name, sizeof path);
+	ustrzcpy (path, sizeof path, prefix);
+	ustrzcat (path, sizeof path, name);
 
 	n = data_append (&d[i]);
 	if (n)
 	    hash_insert (path, (void *) n, &table);
     	
 	if (d[i].type == DAT_FILE) {
-	    ustrncat (path, "/", sizeof path);
+	    ustrzcat (path, sizeof path, "/");
 	    table_add (d[i].dat, path);
 	}
     }

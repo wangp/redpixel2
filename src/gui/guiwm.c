@@ -4,7 +4,6 @@
  */
 
 
-#include <allegro.h>
 #include "gui.h"
 #include "guiinter.h"
 
@@ -34,7 +33,7 @@ void gui_wm_event (gui_event_t event, int d)
     gui_wm->wm_event (event, d);
 }
 
-int gui_wm_update_screen (BITMAP *bmp)
+int gui_wm_update_screen (struct BITMAP *bmp)
 {
     return gui_wm->wm_update_screen (bmp);
 }
@@ -111,7 +110,7 @@ void gui_window_set_self (gui_window_t *w, void *self)
     gui_wm->window_set_self (w, self);
 }
 
-void gui_window_set_draw_proc (gui_window_t *w, void (*draw) (void *, BITMAP *))
+void gui_window_set_draw_proc (gui_window_t *w, void (*draw) (void *, struct BITMAP *))
 {
     gui_wm->window_set_draw_proc (w, draw);
 }

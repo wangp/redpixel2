@@ -5,6 +5,8 @@
 
 
 #include <allegro.h>
+#include "gui.h"
+#include "ug.h"
 #include "alloc.h"
 #include "cursor.h"
 #include "depths.h"
@@ -42,7 +44,7 @@ static struct type *create_type (const char *name)
     p->name = ustrdup (name);
     p->list = ed_select_list_create ();
 
-    add_to_list (type_list, p);
+    list_add (type_list, p);
     return p;
 }
 
@@ -50,7 +52,7 @@ static struct type *find_type (const char *name)
 {
     struct type *p;
 
-    foreach (p, type_list)
+    list_for_each (p, type_list)
 	if (!ustrcmp (name, p->name)) 
 	    return p;
 
@@ -76,7 +78,7 @@ static void callback (objtype_t *objtype)
 
 static int make_type_list ()
 {
-    init_list (type_list);
+    list_init (type_list);
     objtypes_enumerate (callback);
     return (list_empty (type_list)) ? -1 : 0;
 }
@@ -90,7 +92,7 @@ static void do_free_type (struct type *p)
 
 static void free_type_list ()
 {
-    free_list (type_list, do_free_type);
+    list_free (type_list, do_free_type);
 }
 
 
@@ -275,13 +277,13 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offx *= 16;
     offy *= 16;
 
-    foreach (p, map->objects)
+    list_for_each (p, map->objects)
 	if (p == highlighted)
 	    object_draw_lit_layers (bmp, p, offx, offy, 0x88);
 	else
 	    object_draw_layers (bmp, p, offx, offy);
 
-    foreach (p, map->objects)
+    list_for_each (p, map->objects)
 	object_draw_lights (bmp, p, offx, offy);
 }
 
@@ -290,7 +292,7 @@ static object_t *find_object (int x, int y)
     object_t *p, *last = NULL;
     int x1, y1, x2, y2;
     
-    foreach (p, map->objects) {
+    list_for_each (p, map->objects) {
 	object_bounding_box (p, &x1, &y1, &x2, &y2);
 	if (in_rect (x, y, p->x + x1, p->y + y1, x2-x1+1, y2-y1+1))
 	    last = p;
@@ -306,7 +308,7 @@ static void do_object_pickup (object_t *p)
 
     key = p->type->name;
 
-    foreach (type, type_list) {
+    list_for_each (type, type_list) {
 	int i = ed_select_list_item_index (type->list, key);
 	if (i >= 0) {
 	    change_set (type);

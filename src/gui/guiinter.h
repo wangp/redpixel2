@@ -12,8 +12,8 @@ int gui_accel_handle_key (int key);
 void gui_dirty_init ();
 void gui_dirty_shutdown ();
 void gui_dirty_add_rect (int x, int y, int w, int h);
-void gui_dirty_clear (BITMAP *);
-void gui_dirty_blit (BITMAP *bmp, BITMAP *dest);
+void gui_dirty_clear (struct BITMAP *);
+void gui_dirty_blit (struct BITMAP *bmp, struct BITMAP *dest);
 
 
 /* guimouse.c */
@@ -27,7 +27,7 @@ struct gui_wm {
     void (*wm_init) ();
     void (*wm_shutdown) ();
     void (*wm_event) (gui_event_t, int);
-    int (*wm_update_screen) (BITMAP *);
+    int (*wm_update_screen) (struct BITMAP *);
     
     gui_window_t *(*window_create) (int, int, int, int, int);
     void (*window_destroy) (gui_window_t *);
@@ -42,7 +42,7 @@ struct gui_wm {
     void (*window_set_depth) (gui_window_t *, int);
     void (*window_set_alpha) (gui_window_t *, int);
     void (*window_set_self) (gui_window_t *, void *);
-    void (*window_set_draw_proc)  (gui_window_t *, void (*) (void *, BITMAP *));
+    void (*window_set_draw_proc)  (gui_window_t *, void (*) (void *, struct BITMAP *));
     void (*window_set_event_proc) (gui_window_t *, void (*) (void *, gui_event_t, int));
 
     int (*window_x) (gui_window_t *);
@@ -57,7 +57,7 @@ extern gui_wm_t *gui_wm;
 void gui_wm_init ();
 void gui_wm_shutdown ();
 void gui_wm_event (gui_event_t, int d);
-int gui_wm_update_screen (BITMAP *);
+int gui_wm_update_screen (struct BITMAP *);
 
 
 #endif

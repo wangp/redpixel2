@@ -46,11 +46,11 @@ static int do_init (const char *filename)
 	start_t *start;
 	object_t *obj;
 
-	foreach (start, map->starts) {
+	list_for_each (start, map->starts) {
 	    obj = object_create ("player");
 	    obj->x = start->x;
 	    obj->y = start->y;
-	    add_to_list (map->objects, obj);
+	    list_add (map->objects, obj);
 	    local_player = obj->id;
 	    break;
 	}
@@ -77,7 +77,7 @@ static void do_input ()
 {
     object_t *obj;
 
-    foreach (obj, map->objects)
+    list_for_each (obj, map->objects)
 	if (obj->id == local_player)
 	    break;
 
@@ -141,7 +141,7 @@ static void do_physics ()
 {
     object_t *obj;
 
-    foreach (obj, map->objects) {
+    list_for_each (obj, map->objects) {
 	move_object_x (obj);
 	move_object_y (obj);
     }
@@ -156,7 +156,7 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
     char buf[1024];
 
     va_start (ap, fmt);
-    uvsprintf (buf, fmt, ap);
+    uvszprintf (buf, sizeof buf, fmt, ap);
     va_end (ap);
     
     tmp = create_magic_bitmap (text_length (font, buf), text_height (font));
@@ -175,7 +175,7 @@ static void do_render ()
     {
 	object_t *obj;
 
-	foreach (obj, map->objects)
+	list_for_each (obj, map->objects)
 	    if (obj->id == local_player) break;
 
 	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),

@@ -2,6 +2,9 @@
 #define __included_magic4x4_h
 
 
+#include <allegro.h>
+
+
 /* magic4x4.c */
 
 BITMAP *get_magic_bitmap_format(BITMAP *orig, PALETTE pal);

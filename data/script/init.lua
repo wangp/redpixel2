@@ -24,6 +24,7 @@ end
 -- Files to load.
 
 local files = {
+    "base.lua",
     "bow.lua",
     "enhance.lua",
     "explode.lua",

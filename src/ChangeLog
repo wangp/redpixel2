@@ -1,3 +1,18 @@
+2001-07-02  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* objlayer.h, objlight.h: Removed (moved into object.c).
+	* objmin.h: Removed (unneeded).
+
+	* Made many headers independent of other headers (e.g. often used
+	to include another header just to get "typedef struct foo foo_t").
+
+	* list.h: Normalised API.
+
+	* data/script/base.lua: "Base class" to give objects a more OOPish
+	feel. ie. obj:method(args) instead of object_method(obj, args)
+
+	* Updated to new Allegro Unicode API.
+
 2001-06-07  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* yield.c (yield): Use select instead of sleep under Unix.

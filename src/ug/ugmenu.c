@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <allegro.h>
+#include "gui.h"
 #include "ug.h"
 #include "uginter.h"
 #include "ugtheme.h"

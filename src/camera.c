@@ -4,6 +4,7 @@
  */
 
 
+#include <math.h>
 #include "alloc.h"
 #include "camera.h"
 #include "fastsqrt.h"

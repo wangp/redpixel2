@@ -6,6 +6,7 @@
 
 #include <allegro.h>
 #include "alloc.h"
+#include "bitmask.h"
 #include "bitmaskg.h"
 #include "mylua.h"
 #include "objtypes.h"

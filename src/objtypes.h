@@ -2,8 +2,9 @@
 #define __included_objtypes_h
 
 
-#include "bitmask.h"
 #include "mylua.h"
+
+struct bitmask;
 
 
 typedef struct objtype {
@@ -11,7 +12,7 @@ typedef struct objtype {
     char *name;
     char *icon;
     lua_ref_t init_func;
-    bitmask_t *icon_mask;
+    struct bitmask *icon_mask;
 } objtype_t;
 
 

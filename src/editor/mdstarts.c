@@ -70,7 +70,7 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offx *= 16;
     offy *= 16;
     
-    foreach (p, map->starts)
+    list_for_each (p, map->starts)
 	draw_trans_magic_sprite (bmp, icon, 
 				 (p->x - offx) - (icon->w / 3 / 2),
 				 (p->y - offy) - (icon->h / 2));
@@ -80,7 +80,7 @@ static start_t *find_start (int x, int y)
 {
     start_t *p, *last = NULL;
     
-    foreach (p, map->starts)
+    list_for_each (p, map->starts)
 	if (in_rect (x, y, p->x - icon->w/3/2, p->y - icon->h/2, 
 		     icon->w/3, icon->h))
 	    last = p;
@@ -146,8 +146,8 @@ static BITMAP *load_start_icon ()
     BITMAP *icon;
 	
     for (path = path_share; *path; path++) {
-	ustrncpy (tmp, *path, sizeof tmp);
-	ustrncat (tmp, "misc/start.bmp", sizeof tmp);
+	ustrzcpy (tmp, sizeof tmp, *path);
+	ustrzcat (tmp, sizeof tmp, "misc/start.bmp");
 
 	bmp = load_bitmap (tmp, pal);
 	if (bmp) {

@@ -2,7 +2,7 @@
 #define __included_gui_h
 
 
-#include <allegro.h>
+struct BITMAP;
 
 
 enum gui_event {
@@ -125,7 +125,7 @@ void gui_window_set_self (gui_window_t *, void *self);
 /*: Set the callback for window redrawing.  It will be called with the
  *  window's `self' value, and the bitmap to draw to.  The bitmap is
  *  not the screen, but a private bitmap.  */
-void gui_window_set_draw_proc (gui_window_t *, void (*draw) (void *self, BITMAP *));
+void gui_window_set_draw_proc (gui_window_t *, void (*draw) (void *self, struct BITMAP *));
 
 /*: Set the callback to handle window events.  It will be called with
  *  the window's `self' value, the event number, and any extra event

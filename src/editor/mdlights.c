@@ -52,11 +52,11 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefi
 	    || !ustrcmp (name, "GrabberInfo"))
 	    continue;
 
-	ustrncpy (path, prefix, sizeof path);
-	ustrncat (path, name, sizeof path);
+	ustrzcpy (path, sizeof path, prefix);
+	ustrzcat (path, sizeof path, name);
 	
 	if (d[i].type == DAT_FILE) {
-	    ustrncat (path, "/", sizeof path);
+	    ustrzcat (path, sizeof path, "/");
 	    _add_to_list (list, d[i].dat, path);
 	}
 	else if (d[i].type == DAT_BITMAP) {
@@ -76,12 +76,12 @@ static void callback (const char *filename, int id)
     f->list = ed_select_list_create ();
     _add_to_list (f->list, store_file (id), VTREE_LIGHTS);
 
-    add_to_list (file_list, f);
+    list_add (file_list, f);
 }
 
 static int make_file_list ()
 {
-    init_list (file_list);
+    list_init (file_list);
     lights_enumerate (callback);
     return (list_empty (file_list)) ? -1 : 0;
 }
@@ -94,7 +94,7 @@ static void do_free_file (struct file *f)
 
 static void free_file_list ()
 {
-    free_list (file_list, do_free_file);
+    list_free (file_list, do_free_file);
 }
 
 
@@ -176,7 +176,7 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offx *= 16;
     offy *= 16;
 
-    foreach (p, map->lights)
+    list_for_each (p, map->lights)
 	draw_trans_magic_sprite (bmp, icon, 
 				 (p->x - offx) - (icon->w / 3 / 2),
 				 (p->y - offy) - (icon->h / 2));
@@ -191,7 +191,7 @@ static light_t *find_light (int x, int y)
 {
     light_t *p, *last = 0;
     
-    foreach (p, map->lights)
+    list_for_each (p, map->lights)
 	if (in_rect (x, y,
 		     p->x - icon->w / 3 / 2,
 		     p->y - icon->h / 2,

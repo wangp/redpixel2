@@ -12,10 +12,9 @@
 #include "bitmaskr.h"
 #include "list.h"
 #include "magic4x4.h"
+#include "map.h"
 #include "mylua.h"
 #include "object.h"
-#include "objlayer.h"
-#include "objlight.h"
 #include "objtypes.h"
 #include "store.h"
 
@@ -57,12 +56,17 @@ object_t *object_create (const char *type_name)
     lua_pop (L, 1);
 
     /* Initialise some C variables.  */
-    init_list (obj->layers);
+    list_init (obj->layers);
     object_add_layer (obj, obj->type->icon, 0, 0);
 
-    init_list (obj->lights);
+    list_init (obj->lights);
 
     set_default_masks (obj);
+
+    /* Call base object init function.  */
+    lua_getglobal (L, "object_init");
+    lua_getref (L, obj->table);
+    lua_call (L, 1, 0);
 
     /* Call object init function if any.  */
     if (obj->type->init_func != LUA_NOREF) {
@@ -106,6 +110,16 @@ void object_set_ramp (object_t *obj, float ramp)
 /* Layers.  */
 
 
+typedef struct objlayer {
+    struct objlayer *next;
+    struct objlayer *prev;
+    int id;
+    BITMAP *bmp;
+    int offset_x;
+    int offset_y;
+} objlayer_t;
+
+
 static int set_layer (objlayer_t *layer, int id, const char *key,
 		      int offset_x, int offset_y)
 {
@@ -131,7 +145,7 @@ int object_add_layer (object_t *obj, const char *key,
 
   retry:
     
-    foreach (layer, obj->layers)
+    list_for_each (layer, obj->layers)
 	if (id == layer->id) {
 	    id = layer->id + 1;
 	    goto retry;
@@ -142,7 +156,7 @@ int object_add_layer (object_t *obj, const char *key,
 	free (layer);
 	return -1;
     }
-    append_to_list (obj->layers, layer);
+    list_append (obj->layers, layer);
     return id;
 }
 
@@ -152,7 +166,7 @@ int object_replace_layer (object_t *obj, int layer_id, const char *key,
 {
     objlayer_t *layer;
 
-    foreach (layer, obj->layers)
+    list_for_each (layer, obj->layers)
 	if (layer_id == layer->id) {
 	    if (set_layer (layer, layer_id, key, offset_x, offset_y) == 0)
 		return 0;
@@ -167,7 +181,7 @@ int object_move_layer (object_t *obj, int layer_id, int offset_x, int offset_y)
 {
     objlayer_t *layer;
 
-    foreach (layer, obj->layers)
+    list_for_each (layer, obj->layers)
 	if (layer_id == layer->id) {
 	    layer->offset_x = offset_x;
 	    layer->offset_y = offset_y;
@@ -182,9 +196,9 @@ int object_remove_layer (object_t *obj, int layer_id)
 {
     objlayer_t *layer;
 
-    foreach (layer, obj->layers)
+    list_for_each (layer, obj->layers)
 	if (layer_id == layer->id) {
-	    del_from_list (layer);
+	    list_remove (layer);
 	    free (layer);
 	    return 0;
 	}
@@ -195,7 +209,7 @@ int object_remove_layer (object_t *obj, int layer_id)
 
 void object_remove_all_layers (object_t *obj)
 {
-    free_list (obj->layers, free);
+    list_free (obj->layers, free);
 }
 
 
@@ -203,6 +217,16 @@ void object_remove_all_layers (object_t *obj)
 
 /* Note: Currently lights are very much like layers, but I am not
  * generalising them yet.  (Remember John Harper's quote.)  */
+
+
+typedef struct objlight {
+    struct objlight *next;
+    struct objlight *prev;
+    int id;
+    BITMAP *bmp;
+    int offset_x;
+    int offset_y;    
+} objlight_t;
 
 
 static int set_light (objlight_t *light, int id, const char *key,
@@ -230,7 +254,7 @@ int object_add_light (object_t *obj, const char *key,
 
   retry:
     
-    foreach (light, obj->lights)
+    list_for_each (light, obj->lights)
 	if (id == light->id) {
 	    id = light->id + 1;
 	    goto retry;
@@ -241,7 +265,7 @@ int object_add_light (object_t *obj, const char *key,
 	free (light);
 	return -1;
     }
-    add_to_list (obj->lights, light);
+    list_add (obj->lights, light);
     return id;
 }
 
@@ -251,7 +275,7 @@ int object_replace_light (object_t *obj, int light_id, const char *key,
 {
     objlight_t *light;
 
-    foreach (light, obj->lights)
+    list_for_each (light, obj->lights)
 	if (light_id == light->id) {
 	    if (set_light (light, light_id, key, offset_x, offset_y) == 0)
 		return 0;
@@ -266,7 +290,7 @@ int object_move_light (object_t *obj, int light_id, int offset_x, int offset_y)
 {
     objlight_t *light;
 
-    foreach (light, obj->lights)
+    list_for_each (light, obj->lights)
 	if (light_id == light->id) {
 	    light->offset_x = offset_x;
 	    light->offset_y = offset_y;
@@ -281,9 +305,9 @@ int object_remove_light (object_t *obj, int light_id)
 {
     objlight_t *light;
 
-    foreach (light, obj->lights)
+    list_for_each (light, obj->lights)
 	if (light_id == light->id) {
-	    del_from_list (light);
+	    list_remove (light);
 	    free (light);
 	    return 0;
 	}
@@ -294,7 +318,7 @@ int object_remove_light (object_t *obj, int light_id)
 
 void object_remove_all_lights (object_t *obj)
 {
-    free_list (obj->lights, free);
+    list_free (obj->lights, free);
 }
 
 
@@ -393,7 +417,7 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
     if (!mask[mask_num].ref)
 	return 0;
 
-    foreach (p, map->objects) if ((obj->id != p->id) && (p->mask[0].ref))
+    list_for_each (p, map->objects) if ((obj->id != p->id) && (p->mask[0].ref))
 	if (bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
 				     bitmask_ref_bitmask (p->mask[0].ref),
 				     x + mask[mask_num].offset_x,
@@ -567,7 +591,7 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
-    foreach (layer, obj->layers) {
+    list_for_each (layer, obj->layers) {
 	bmp = layer->bmp;
 	draw_magic_sprite
 	    (dest, bmp,
@@ -583,7 +607,7 @@ void object_draw_lit_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
-    foreach (layer, obj->layers) {
+    list_for_each (layer, obj->layers) {
 	bmp = layer->bmp;
 	draw_lit_magic_sprite
 	    (dest, bmp,
@@ -600,7 +624,7 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
     objlight_t *light;
     BITMAP *bmp;
 
-    foreach (light, obj->lights) {
+    list_for_each (light, obj->lights) {
 	bmp = light->bmp;
 	draw_trans_magic_sprite
 	    (dest, bmp,
@@ -620,7 +644,7 @@ void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
 
     x1 = y1 = x2 = y2 = 0;
     
-    foreach (layer, obj->layers) {
+    list_for_each (layer, obj->layers) {
 	x = layer->offset_x - layer->bmp->w/3/2;
 	y = layer->offset_y - layer->bmp->h/2;
 

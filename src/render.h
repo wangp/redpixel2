@@ -2,13 +2,13 @@
 #define __included_render_h
 
 
-#include <allegro.h>
-#include "camera.h"
-#include "map.h"
+struct BITMAP;
+struct map;
+struct camera;
 
 
-void render_lights (BITMAP *bmp, map_t *map, int offx, int offy);
-void render (BITMAP *bmp, map_t *map, camera_t *cam);
+void render_lights (struct BITMAP *bmp, struct map *map, int offx, int offy);
+void render (struct BITMAP *bmp, struct map *map, struct camera *cam);
 
 
 #endif

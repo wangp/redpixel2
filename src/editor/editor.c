@@ -28,8 +28,8 @@ static int load_font ()
     char **p, filename[1024];
 
     for (p = path_share; *p; p++) {
-	ustrncpy (filename, *p, sizeof filename);
-	ustrncat (filename, "font/font.dat", sizeof filename);
+	ustrzcpy (filename, sizeof filename, *p);
+	ustrzcat (filename, sizeof filename, "font/font.dat");
 	if (store_load (filename, VTREE_FONTS) >= 0)
 	    return 0;
     }

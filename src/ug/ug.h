@@ -2,7 +2,7 @@
 #define __included_ug_h
 
 
-#include "gui.h"
+struct gui_window;
 
 
 /* ug.c */
@@ -127,13 +127,13 @@ int ug_event_data_mouse_b (ug_event_data_t *);
 int ug_event_data_mouse_bstate (ug_event_data_t *);
 
 /*: Send an event to a widget, with drawing event data.  */
-void ug_widget_send_event_draw (ug_widget_t *, ug_event_t, BITMAP *bmp);
+void ug_widget_send_event_draw (ug_widget_t *, ug_event_t, struct BITMAP *bmp);
 
 /*: Emit a signal to a widget, with drawing event data.  */
-void ug_widget_emit_signal_draw (ug_widget_t *, ug_signal_t, BITMAP *bmp);
+void ug_widget_emit_signal_draw (ug_widget_t *, ug_signal_t, struct BITMAP *bmp);
 
 /*: Return the bitmap address of a draw event.  */
-BITMAP *ug_event_data_draw_bmp (ug_event_data_t *);
+struct BITMAP *ug_event_data_draw_bmp (ug_event_data_t *);
 
 /*: Return the x position of a draw event.  */
 int ug_event_data_draw_x (ug_event_data_t *);
@@ -220,7 +220,7 @@ typedef struct ug_dialog ug_dialog_t;
 
 /*: Create a dialog with the specified layout in a window, and with a
  *  specified border.  */
-ug_dialog_t *ug_dialog_create (gui_window_t *, ug_dialog_layout_t *, int border);
+ug_dialog_t *ug_dialog_create (struct gui_window *, ug_dialog_layout_t *, int border);
 
 /*: Free memory associated with a dialog.  */
 void ug_dialog_destroy (ug_dialog_t *);

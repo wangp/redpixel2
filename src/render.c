@@ -5,6 +5,7 @@
 
 
 #include <allegro.h>
+#include "camera.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "map.h"
@@ -39,7 +40,7 @@ void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
     BITMAP *b;
     light_t *l;
     
-    foreach (l, map->lights) {
+    list_for_each (l, map->lights) {
 	b = store[l->lightmap]->dat;
 	draw_trans_magic_sprite (bmp, b,
 				 (l->x - offx) - (b->w / 3 / 2),
@@ -52,7 +53,7 @@ static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
 {
     object_t *obj;
 
-    foreach (obj, map->objects)
+    list_for_each (obj, map->objects)
 	object_draw_layers (bmp, obj, offx, offy);
 }
 
@@ -61,7 +62,7 @@ static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
     object_t *obj;
 
-    foreach (obj, map->objects)
+    list_for_each (obj, map->objects)
 	object_draw_lights (bmp, obj, offx, offy);
 }
 

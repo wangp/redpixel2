@@ -4,6 +4,7 @@
  */
 
 
+#include <allegro.h>
 #include <stdlib.h>
 #include "gui.h"
 #include "ug.h"

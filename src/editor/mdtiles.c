@@ -8,6 +8,7 @@
 #include "alloc.h"
 #include "depths.h"
 #include "editarea.h"
+#include "edselect.h"
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "map.h"
@@ -44,11 +45,11 @@ static void _add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefi
 	    || !ustrcmp (name, "GrabberInfo"))
 	    continue;
 
-	ustrncpy (path, prefix, sizeof path);
-	ustrncat (path, name, sizeof path);
+	ustrzcpy (path, sizeof path, prefix);
+	ustrzcat (path, sizeof path, name);
 	
 	if (d[i].type == DAT_FILE) {
-	    ustrncat (path, "/", sizeof path);
+	    ustrzcat (path, sizeof path, "/");
 	    _add_to_list (list, d[i].dat, path);
 	}
 	else if (d[i].type == DAT_BITMAP)
@@ -65,12 +66,12 @@ static void callback (const char *filename, int id)
     f->list = ed_select_list_create ();
     _add_to_list (f->list, store_file (id), VTREE_TILES);
     
-    add_to_list (file_list, f);
+    list_add (file_list, f);
 }
 
 static int make_file_list ()
 {
-    init_list (file_list);
+    list_init (file_list);
     tiles_enumerate (callback);
     return (list_empty (file_list)) ? -1 : 0;
 }
@@ -83,7 +84,7 @@ static void do_free_file (struct file *f)
 
 static void free_file_list ()
 {
-    free_list (file_list, do_free_file);
+    list_free (file_list, do_free_file);
 }
 
 
@@ -194,7 +195,7 @@ static void do_tile_pickup (int x, int y)
     key = store_key (map->tile[y][x]);
     if (!key) return;
     
-    foreach (f, file_list) {
+    list_for_each (f, file_list) {
 	int t = ed_select_list_item_index (f->list, key);
 	if (t >= 0) {
 	    change_set (f);

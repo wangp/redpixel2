@@ -86,14 +86,14 @@ int map_save (map_t *map, const char *filename)
 	int num;
 	
 	num = 0;
-    	foreach (p, map->lights) num++;
+    	list_for_each (p, map->lights) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_LIGHTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
 	
-	    foreach (p, map->lights)
+	    list_for_each (p, map->lights)
 		if ((pack_iputl (p->x, f) == EOF)
 		    || (pack_iputl (p->y, f) == EOF)
 		    || (pack_fputs_nl (store_key (p->lightmap), f) == EOF))
@@ -107,14 +107,14 @@ int map_save (map_t *map, const char *filename)
 	int num;
 
 	num = 0;
-	foreach (p, map->objects) num++;
+	list_for_each (p, map->objects) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_OBJECTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
 	
-	    foreach (p, map->objects) {
+	    list_for_each (p, map->objects) {
 		const char *name = p->type->name;
 		
 		if ((pack_fputs_nl (name, f) == EOF)
@@ -131,14 +131,14 @@ int map_save (map_t *map, const char *filename)
 	int num;
 
 	num = 0;
-	foreach (p, map->starts) num++;
+	list_for_each (p, map->starts) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_STARTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
 	
-	    foreach (p, map->starts)
+	    list_for_each (p, map->starts)
 		if ((pack_iputl (p->x, f) == EOF)
 		    || (pack_iputl (p->y, f) == EOF))
 		    goto error;

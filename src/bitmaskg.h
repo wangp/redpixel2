@@ -2,12 +2,12 @@
 #define __included_bitmaskg_h
 
 
-#include <allegro.h>
-#include "bitmask.h"
+struct BITMAP;
+struct bitmask;
 
 
-bitmask_t *bitmask_create_from_bitmap (BITMAP *bmp);
-bitmask_t *bitmask_create_from_magic_bitmap (BITMAP *bmp);
+struct bitmask *bitmask_create_from_bitmap (struct BITMAP *bmp);
+struct bitmask *bitmask_create_from_magic_bitmap (struct BITMAP *bmp);
 
 
 #endif

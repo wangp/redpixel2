@@ -52,7 +52,7 @@ static void dot_grid (BITMAP *bmp, int offx, int offy, int gx, int gy, int col)
 static void draw_layers (BITMAP *bmp)
 {
     struct layer *p;
-    foreach (p, layers) 
+    list_for_each (p, layers) 
 	if ((p->draw) && (p->show))
 	    p->draw (bmp, offsetx, offsety);
 }
@@ -205,7 +205,7 @@ void editarea_install (int x, int y, int w, int h)
 
     editarea_reset_offset ();
 
-    init_list (layers);
+    list_init (layers);
     active = 0;
 }
 
@@ -219,7 +219,7 @@ static void free_layer (struct layer *p)
 
 void editarea_uninstall ()
 {
-    free_list (layers, free_layer);
+    list_free (layers, free_layer);
     destroy_bitmap (magic);
     gui_window_destroy (window);
 }
@@ -236,11 +236,11 @@ static void link_layer (struct layer *layer)
 {
     struct layer *p;
 
-    foreach (p, layers)
+    list_for_each (p, layers)
         if ((p->next == (struct layer *) &layers) ||
 	    (p->next->depth > layer->depth)) break;
 
-    add_at_pos (p, layer);
+    list_add_at_pos (p, layer);
 }
 
 
@@ -264,7 +264,7 @@ void editarea_layer_register (const char *name, void (*draw) (BITMAP *, int offx
 void editarea_layer_show (const char *name, int show)
 {
     struct layer *p;
-    foreach (p, layers) 
+    list_for_each (p, layers) 
 	if (!ustrcmp (p->name, name)) {
 	    p->show = show;
 	    break;
@@ -275,7 +275,7 @@ void editarea_layer_show (const char *name, int show)
 void editarea_layer_activate (const char *name)
 {
     struct layer *p;
-    foreach (p, layers)
+    list_for_each (p, layers)
 	if (!ustrcmp (name, p->name)) {
 	    active = p;
 	    break;
