@@ -5,9 +5,6 @@
 struct DATAFILE;
 
 
-extern float gamma_factor;
-
-
 void register_extended_datafile (void);
 struct DATAFILE *load_extended_datafile (const char *filename);
 
