@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head><title>Code docs</title></head>
+<body bgcolor=#ffffff text=#000000 link=#0000ff vlink=#0000ff>
+
+<table cellpadding=10 border=1 width=90%><tr><td bgcolor=#d0d0ff><b>gui.h</b></tr></table>
+<ul>
+<li><a name='idx_gui_h_gui_event_t'></a><a href='#sym_gui_h_gui_event_t'><b>gui_event_t</b></a>
+<li><a name='idx_gui_h_gui_init'></a><a href='#sym_gui_h_gui_init'><b>gui_init</b></a>
+<li><a name='idx_gui_h_gui_shutdown'></a><a href='#sym_gui_h_gui_shutdown'><b>gui_shutdown</b></a>
+<li><a name='idx_gui_h_gui_main'></a><a href='#sym_gui_h_gui_main'><b>gui_main</b></a>
+<li><a name='idx_gui_h_gui_quit'></a><a href='#sym_gui_h_gui_quit'><b>gui_quit</b></a>
+<li><a name='idx_gui_h_gui_window_t'></a><a href='#sym_gui_h_gui_window_t'><b>gui_window_t</b></a>
+<li><a name='idx_gui_h_gui_window_create'></a><a href='#sym_gui_h_gui_window_create'><b>gui_window_create</b></a>
+<li><a name='idx_gui_h_gui_window_destroy'></a><a href='#sym_gui_h_gui_window_destroy'><b>gui_window_destroy</b></a>
+<li><a name='idx_gui_h_gui_window_move'></a><a href='#sym_gui_h_gui_window_move'><b>gui_window_move</b></a>
+<li><a name='idx_gui_h_gui_window_move_relative'></a><a href='#sym_gui_h_gui_window_move_relative'><b>gui_window_move_relative</b></a>
+<li><a name='idx_gui_h_gui_window_resize'></a><a href='#sym_gui_h_gui_window_resize'><b>gui_window_resize</b></a>
+<li><a name='idx_gui_h_gui_window_lower'></a><a href='#sym_gui_h_gui_window_lower'><b>gui_window_lower</b></a>
+<li><a name='idx_gui_h_gui_window_raise'></a><a href='#sym_gui_h_gui_window_raise'><b>gui_window_raise</b></a>
+<li><a name='idx_gui_h_gui_window_show'></a><a href='#sym_gui_h_gui_window_show'><b>gui_window_show</b></a>
+<li><a name='idx_gui_h_gui_window_hide'></a><a href='#sym_gui_h_gui_window_hide'><b>gui_window_hide</b></a>
+<li><a name='idx_gui_h_gui_window_dirty'></a><a href='#sym_gui_h_gui_window_dirty'><b>gui_window_dirty</b></a>
+<li><a name='idx_gui_h_gui_window_set_title'></a><a href='#sym_gui_h_gui_window_set_title'><b>gui_window_set_title</b></a>
+<li><a name='idx_gui_h_gui_window_set_depth'></a><a href='#sym_gui_h_gui_window_set_depth'><b>gui_window_set_depth</b></a>
+<li><a name='idx_gui_h_gui_window_set_alpha'></a><a href='#sym_gui_h_gui_window_set_alpha'><b>gui_window_set_alpha</b></a>
+<li><a name='idx_gui_h_gui_window_set_self'></a><a href='#sym_gui_h_gui_window_set_self'><b>gui_window_set_self</b></a>
+<li><a name='idx_gui_h_gui_window_set_draw_proc'></a><a href='#sym_gui_h_gui_window_set_draw_proc'><b>gui_window_set_draw_proc</b></a>
+<li><a name='idx_gui_h_gui_window_set_event_proc'></a><a href='#sym_gui_h_gui_window_set_event_proc'><b>gui_window_set_event_proc</b></a>
+<li><a name='idx_gui_h_gui_window_x'></a><a href='#sym_gui_h_gui_window_x'><b>gui_window_x</b></a>
+<li><a name='idx_gui_h_gui_window_y'></a><a href='#sym_gui_h_gui_window_y'><b>gui_window_y</b></a>
+<li><a name='idx_gui_h_gui_window_w'></a><a href='#sym_gui_h_gui_window_w'><b>gui_window_w</b></a>
+<li><a name='idx_gui_h_gui_window_h'></a><a href='#sym_gui_h_gui_window_h'><b>gui_window_h</b></a>
+<li><a name='idx_gui_h_gui_window_hidden'></a><a href='#sym_gui_h_gui_window_hidden'><b>gui_window_hidden</b></a>
+<li><a name='idx_gui_h_gui_accel_t'></a><a href='#sym_gui_h_gui_accel_t'><b>gui_accel_t</b></a>
+<li><a name='idx_gui_h_gui_accel_create'></a><a href='#sym_gui_h_gui_accel_create'><b>gui_accel_create</b></a>
+<li><a name='idx_gui_h_gui_accel_destroy'></a><a href='#sym_gui_h_gui_accel_destroy'><b>gui_accel_destroy</b></a>
+<li><a name='idx_gui_h_gui_mouse'></a><a href='#sym_gui_h_gui_mouse'><b>gui_mouse</b></a>
+<li><a name='idx_gui_h_gui_mouse_restrict'></a><a href='#sym_gui_h_gui_mouse_restrict'><b>gui_mouse_restrict</b></a>
+<li><a name='idx_gui_h_gui_mouse_unrestrict'></a><a href='#sym_gui_h_gui_mouse_unrestrict'><b>gui_mouse_unrestrict</b></a>
+</ul>
+<br><br>
+
+<table cellpadding=10 border=1 width=90%><tr><td bgcolor=#ffd0d0><b>gui.h</b></tr></table>
+
+<a name='sym_gui_h_gui_event_t'></a><p><a href='#idx_gui_h_gui_event_t'>typedef enum gui_event <b>gui_event_t</b></a>
+<blockquote>
+A GUI event number.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_init'></a><p><a href='#idx_gui_h_gui_init'>int <b>gui_init</b> (void)</a>
+<blockquote>
+Initialise the GUI subsystem.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_shutdown'></a><p><a href='#idx_gui_h_gui_shutdown'>void <b>gui_shutdown</b> (void)</a>
+<blockquote>
+Shutdown the GUI subsystem.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_main'></a><p><a href='#idx_gui_h_gui_main'>void <b>gui_main</b> (void)</a>
+<blockquote>
+Run the GUI subsystem.  This will not return until gui_quit is
+called.  <p>See also: gui_quit.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_quit'></a><p><a href='#idx_gui_h_gui_quit'>void <b>gui_quit</b> (void)</a>
+<blockquote>
+Stop running the GUI subsystem.  After this, you can rerun the
+system with gui_main, or clean up with gui_shutdown.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_t'></a><p><a href='#idx_gui_h_gui_window_t'>typedef struct gui_window <b>gui_window_t</b></a>
+<blockquote>
+Opaque data type representing a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_create'></a><p><a href='#idx_gui_h_gui_window_create'>gui_window_t *<b>gui_window_create</b> (int x, int y, int w, int h, int flags)</a>
+<blockquote>
+Create a window with the specified position and dimensions.  Flags
+can be a combination of the following OR'd together:
+<p>- GUI_HINT_NOFRAME: the window will have no frame
+<p>- GUI_HINT_STEALFOCUS: the window steals the focus as soon as the
+mouse moves over it (no click required)
+<p>- GUI_HINT_GHOSTABLE: the user can "ghost" the window, making the
+window translucent, and allowing focus to pass through the window.
+<p></blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_destroy'></a><p><a href='#idx_gui_h_gui_window_destroy'>void <b>gui_window_destroy</b> (gui_window_t *)</a>
+<blockquote>
+Free the memory associated with a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_move'></a><p><a href='#idx_gui_h_gui_window_move'>void <b>gui_window_move</b> (gui_window_t *, int x, int y)</a>
+<blockquote>
+Move a window to a specified position.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_move_relative'></a><p><a href='#idx_gui_h_gui_window_move_relative'>void <b>gui_window_move_relative</b> (gui_window_t *, int dx, int dy)</a>
+<blockquote>
+Move a window, relative to its current position.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_resize'></a><p><a href='#idx_gui_h_gui_window_resize'>void <b>gui_window_resize</b> (gui_window_t *, int w, int h)</a>
+<blockquote>
+Resize a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_lower'></a><p><a href='#idx_gui_h_gui_window_lower'>void <b>gui_window_lower</b> (gui_window_t *)</a>
+<blockquote>
+Lower a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_raise'></a><p><a href='#idx_gui_h_gui_window_raise'>void <b>gui_window_raise</b> (gui_window_t *)</a>
+<blockquote>
+Raise a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_show'></a><p><a href='#idx_gui_h_gui_window_show'>void <b>gui_window_show</b> (gui_window_t *)</a>
+<blockquote>
+Unhide a window after being hidden.  Note that windows are not
+hidden by default.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_hide'></a><p><a href='#idx_gui_h_gui_window_hide'>void <b>gui_window_hide</b> (gui_window_t *)</a>
+<blockquote>
+Hide a window.  The window will disappear off the screen, and will
+not be able to receive focus.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_dirty'></a><p><a href='#idx_gui_h_gui_window_dirty'>void <b>gui_window_dirty</b> (gui_window_t *)</a>
+<blockquote>
+Mark a window as "dirty", so it will be redrawn.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_set_title'></a><p><a href='#idx_gui_h_gui_window_set_title'>void <b>gui_window_set_title</b> (gui_window_t *, const char *title)</a>
+<blockquote>
+Set the title of a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_set_depth'></a><p><a href='#idx_gui_h_gui_window_set_depth'>void <b>gui_window_set_depth</b> (gui_window_t *, int depth)</a>
+<blockquote>
+Set the depth of a window.  Windows of a higher depth value will
+always appear above windows of a lower depth value.  The default
+depth is zero.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_set_alpha'></a><p><a href='#idx_gui_h_gui_window_set_alpha'>void <b>gui_window_set_alpha</b> (gui_window_t *, int alpha)</a>
+<blockquote>
+Set the alpha level (translucency) of a window (0 - 255).  Windows
+are opaque by default (alpha value of 255).  Note that alpha
+levels below a certain value will be rounded up, so you cannot use
+zero to get a completely transparent window.   
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_set_self'></a><p><a href='#idx_gui_h_gui_window_set_self'>void <b>gui_window_set_self</b> (gui_window_t *, void *self)</a>
+<blockquote>
+Set the `self' field of a window, which is passed to draw and
+event procs.  By default, `self' is the window itself.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_set_draw_proc'></a><p><a href='#idx_gui_h_gui_window_set_draw_proc'>void <b>gui_window_set_draw_proc</b> (gui_window_t *, void (*draw) (void *self, struct BITMAP *))</a>
+<blockquote>
+Set the callback for window redrawing.  It will be called with the
+window's `self' value, and the bitmap to draw to.  The bitmap is
+not the screen, but a private bitmap.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_set_event_proc'></a><p><a href='#idx_gui_h_gui_window_set_event_proc'>void <b>gui_window_set_event_proc</b> (gui_window_t *, void (*event) (void *self, gui_event_t event, int d))</a>
+<blockquote>
+Set the callback to handle window events.  It will be called with
+the window's `self' value, the event number, and any extra event
+data.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_x'></a><p><a href='#idx_gui_h_gui_window_x'>int <b>gui_window_x</b> (gui_window_t *)</a>
+<blockquote>
+Return the x position of a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_y'></a><p><a href='#idx_gui_h_gui_window_y'>int <b>gui_window_y</b> (gui_window_t *)</a>
+<blockquote>
+Return the y position of a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_w'></a><p><a href='#idx_gui_h_gui_window_w'>int <b>gui_window_w</b> (gui_window_t *)</a>
+<blockquote>
+Return the width of a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_h'></a><p><a href='#idx_gui_h_gui_window_h'>int <b>gui_window_h</b> (gui_window_t *)</a>
+<blockquote>
+Return the height of a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_window_hidden'></a><p><a href='#idx_gui_h_gui_window_hidden'>int <b>gui_window_hidden</b> (gui_window_t *)</a>
+<blockquote>
+Return non-zero if the window is hidden.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_accel_t'></a><p><a href='#idx_gui_h_gui_accel_t'>typedef struct gui_accel <b>gui_accel_t</b></a>
+<blockquote>
+Opaque data type representing an accelerator key.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_accel_create'></a><p><a href='#idx_gui_h_gui_accel_create'>gui_accel_t *<b>gui_accel_create</b> (int key, void (*proc) (void))</a>
+<blockquote>
+Create an accelerator key.  KEY can be either a character, or
+output of the GUI_ACCEL_CTRL macro.
+<p>Example:<pre>  accel = gui_accel_create (GUI_ACCEL_CTRL ('z'), foo);
+</pre></blockquote><br><br>
+
+<a name='sym_gui_h_gui_accel_destroy'></a><p><a href='#idx_gui_h_gui_accel_destroy'>void <b>gui_accel_destroy</b> (gui_accel_t *)</a>
+<blockquote>
+Free the memory associated with an accelerator key.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_mouse'></a><p><a href='#idx_gui_h_gui_mouse'>extern struct <b>gui_mouse</b>_state gui_mouse</a>
+<blockquote>
+
+  This variable lets you inspect the current state of the mouse.  It
+  contains the following read-only fields:
+<p>  - x, y: x and y positions of the mouse cursor
+<p>  - z: mouse wheel "position".  One 'tick' of the wheel upwards
+  increases the value by 1.
+<p>  - dx, dy, dz: amount of change in the x, y, z values since the
+  last update.
+<p>  - b[0].down, b[0].up: non-zero if the left mouse button has been
+  pressed or released since the last update.  Note that one is the
+  complement of the other.
+<p>  - b[0].state: non-zero if the left mouse button is being held down
+<p>  - b[1].down, b[1].up, b[1].state: right mouse button
+<p>  - b[2].down, b[2].up, b[2].state: middle mouse button
+<p></blockquote><br><br>
+
+<a name='sym_gui_h_gui_mouse_restrict'></a><p><a href='#idx_gui_h_gui_mouse_restrict'>void <b>gui_mouse_restrict</b> (gui_window_t *)</a>
+<blockquote>
+Restrict the movement of the mouse to the confines of a window.  
+</blockquote><br><br>
+
+<a name='sym_gui_h_gui_mouse_unrestrict'></a><p><a href='#idx_gui_h_gui_mouse_unrestrict'>void <b>gui_mouse_unrestrict</b> (void)</a>
+<blockquote>
+Allow the mouse to move around the entire screen).  
+</blockquote><br><br>
+
+<hr>
+<em>Generated by mtfm.lua on Thu Dec 19 01:56:20 2002</em>
+</body>
+</html>

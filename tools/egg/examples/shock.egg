@@ -1,0 +1,64 @@
+#
+#  Example script for the EGG system, by Shawn Hargreaves.
+#
+#  A shockwave explosion. This creates several different groups of the
+#  same type of particle, using parameters along with the "lay" command
+#  to make each group behave in a slightly different way.
+
+
+type fragment
+{
+   size := 24;
+   aa := 1;
+
+   angle := rand*360;
+
+   dx := cos(angle);
+   dy := sin(angle);
+
+   x = x+dx*speed;
+   y = y+dy*speed;
+
+   a = a*fade_speed;
+}
+
+
+lay (32) fragment
+{
+   r = 255;
+   g = 100;
+   b = 255;
+   speed = 1;
+   fade_speed = 0.9;
+}
+
+
+lay (32) fragment
+{
+   r = 100;
+   g = 50;
+   b = 255;
+   speed = 0.6;
+   fade_speed = 0.92;
+}
+
+
+lay (32) fragment
+{
+   r = 0;
+   g = 0;
+   b = 255;
+   speed = 0.25;
+   fade_speed = 0.95;
+}
+
+
+lay (32) fragment
+{
+   r = 255;
+   g = 0;
+   b = 0;
+   speed = 1.5;
+   dy = dy/3;
+   fade_speed = 0.9;
+}

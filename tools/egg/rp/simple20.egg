@@ -1,0 +1,28 @@
+# hacked from simple42.egg
+
+type fragment
+{
+   size := 12;
+   aa := 1;
+
+   r := 255;
+   g := 200;
+   b := 210;
+
+   dx := 1.5*(rand-0.5);
+   dy := 1.5*(rand-0.5);
+
+   x = x+dx;
+   y = y+dy;
+
+   r = r*0.93;
+   g = g*0.9;
+   b = b*0.8;
+
+   r = r*0.95;
+   g = g*0.95;
+   b = b*0.95;
+}
+
+lay (20) fragment;
+

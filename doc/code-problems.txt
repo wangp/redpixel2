@@ -1,0 +1,39 @@
+		  Problems in the design of the code
+
+----------------------------------------------------------------------
+2002-07-11: Here's what it took to add blast accreditation (rather
+quick actually, but still seems like too much work):
+
+  (1) basic-tilelike.lua, basic-weapon.lua: The receive_damage hook
+      for barrels needs to tell spawn_blast() who killed the barrel.
+      Similarly thing for blasts created by explosive weapons.
+
+  (2) bindgen.lua: Additional argument for the spawn_blast() binding.
+
+  (3) svgame.c, svgame.h: svgame_spawn_blast() gets a new argument.
+      svgame_spawn_blast() is what is called by the spawn_blast() lua
+      binding.
+
+  (4) map.c, map.h: map_blast_create() needed a new argument, which is
+      passed to blast_create().
+
+  (5) blast.c, blast.h: Need to remember the owner of each blast, and
+      needed additional arguments to blast_create().  It also needed
+      to pass the owner_id to any object which got hurt from the
+      blast.
+
+  (6) client.c: Put in a dummy value for the new owner argument in the
+      call to map_blast_create().  [dummy because the client doesn't
+      need to know who owns the blast, and so is not told]
+
+Wrap up:
+
+  (1 3 5 6) unavoidable.
+
+  (2) is unavoidable, unless lua bindings are created from C header
+      files --- a process which has it's own problems.  Maintaining
+      two different declarations per function is likely easier, but
+      this should be looked at.
+
+  (4) This is no good, but probably unavoidable unless map.c is less
+      encapsulating, which is also no good.

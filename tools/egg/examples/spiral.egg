@@ -1,0 +1,54 @@
+#
+#  Example script for the EGG system, by Arron Shutt.
+#
+#  Modified version of the wheel.egg script.
+
+
+type spark
+{
+   size := 40;
+   aa := 1;
+
+   r := 0;
+   g := 255;
+   b := 0;
+   a := 255;
+
+   x = x+dx;
+   y = y+dy;
+
+   dy = dy+0.005;
+
+   size = size;
+
+   g = g-8;
+   b = b+8;
+
+   a = a-1;
+
+   if (a <= 0) {
+      die;
+   }
+}
+
+
+type wheel
+{
+   size := 5;
+
+   r := 0;
+   g := 255;
+   b := 0;
+
+   dir := 0;
+
+   lay spark {
+      dx = cos(_dir)*1.5;
+      dy = sin(_dir)*1.5;
+   }
+
+   dir = dir+95;
+}
+
+
+lay wheel;

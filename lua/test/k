@@ -1,0 +1,12 @@
+require"trace-calls.lua"
+
+debug.sethook(hook,"cr")
+level=0
+
+function f(x)
+--print(debug.traceback())
+ if x>0 then return f(x-1),nil end
+end
+
+f(4)
+

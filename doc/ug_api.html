@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head><title>Code docs</title></head>
+<body bgcolor=#ffffff text=#000000 link=#0000ff vlink=#0000ff>
+
+<table cellpadding=10 border=1 width=90%><tr><td bgcolor=#d0d0ff><b>ug.h</b></tr></table>
+<ul>
+<li><a name='idx_ug_h_ug_init'></a><a href='#sym_ug_h_ug_init'><b>ug_init</b></a>
+<li><a name='idx_ug_h_ug_shutdown'></a><a href='#sym_ug_h_ug_shutdown'><b>ug_shutdown</b></a>
+<li><a name='idx_ug_h_ug_widget_class_t'></a><a href='#sym_ug_h_ug_widget_class_t'><b>ug_widget_class_t</b></a>
+<li><a name='idx_ug_h_ug_widget_t'></a><a href='#sym_ug_h_ug_widget_t'><b>ug_widget_t</b></a>
+<li><a name='idx_ug_h_ug_widget_dirty'></a><a href='#sym_ug_h_ug_widget_dirty'><b>ug_widget_dirty</b></a>
+<li><a name='idx_ug_h_ug_widget_focus'></a><a href='#sym_ug_h_ug_widget_focus'><b>ug_widget_focus</b></a>
+<li><a name='idx_ug_h_ug_widget_x'></a><a href='#sym_ug_h_ug_widget_x'><b>ug_widget_x</b></a>
+<li><a name='idx_ug_h_ug_widget_y'></a><a href='#sym_ug_h_ug_widget_y'><b>ug_widget_y</b></a>
+<li><a name='idx_ug_h_ug_widget_w'></a><a href='#sym_ug_h_ug_widget_w'><b>ug_widget_w</b></a>
+<li><a name='idx_ug_h_ug_widget_h'></a><a href='#sym_ug_h_ug_widget_h'><b>ug_widget_h</b></a>
+<li><a name='idx_ug_h_ug_widget_id'></a><a href='#sym_ug_h_ug_widget_id'><b>ug_widget_id</b></a>
+<li><a name='idx_ug_h_ug_event_t'></a><a href='#sym_ug_h_ug_event_t'><b>ug_event_t</b></a>
+<li><a name='idx_ug_h_ug_signal_t'></a><a href='#sym_ug_h_ug_signal_t'><b>ug_signal_t</b></a>
+<li><a name='idx_ug_h_ug_event_data_t'></a><a href='#sym_ug_h_ug_event_data_t'><b>ug_event_data_t</b></a>
+<li><a name='idx_ug_h_ug_widget_send_event'></a><a href='#sym_ug_h_ug_widget_send_event'><b>ug_widget_send_event</b></a>
+<li><a name='idx_ug_h_ug_widget_emit_signal'></a><a href='#sym_ug_h_ug_widget_emit_signal'><b>ug_widget_emit_signal</b></a>
+<li><a name='idx_ug_h_ug_widget_send_event_key'></a><a href='#sym_ug_h_ug_widget_send_event_key'><b>ug_widget_send_event_key</b></a>
+<li><a name='idx_ug_h_ug_widget_emit_signal_key'></a><a href='#sym_ug_h_ug_widget_emit_signal_key'><b>ug_widget_emit_signal_key</b></a>
+<li><a name='idx_ug_h_ug_event_data_key'></a><a href='#sym_ug_h_ug_event_data_key'><b>ug_event_data_key</b></a>
+<li><a name='idx_ug_h_ug_widget_send_event_mouse'></a><a href='#sym_ug_h_ug_widget_send_event_mouse'><b>ug_widget_send_event_mouse</b></a>
+<li><a name='idx_ug_h_ug_widget_emit_signal_mouse'></a><a href='#sym_ug_h_ug_widget_emit_signal_mouse'><b>ug_widget_emit_signal_mouse</b></a>
+<li><a name='idx_ug_h_ug_event_data_mouse_x'></a><a href='#sym_ug_h_ug_event_data_mouse_x'><b>ug_event_data_mouse_x</b></a>
+<li><a name='idx_ug_h_ug_event_data_mouse_y'></a><a href='#sym_ug_h_ug_event_data_mouse_y'><b>ug_event_data_mouse_y</b></a>
+<li><a name='idx_ug_h_ug_event_data_mouse_rel_x'></a><a href='#sym_ug_h_ug_event_data_mouse_rel_x'><b>ug_event_data_mouse_rel_x</b></a>
+<li><a name='idx_ug_h_ug_event_data_mouse_rel_y'></a><a href='#sym_ug_h_ug_event_data_mouse_rel_y'><b>ug_event_data_mouse_rel_y</b></a>
+<li><a name='idx_ug_h_ug_event_data_mouse_b'></a><a href='#sym_ug_h_ug_event_data_mouse_b'><b>ug_event_data_mouse_b</b></a>
+<li><a name='idx_ug_h_ug_event_data_mouse_bstate'></a><a href='#sym_ug_h_ug_event_data_mouse_bstate'><b>ug_event_data_mouse_bstate</b></a>
+<li><a name='idx_ug_h_ug_widget_send_event_draw'></a><a href='#sym_ug_h_ug_widget_send_event_draw'><b>ug_widget_send_event_draw</b></a>
+<li><a name='idx_ug_h_ug_widget_emit_signal_draw'></a><a href='#sym_ug_h_ug_widget_emit_signal_draw'><b>ug_widget_emit_signal_draw</b></a>
+<li><a name='idx_ug_h_ug_event_data_draw_bmp'></a><a href='#sym_ug_h_ug_event_data_draw_bmp'><b>ug_event_data_draw_bmp</b></a>
+<li><a name='idx_ug_h_ug_event_data_draw_x'></a><a href='#sym_ug_h_ug_event_data_draw_x'><b>ug_event_data_draw_x</b></a>
+<li><a name='idx_ug_h_ug_event_data_draw_y'></a><a href='#sym_ug_h_ug_event_data_draw_y'><b>ug_event_data_draw_y</b></a>
+<li><a name='idx_ug_h_ug_event_data_draw_w'></a><a href='#sym_ug_h_ug_event_data_draw_w'><b>ug_event_data_draw_w</b></a>
+<li><a name='idx_ug_h_ug_event_data_draw_h'></a><a href='#sym_ug_h_ug_event_data_draw_h'><b>ug_event_data_draw_h</b></a>
+<li><a name='idx_ug_h_ug_dialog_layout_t'></a><a href='#sym_ug_h_ug_dialog_layout_t'><b>ug_dialog_layout_t</b></a>
+<li><a name='idx_ug_h_ug_dialog_layout_create'></a><a href='#sym_ug_h_ug_dialog_layout_create'><b>ug_dialog_layout_create</b></a>
+<li><a name='idx_ug_h_ug_dialog_layout_destroy'></a><a href='#sym_ug_h_ug_dialog_layout_destroy'><b>ug_dialog_layout_destroy</b></a>
+<li><a name='idx_ug_h_ug_dialog_layout_insert'></a><a href='#sym_ug_h_ug_dialog_layout_insert'><b>ug_dialog_layout_insert</b></a>
+<li><a name='idx_ug_h_ug_dialog_t'></a><a href='#sym_ug_h_ug_dialog_t'><b>ug_dialog_t</b></a>
+<li><a name='idx_ug_h_ug_dialog_create'></a><a href='#sym_ug_h_ug_dialog_create'><b>ug_dialog_create</b></a>
+<li><a name='idx_ug_h_ug_dialog_destroy'></a><a href='#sym_ug_h_ug_dialog_destroy'><b>ug_dialog_destroy</b></a>
+<li><a name='idx_ug_h_ug_dialog_dirty'></a><a href='#sym_ug_h_ug_dialog_dirty'><b>ug_dialog_dirty</b></a>
+<li><a name='idx_ug_h_ug_dialog_focus'></a><a href='#sym_ug_h_ug_dialog_focus'><b>ug_dialog_focus</b></a>
+<li><a name='idx_ug_h_ug_dialog_x'></a><a href='#sym_ug_h_ug_dialog_x'><b>ug_dialog_x</b></a>
+<li><a name='idx_ug_h_ug_dialog_y'></a><a href='#sym_ug_h_ug_dialog_y'><b>ug_dialog_y</b></a>
+<li><a name='idx_ug_h_ug_dialog_w'></a><a href='#sym_ug_h_ug_dialog_w'><b>ug_dialog_w</b></a>
+<li><a name='idx_ug_h_ug_dialog_h'></a><a href='#sym_ug_h_ug_dialog_h'><b>ug_dialog_h</b></a>
+<li><a name='idx_ug_h_ug_dialog_widget'></a><a href='#sym_ug_h_ug_dialog_widget'><b>ug_dialog_widget</b></a>
+<li><a name='idx_ug_h_ug_blank'></a><a href='#sym_ug_h_ug_blank'><b>ug_blank</b></a>
+<li><a name='idx_ug_h_ug_button'></a><a href='#sym_ug_h_ug_button'><b>ug_button</b></a>
+<li><a name='idx_ug_h_ug_button_set_extra'></a><a href='#sym_ug_h_ug_button_set_extra'><b>ug_button_set_extra</b></a>
+<li><a name='idx_ug_h_ug_button_extra'></a><a href='#sym_ug_h_ug_button_extra'><b>ug_button_extra</b></a>
+<li><a name='idx_ug_h_ug_menu'></a><a href='#sym_ug_h_ug_menu'><b>ug_menu</b></a>
+<li><a name='idx_ug_h_ug_menu_item_t'></a><a href='#sym_ug_h_ug_menu_item_t'><b>ug_menu_item_t</b></a>
+<li><a name='idx_ug_h_ug_menu_root_t'></a><a href='#sym_ug_h_ug_menu_root_t'><b>ug_menu_root_t</b></a>
+</ul>
+<br><br>
+
+<table cellpadding=10 border=1 width=90%><tr><td bgcolor=#ffd0d0><b>ug.h</b></tr></table>
+
+<a name='sym_ug_h_ug_init'></a><p><a href='#idx_ug_h_ug_init'>int <b>ug_init</b> (void)</a>
+<blockquote>
+Initialise the UG subsystem.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_shutdown'></a><p><a href='#idx_ug_h_ug_shutdown'>void <b>ug_shutdown</b> (void)</a>
+<blockquote>
+Shutdown the UG subsystem.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_class_t'></a><p><a href='#idx_ug_h_ug_widget_class_t'>typedef struct ug_widget_class <b>ug_widget_class_t</b></a>
+<blockquote>
+Opaque data type representing a widget class.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_t'></a><p><a href='#idx_ug_h_ug_widget_t'>typedef struct ug_widget <b>ug_widget_t</b></a>
+<blockquote>
+Opaque data type representing a widget.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_dirty'></a><p><a href='#idx_ug_h_ug_widget_dirty'>void <b>ug_widget_dirty</b> (ug_widget_t *)</a>
+<blockquote>
+Mark a widget as "dirty", to be redrawn later.  Currently, this marks the
+widget's dialog as dirty, so the entire dialog is redrawn, but you should
+not depend on that.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_focus'></a><p><a href='#idx_ug_h_ug_widget_focus'>void <b>ug_widget_focus</b> (ug_widget_t *)</a>
+<blockquote>
+Give a widget input focus, within its own dialog.  This is equivalent to
+calling ug_dialog_focus(dialog, widget), if you know what the dialog should
+be.  <p>See also: ug_dialog_focus.   
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_x'></a><p><a href='#idx_ug_h_ug_widget_x'>int <b>ug_widget_x</b> (ug_widget_t *)</a>
+<blockquote>
+Return the absolute x position of a widget.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_y'></a><p><a href='#idx_ug_h_ug_widget_y'>int <b>ug_widget_y</b> (ug_widget_t *)</a>
+<blockquote>
+Return the absolute y position of a widget.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_w'></a><p><a href='#idx_ug_h_ug_widget_w'>int <b>ug_widget_w</b> (ug_widget_t *)</a>
+<blockquote>
+Return the width of a widget, in pixels.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_h'></a><p><a href='#idx_ug_h_ug_widget_h'>int <b>ug_widget_h</b> (ug_widget_t *)</a>
+<blockquote>
+Return the height of a widget, in pixels.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_id'></a><p><a href='#idx_ug_h_ug_widget_id'>char *<b>ug_widget_id</b> (ug_widget_t *)</a>
+<blockquote>
+Return the id string of a widget.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_t'></a><p><a href='#idx_ug_h_ug_event_t'>typedef enum ug_event <b>ug_event_t</b></a>
+<blockquote>
+An UG event number.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_signal_t'></a><p><a href='#idx_ug_h_ug_signal_t'>typedef enum ug_signal <b>ug_signal_t</b></a>
+<blockquote>
+An UG signal number.  Not to be confused with Unix signals.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_t'></a><p><a href='#idx_ug_h_ug_event_data_t'>typedef void <b>ug_event_data_t</b></a>
+<blockquote>
+An opaque data type, used when dealing with event
+(or signal) data. To retrieve information from this data type, you must
+use the correct ug_event_* functions.
+<p></blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_send_event'></a><p><a href='#idx_ug_h_ug_widget_send_event'>void <b>ug_widget_send_event</b> (ug_widget_t *, ug_event_t, ug_event_data_t *)</a>
+<blockquote>
+Send an event (including event data) to a widget.  Events are
+messages handled by a widget's class.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_emit_signal'></a><p><a href='#idx_ug_h_ug_widget_emit_signal'>void <b>ug_widget_emit_signal</b> (ug_widget_t *, ug_event_t, ug_event_data_t *)</a>
+<blockquote>
+Emit a signal (including event data) to a widget.  Signals are
+like events, but are handled by user-defined slots, rather than
+the widget's class.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_send_event_key'></a><p><a href='#idx_ug_h_ug_widget_send_event_key'>void <b>ug_widget_send_event_key</b> (ug_widget_t *, ug_event_t, int key)</a>
+<blockquote>
+Send an event to a widget, with keyboard event data.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_emit_signal_key'></a><p><a href='#idx_ug_h_ug_widget_emit_signal_key'>void <b>ug_widget_emit_signal_key</b> (ug_widget_t *, ug_signal_t, int key)</a>
+<blockquote>
+Emit a signal to a widget, with keyboard event data.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_key'></a><p><a href='#idx_ug_h_ug_event_data_key'>int <b>ug_event_data_key</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the key in a keyboard event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_send_event_mouse'></a><p><a href='#idx_ug_h_ug_widget_send_event_mouse'>void <b>ug_widget_send_event_mouse</b> (ug_widget_t *, ug_event_t, int x, int y, int b, int bstate)</a>
+<blockquote>
+Send an event to a widget, with mouse event data.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_emit_signal_mouse'></a><p><a href='#idx_ug_h_ug_widget_emit_signal_mouse'>void <b>ug_widget_emit_signal_mouse</b> (ug_widget_t *, ug_signal_t, int x, int y, int b, int bstate)</a>
+<blockquote>
+Emit a signal to a widget, with mouse event data.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_mouse_x'></a><p><a href='#idx_ug_h_ug_event_data_mouse_x'>int <b>ug_event_data_mouse_x</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the x position of a mouse event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_mouse_y'></a><p><a href='#idx_ug_h_ug_event_data_mouse_y'>int <b>ug_event_data_mouse_y</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the y position of a mouse event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_mouse_rel_x'></a><p><a href='#idx_ug_h_ug_event_data_mouse_rel_x'>int <b>ug_event_data_mouse_rel_x</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the relative x position of a mouse event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_mouse_rel_y'></a><p><a href='#idx_ug_h_ug_event_data_mouse_rel_y'>int <b>ug_event_data_mouse_rel_y</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the relative y position of a mouse event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_mouse_b'></a><p><a href='#idx_ug_h_ug_event_data_mouse_b'>int <b>ug_event_data_mouse_b</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the mouse button of a mouse event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_mouse_bstate'></a><p><a href='#idx_ug_h_ug_event_data_mouse_bstate'>int <b>ug_event_data_mouse_bstate</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the mouse button state of a mouse event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_send_event_draw'></a><p><a href='#idx_ug_h_ug_widget_send_event_draw'>void <b>ug_widget_send_event_draw</b> (ug_widget_t *, ug_event_t, struct BITMAP *bmp)</a>
+<blockquote>
+Send an event to a widget, with drawing event data.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_widget_emit_signal_draw'></a><p><a href='#idx_ug_h_ug_widget_emit_signal_draw'>void <b>ug_widget_emit_signal_draw</b> (ug_widget_t *, ug_signal_t, struct BITMAP *bmp)</a>
+<blockquote>
+Emit a signal to a widget, with drawing event data.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_draw_bmp'></a><p><a href='#idx_ug_h_ug_event_data_draw_bmp'>struct BITMAP *<b>ug_event_data_draw_bmp</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the bitmap address of a draw event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_draw_x'></a><p><a href='#idx_ug_h_ug_event_data_draw_x'>int <b>ug_event_data_draw_x</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the x position of a draw event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_draw_y'></a><p><a href='#idx_ug_h_ug_event_data_draw_y'>int <b>ug_event_data_draw_y</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the y position of a draw event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_draw_w'></a><p><a href='#idx_ug_h_ug_event_data_draw_w'>int <b>ug_event_data_draw_w</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the width of a draw event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_event_data_draw_h'></a><p><a href='#idx_ug_h_ug_event_data_draw_h'>int <b>ug_event_data_draw_h</b> (ug_event_data_t *)</a>
+<blockquote>
+Return the height of a draw event.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_layout_t'></a><p><a href='#idx_ug_h_ug_dialog_layout_t'>typedef struct ug_dialog_layout </a>
+<blockquote>
+
+  An array of this structure type tells UG about the layout of widgets
+  that make up a dialog.  The structure contains the following fields:
+<p>  - CLASS: the widget class to use.
+<p>  - W: the width of the widget.  This may be negative, in which case
+  	it will be interpreted as a percentage of the full dialog's width
+ 	(e.g. -50 means 50% of its parent).
+<p>  - H: the height of the widget.
+<p>  - DATA: extra data for the widget class.  For example, buttons would
+  	have a string here for the text label.
+<p>  - SLOT: a function with the prototype:
+<p>	void slot (ug_widget_t *w, ug_signal_t sig, void *data);
+<p>  	The function will be called whenever the widget emits a
+  	signal.  It may be NULL if unneeded.
+<p>  - ID: a string, which can be used to search through a dialog for a
+  	particular widget.  It may be NULL if unneeded.
+<p>  The array must be terminated with a UG_DIALOG_LAYOUT_END sentinel,
+  and where you want the layout engine to create a new row, you need to
+  put a special marker, UG_DIALOG_LAYOUT_BR.
+<p>  Example:<pre>
+    ug_dialog_layout_t my_dlg[] = {
+        { ug_button, -100, 16, "button one", slot1, "b1" },
+        { UG_DIALOG_LAYOUT_BR },
+        { ug_button, -50, 16, "button two", NULL, NULL },
+        { ug_button, -50, 16, "button three", slot3, "b3" },
+        { UG_DIALOG_LAYOUT_END }
+    };
+</pre></blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_layout_create'></a><p><a href='#idx_ug_h_ug_dialog_layout_create'>ug_dialog_layout_t *<b>ug_dialog_layout_create</b> (void)</a>
+<blockquote>
+Create a dynamic dialog layout and return a pointer to it.  If
+possible, you should use a static dialog layout instead of this.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_layout_destroy'></a><p><a href='#idx_ug_h_ug_dialog_layout_destroy'>void <b>ug_dialog_layout_destroy</b> (ug_dialog_layout_t *)</a>
+<blockquote>
+Free the memory associated with a dynamic dialog layout.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_layout_insert'></a><p><a href='#idx_ug_h_ug_dialog_layout_insert'>ug_dialog_layout_t *<b>ug_dialog_layout_insert</b> (ug_dialog_layout_t *dialog, ug_dialog_layout_t *newitem)</a>
+<blockquote>
+Add a layout item onto the back of a dynamic dialog layout, and
+return the new address of the dialog.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_t'></a><p><a href='#idx_ug_h_ug_dialog_t'>typedef struct ug_dialog <b>ug_dialog_t</b></a>
+<blockquote>
+Opaque data type for holding dialogs.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_create'></a><p><a href='#idx_ug_h_ug_dialog_create'>ug_dialog_t *<b>ug_dialog_create</b> (struct gui_window *, ug_dialog_layout_t *, int border)</a>
+<blockquote>
+Create a dialog with the specified layout in a window, and with a
+specified border.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_destroy'></a><p><a href='#idx_ug_h_ug_dialog_destroy'>void <b>ug_dialog_destroy</b> (ug_dialog_t *)</a>
+<blockquote>
+Free memory associated with a dialog.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_dirty'></a><p><a href='#idx_ug_h_ug_dialog_dirty'>void <b>ug_dialog_dirty</b> (ug_dialog_t *)</a>
+<blockquote>
+Mark the window that a dialog occupies for redrawing.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_focus'></a><p><a href='#idx_ug_h_ug_dialog_focus'>void <b>ug_dialog_focus</b> (ug_dialog_t *, ug_widget_t *)</a>
+<blockquote>
+Give the focus to the specified widget in the dialog.
+<p>See also: ug_widget_focus.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_x'></a><p><a href='#idx_ug_h_ug_dialog_x'>int <b>ug_dialog_x</b> (ug_dialog_t *)</a>
+<blockquote>
+Return the x position of a dialog.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_y'></a><p><a href='#idx_ug_h_ug_dialog_y'>int <b>ug_dialog_y</b> (ug_dialog_t *)</a>
+<blockquote>
+Return the y position of a dialog.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_w'></a><p><a href='#idx_ug_h_ug_dialog_w'>int <b>ug_dialog_w</b> (ug_dialog_t *)</a>
+<blockquote>
+Return the width of a dialog.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_h'></a><p><a href='#idx_ug_h_ug_dialog_h'>int <b>ug_dialog_h</b> (ug_dialog_t *)</a>
+<blockquote>
+Return the height of a dialog.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_dialog_widget'></a><p><a href='#idx_ug_h_ug_dialog_widget'>ug_widget_t *<b>ug_dialog_widget</b> (ug_dialog_t *, char *id)</a>
+<blockquote>
+Return the widget in the dialog with the specified id. 
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_blank'></a><p><a href='#idx_ug_h_ug_blank'>extern ug_widget_class_t <b>ug_blank</b></a>
+<blockquote>
+A dummy widget class that takes up space, but does nothing.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_button'></a><p><a href='#idx_ug_h_ug_button'>extern ug_widget_class_t <b>ug_button</b></a>
+<blockquote>
+A widget class that implements a push button.  The `data' field is
+the text label on the button.  When clicked, it emits a
+UG_SIGNAL_CLICKED signal, with mouse event data.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_button_set_extra'></a><p><a href='#idx_ug_h_ug_button_set_extra'>void <b>ug_button_set_extra</b> (ug_widget_t *, void *extra)</a>
+<blockquote>
+Buttons have an `extra' field, which can point to anything you want.
+This sets the `extra' field of a button to EXTRA.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_button_extra'></a><p><a href='#idx_ug_h_ug_button_extra'>void *<b>ug_button_extra</b> (ug_widget_t *)</a>
+<blockquote>
+Return the data stored in a ug_button widget's `extra' field.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_menu'></a><p><a href='#idx_ug_h_ug_menu'>extern ug_widget_class_t <b>ug_menu</b></a>
+<blockquote>
+A widget class implementing popup menus.  The `data' field points to
+a ug_menu_root_t structure.  When any one of the items in the menu is
+clicked, it emits a UG_SIGNAL_CLICKED signal.  The data parameter of
+the slot function will be passed the contents of the selected menu
+item's `data' field.  <p>See also: ug_menu_item_t, ug_menu_root_t.  
+</blockquote><br><br>
+
+<a name='sym_ug_h_ug_menu_item_t'></a><p><a href='#idx_ug_h_ug_menu_item_t'>typedef struct ug_menu_item </a>
+<blockquote>
+
+  Holds infomation about a single menu item.  The two fields are:
+<p>  - LABEL: the label to use for the menu item
+<p>  - DATA: arbitrary data to be associated with this menu item.  This
+	will be passed to the slot function if this item is selected.
+<p>  Example:<pre>
+    ug_menu_item_t items[] = {
+        { "Foo Item", foodata },
+        { "Bar Item", bardata },
+        { NULL, NULL }
+    };
+</pre></blockquote><br><br>
+
+<a name='sym_ug_h_ug_menu_root_t'></a><p><a href='#idx_ug_h_ug_menu_root_t'>typedef struct ug_menu_root </a>
+<blockquote>
+
+  Holds information about a menu.  It has two fields:
+<p>  - LABEL: the label to use for the menu root button
+<p>  - ITEM: a pointer to an array of ug_menu_item_t's.  The array must be
+  terminated with a ug_menu_item_t containing NULL for both the `label'
+  and the `data' fields.
+<p>  Example:<pre>
+    ug_menu_root_t the_menu = { "Quux label", items };
+</pre></blockquote><br><br>
+
+<hr>
+<em>Generated by mtfm.lua on Thu Dec 19 01:56:25 2002</em>
+</body>
+</html>

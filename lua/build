@@ -1,0 +1,13 @@
+# If you don't want to use make...
+
+# Easiest way to build bin/lua:
+
+# cc -O2 -o bin/lua -Iinclude -Isrc src/*.c src/lib/*.c src/lua/*.c -lm
+
+
+# Easiest way to build Lua libraries and executables:
+
+cd src; cc -O2 -c -I../include *.c; ar rc ../lib/liblua.a *.o
+cd lib; cc -O2 -c -I../../include *.c; ar rc ../../lib/liblualib.a *.o
+cd ../lua; cc -O2 -o ../../bin/lua -I../../include *.c ../../lib/*.a -lm
+cd ../luac; cc -O2 -o ../../bin/luac -I../../include -I.. *.c -DLUA_OPNAMES ../lopcodes.c ../../lib/*.a

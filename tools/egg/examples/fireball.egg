@@ -1,0 +1,28 @@
+#
+#  Example script for the EGG system, by Shawn Hargreaves.
+#
+#  A simple explosion effect, like the one in the Allegro demo game.
+
+
+type fragment
+{
+   size := 16;
+   aa := 1;
+
+   r := 255;
+   g := 255;
+   b := 255;
+
+   dx := rand-0.5;
+   dy := rand-0.5;
+
+   x = x+dx;
+   y = y+dy;
+
+   r = r*0.95;
+   g = g*0.9;
+   b = b*0.8;
+}
+
+
+lay (32) fragment;

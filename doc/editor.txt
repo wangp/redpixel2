@@ -1,0 +1,54 @@
+Edit area
+---------
+
+All modes
+
+	MMB		pan map
+	Arrows		scroll map
+	Space		toggle lighting
+	Mouse wheel	scroll selection
+
+Tile mode
+
+	LMB		place tile
+	Shift + LMB	pick up tile
+	RMB		remove tile
+
+Lights mode
+
+	LMB		create light
+	LMB drag	move light
+	RMB		remove light
+
+Object mode
+
+	RMB		toggle actions box
+
+	Action: add
+	LMB		create object
+	LMB drag	move object
+	Shift + LMB	pick up object
+
+	Action: del
+	LMB		remove object
+
+	Action: raise
+	LMB		raise object
+
+	Action: lower
+	LMB		lower object
+
+	Action: edit
+	LMB		edit object properties
+
+Start points mode
+
+	LMB		create start point
+	LMB drag	move start point
+	RMB		remove start point
+
+
+Selector bar
+------------
+
+	Mouse wheel	scroll list

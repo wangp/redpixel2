@@ -1,0 +1,30 @@
+#
+#  Example script for the EGG system, by Shawn Hargreaves.
+#
+#  This is a simple 3d starfield effect.
+
+
+type star
+{
+   size := 1.5;
+   aa := 1;
+
+   x := (rand-0.5)*100;
+   y := (rand-0.5)*100;
+   z := (rand-0.5)*100;
+
+   z = z-4;
+
+   if (z < -50) {
+      x = (rand-0.5)*100;
+      y = (rand-0.5)*100;
+      z = 50;
+   }
+
+   r = (50-z)*1.5;
+   g = (50-z)*1.5;
+   b = (50-z)*1.5;
+}
+
+
+lay (256) star;

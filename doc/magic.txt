@@ -1,0 +1,47 @@
+
+Images stored in special format, in RGB triplets.
+
+       
+       +---------+---------+---------+
+       |lite|colr|lite|colr|lite|colr|
+       +---------+---------+---------+
+           Red	    Green      Blue
+
+Top half of each byte contains lighting information (brightness)
+ranging from 0 to 15 (0x0 - 0xf).
+
+Bottom half contains colour information.  16 * 16 * 16 = 4096 colours.
+
+We tell Allegro that these are 8 bpp images (only, three times are
+wide), so for a pixel to be transparent, it must contain zero in all
+three RGB components (no light or colour information).
+
+
+
+Normal solid colour SPRITES have zero'd out lighting information, and
+only contain colour information.  i.e. they give off no light of their
+own.
+
+	e.g. tiles, players, pickups
+
+
+LIGHTMAPS contain zero'd out colour information, and only contain
+lighting information.  They light up other objects (as well as
+tinting), but do not add any colour to the scene.  Coloured light is
+done by varying the amounts of RGB lighting, NOT by adding colour
+information (e.g. a red light would have more red than green and
+blue).
+
+	e.g. environmental lights, player lights
+
+
+GLOWBALLS (or plasmas?  I don't have a term for these yet) are a
+combination of the two, containing colour and light information.
+
+       e.g. for things like flickering torches, etc (though this is
+       probably better done with two separate sprite + lightmap
+       combo), and glowing fireballs, missles, bullets, sparks, etc.
+
+
+
+[ add a bit on translucency ]

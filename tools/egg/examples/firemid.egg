@@ -1,0 +1,69 @@
+#
+#  Example script for the EGG system, by Vincent Penquerc'h.
+#
+#  This script is the body of a tileable and looping firewall.
+
+
+type flame
+{
+   size := 20;
+   aa := 1;
+   age := 0;
+   wrapx := 1;
+
+   r := 255;
+   g := 200;
+   b := 100;
+   a := 128;
+
+   r = r*0.92;
+   g = g*0.88;
+   b = b*0.85;
+
+   y = y-2;
+
+   x = x+(rand-0.5)*3;
+   y = y+(rand-0.5)*3;
+
+    age = age + 1;
+    if (age==16) {
+      die; 
+   }
+}
+
+
+type hotspot
+{
+   size := 0;
+   aa := 0;
+   a := 0;
+
+   y := 64-10;
+
+   x = (rand)*128-64;
+
+   if (x < -64) {
+      x = x + 64;
+   }
+
+   if (x > 64) {
+      x = x - 64;
+   }
+
+   lay flame { 
+      x = _x;
+      y = _y;
+   }
+}
+
+type randomizer
+{
+  size:=0;
+  a:=0;
+  if (!(_frame%16)) {
+    srand 37;
+  }
+}
+
+lay (1) randomizer;
+lay (24) hotspot;
