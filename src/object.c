@@ -1671,6 +1671,16 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
 		   layer->centre_x, bmp->h - layer->centre_y,
 		   (layer->angle + 128) << 16);
 	}
+
+#if 0
+	/* For debugging the centre of objects.  */
+	{
+	    int x = obj->x - offset_x;
+	    int y = obj->y - offset_y;
+	    if ((x >= 0) && (x < dest->w/3) && (y >= 0) && (y < dest->h))
+		putpixel (dest, x, y, makecol24 (0xff, 0xff, 0xff));
+	}
+#endif	    
     }
 }
 
