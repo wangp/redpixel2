@@ -1087,13 +1087,13 @@ static void draw_status (BITMAP *bmp)
     
     text_mode (-1);
 
-    draw_trans_magic_sprite (bmp, health_icon, w-95, y);
-    textprintf_right_trans_magic (bmp, f, w-90, y, col, "%d", display_values.health);
+    draw_trans_magic_sprite (bmp, health_icon, w-100, y);
+    textprintf_right_trans_magic (bmp, f, w-95, y, col, "%d", display_values.health);
 
     draw_trans_magic_sprite (bmp, armour_icon, w-65, y);
     textprintf_right_trans_magic (bmp, f, w-60, y, col, "%d", display_values.armour);
 
-    draw_trans_magic_sprite (bmp, armour_icon, w-20, y);
+    draw_trans_magic_sprite (bmp, ammo_icon, w-20, y);
     textprintf_right_trans_magic (bmp, f, w-15, y, col, "%d", display_values.ammo);
 }
 
