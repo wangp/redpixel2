@@ -99,9 +99,19 @@ Game_Type_Deathmatch = {
 		dm_frags_total[killer_id] ~= nil) then
 		local kid = killer_id
 		local d = (player_id == kid) and -1 or 1
+
 		dm_frags_total[kid] = dm_frags_total[kid] + d
 		dm_frags_current_map[kid] = dm_frags_current_map[kid] + d
 		set_deathmatch_score (kid)
+
+		if d < 0 then
+		    broadcast_text_message (get_client_name (player_id)
+					    .." committed suicide")
+		else
+		    broadcast_text_message (get_client_name (player_id)
+					    .." was killed by "..
+					    get_client_name (killer_id))
+		end
 	    end
 	end
 }
