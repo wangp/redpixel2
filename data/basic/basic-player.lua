@@ -219,9 +219,11 @@ local player_nonproxy_init = function (self)
 		corpse:add_creation_field ("_internal_stalk_me")
 
 		-- drop a backpack after the corpse finishes animation
-		local x, y = self.x, self.y
+		local ammo, id = self._ammo, self.id -- must do this
 		corpse.drop_backpack = function ()
-		    spawn_object ("basic-backpack", x, y)
+		    local backpack = spawn_object ("basic-backpack", self.x, self.y)
+		    backpack.ammo = ammo
+		    backpack.original_owner = id
 		end
 	    end
 
@@ -616,6 +618,18 @@ Objtype {
 	self:set_collision_flags ("pt")
 	function self:collide_hook (player)
 	    -- give goodies
+	    if self.ammo then
+		for type, amount in self.ammo do
+		    player:receive_ammo (type, amount/2)
+		end
+		if player.id == self.original_owner then
+		    send_text_message (player.id, "You got your backpack back")
+		else
+		    send_text_message (player.id, "You stole a backpack")
+		end
+	    else
+		send_text_message (player.id, "internal error in backpack collide_hook")
+	    end
 	    self:set_stale ()
 	end
     end
