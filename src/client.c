@@ -1034,7 +1034,7 @@ static void update_screen (int mouse_x, int mouse_y)
 
 	pivot_trans_magic_sprite (bmp, store_get_dat ("/basic/player/torch"),
 				  x, y, 0, 115/2,
-				  fatan2 (mouse_y - y, mouse_x - x));
+				  fixatan2 (mouse_y - y, mouse_x - x));
     }
 
     if (crosshair) {
