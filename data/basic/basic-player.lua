@@ -136,6 +136,9 @@ local player_nonproxy_init = function (self)
 	    end
 	end
     )
+
+    -- create a respawning ball where the player is
+    spawn_object ("basic-respawning-ball", self.x, self.y)
 end
 
 
@@ -326,10 +329,6 @@ local Corpse = function (t)
 		end
 	    )
 	end
-    end
-
-    if t.alias then
-	add_alias (t.name, t.alias)
     end
 
     if not t.speed then
