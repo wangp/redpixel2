@@ -53,6 +53,21 @@ local player_nonproxy_init = function (self)
 
     self:receive_weapon ("basic-blaster")
 
+    -- ammo stuff
+    self._ammo = {}
+
+    function self:receive_ammo (ammo_type, amount)
+	self._ammo[ammo_type] = (self._ammo[ammo_type] or 0) + amount
+    end
+
+    function self:deduct_ammo (ammo_type, amount)
+	self._ammo[ammo_type] = max (0, (self._ammo[ammo_type] or 0) - (amount or 1))
+    end
+
+    function self:ammo (ammo_type)
+	return self._ammo[ammo_type] or 0
+    end
+
     -- firing stuff
     self.fire_delay = 0
     function self:_internal_fire_hook ()

@@ -10,36 +10,33 @@ store_load ("basic/basic-weapon.dat", "/basic/weapon/")
 ----------------------------------------------------------------------
 
 
--- Declare a new weapon type with a standard firing routine.
+-- Declare a new weapon type with a standard firing routine, and standard ammo
+-- counts.
 local Weapon_With_Firer = function (t)
-    return Weapon (merge (t, { fire = function (player)
+    return Weapon (merge (t, { can_fire = function (player)
+				   return player:ammo (t.ammo_type) > 0
+			       end,
+			       fire = function (player)
 			           spawn_projectile (t.projectile, player, t.projectile_speed)
 				   player.fire_delay = t.fire_delay_secs * 50
+				   player:deduct_ammo (t.ammo_type)
 			       end }))
 end
 
 
--- Declare a new weapon pickup, which respawns a while after being
+-- Declare a new weapon or ammo pickup, which respawns a while after being
 -- picked up.
-local Weapon_Pickup = function (t)
+local Standard_Pickup = function (t)
     return Objtype (merge (t, { category = "weapon",
 			        nonproxy_init = function (self)
 				    self:set_collision_flags ("p")
 				    function self:collide_hook (player)
-					player:receive_weapon (t.weapon_to_give)
-					self:hide_and_respawn_later (t.respawn_secs * 1000)
-				    end
-				end }))
-end
-
-
--- Declare some weapon ammunition, which respawns a while after being
--- picked up.
-local Weapon_Ammo = function (t)
-    return Objtype (merge (t, { category = "weapon",
-			        nonproxy_init = function (self)
-				    self:set_collision_flags ("p")
-				    function self:collide_hook (obj)
+					if t.weapon_to_give then
+					    player:receive_weapon (t.weapon_to_give)
+					end
+					if t.ammo_to_give then
+					    player:receive_ammo (t.ammo_to_give, t.ammo_amount)
+					end
 					self:hide_and_respawn_later (t.respawn_secs * 1000)
 				    end
 				end }))
@@ -65,11 +62,8 @@ end
 --  Blaster
 ----------------------------------------------------------------------
 
-Weapon_With_Firer {
+Weapon {
     name = "basic-blaster", 
-    projectile = "basic-blaster-projectile",
-    projectile_speed = 10,
-    fire_delay_secs = 0.1,
     arm_anim = {
 	"/basic/weapon/blaster/1arm000",
 	"/basic/weapon/blaster/1arm001",
@@ -77,10 +71,14 @@ Weapon_With_Firer {
 	"/basic/weapon/blaster/1arm003";
 	cx = 0, 
 	cy = 3
-    }
+    },
+    fire = function (player)
+	spawn_projectile ("basic-blaster-projectile", player, 10)
+	player.fire_delay = 0.1 * 50
+    end
 }
 
-Weapon_Pickup {
+Standard_Pickup {
     name = "basic-blaster",
     icon = "/basic/weapon/blaster/pickup",
     weapon_to_give = "basic-blaster",
@@ -101,16 +99,20 @@ Standard_Projectile {
 --  Bow and arrow
 ----------------------------------------------------------------------
 
-Weapon_Pickup {
+Standard_Pickup {
     name = "basic-bow",
     icon = "/basic/weapon/bow/pickup",
     weapon_to_give = "basic-bow",
+    ammo_to_give = "basic-arrow",
+    ammo_amount = 10,
     respawn_secs = 10
 }
 
-Weapon_Ammo {
+Standard_Pickup {
     name = "basic-arrow",
     icon = "/basic/weapon/ammo/arrow", 
+    ammo_to_give = "basic-arrow",
+    ammo_amount = 10,
     respawn_secs = 10
 }
 
@@ -125,14 +127,17 @@ Standard_Projectile {
 --  Bullet weapons
 ----------------------------------------------------------------------
 
-Weapon_Ammo {
+Standard_Pickup {
     name = "basic-bullet",
     icon = "/basic/weapon/ammo/bullet",
+    ammo_to_give = "basic-bullet",
+    ammo_amount = 30,
     respawn_secs = 10
 }
 
 Weapon_With_Firer {
     name = "basic-ak",
+    ammo_type = "basic-bullet",
     projectile = "basic-ak-projectile",
     projectile_speed = 12,
     fire_delay_secs = 0.12,
@@ -148,10 +153,12 @@ Weapon_With_Firer {
     }
 }
 
-Weapon_Pickup {
+Standard_Pickup {
     name = "basic-ak",
     icon = "/basic/weapon/ak/pickup",
     weapon_to_give = "basic-ak",
+    ammo_to_give = "basic-bullet",
+    ammo_amount = 10,
     respawn_secs = 10
 }
 
@@ -163,10 +170,15 @@ Standard_Projectile {
 
 Weapon {
     name = "basic-minigun",
+    ammo_type = "basic-bullet",
+    can_fire = function (player)
+	return player:ammo ("basic-bullet") > 0
+    end,
     fire = function (player)
 	spawn_projectile ("basic-minigun-projectile", player, 12,
 			  ((random(10) - 5) / 10) * (PI/48))
 	player.fire_delay = 0.05 * 50
+	player:deduct_ammo ("basic-bullet")
     end,
     arm_anim = {
 	"/basic/weapon/minigun/2arm000",
@@ -180,10 +192,12 @@ Weapon {
     }
 }
 
-Weapon_Pickup {
+Standard_Pickup {
     name = "basic-minigun",
     icon = "/basic/weapon/minigun/pickup",
     weapon_to_give = "basic-minigun",
+    ammo_to_give = "basic-bullet",
+    ammo_amount = 10,
     respawn_secs = 10
 }
 
@@ -198,17 +212,21 @@ Standard_Projectile {
 --  Rocket weapons
 ----------------------------------------------------------------------
 
-Weapon_Pickup {
+Standard_Pickup {
     name = "basic-rpg",
     icon = "/basic/weapon/rpg/pickup",
     weapon_to_give = "basic-rpg",
+    ammo_to_give = "basic-rocket",
+    ammo_amount = 1,
     respawn_secs = 10
 }
 
-Weapon_Ammo {
+Standard_Pickup {
     name = "basic-rocket",
     icon = "/basic/weapon/ammo/rocket",
-    respawn_secs = 10
+    ammo_to_give = "basic-rocket",
+    ammo_amount = 10,
+    respawn_secs = 10,
 }
 
 Standard_Projectile {
@@ -224,6 +242,9 @@ Standard_Projectile {
 
 Weapon {
     name = "basic-shotgun",
+    can_fire = function (player)
+	return player:ammo ("basic-shell") > 0
+    end,
     fire = function (player)
 	local spread = PI / 96
 	spawn_projectile ("basic-shotgun-projectile", player, 10, -2 * spread)
@@ -232,6 +253,7 @@ Weapon {
 	spawn_projectile ("basic-shotgun-projectile", player, 10, spread)
 	spawn_projectile ("basic-shotgun-projectile", player, 10, 2 * spread)
 	player.fire_delay = 50 * 0.4
+	player:deduct_ammo ("basic-shell")
     end,
     arm_anim = {
 	"/basic/weapon/shotgun/2arm000",
@@ -242,17 +264,21 @@ Weapon {
     }
 }
 
-Weapon_Pickup {
+Standard_Pickup {
     name = "basic-shotgun",
     icon = "/basic/weapon/shotgun/pickup",
     weapon_to_give = "basic-shotgun",
+    ammo_to_give = "basic-shell",
+    ammo_amount = 10,
     respawn_secs = 10
 }
 
-Weapon_Ammo {
+Standard_Pickup {
     name = "basic-shell",
     icon = "/basic/weapon/ammo/shell",
-    respawn_secs = 10
+    ammo_to_give = "basic-shell",
+    ammo_amount = 10,
+    respawn_secs = 10,
 }
 
 Standard_Projectile {
@@ -268,6 +294,7 @@ Standard_Projectile {
 
 Weapon_With_Firer {
     name = "basic-rifle",
+    ammo_type = "basic-slug",
     projectile = "basic-rifle-projectile",
     projectile_speed = 15,
     fire_delay_secs = 0.5,
@@ -282,10 +309,12 @@ Weapon_With_Firer {
     end
 }
 
-Weapon_Pickup {
+Standard_Pickup {
     name = "basic-rifle",
     icon = "/basic/weapon/rifle/pickup",
     weapon_to_give = "basic-rifle",
+    ammo_to_give = "basic-slug",
+    ammo_amount = 2,
     respawn_secs = 10
 }
 
@@ -306,7 +335,7 @@ Objtype {
 --  Mines
 ----------------------------------------------------------------------
 
-Weapon_Ammo {
+Standard_Pickup {
     name = "basic-mine",
     icon = "/basic/weapon/mine/pickup",
     respawn_secs = 10
