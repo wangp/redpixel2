@@ -8,7 +8,7 @@
 #include "gui.h"
 #include "ug.h"
 #include "cursor.h"
-#include "mylua.h"
+#include "extdata.h"
 #include "store.h"
 #include "path.h"
 
@@ -23,22 +23,34 @@
 #include "map.h"
 
 
+static int store_id;
 map_t *editor_map;
 
 
-int editor (void)
+int editor_init (void)
 {
-    FONT *f;
+    store_id = store_load_ex ("data/editor/editor-support.dat", "/editor/",
+			      load_extended_datafile);
+    return (store_id < 0) ? -1 : 0;
+}
 
-    lua_dofile_path (lua_state, "editor/editor-init.lua");
 
-    if ((f = store_dat ("/editor/font")))
-	font = f;
+void editor_shutdown (void)
+{
+    store_unload (store_id);
+}
+
+
+int editor_run (void)
+{
+    FONT *old_font = font;
+
+    font = store_dat ("/editor/font");
 
     if ((gui_init () < 0)
 	|| (ug_init () < 0)
 	|| (cursor_init () < 0))
-	return 1;
+	goto error;
 
 	editarea_install  (0, 0, SCREEN_W - 32, SCREEN_H - 16);
 	selectbar_install (SCREEN_W - 32, 0, 32, SCREEN_H);
@@ -50,7 +62,7 @@ int editor (void)
 		|| (mode_lights_init () < 0)
 		|| (mode_objects_init () < 0)
 		|| (mode_starts_init () < 0))
-		return 1;
+		goto error;
 	    modemgr_select ("tiles");
 
 		editor_map = map_create (0);
@@ -75,5 +87,11 @@ int editor (void)
     ug_shutdown ();
     gui_shutdown ();
 
+    font = old_font;
     return 0;
+
+  error:
+
+    font = old_font;
+    return 1;
 }
