@@ -119,3 +119,10 @@ end
 function radian_to_bangle (rads)
     return rads * 128 / PI
 end
+
+function merge (t1, t2)
+    local t = {}
+    for i,v in t1 do t[i] = v end
+    for i,v in t2 do t[i] = v end
+    return t
+end
