@@ -12,6 +12,7 @@
 #include "fe-options.h"
 #include "fe-widgets.h"
 #include "messages.h"
+#include "music.h"
 #include "server.h"
 #include "store.h"
 #include "sync.h"
@@ -40,6 +41,12 @@ static void *server_thread (void *arg)
 {
     server_run ();
     return NULL;
+}
+
+
+static void select_frontend_music (void)
+{
+    music_select_playlist ("data/music/music-frontend.txt");
 }
 
 
@@ -209,6 +216,8 @@ static int create_server_pressed (void)
 
     messages_shutdown ();
 
+    select_frontend_music ();
+
     return D_EXIT;
 }
 
@@ -260,6 +269,7 @@ static int join_server_pressed (void)
     }
 
     messages_shutdown ();
+    select_frontend_music ();
     return clear_statusbar_buffer_and_exit ();
 }
 
@@ -362,6 +372,8 @@ static int options_pressed (void)
 
 static int editor_pressed (void)
 {
+    music_stop_playlist ();
+
     if (editor_init () == 0) {
 	editor_run ();
 	editor_shutdown ();
@@ -369,6 +381,8 @@ static int editor_pressed (void)
 	set_menu_mouse_sprite ();
 	show_mouse (screen);
     }
+
+    select_frontend_music ();
 
     return D_REDRAW;
 }
@@ -465,6 +479,7 @@ void shutdown_fancy_dialog (DIALOG *d)
 
 void gamemenu_run (void)
 {
+    select_frontend_music ();
     set_menu_mouse_sprite ();
     fancy_do_dialog (main_menu, MAIN_MENU_DEFAULT_FOCUS);
 }
