@@ -2,6 +2,12 @@
 #define __included_fe_main_h
 
 
+/* Default IP port to use for the game server.  Keep this in sync with
+ * libnet.cfg.
+ */
+#define DEFAULT_PORT "23415"
+
+
 extern char address_editbox_buf[32];
 extern char name_editbox_buf[32];
 extern char port_editbox_buf[8];

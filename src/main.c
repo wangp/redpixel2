@@ -123,7 +123,7 @@ static void *server_thread (void *arg)
 
 static void do_run_server (void)
 {
-    if (server_init (server_text_interface, INET_DRIVER) < 0) {
+    if (server_init (server_text_interface, INET_DRIVER, "") < 0) {
 	error ("Error initialising game server.  Perhaps another\n"
 	       "game server is already running on the same port?\n");
     } else {

@@ -17,6 +17,8 @@
 #include "music.h"
 #include "server.h"
 #include "store.h"
+#include "strlcat.h"
+#include "strlcpy.h"
 #include "sync.h"
 
 
@@ -30,12 +32,11 @@
 
 static BITMAP *background;
 static DIALOG_PLAYER *player;
-static char statusbar_buf[64] = "";
 static store_file_t menu_data_file;
 
 char address_editbox_buf[32] = "localhost";
 char name_editbox_buf[32] = "Gutless";
-char port_editbox_buf[8] = "23415";
+char port_editbox_buf[8] = DEFAULT_PORT;
 int client_was_kicked = 0;
 int desired_menu_screen_w = 640, desired_menu_screen_h = 400;
 
@@ -116,17 +117,10 @@ void set_menu_mouse_range (void)
 #define CONNECTING_DLG_CANCEL_BUTTON	(connecting_dialog[2])
 
 
-static int clear_statusbar_buffer_and_exit (void)
-{
-    strcpy (statusbar_buf, "");
-    return D_EXIT;
-}
-
-
 static DIALOG connecting_dialog[] =
 {
     { fancy_bitmap_proc, 230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, NULL, NULL, NULL }, /* 0 */
-    { fancy_label_proc,  230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, "Connecting...", NULL, NULL }, /* 1 */
+    { fancy_label_proc,  230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, "Connecting . . .", NULL, NULL }, /* 1 */
     { fancy_button_proc, 270, 340, 100, 40, 0, -1, 27, D_EXIT, 0, 0x80, "Cancel", NULL, NULL }, /* 2 */
     { NULL }
 };
@@ -172,34 +166,50 @@ static DIALOG kicked_dialog[] =
 /* Client-server name/port screen. */
 static DIALOG client_server_dialog[];
 #define CLIENT_SERVER_DLG_DEFAULT_FOCUS	2
-#define CLIENT_SERVER_DLG_BACKDROP	(client_server_dialog[0])
-#define CLIENT_SERVER_DLG_NAME_LABEL	(client_server_dialog[1])
-#define CLIENT_SERVER_DLG_NAME_EDITBOX	(client_server_dialog[2])
-#define CLIENT_SERVER_DLG_PORT_LABEL	(client_server_dialog[3])
-#define CLIENT_SERVER_DLG_PORT_EDITBOX	(client_server_dialog[4])
-#define CLIENT_SERVER_DLG_CREATE_BUTTON	(client_server_dialog[5])
-#define CLIENT_SERVER_DLG_BACK_BUTTON	(client_server_dialog[6])
-#define CLIENT_SERVER_DLG_STATUSBAR	(client_server_dialog[7])
+#define CLIENT_SERVER_DLG_BACKDROP	 (client_server_dialog[0])
+#define CLIENT_SERVER_DLG_NAME_LABEL	 (client_server_dialog[1])
+#define CLIENT_SERVER_DLG_NAME_EDITBOX	 (client_server_dialog[2])
+#define CLIENT_SERVER_DLG_PORT_LABEL	 (client_server_dialog[3])
+#define CLIENT_SERVER_DLG_PORT_EDITBOX_N 4
+#define CLIENT_SERVER_DLG_PORT_EDITBOX	 (client_server_dialog[CLIENT_SERVER_DLG_PORT_EDITBOX_N])
+#define CLIENT_SERVER_DLG_DEFAULT_BUTTON (client_server_dialog[5])
+#define CLIENT_SERVER_DLG_CREATE_BUTTON	 (client_server_dialog[6])
+#define CLIENT_SERVER_DLG_BACK_BUTTON	 (client_server_dialog[7])
+#define CLIENT_SERVER_DLG_STATUSBAR	 (client_server_dialog[8])
 
 
 static int client_server_finished_entering_name (void)
 {
-    /* XXX: this should give focus to the port editbox. */
+    offer_focus (client_server_dialog, CLIENT_SERVER_DLG_PORT_EDITBOX_N,
+		 &fancy_active_player->focus_obj, FALSE);
+
+    return D_USED_CHAR;
+}
+
+
+static int default_port_pressed (void)
+{
+    strlcpy (port_editbox_buf, DEFAULT_PORT, sizeof port_editbox_buf);
+    object_message (&CLIENT_SERVER_DLG_PORT_EDITBOX, MSG_DRAW, 0);
+
     return D_O_K;
 }
 
 
 static int create_server_pressed (void)
 {
-    strcpy (statusbar_buf, "");
+    char server_binding[64] = ":";
+    char client_connect_addr[64] = "127.0.0.1:";
+    strlcat (server_binding, port_editbox_buf, sizeof server_binding);
+    strlcat (client_connect_addr, port_editbox_buf, sizeof client_connect_addr);
 
     messages_init ();
 
     /* XXX should make server support multiple network types
        then use NET_DRIVER_LOCAL for the client */
-    if ((server_init (client_server_interface, INET_DRIVER) < 0) ||
-	(client_init (name_editbox_buf, INET_DRIVER, "127.0.0.1") < 0)) {
-	strcpy (statusbar_buf, "A game server is already running on the same port?");
+    if ((server_init (client_server_interface, INET_DRIVER, server_binding) < 0) ||
+	(client_init (name_editbox_buf, INET_DRIVER, client_connect_addr) < 0)) {
+	CLIENT_SERVER_DLG_STATUSBAR.flags &=~ D_HIDDEN;
 	object_message (&CLIENT_SERVER_DLG_STATUSBAR, MSG_DRAW, 0);
 	return D_O_K;
     }
@@ -231,10 +241,11 @@ static DIALOG client_server_dialog[] =
     { fancy_label_proc,  185, 200,  55,  20, 0, -1, 0, 0, 2, 0xa0, "Name:", NULL, NULL }, /* 1 */
     { fancy_edit_proc,   250, 190, 240,  40, 0, -1, 0, 0, sizeof name_editbox_buf - 1, 0, name_editbox_buf, NULL, client_server_finished_entering_name }, /* 2 */
     { fancy_label_proc,  120, 250, 120,  20, 0, -1, 0, 0, 2, 0xa0, "Server port:", NULL, NULL }, /* 3 */
-    { fancy_edit_proc,   250, 240, 240,  40, 0, -1, 0, 0, sizeof port_editbox_buf - 1, 0, port_editbox_buf, NULL, create_server_pressed }, /* 4 */
-    { fancy_button_proc, 190, 290, 170,  40, 0, -1, 0, 0, 0, 0x80, "Start new server", NULL, create_server_pressed }, /* 5 */
-    { fancy_button_proc, 370, 290,  80,  40, 0, -1, 27, 0, 0, 0x80, "Back", NULL, clear_statusbar_buffer_and_exit }, /* 6 */
-    { fancy_label_proc,    0, 320, 640,  40, 0, -1, 0, 0, 1, 0xa0, statusbar_buf, NULL, NULL }, /* 7 */
+    { fancy_edit_proc,   250, 240, 145,  40, 0, -1, 0, 0, sizeof port_editbox_buf - 1, 0, port_editbox_buf, NULL, create_server_pressed }, /* 4 */
+    { fancy_button_proc, 400, 240,  90,  40, 0, -1, 0, 0, 0, 0x80, "Default", NULL, default_port_pressed }, /* 5 */
+    { fancy_button_proc, 190, 290, 170,  40, 0, -1, 0, 0, 0, 0x80, "Start new server", NULL, create_server_pressed }, /* 6 */
+    { fancy_button_proc, 370, 290,  80,  40, 0, -1, 27, D_EXIT, 0, 0x80, "Back", NULL, NULL }, /* 7 */
+    { fancy_label_proc,    0, 320, 640,  40, 0, -1, 0, D_HIDDEN, 1, 0xa0, "Error: Port already used?", NULL, NULL }, /* 8 */
     { d_yield_proc,        0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
     { NULL }
 };
@@ -247,15 +258,18 @@ static DIALOG client_dialog[];
 #define CLIENT_DLG_NAME_LABEL		(client_dialog[1])
 #define CLIENT_DLG_NAME_EDITBOX		(client_dialog[2])
 #define CLIENT_DLG_ADDRESS_LABEL	(client_dialog[3])
-#define CLIENT_DLG_ADDRESS_EDITBOX	(client_dialog[4])
+#define CLIENT_DLG_ADDRESS_EDITBOX_N	4
+#define CLIENT_DLG_ADDRESS_EDITBOX	(client_dialog[CLIENT_DLG_ADDRESS_EDITBOX_N])
 #define CLIENT_DLG_JOIN_SERVER_BUTTON	(client_dialog[5])
 #define CLIENT_DLG_BACK_BUTTON		(client_dialog[6])
 
 
 static int client_finished_entering_name (void)
 {
-    /* XXX: this should give focus to the address editbox. */
-    return D_O_K;
+    offer_focus (client_dialog, CLIENT_DLG_ADDRESS_EDITBOX_N,
+		 &fancy_active_player->focus_obj, FALSE);
+
+    return D_USED_CHAR;
 }
 
 
@@ -307,6 +321,7 @@ static DIALOG client_dialog[] =
 
 static int client_server_button_pressed (void)
 {
+    CLIENT_SERVER_DLG_STATUSBAR.flags |= D_HIDDEN;
     fancy_do_dialog (client_server_dialog, CLIENT_SERVER_DLG_DEFAULT_FOCUS);
 
     /* In case the client server was stupid enough to kick itself. */

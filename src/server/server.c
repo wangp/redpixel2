@@ -505,9 +505,9 @@ void server_run (void)
  */
 
 
-int server_init (server_interface_t *iface, int net_driver)
+int server_init (server_interface_t *iface, int net_driver, const char *binding)
 {
-    listen = net_openconn (net_driver, "");
+    listen = net_openconn (net_driver, binding);
     if (!listen)
 	return -1;
     net_listen (listen);

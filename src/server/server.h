@@ -7,7 +7,7 @@
 struct server_interface;
 
 
-int server_init (struct server_interface *, int net_driver);
+int server_init (struct server_interface *, int net_driver, const char *binding);
 void server_inhibit_double_message (void);
 void server_set_client_to_quit_with (client_id_t id);
 void server_run (void);

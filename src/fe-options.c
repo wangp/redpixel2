@@ -363,7 +363,7 @@ void load_config (int *desired_stretch_method)
     /* Other stuff. */
     strcpy (name_editbox_buf, get_config_string (CONFIG_SECTION, "name", "Gutless"));
     strcpy (address_editbox_buf, get_config_string (CONFIG_SECTION, "server", "localhost"));
-    strcpy (port_editbox_buf, get_config_string (CONFIG_SECTION, "port", "23415"));
+    strcpy (port_editbox_buf, get_config_string (CONFIG_SECTION, "port", DEFAULT_PORT));
 
     if (menu_screen_resolution_needs_resetting ()) {
 	desired_menu_screen_w = desired_game_screen_w;
