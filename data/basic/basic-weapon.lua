@@ -460,10 +460,119 @@ Objtype {
 --  Mines
 ----------------------------------------------------------------------
 
-Standard_Pickup {
+Respawning_Item {
+    category = "weapon",
     name = "basic-mine",
     icon = "/basic/weapon/mine/pickup",
-    respawn_secs = 10
+    respawn_secs = 60,
+    collide_hook = function (self, player)
+	player:receive_mines (1)
+	play_sound_on_clients (self, "/basic/weapon/generic-pickup-sound")
+    end
+}
+
+local mine_anim = {
+    "/basic/weapon/mine/mine000",
+    "/basic/weapon/mine/mine001",
+    "/basic/weapon/mine/mine002",
+    "/basic/weapon/mine/mine003"
+}
+
+Objtype {
+    name = "basic-mine-dropped",
+    alias = "~Md",
+    icon = "/basic/weapon/mine/mine000",
+
+    nonproxy_init = function (self)
+	self.mass = 0.005
+
+	-- Initially the mine doesn't touch players..
+	self:set_collision_flags ("tn")
+	self:set_mask (mask_bottom, "/basic/weapon/mine/dropping-mask", 0, 0)
+
+	self:set_update_hook (
+	    1000,
+	    function (self)
+		self:remove_update_hook ()
+
+		-- Later the mine can touch players.
+		-- It also gets a larger mask.
+		self:set_collision_flags ("tnp")
+		self:set_mask (mask_main, "/basic/weapon/mine/mask", 8, 9)
+
+		function self:collide_hook (obj)
+		    if obj.is_player then -- don't explode if only touching crates
+			self:die ()
+		    end
+		end
+
+		function self:receive_damage (obj)
+		    -- called if hit by a projectile or blast
+		    self:die ()
+		end
+
+		function self:die ()
+		    -- spew some ball bearings, a blast and play a sound
+		    for i, deg in { 30, 50, 70, 90, 110, 130, 150 } do
+			local rad = (deg + 180) * 3.141592 / 180
+			spawn_projectile_raw ("basic-mine-projectiles",
+					      self.owner, self.x, self.y,
+					      rad, 5)
+		    end
+		    spawn_blast (self.x, self.y, 25, 20, self.owner)
+		    play_sound_on_clients (self, "/basic/explosion/explo42/sound") --XXX wrong datapack
+		    self:set_stale ()
+		end
+	    end
+	)
+    end,
+
+    proxy_init = function (self)
+	self.frame = 1
+
+	self.light_tics = 0
+	self.have_light = false
+	self.light_colour = 1
+
+	self:set_update_hook (
+	    250,
+	    function (self)
+		-- animation
+		self.frame = self.frame + 1
+		if self.frame > getn (mine_anim) then
+		    self.frame = 1
+		end
+		self:replace_layer (0, mine_anim[self.frame], 3, 1)
+
+		-- blinkenlights
+		self.light_tics = self.light_tics - 1
+		if self.light_tics <= 0 then
+		    self.light_tics = 3
+
+		    if self.have_light then
+			self:remove_all_lights ()
+			self.have_light = false
+		    else
+			if self.light_colour == 1 then
+			    self:add_light ("/basic/light/brown-16", 0, 0)
+			    self.light_colour = 2
+			else
+			    self:add_light ("/basic/light/violet-16", 0, 0)
+			    self.light_colour = 1
+			end
+			self.have_light = true
+		    end
+		end
+	    end
+	)
+    end
+}
+
+Standard_Projectile {
+    name = "basic-mine-projectiles",
+    alias = "~Mp",
+    icon = "/basic/weapon/shotgun/projectile", -- XXX
+    damage = 10   
 }
 
 

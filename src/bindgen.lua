@@ -471,6 +471,19 @@ generate_server {
 }
 
 generate_server {
+    cname	= "svgame_spawn_projectile_raw",
+    lname	= "spawn_projectile_raw",
+    args	= {{ String, "typename" },
+		   { Int, "owner" },
+		   { Float, "x" },
+		   { Float, "y" },
+		   { Float, "angle" },
+		   { Float, "speed" }},
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
+}
+
+generate_server {
     cname	= "svgame_spawn_blood",
     lname	= "spawn_blood_on_clients",
     args	= {{ Float, "x" },

@@ -108,6 +108,7 @@ local player_nonproxy_init = function (self)
     self.yv_decay = yv_decay
     self.mass = 0.9
     self._internal_ramp = 6
+    self.is_player = true
 
 
     --------------------------------------------------
@@ -311,6 +312,27 @@ local player_nonproxy_init = function (self)
 	end
 
 	call_method_on_clients (self, "start_firing_anim")
+    end
+
+
+    --------------------------------------------------
+    --  Mines stuff
+    --------------------------------------------------
+
+    -- don't use the _ammo variable so that mines are not counted in
+    -- backpacks
+    self.num_mines = 0		
+
+    function self:_internal_drop_mine_hook ()
+	if self.num_mines > 0 then
+	    self.num_mines = self.num_mines - 1
+	    local obj = spawn_object ("basic-mine-dropped", self.x, self.y)
+	    obj.owner = self.id
+	end
+    end
+
+    function self:receive_mines (amount)
+	self.num_mines = self.num_mines + 1
     end
 
 

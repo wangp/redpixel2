@@ -362,7 +362,18 @@ static void send_gameinfo_controls (void)
 	if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
     }
 
-    if (mouse_b & 1) controls |= CONTROL_FIRE;
+    {
+	static int last_b;
+	int b = mouse_b;
+
+	if (b & 1)
+	    controls |= CONTROL_FIRE;
+
+	if ((b & 2) && !(last_b & 2))
+	    controls |= CONTROL_DROP_MINE;
+
+	last_b = b;
+    }
 
     if (controls != last_controls)
 	update = 1;
