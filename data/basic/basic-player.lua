@@ -2,6 +2,11 @@
 
 store_load ("basic/basic-player.dat", "/basic/player/")
 
+
+----------------------------------------------------------------------
+--  Players
+----------------------------------------------------------------------
+
 local xv_decay, yv_decay = 0.75, 0.5
 
 Objtype {
@@ -29,6 +34,8 @@ Objtype {
 	self:set_mask (mask_left, "/basic/player/mask/left", cx, cy)
 	self:set_mask (mask_right, "/basic/player/mask/right", cx, cy)
 
+	self.health = 100
+
 	self.fire_delay = 0
 
 	-- XXX: temp
@@ -43,9 +50,12 @@ Objtype {
 	    end
 	end
 
-	function self._client_update_hook (self)
-	    self.fire_delay = self.fire_delay - 1
-	end
+	self:set_update_hook (
+	    1000/50,
+	    function (self)
+		self.fire_delay = self.fire_delay - 1
+	    end
+	)
 
 	function self.receive_weapon (self, weapon_name)
 	    if weapons[weapon_name] then
@@ -57,6 +67,11 @@ Objtype {
 	end
 
 	function self.receive_damage (self, damage)
+	    self.health = self.health - damage
+	    if self.health <= 0 then
+		spawn_object ("basic-player-death-fountain", self.x, self.y)
+		self:destroy ()
+	    end
 	    spawn_blood (self.x + %cx, self.y + %cy, 100, 2000)
 	    -- XXX spread should be float
 	end
@@ -80,24 +95,55 @@ Objtype {
 	else
 	    self:add_light ("/basic/light/white-64", 0, 0)
 
-	    function self._client_update_hook (self)
-		function radian_to_bangle (rads) return rads * 128 / 3.1415 end
-		if self.last_aim_angle ~= self.aim_angle then
-		    local a = radian_to_bangle (self.aim_angle)
-		    local hflipped = (a < -63 or a > 63) or 0
-		    
-		    self:hflip_layer (0, hflipped)
-		    self:hflip_layer (self.arm_layer, hflipped)
-		    
-		    if hflipped ~= 0 then
-			self:rotate_layer (self.arm_layer, a-128)
-		    else
-			self:rotate_layer (self.arm_layer, a)
-		    end
+	    self:set_update_hook (
+		1000/50,
+		function (self)
+		    if self.last_aim_angle ~= self.aim_angle then
+			local a = radian_to_bangle (self.aim_angle)
+			local hflipped = (a < -63 or a > 63) or 0
+			
+			self:hflip_layer (0, hflipped)
+			self:hflip_layer (self.arm_layer, hflipped)
+			
+			if hflipped ~= 0
+			then self:rotate_layer (self.arm_layer, a-128)
+			else self:rotate_layer (self.arm_layer, a)
+			end
 
-		    self.last_aim_angle = self.aim_angle
+			self.last_aim_angle = self.aim_angle
+		    end
+		end
+	    )
+	end
+    end
+}
+
+
+----------------------------------------------------------------------
+--  Corpses
+----------------------------------------------------------------------
+
+Objtype {
+    category = "player",
+    name = "basic-player-death-fountain",
+    icon = "/basic/player/death-fountain/000",
+
+    nonproxy_init = function (self)
+	self:set_collision_flags ("")
+    end,
+
+    proxy_init = function (self)
+	self:replace_layer (0, "/basic/player/death-fountain/000", 44, 16)
+	self.frame = 1
+	self:set_update_hook (
+	    1000/10, 
+	    function (self)
+		self:replace_layer (0, format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
+		self.frame = self.frame + 1
+		if self.frame > 30 then
+		    self:remove_update_hook ()
 		end
 	    end
-	end
+	)
     end
 }
