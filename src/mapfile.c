@@ -168,7 +168,10 @@ static int read_tiles (map_t *map, PACKFILE *f)
 		t = 0;
 	    else {
 		t = store_get_index (tmp);
-		if (!t) warning = 1;
+		if (t == STORE_INDEX_NONEXISTANT) {
+		    t = 0;
+		    warning = 1;
+		}
 	    }
 	    
 	    map_set_tile (map, x, y, t);
@@ -201,7 +204,7 @@ static int read_lights (map_t *map, PACKFILE *f)
 	if (!pack_fgets (tmp, sizeof tmp, f))
 	    goto error;
 	idx = store_get_index (tmp);
-	if (idx == 0)
+	if (idx == STORE_INDEX_NONEXISTANT)
 	    warning = 1;
 	else
 	    map_light_create (map, x, y, idx);
