@@ -6,7 +6,7 @@
 ----------------------------------------------------------------------
 
 function radian_to_bangle (rads)
-    return rads * 128 / PI
+    return rads * 128 / math.pi
 end
 
 -- Merge t1 and t2, t2 taking precedence in case of clashes.
@@ -139,7 +139,7 @@ local respawning_ball_anim = {}
 local respawning_ball_frames = 19
 
 for i = 0, respawning_ball_frames-1 do
-    respawning_ball_anim[i] = format ("/basic/respawning-ball/%03d", i)
+    respawning_ball_anim[i] = string.format ("/basic/respawning-ball/%03d", i)
 end
 
 Objtype {
@@ -161,8 +161,8 @@ Objtype {
     end,
     proxy_init = function (self)
 	self.frame = 0
-	self.theta = 0
-	self.dtheta = random (8) + 8
+	self.theta =  math.random (math.pi*1000) / 1000 -- rotating lights
+	self.dtheta = math.random (math.pi*1000) / 10000
 	self:add_light ("/basic/respawning-ball/light", 0, 0)
 	self:add_light ("/basic/respawning-ball/light", 0, 0)
 	self:set_update_hook (
@@ -175,7 +175,7 @@ Objtype {
 		    self:replace_layer (0, respawning_ball_anim[self.frame], 8, 8)
 		end
 		self.theta = self.theta + self.dtheta
-		local dx, dy = cos (self.theta) * 4, sin (self.theta) * 4
+		local dx, dy = math.cos (self.theta) * 4, math.sin (self.theta) * 4
 		self:move_light (0, dx, dy)
 		self:move_light (1, -dx, -dy)
 	    end

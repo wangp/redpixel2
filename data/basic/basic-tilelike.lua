@@ -105,10 +105,10 @@ local Barrel = function (t)
 		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then
-			for i = 1, random (10) do
+			for i = 1, math.random (10) do
 			    spawn_object (t.chunks,
-					  self.x + random (17) - 8,
-					  self.y + random (17) - 8)
+					  self.x + math.random (17) - 8,
+					  self.y + math.random (17) - 8)
 			end
 		    end
 
@@ -163,10 +163,11 @@ local BarrelChunks = function (t)
 	nonproxy_init = function (self)
 	    self.mass = 0.001
 	    self:set_collision_flags ("t")
-	    self:set_update_hook (1000 + random (3000), object_set_stale)
+	    self:set_update_hook (1000 + math.random (3000), object_set_stale)
 	end,
 	proxy_init = function (self)
-	    self:replace_layer (0, t.images[random (getn (t.images))], 2, 2)
+	    local i = math.random (table.getn (t.images))
+	    self:replace_layer (0, t.images[i], 2, 2)
 	end
     })
 end

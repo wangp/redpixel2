@@ -35,8 +35,16 @@ end
 
 local old_dofile = dofile
 function dofile (filename)
+    -- local dbg = print
+    local dbg = function (s) return end
+    dbg ("Doing file "..filename)
     for i,v in load_path do 
-	if old_dofile (v.."/"..filename) then return 1 end
+	dbg (" trying "..v.."/"..filename)
+	local chunk = loadfile (v.."/"..filename)
+	if chunk then
+	    chunk ()
+	    return 1
+	end
     end
     return nil
 end
