@@ -1,0 +1,22 @@
+(revised) code design a.k.a. code split
+----------------------------------------
+
+- map editor written in JavaScript
+    (support functions written in C)
+
+- engine written in C
+    (drawing, lighting, input, etc.)
+    
+- networking written in C        
+
+- weapon/object handling in JS
+    (eg. firing, picking up, etc.)
+    
+- AI written in JS
+
+- object structures handled in C
+    (with linked lists)
+    
+    Static lists may have JS duplicates
+    for speed reasons.
+    
