@@ -414,7 +414,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 	    if (move) {
 		object_set_xy (move, x - move_offx, y - move_offy);
-		cursor_set_dot ();
+		cursor_set_dot ();   /* XXX inefficient? */
 		return 1;
 	    }
 	    

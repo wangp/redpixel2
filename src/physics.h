@@ -12,7 +12,7 @@ void physics_destroy (physics_t *);
 void physics_move_object (physics_t *, object_t *);
 
 /* client */
-void physics_interpolate_proxy (physics_t *, object_t *);
+void physics_extrapolate_proxy (physics_t *, object_t *);
 
 
 #endif

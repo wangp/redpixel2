@@ -48,19 +48,19 @@ struct object {
     float x;
     float y;
     float xv;
-    float yv;			/* in proxy this is mixed in with mass * gravity */
-    float xv_decay;
-    float yv_decay;
+    float yv;
+    float xv_decay;		/* not replicated */
+    float yv_decay;		/* not replicated */
+    float mass;			/* not replicated */
     lua_ref_t table;
 
     /* server (non-proxy) */
-    float mass;
-    int _ramp;
-    int jump;
+    char _ramp;
+    char jump;
     objmask_t mask[OBJECT_MASK_MAX];
-    unsigned short collision_flags;
-    unsigned short collision_tag;
-    int replication_flags;
+    char collision_flags;
+    char collision_tag;
+    char replication_flags;
     float proxy_yv;		/* this is the yv that the proxy will receive */
 
     /* client (proxy) */

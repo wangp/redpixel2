@@ -136,7 +136,7 @@ static void perform_simple_physics ()
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
 	for (i = 0; i < 1 + object_catchup (obj); i++)
-	    physics_interpolate_proxy (physics, obj);
+	    physics_extrapolate_proxy (physics, obj);
 	object_set_catchup (obj, 0);
     }
 }
@@ -195,7 +195,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 	    case MSG_SC_GAMEINFO_MAPLOAD:
 	    {
 		char filename[NET_MAX_PACKET_SIZE];
-		long len;
+		int len;
 		
 		buf += packet_decode (buf, "s", &len, filename);
 		if (physics)
@@ -210,14 +210,15 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 	    case MSG_SC_GAMEINFO_OBJECT_CREATE:
 	    {
 		char type[NET_MAX_PACKET_SIZE];
-		long len;
+		int len;
 		objid_t id;
 		float x, y;
 		float xv, yv;
 		int ctag;
 		object_t *obj;
 
-		buf += packet_decode (buf, "slffffl", &len, type, &id, &x, &y, &xv, &yv, &ctag);
+		buf += packet_decode (buf, "swffffc", &len, type, &id, &x, &y, &xv, &yv, &ctag);
+//		printf("CLIENT: %f, %f\n", xv, yv);
 		obj = object_create_proxy (type, id);
 		object_set_xy (obj, x, y);
 		object_set_xvyv (obj, xv, yv);
@@ -236,7 +237,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		objid_t id;
 		object_t *obj;
 
-		buf += packet_decode (buf, "l", &id);
+		buf += packet_decode (buf, "w", &id);
 		if ((obj = map_find_object (map, id))) {
 		    object_set_stale (obj);
 		    if (obj == local_object)
@@ -252,7 +253,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		float xv, yv;
 		object_t *obj;
 
-		buf += packet_decode (buf, "lffff", &id, &x, &y, &xv, &yv);
+		buf += packet_decode (buf, "wffff", &id, &x, &y, &xv, &yv);
 		if ((obj = map_find_object (map, id))) {
 		    object_set_xy (obj, x, y);
 		    object_set_xvyv (obj, xv, yv);
@@ -380,28 +381,55 @@ static void switch_out_callback ()
 /*----------------------------------------------------------------------*/
 
 
-void game_client_run ()
+void game_client_run (void (*_lock)(), void (*_unlock)())
 {
+#define lock()		if (_lock) (_lock)();
+#define unlock()	if (_unlock) (_unlock)();
+
+    dbg ("connecting (state 1)");
+    {
+	int status;
+
+	do {
+	    if (key[KEY_Q])
+		return;
+	    lock ();
+	    status = net_poll_connect (conn);
+	    unlock ();
+/*  	    yield (); */
+	} while (!status);
+
+	if (status < 1)
+	    return;
+    }
+
     dbg ("connecting (stage 2)");
     {
 	uchar_t buf[NET_MAX_PACKET_SIZE];
 
 	while (1) {
+	    lock ();
+
 	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
-		yield ();		
+		unlock ();
+/*  		yield (); */
 		continue;
 	    }
 
 	    switch (buf[0]) {
 		case MSG_SC_JOININFO:
-		    packet_decode (buf+1, "l", &client_id);
+		    packet_decode (buf+1, "w", &client_id);
 		    net_send_rdm_encode (conn, "ccs", MSG_CS_JOININFO,
 					 NETWORK_PROTOCOL_VERSION, client_name);
+		    unlock ();
 		    goto lobby;
 
 		case MSG_SC_DISCONNECTED:
+		    unlock ();
 		    goto end;
 	    }
+
+	    unlock ();
 	}
     }
     
@@ -412,21 +440,30 @@ void game_client_run ()
 	uchar_t buf[NET_MAX_PACKET_SIZE];
 
 	while (1) {
-	    if (key[KEY_Q])
+	    lock ();
+
+	    if (key[KEY_Q]) {
+		unlock ();
 		goto disconnect;
+	    }
 
 	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
-		yield ();		
+		unlock ();
+/*  		yield ();		 */
 		continue;
 	    }
 
 	    switch (buf[0]) {
 		case MSG_SC_GAMESTATEFEED_REQ:
+		    unlock ();
 		    goto receive_game_state;
 
 		case MSG_SC_DISCONNECTED:
+		    unlock ();
 		    goto end;
 	    }
+
+	    unlock ();
 	}
     }
 
@@ -437,15 +474,22 @@ void game_client_run ()
 	uchar_t buf[NET_MAX_PACKET_SIZE];
 	int size;
 
+	lock ();
 	net_send_rdm_byte (conn, MSG_CS_GAMESTATEFEED_ACK);
+	unlock ();
 
 	while (1) {
-	    if (key[KEY_Q])
+	    lock ();
+
+	    if (key[KEY_Q]) {
+		unlock ();
 		goto disconnect;
+	    }
 
 	    size = net_receive_rdm (conn, buf, sizeof buf);
 	    if (size <= 0) {
-		yield ();
+		unlock ();
+/*  		yield (); */
 		continue;
 	    }
 
@@ -455,11 +499,15 @@ void game_client_run ()
 		    break;
 
 		case MSG_SC_GAMESTATEFEED_DONE:
+		    unlock ();
 		    goto pause;
 
 		case MSG_SC_DISCONNECTED:
+		    unlock ();
 		    goto end;
 	    }
+
+	    unlock ();
 	}
     }
 	
@@ -471,17 +519,23 @@ void game_client_run ()
 	int size;
 
 	while (1) {
-	    if (key[KEY_Q])
+	    lock ();
+	    
+	    if (key[KEY_Q]) {
+		unlock ();
 		goto disconnect;
+	    }
 
 	    size = net_receive_rdm (conn, buf, sizeof buf);
 	    if (size <= 0) {
-		yield ();
+		unlock ();
+/*  		yield (); */
 		continue;
 	    }
 
 	    switch (buf[0]) {
 		case MSG_SC_GAMESTATEFEED_REQ:
+		    unlock ();
 		    goto receive_game_state;
 
 		case MSG_SC_GAMEINFO:
@@ -489,11 +543,15 @@ void game_client_run ()
 		    break;
 
 		case MSG_SC_RESUME:
+		    unlock ();
 		    goto game;
 
 		case MSG_SC_DISCONNECTED:
+		    unlock ();
 		    goto end;
 	    }
+
+	    unlock ();
 	}
     }
 
@@ -510,8 +568,12 @@ void game_client_run ()
 	last_ping_time = 0;
 
 	while (1) {
-	    if (key[KEY_Q])
+	    lock ();
+
+	    if (key[KEY_Q]) {
+		unlock ();
 		goto disconnect;
+	    }
 
 	    if (ticks != last_ticks) {
 		dbg ("send gameinfo");
@@ -569,10 +631,10 @@ void game_client_run ()
 		    }
 		}
 
-		if (receive_game_state_later) goto receive_game_state;
-		if (pause_later) goto pause;
-		if (lobby_later) goto lobby;
-		if (end_later) goto end;
+		if (receive_game_state_later) { unlock (); goto receive_game_state; }
+		if (pause_later) { unlock (); goto pause; }
+		if (lobby_later) { unlock (); goto lobby; }
+		if (end_later) { unlock (); goto end; }
 	    }
 
 	    dbg ("handling pinging");
@@ -596,7 +658,8 @@ void game_client_run ()
 		redraw = 0;
 	    }
 
-	    yield ();
+	    unlock ();
+/*  	    yield (); */
 	}
 
 	ticks_shutdown ();
@@ -609,17 +672,22 @@ void game_client_run ()
 	timeout_t timeout;
 	uchar_t c;
 
+	lock ();
 	net_send_rdm_byte (conn, MSG_CS_DISCONNECT_ASK);
+	unlock ();
 
 	timeout_set (&timeout, 2000);
 
 	while (!timeout_test (&timeout)) {
+	    lock ();
 	    if (net_receive_rdm (conn, &c, 1) > 0) 
 		if (c == MSG_SC_DISCONNECTED) {
 		    dbg ("server confirmed disconnect");
+		    unlock ();
 		    break;
 		}
-	    yield ();
+	    unlock ();
+/*  	    yield (); */
 	}
 
 	goto end;
@@ -634,26 +702,11 @@ void game_client_run ()
 /*----------------------------------------------------------------------*/
 
 
-int game_client_init (const char *name, const char *addr)
+int game_client_init (const char *name, int net_driver, const char *addr)
 {
-    int status;
-
-    dbg ("connecting (stage 1)");
-    
-    if (!(conn = net_openconn (NET_DRIVER_SOCKETS, NULL)))
+    if (!(conn = net_openconn (net_driver, NULL)))
 	return -1;
-
     net_connect (conn, addr);
-    while (!(status = net_poll_connect (conn))) {
-	if (key[KEY_Q])
-	    goto error;
-	yield ();
-    }
-
-    if (status < 1)
-	goto error;
-
-    dbg ("connected (stage 1)");
     
     client_name = ustrdup (name);
 
@@ -687,11 +740,6 @@ int game_client_init (const char *name, const char *addr)
     last_controls = 0;
 
     return 0;
-
-  error:
-
-    net_closeconn (conn);
-    return -1;
 }
 
 

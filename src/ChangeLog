@@ -1,3 +1,13 @@
+2001-07-18  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* netmsg.h, gamesrv.c, gameclt.c: Changed protocol to try and
+	reduce packet sizes a little.
+
+	* packet.c: Added 'word' type.
+
+	* main.c, gamesrv.c, gameclt.c: Server and client in the same
+	process ("multithreaded", but more like coroutines).  A bit hacky.
+
 2001-07-17  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* Began proper firing code.

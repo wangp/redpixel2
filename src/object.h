@@ -13,7 +13,7 @@ typedef struct object object_t;
 /* Unique id number.  All machines playing the same game have the same
  * id numbers for objects.  Negative numbers are reserved for use by
  * objects controlled by clients.  */
-typedef int objid_t;
+typedef short objid_t;
 
 
 int object_init ();

@@ -4,6 +4,10 @@
  */
 
 
+/* XXX most or all of this stuff should move into object.c one day, or
+   movement stuff from object.c moved out */
+
+
 #include <stdlib.h>
 #include "alloc.h"
 #include "map.h"
@@ -15,7 +19,7 @@
 
 static inline float clamp (float n)
 {
-    return (ABS (n) < 0.25) ? 0 : n;
+    return (ABS (n) < 0.001) ? 0 : n;   /* XXX find good clamp value */
 }
 
 
@@ -118,7 +122,7 @@ void physics_move_object (physics_t *phys, object_t *obj)
 /* Game client physics. */
 
 
-void physics_interpolate_proxy (physics_t *phys, object_t *obj)
+void physics_extrapolate_proxy (physics_t *phys, object_t *obj)
 {
     float xv = object_xv (obj);
     float yv = object_yv (obj);

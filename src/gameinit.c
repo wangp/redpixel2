@@ -48,6 +48,8 @@ void game_init ()
 
     net_init ();
     net_loadconfig (NULL);
+    net_detectdrivers (net_drivers_all);
+    net_initdrivers (net_drivers_all);
 }
 
 

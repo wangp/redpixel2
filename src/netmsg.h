@@ -15,7 +15,7 @@ enum {
     /* The server sends this to a client right after it joins to
        notify it of its registration details.
        
-       Args: long client_id.
+       Args: word client_id.
      */
 
     MSG_SC_JOININFO = 'j',
@@ -24,7 +24,7 @@ enum {
     /* The client sends this to the server after it joins and receives
        the MSG_SC_POST_JOIN message.
 
-       Args: char protocol_version, long len, char name[].
+       Args: byte protocol_version, word len, byte name[].
      */
 
     MSG_CS_JOININFO = 'J',
@@ -139,7 +139,7 @@ enum {
 
     /* Tell server to broadcast text message to all clients.
 
-       Args: long len, char text[].
+       Args: word len, byte text[].
      */
 
     MSG_CS_GAMEINFO_TEXT = 't'
@@ -152,7 +152,7 @@ enum {
     
     /* Tell clients to load a map.
 
-       Args: long len, string filename.
+       Args: word len, string filename.
      */
 
     MSG_SC_GAMEINFO_MAPLOAD = 'l',
@@ -160,8 +160,8 @@ enum {
 
     /* Tell clients to create a new object.
 
-       Args: long len, char type[], long object_id, float x, float y,
-             float xv, float yv, long collision_tag.
+       Args: word len, byte type[], word object_id, float x, float y,
+             float xv, float yv, byte collision_tag.
      */
 
     MSG_SC_GAMEINFO_OBJECT_CREATE = 'c',
@@ -169,7 +169,7 @@ enum {
 
     /* Tell clients to destroy an object.
 
-       Args: long object_id.
+       Args: word object_id.
      */
 
     MSG_SC_GAMEINFO_OBJECT_DESTROY = 'd',
@@ -185,7 +185,7 @@ enum {
 
     /* Tell clients to display a text message.
 
-       Args: long len, byte text[].
+       Args: word len, byte text[].
      */
 
     MSG_SC_GAMEINFO_TEXT = 't',

@@ -13,7 +13,8 @@ typedef struct {
 } game_server_interface_t;
 
 
-int game_server_init (game_server_interface_t *);
+int game_server_init (game_server_interface_t *, int net_driver);
+void game_server_enable_single_hack ();
 void game_server_run ();
 void game_server_shutdown ();
 

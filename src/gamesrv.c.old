@@ -270,18 +270,13 @@ typedef enum {
     SERVER_STATE_QUIT
 } server_state_t;
 
-static server_state_t curr_state;
-static server_state_t next_state;
+static server_state_t server_state;
 static game_server_interface_t *interface;
 static NET_CONN *listen;
 static map_t *map;
 static physics_t *physics;
 static string_t current_map_file;
 static string_t next_map_file;
-
-static int single_hack = 0;
-/* XXX single hack: waits for one client, then starts, and quits when
-   that client leaves.  For testing the client-server */
 
 
 /* Helper for logging things. */
@@ -293,10 +288,7 @@ static void server_log (const char *fmt, ...)
 
     va_start (ap, fmt);
     uvszprintf (buf, sizeof buf, fmt, ap);
-    if (interface)
-	interface->add_log (NULL, buf);
-    else
-	puts (buf); /* XXX temp */
+    interface->add_log (NULL, buf);
     va_end (ap);
 }
 
@@ -313,7 +305,7 @@ static void server_check_new_connections ()
 	return;
     c = client_create (conn);
     client_set_state (c, CLIENT_STATE_JOINING);
-    client_send_rdm_encode (c, "cw", MSG_SC_JOININFO, c->id);
+    client_send_rdm_encode (c, "cl", MSG_SC_JOININFO, c->id);
 }
 
 
@@ -342,7 +334,7 @@ static void server_poll_clients_state_joining (client_t *c)
 {
     uchar_t buf[NET_MAX_PACKET_SIZE];
     char name[NET_MAX_PACKET_SIZE];
-    int len;
+    long len;
     char version;
 
     if (client_receive_rdm (c, buf, sizeof buf) <= 0)
@@ -354,7 +346,7 @@ static void server_poll_clients_state_joining (client_t *c)
 	    packet_decode (buf+1, "cs", &version, &len, &name);
 	    client_set_name (c, name);
 	    client_set_state (c, CLIENT_STATE_JOINED);
-	    if (curr_state == SERVER_STATE_GAME)
+	    if (server_state == SERVER_STATE_GAME)
 		client_set_wantfeed (c);
 	    server_log ("Client %s joined", c->name);
 	    if (version != NETWORK_PROTOCOL_VERSION) {
@@ -384,7 +376,7 @@ static void server_poll_clients_state_joined (client_t *c)
     switch (buf[0]) {
 
 	case MSG_CS_GAMEINFO:
-	    if (curr_state == SERVER_STATE_GAME)
+	    if (server_state == SERVER_STATE_GAME)
 		server_process_cs_gameinfo_packet (c, buf+1, size-1);
 	    break;
 
@@ -402,7 +394,7 @@ static void server_poll_clients_state_joined (client_t *c)
 	    client_set_state (c, CLIENT_STATE_STALE);
 	    server_log ("Client %s was disconnected by request", c->name);
 
-	    if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
+	    if ((server_state == SERVER_STATE_GAME) && (c->client_object))
 		object_set_stale (c->client_object);
 	    break;
     }
@@ -545,7 +537,7 @@ static void poll_interface_command_kick (char **last)
     client_set_state (c, CLIENT_STATE_STALE);
     server_log ("Client %s was kicked", c->name);
     
-    if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
+    if ((server_state == SERVER_STATE_GAME) && (c->client_object))
 	object_set_stale (c->client_object);
 }
 
@@ -556,8 +548,8 @@ static void server_poll_interface ()
     const char *cmd;
     char *copy, *word, *last;
 
-    if ((!interface) || !(cmd = interface->poll ()))
-	return;
+    cmd = interface->poll ();
+    if (!cmd) return;
 
     copy = ustrdup (cmd);
     word = ustrtok_r (copy, whitespace, &last);
@@ -589,15 +581,15 @@ static void server_poll_interface ()
 	}
 	
 	else if (wordis ("start")) {
-	    next_state = SERVER_STATE_GAME;
+	    server_state = SERVER_STATE_GAME;
 	}
 
 	else if (wordis ("stop")) {
-	    next_state = SERVER_STATE_LOBBY;
+	    server_state = SERVER_STATE_LOBBY;
 	}
 
 	else if (wordis ("quit")) {
-	    next_state = SERVER_STATE_QUIT;
+	    server_state = SERVER_STATE_QUIT;
 	}
 
 	else if (wordis ("list")) {
@@ -609,9 +601,9 @@ static void server_poll_interface ()
 	}
 
 	else if (wordis ("context")) {
-	    server_log ((curr_state == SERVER_STATE_LOBBY) ? "In the lobby" :
-			(curr_state == SERVER_STATE_GAME) ? "Playing a game" :
-			"Unknown context (probably in a transition)");
+	    server_log ((server_state == SERVER_STATE_LOBBY) ? "In the lobby" :
+		     (server_state == SERVER_STATE_GAME) ? "Playing a game" :
+		     "Unknown context (probably in a transition)");
 	}
 
 	else {
@@ -641,7 +633,6 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
 
     xv = speed * cos (c->aim_angle);
     yv = speed * sin (c->aim_angle);
-//    printf("SERVER: %f, %f (%f)\n", xv, yv, sqrt(xv*xv + yv*yv));
 
     object_set_xy (obj, object_x (owner), object_y (owner));
     object_set_xvyv (obj, xv, yv);
@@ -678,10 +669,8 @@ static int server_init_game_state ()
     client_t *c;
 
     map = map_load (next_map_file, 1, 0);
-    if (!map) {
-	server_log ("Couldn't load map %s", next_map_file);
+    if (!map)
 	return -1;
-    }
     string_set (current_map_file, next_map_file);
 
     for_each_client (c) if (c->state == CLIENT_STATE_JOINED) {
@@ -785,7 +774,7 @@ static void server_feed_game_state_to (client_t *c)
 
 	list = map_object_list (map);
 	list_for_each (obj, list)
-	    add_to_gameinfo_packet ("cswffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+	    add_to_gameinfo_packet ("cslffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
 				    objtype_name (object_type (obj)), 
 				    object_id (obj),
 				    object_x (obj), object_y (obj),
@@ -800,9 +789,6 @@ static void server_feed_game_state_to (client_t *c)
     /* After the client receives the game state, it will automatically
      * switch to 'paused' mode. */
 }
-
-void server_lock ();
-void server_unlock ();
 
 static void server_perform_mass_game_state_feed ()
 {
@@ -820,16 +806,14 @@ static void server_perform_mass_game_state_feed ()
 	}
     }
 
-    server_unlock ();
     do {
-/*  	yield (); */
-	server_lock ();
+	yield ();
 
 	done = 1;
 	for_each_client (c) {
 	    if (c->state != CLIENT_STATE_JOINED)
 		continue;
-			    
+	    
 	    if (client_ready (c))
 		continue;
 
@@ -850,10 +834,7 @@ static void server_perform_mass_game_state_feed ()
 		client_clear_cantimeout (c);
 	    }
 	}
-
-	server_unlock ();
     } while (!done);
-    server_lock ();
 
     clients_broadcast_rdm_byte (MSG_SC_RESUME);
 }
@@ -867,10 +848,8 @@ static void server_perform_single_game_state_feed (client_t *c)
     client_set_cantimeout (c);
     client_set_timeout (c, 5);
 
-    server_unlock ();
     while (1) {
-/*  	yield (); */
-	server_lock ();
+	yield ();
 
 	if (client_timed_out (c)) {
 	    client_set_state (c, CLIENT_STATE_STALE);
@@ -887,10 +866,7 @@ static void server_perform_single_game_state_feed (client_t *c)
 	    client_clear_cantimeout (c);
 	    break;
 	}
-
-	server_unlock ();
     }
-    server_lock ();
 }
 
 
@@ -970,26 +946,26 @@ static void server_send_object_updates ()
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
 	if (object_stale (obj)) {
-	    add_to_gameinfo_packet ("cw", MSG_SC_GAMEINFO_OBJECT_DESTROY,
+	    add_to_gameinfo_packet ("cl", MSG_SC_GAMEINFO_OBJECT_DESTROY,
 				    object_id (obj));
 	    continue;
 	}
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_CREATE)) {
-	    add_to_gameinfo_packet ("cswffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+	    add_to_gameinfo_packet ("cslffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
 				    objtype_name (object_type (obj)),
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
-				    object_xv (obj), object_yv (obj),
+				    object_xv (obj), object_proxy_yv (obj),
 				    object_collision_tag (obj));
 	    object_clear_replication_flag (obj, OBJECT_REPLICATE_CREATE);
 	}
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE)) {
-	    add_to_gameinfo_packet ("cwffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
+	    add_to_gameinfo_packet ("clffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
-				    object_xv (obj), object_yv (obj));
+				    object_xv (obj), object_proxy_yv (obj));
 	    object_clear_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
 	}
     }
@@ -1041,8 +1017,7 @@ static int server_state_game_init ()
     server_log ("Entering game");
 
     if (server_init_game_state () < 0) {
-	server_log ("Error initialising game state");
-	next_state = SERVER_STATE_LOBBY;
+	server_state = SERVER_STATE_LOBBY;
 	return -1;
     }
 
@@ -1082,7 +1057,7 @@ static void server_handle_wantfeeds ()
 	    map_link_object_bottom (map, obj);
 
 	    clients_broadcast_rdm_encode
-		("ccswffffc", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
+		("ccslffffl", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
 		 objtype_name (object_type (obj)),
 		 object_id (obj), object_x (obj), object_y (obj),
 		 object_xv (obj), object_yv (obj), object_collision_tag (obj));
@@ -1137,74 +1112,56 @@ static server_state_procs_t server_state_procs[] =
 
 void game_server_run ()
 {
+    server_state_t curr_state = -1;
     server_state_procs_t *p = NULL;
 
-    curr_state = -1;
-    next_state = SERVER_STATE_LOBBY;
+    while (curr_state != SERVER_STATE_QUIT) {
+	yield ();
 
-    do {
-	server_lock ();
-
-	while (curr_state != next_state) {
-	    p = server_state_procs + next_state;
+	while (curr_state != server_state) {
+	    p = server_state_procs + server_state;
 	    if ((p->init) && (p->init () < 0))
 		curr_state = -1;
 	    else
-		curr_state = next_state;
+		curr_state = server_state;
 	}
 
 	if (p->poll)
 	    p->poll ();
 
-	if (curr_state == next_state) {
+	if (curr_state == server_state) {
 	    server_check_new_connections ();
 	    server_poll_clients ();
 	    clients_remove_stale ();
 	    server_poll_interface ();
 	}
 
-	if ((single_hack) && (curr_state == next_state)) {
-	    client_t *c;
-	    int n = 0;
-	    for_each_client (c) if (c->state == CLIENT_STATE_JOINED) n++; 
-
-	    if (single_hack == 1) {
-		if (n > 0) {
-		    next_state = SERVER_STATE_GAME;
-		    single_hack = 2;
-		}
-	    }
-	    else if (single_hack == 2) {
-		if (n < 1) {
-		    next_state = SERVER_STATE_QUIT;
-		    single_hack = 3;
-		}
-	    }
-	}
-
-	if (curr_state != next_state) {
+	if (curr_state != server_state) {
 	    if (p->shutdown)
 		p->shutdown ();
 	}
+    }
 
-	server_unlock ();
-/*  	yield (); */
-    } while (next_state != SERVER_STATE_QUIT);
+    server_log ("Disconnecting clients");
+    clients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
+    server_log ("Quitting");
 }
 
 
 /* Initialisation and shutdown. */
 
-int game_server_init (game_server_interface_t *iface, int net_driver)
+int game_server_init (game_server_interface_t *iface)
 {
-    listen = net_openconn (net_driver, "");
+    listen = net_openconn (NET_DRIVER_SOCKETS, "");
     if (!listen)
 	return -1;
     net_listen (listen);
+    
+    lua_pushstring (lua_state, "server");
+    lua_setglobal (lua_state, "role");
 
     interface = iface;
-    if (interface)
-	interface->init ();
+    interface->init ();
 
     clients_init ();
 
@@ -1212,25 +1169,17 @@ int game_server_init (game_server_interface_t *iface, int net_driver)
     string_init (next_map_file);
     string_set (current_map_file, "test.pit");
     string_set (next_map_file,  "test.pit");
+    server_state = SERVER_STATE_LOBBY;
 
     return 0;    
 }
 
-void game_server_enable_single_hack ()
-{
-    single_hack = 1;
-}
-
 void game_server_shutdown ()
 {
-    server_log ("Disconnecting clients");
-    clients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
-    server_log ("Quitting");
-
     string_free (next_map_file);
     string_free (current_map_file);
     clients_shutdown ();
-    if (interface)
-	interface->shutdown ();
+    interface->shutdown ();
     net_closeconn (listen);
 }
+
