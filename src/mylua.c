@@ -213,7 +213,7 @@ int lua_dofile_path (lua_State *L, const char *filename)
     for (p = path_share; *p; p++) {
 	ustrzcpy (tmp, sizeof tmp, *p);
 	ustrzcat (tmp, sizeof tmp, filename);
-	if (file_exists (tmp, FA_RDONLY|FA_HIDDEN|FA_SYSTEM, NULL))
+	if (file_exists (tmp, FA_RDONLY|FA_HIDDEN|FA_SYSTEM|FA_ARCH, NULL))
 	    if (lua_dofile (L, tmp) == 0)
 		return 0;
     }
