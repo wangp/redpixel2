@@ -21,7 +21,7 @@ void store_shutdown (void);
 
 store_file_t store_load (AL_CONST char *filename, AL_CONST char *prefix);
 store_file_t store_load_ex (AL_CONST char *filename, AL_CONST char *prefix,
-			    DATAFILE *(*loader) (AL_CONST char *));
+			    DATAFILE *(*loader) (AL_CONST char *)); /* Lua binding */
 void store_unload (store_file_t f);
 
 store_index_t store_get_index (AL_CONST char *key);

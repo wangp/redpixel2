@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.11.12.23.48;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.02.16.14.15.25;	author tjaden;	state Exp;
@@ -40,9 +45,11 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Updated to Lua 4.1-work4.
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
 @
 text
 @/* mylua.c
@@ -59,30 +66,127 @@ text
 #include "path.h"
 
 
-lua_State *lua_state;
+/*
+ * Import bindings.
+ */
+
+#include "client.h"
+#include "explo.h"
+#include "extdata.h"
+#include "loaddata.h"
+#include "svgame.h"
+#include "store.h"
+#include "object.h"
+#include "objtypes.h"
+
+
+#include "bindings.inc"
+
+
+
+/*
+ * The actual module stuff.
+ */
+
+
+/* We use one Lua state.  But we don't want clients using functions
+ * which only make sense in a server context, and vice versa, i.e. we
+ * want namespaces.  To do this, we create an initial state with some
+ * globals needed for initialisation registered (e.g. data loading
+ * functions).  Afterwards we split the state into two "threads" with
+ * different globals tables, then register some more functions.  */
+
+lua_State *the_lua_state;
+lua_State *server_lua_namespace;
+lua_State *client_lua_namespace;
 
 
 int mylua_open (void)
 {
-    if (!(lua_state = lua_open ()))
+    the_lua_state = lua_open ();
+    if (!the_lua_state)
 	return -1;
+    server_lua_namespace = NULL;
+    client_lua_namespace = NULL;
 
-    lua_baselibopen (lua_state);
-    lua_mathlibopen (lua_state); /* XXX: needed? */
-    lua_strlibopen (lua_state);
+    lua_baselibopen (the_lua_state);
+    lua_mathlibopen (the_lua_state); /* XXX: needed? */
+    lua_strlibopen (the_lua_state);
 
     /* seed RNG */
-    lua_getglobal (lua_state, "randomseed");
-    lua_pushnumber (lua_state, time (0));
-    lua_call (lua_state, 1, 0);
+    lua_getglobal (the_lua_state, "randomseed");
+    lua_pushnumber (the_lua_state, time (0));
+    lua_call (the_lua_state, 1, 0);
+
+    DO_REGISTRATION_BOTH (the_lua_state);
 
     return 0;
 }
 
 
+static lua_State *fork_namespace (lua_State *orig_state)
+{
+    lua_State *new_state;
+    lua_ref_t table;
+
+    new_state = lua_newthread (orig_state);
+
+    /* Make a copy of orig_state's globals table on top of the
+     * orig_state stack.  */
+    lua_dostring (orig_state, "
+	do
+	  local t = {}
+	  for i,v in globals () do
+	    t[i] = v
+	  end
+	  return t
+	end
+    ");
+
+    /* Make the new table new_state's global table.  */
+    table = lua_ref (orig_state, 1);
+    lua_getref (new_state, table);
+    lua_setglobals (new_state);
+    lua_unref (orig_state, table);
+
+    return new_state;
+}
+
+
+void mylua_open_server_and_client_namespaces (void)
+{
+    server_lua_namespace = fork_namespace (the_lua_state);
+    DO_REGISTRATION_SERVER (server_lua_namespace);
+
+    client_lua_namespace = fork_namespace (the_lua_state);
+    DO_REGISTRATION_CLIENT (client_lua_namespace);
+
+    /* for debugging */
+    lua_pushstring (the_lua_state, "initial");
+    lua_setglobal (the_lua_state, "_internal_namespace");
+
+    lua_pushstring (server_lua_namespace, "server");
+    lua_setglobal (server_lua_namespace, "_internal_namespace");
+
+    lua_pushstring (client_lua_namespace, "client");
+    lua_setglobal (client_lua_namespace, "_internal_namespace");
+}
+
+
 void mylua_close (void)
 {
-    lua_close (lua_state);
+    if (client_lua_namespace) {
+	lua_closethread (the_lua_state, client_lua_namespace);
+	client_lua_namespace = NULL;
+    }
+
+    if (server_lua_namespace) {
+	lua_closethread (the_lua_state, server_lua_namespace);
+	server_lua_namespace = NULL;
+    }
+
+    lua_close (the_lua_state);
+    the_lua_state = NULL;
 }
 
 
@@ -158,6 +262,35 @@ int lua_checkargs (lua_State *L, const char *argtypes)
 
     return 1;
 }
+@
+
+
+1.6
+log
+@Updated to Lua 4.1-work4.
+@
+text
+@d15 33
+a47 1
+lua_State *lua_state;
+d52 2
+a53 1
+    if (!(lua_state = lua_open ()))
+d55 2
+d58 3
+a60 3
+    lua_baselibopen (lua_state);
+    lua_mathlibopen (lua_state); /* XXX: needed? */
+    lua_strlibopen (lua_state);
+d63 5
+a67 3
+    lua_getglobal (lua_state, "randomseed");
+    lua_pushnumber (lua_state, time (0));
+    lua_call (lua_state, 1, 0);
+d73 49
+d124 12
+a135 1
+    lua_close (lua_state);
 @
 
 

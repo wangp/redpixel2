@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.11.12.24.33;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.07.03.07.49.22;	author tjaden;	state Exp;
@@ -40,9 +45,11 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Updated for new Store
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
 @
 text
 @/* objtypes.c
@@ -107,7 +114,7 @@ static void destroy_all (void)
 
     for (i = 0; i < num; i++) {
 	bitmask_destroy (types[i]->icon_mask);
-	lua_unref (lua_state, types[i]->init_func);
+	lua_unref (the_lua_state, types[i]->init_func);
 	free (types[i]->icon);
 	free (types[i]->name);
 	free (types[i]->type);
@@ -198,6 +205,17 @@ bitmask_t *objtype_icon_mask (objtype_t *type)
 {
     return type->icon_mask;
 }
+@
+
+
+1.6
+log
+@Updated for new Store
+@
+text
+@d63 1
+a63 1
+	lua_unref (lua_state, types[i]->init_func);
 @
 
 

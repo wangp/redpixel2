@@ -1,9 +1,29 @@
-head	1.25;
+head	1.29;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.29
+date	2002.07.11.07.02.56;	author tjaden;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	2002.07.11.06.18.16;	author tjaden;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	2002.07.11.05.24.35;	author tjaden;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	2002.07.10.15.39.52;	author tjaden;	state Exp;
+branches;
+next	1.25;
 
 1.25
 date	2002.07.10.10.34.38;	author tjaden;	state Exp;
@@ -135,13 +155,10 @@ desc
 @@
 
 
-1.25
+1.29
 log
-@Lots of intermingled changes for:
-- initial game types support
-- notifying clients about new and quitting clients
-- scoring
-- allowing the server to play a sound on clients in a simple way
+@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
+it is called in C (I confused myself).
 @
 text
 @-- basic-weapon.lua
@@ -195,13 +212,13 @@ local Standard_Projectile = function (t)
 	    object_set_collision_is_projectile (self)
 	    function self:collide_hook (obj)
 		obj:receive_damage (t.damage, self.owner)
-		self:destroy ()
+		self:set_stale ()
 	    end
 	    function self:tile_collide_hook ()
 		if t.sparks then
 		    spawn_sparks (self.x, self.y, t.sparks, 2)
 		end
-		self:destroy ()
+		self:set_stale ()
 	    end	
 	end
     })
@@ -220,8 +237,8 @@ local Explosive_Projectile = function (t)
 		if t.sparks then
 		    spawn_sparks (self.x, self.y, t.sparks, 2)
 		end
-		spawn_blast (self.x, self.y, t.radius, t.damage)
-		self:destroy ()
+		spawn_blast (self.x, self.y, t.radius, t.damage, self.owner)
+		self:set_stale ()
 	    end
 	    self.collide_hook = hook
 	    self.tile_collide_hook = hook
@@ -316,7 +333,7 @@ Explosive_Projectile {
     name = "basic-arrow-projectile",
     alias = "~ap",
     icon = "/basic/weapon/bow/projectile",
-    radius = 35,
+    radius = 55,
     damage = 40,
     explosion = "basic-explo42",
     proxy_init = function (self)
@@ -454,7 +471,7 @@ Explosive_Projectile {
     name = "basic-rocket-projectile",
     alias = "~rp",
     icon = "/basic/weapon/rpg/projectile",
-    radius = 50,
+    radius = 75,
     damage = 80,
     explosion = "basic-explo42",
     proxy_init = function (self)
@@ -543,7 +560,7 @@ Standard_Pickup {
     icon = "/basic/weapon/rifle/pickup",
     weapon_to_give = "basic-rifle",
     ammo_to_give = "basic-slug",
-    ammo_amount = 2,
+    ammo_amount = 5,
     respawn_secs = 10
 }
 
@@ -554,7 +571,7 @@ Objtype {
     nonproxy_init = function (self)
 	function self:collide_hook (obj)
 	    obj:receive_damage (50, self.owner)
-	    self:destroy ()
+	    self:set_stale ()
 	end
 	function self:tile_collide_hook (obj)
 	    -- sniper rifle slugs don't collide with tiles, but for fun
@@ -602,6 +619,67 @@ weapon_auto_switch_order = {
     "basic-shotgun",
     "basic-blaster"
 }
+@
+
+
+1.28
+log
+@Slow blast spreading looks cool, but they are too easy to escape.
+So we try faster spreading but larger radii.
+@
+text
+@d52 1
+a52 1
+		self:destroy ()
+d58 1
+a58 1
+		self:destroy ()
+d78 1
+a78 1
+		self:destroy ()
+d411 1
+a411 1
+	    self:destroy ()
+@
+
+
+1.27
+log
+@Added blast accreditation.
+@
+text
+@d173 1
+a173 1
+    radius = 35,
+d311 1
+a311 1
+    radius = 50,
+@
+
+
+1.26
+log
+@Increased number of slugs per rifle-pickup to 5.
+@
+text
+@d77 1
+a77 1
+		spawn_blast (self.x, self.y, t.radius, t.damage)
+@
+
+
+1.25
+log
+@Lots of intermingled changes for:
+- initial game types support
+- notifying clients about new and quitting clients
+- scoring
+- allowing the server to play a sound on clients in a simple way
+@
+text
+@d400 1
+a400 1
+    ammo_amount = 2,
 @
 
 

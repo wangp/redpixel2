@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.07.11.05.51.19;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.29.00.07.32;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Added sound to explosions.
+@Marked in comments which functions were bound to Lua.
 @
 text
 @#ifndef __included_explo_h
@@ -39,7 +44,7 @@ void explosion_init (void);
 void explosion_shutdown (void);
 int explosion_type_register (const char *name, const char *first_frame,
 			     int nframes, int tics, const char *light,
-			     const char *sound);
+			     const char *sound); /* Lua binding */
 explosion_t *explosion_create (const char *name, int x, int y);
 void explosion_destroy (explosion_t *e);
 int explosion_update (explosion_t *e);
@@ -50,6 +55,17 @@ void explosion_draw_lights (struct BITMAP *dest, explosion_t *explo,
 
 
 #endif
+@
+
+
+1.2
+log
+@Added sound to explosions.
+@
+text
+@d15 1
+a15 1
+			     const char *sound);
 @
 
 

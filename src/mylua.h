@@ -8,9 +8,12 @@
 
 typedef int lua_ref_t;
 
-extern lua_State *lua_state;
+extern lua_State *the_lua_state;
+extern lua_State *server_lua_namespace; /* namespace over the_lua_state */
+extern lua_State *client_lua_namespace; /* namespace over the_lua_state */
 
 int mylua_open (void);
+void mylua_open_server_and_client_namespaces (void);
 void mylua_close (void);
 
 int lua_dofile_path (lua_State *L, const char *filename);

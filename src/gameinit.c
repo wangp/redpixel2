@@ -6,7 +6,6 @@
 
 #include <allegro.h>
 #include "libnet.h"
-#include "bindings.h"
 #include "bitmaskr.h"
 #include "blod.h"
 #include "explo.h"
@@ -40,7 +39,6 @@ void game_init (void)
     bitmask_ref_init ();
  
     mylua_open ();
-    bindings_init ();
 
     tiles_init ();
     lights_init ();
@@ -49,7 +47,8 @@ void game_init (void)
 
     object_init ();
 
-    lua_dofile_path (lua_state, "init.lua");
+    lua_dofile_path (the_lua_state, "init.lua");
+    mylua_open_server_and_client_namespaces ();
 
     blod_init ();
     
@@ -73,7 +72,6 @@ void game_shutdown (void)
     lights_shutdown ();
     tiles_shutdown ();
 
-    bindings_shutdown ();
     mylua_close ();
 
     bitmask_ref_shutdown ();

@@ -1,9 +1,19 @@
-head	1.19;
+head	1.21;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.21
+date	2002.07.11.05.24.03;	author tjaden;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	2002.07.10.15.43.04;	author tjaden;	state Exp;
+branches;
+next	1.19;
 
 1.19
 date	2002.07.10.10.27.13;	author tjaden;	state Exp;
@@ -105,17 +115,16 @@ desc
 @@
 
 
-1.19
+1.21
 log
-@New network messages: MSG_SC_CLIENT_ADD, MSG_SC_CLIENT_REMOVE,
-MSG_SC_GAMEINFO_CLIENT_SCORE, MSG_SC_GAMEINFO_SOUND_PLAY.
+@Added blast accreditation.
 @
 text
 @#ifndef __included_netmsg_h
 #define __included_netmsg_h
 
 
-#define NETWORK_PROTOCOL_VERSION	0
+#define NETWORK_PROTOCOL_VERSION	1
 
 /* Libnet has a maximum packet size of 512 bytes, for channels.  Conns
    take up some of those bytes (too lazy to check how many), so we
@@ -421,7 +430,7 @@ enum {
     MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e',
 
 
-    /* Tell clients to create a blast.
+    /* Tell clients to create a (visual-only) blast.
 
        Args: float x, float y, float max_radius, long damage.
      */
@@ -439,6 +448,30 @@ enum {
 
 
 #endif
+@
+
+
+1.20
+log
+@Bumped network protocol version to 1, because it is incompatible with
+the first publically release demo (2002-02-02).
+@
+text
+@d311 1
+a311 1
+    /* Tell clients to create a blast.
+@
+
+
+1.19
+log
+@New network messages: MSG_SC_CLIENT_ADD, MSG_SC_CLIENT_REMOVE,
+MSG_SC_GAMEINFO_CLIENT_SCORE, MSG_SC_GAMEINFO_SOUND_PLAY.
+@
+text
+@d5 1
+a5 1
+#define NETWORK_PROTOCOL_VERSION	0
 @
 
 

@@ -1,0 +1,28 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2002.07.10.15.36.03;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@Thanks to:
+
+Derek Liauw Kie Fa 						- original code
+Robert J Ohannessian 					- modifications for working with Allegro 4 + porting.
+Peter Wang 								- Unix makefile
+@

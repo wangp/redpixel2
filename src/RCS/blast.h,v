@@ -1,9 +1,19 @@
-head	1.1;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.07.11.12.25.29;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.07.11.05.23.42;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.27.14.05.09;	author tjaden;	state Exp;
@@ -15,9 +25,11 @@ desc
 @@
 
 
-1.1
+1.3
 log
-@Initial revision
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
 @
 text
 @#ifndef __included_blast_h
@@ -26,16 +38,44 @@ text
 
 struct list_head;
 struct BITMAP;
+struct lua_State;
 
 
 typedef struct blast blast_t;
 
 
-blast_t *blast_create (float x, float y, float radius, int damage, int visual_only);
+blast_t *blast_create (float x, float y, float radius, int damage, int owner);
 void blast_destroy (blast_t *blast);
-int blast_update (blast_t *blast, struct list_head *object_list);
+int blast_update_with_collisions (blast_t *blast, struct list_head *object_list);
+int blast_update_visually_only (blast_t *blast);
 void blast_draw (struct BITMAP *dest, blast_t *blast, int offset_x, int offset_y);
 
 
 #endif
+@
+
+
+1.2
+log
+@Added blast accreditation.
+@
+text
+@d7 1
+d13 1
+a13 1
+blast_t *blast_create (float x, float y, float radius, int damage, int owner, int visual_only);
+d15 2
+a16 1
+int blast_update (blast_t *blast, struct list_head *object_list);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+a12 1
+blast_t *blast_create (float x, float y, float radius, int damage, int visual_only);
 @

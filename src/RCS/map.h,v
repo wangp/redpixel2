@@ -1,9 +1,19 @@
-head	1.4;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.07.11.12.24.48;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.07.11.05.23.57;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.27.14.06.04;	author tjaden;	state Exp;
@@ -30,9 +40,11 @@ desc
 @@
 
 
-1.4
+1.6
 log
-@Added blasts.
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
 @
 text
 @/* This file is shared between the map editor and the game. */
@@ -44,6 +56,7 @@ struct object;
 struct blood_particles;
 struct spark_particles;
 struct BITMAP;
+struct lua_State;
 
 
 typedef struct light light_t;
@@ -93,12 +106,37 @@ void map_explosions_draw (map_t *map, struct BITMAP *dest, int offset_x, int off
 void map_explosions_draw_lights (map_t *map, struct BITMAP *dest, int offset_x, int offset_y);
 
 
-void map_blast_create (map_t *map, float x, float y, float radius, int damage, int visual_only);
-void map_blasts_update (map_t *map);
+void map_blast_create (map_t *map, float x, float y, float radius, int damage, int owner);
+void map_blasts_update_with_collisions (map_t *map);
+void map_blasts_update_visually_only (map_t *map);
 void map_blasts_draw (map_t *map, struct BITMAP *dest, int offset_x, int offset_y);
 
 
 #endif
+@
+
+
+1.5
+log
+@Added blast accreditation.
+@
+text
+@d10 1
+d60 3
+a62 2
+void map_blast_create (map_t *map, float x, float y, float radius, int damage, int owner, int visual_only);
+void map_blasts_update (map_t *map);
+@
+
+
+1.4
+log
+@Added blasts.
+@
+text
+@d59 1
+a59 1
+void map_blast_create (map_t *map, float x, float y, float radius, int damage, int visual_only);
 @
 
 

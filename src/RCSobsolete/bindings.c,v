@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.11.07.03.54;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.26.11.54.50;	author tjaden;	state Exp;
@@ -30,9 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Added support for explosion graphics.
+@Initial part of separating server and client namespaces.
 @
 text
 @/* bindings.c
@@ -65,13 +70,26 @@ text
 
 void bindings_init (void)
 {
-    DO_REGISTRATION(lua_state);
+    DO_REGISTRATION_BOTH (lua_state);
+    DO_REGISTRATION_SERVER (lua_state);
+    DO_REGISTRATION_CLIENT (lua_state);
 }
 
 
 void bindings_shutdown (void)
 {
 }
+@
+
+
+1.4
+log
+@Added support for explosion graphics.
+@
+text
+@d31 3
+a33 1
+    DO_REGISTRATION(lua_state);
 @
 
 

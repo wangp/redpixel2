@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.11.05.51.15;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.01.31.12.21.04;	author tjaden;	state Exp;
@@ -40,9 +45,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Changes for client-server mode.
+@Marked in comments which functions were bound to Lua.
 @
 text
 @#ifndef __included_client_h
@@ -58,12 +63,24 @@ void client_shutdown (void);
 
 void client_send_text_message (const char *text);
 
-/* lua bindings */
-void client_play_sound (struct object *, const char *sample);
-void client_set_camera (int pushable, int max_dist);
+void client_play_sound (struct object *, const char *sample); /* Lua binding */
+void client_set_camera (int pushable, int max_dist); /* Lua binding (internal) */
 
 
 #endif
+@
+
+
+1.6
+log
+@Changes for client-server mode.
+@
+text
+@d14 2
+a15 3
+/* lua bindings */
+void client_play_sound (struct object *, const char *sample);
+void client_set_camera (int pushable, int max_dist);
 @
 
 

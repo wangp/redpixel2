@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.11.12.23.59;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.02.16.14.15.28;	author tjaden;	state Exp;
@@ -30,9 +35,11 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Updated to Lua 4.1-work4.
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
 @
 text
 @#ifndef __included_mylua_h
@@ -45,9 +52,12 @@ text
 
 typedef int lua_ref_t;
 
-extern lua_State *lua_state;
+extern lua_State *the_lua_state;
+extern lua_State *server_lua_namespace; /* namespace over the_lua_state */
+extern lua_State *client_lua_namespace; /* namespace over the_lua_state */
 
 int mylua_open (void);
+void mylua_open_server_and_client_namespaces (void);
 void mylua_close (void);
 
 int lua_dofile_path (lua_State *L, const char *filename);
@@ -55,6 +65,18 @@ int lua_checkargs (lua_State *L, const char *argtypes);
 
 
 #endif
+@
+
+
+1.4
+log
+@Updated to Lua 4.1-work4.
+@
+text
+@d11 3
+a13 1
+extern lua_State *lua_state;
+d16 1
 @
 
 

@@ -35,7 +35,7 @@ static svticker_t *ticker;
 
 
 
-#define L lua_state
+#define Lsrv server_lua_namespace
 
 
 
@@ -80,11 +80,11 @@ static object_t *spawn_player (objid_t id)
 
     if ((c = svclients_find_by_id (id))) {
 	/* Call the player spawned hook.  */
-	lua_getglobal (L, "_internal_player_spawned_hook");
-	if (!lua_isfunction (L, -1))
+	lua_getglobal (Lsrv, "_internal_player_spawned_hook");
+	if (!lua_isfunction (Lsrv, -1))
 	    error ("Missing _internal_player_spawned_hook\n");
-	lua_pushnumber (L, id);
-	lua_call (L, 1, 0);
+	lua_pushnumber (Lsrv, id);
+	lua_call (Lsrv, 1, 0);
 
 	/* Reset network stuff.  */
 	c->last_sent_aim_angle = 0;
@@ -121,8 +121,8 @@ void svgame_process_cs_gameinfo_packet (svclient_t *c, const char *buf,
 		
 		buf += packet_decode (buf, "s", &len, name);
 		if (c->client_object) {
-		    lua_pushstring (L, name);
-		    object_call (c->client_object, "switch_weapon", 1);
+		    lua_pushstring (Lsrv, name);
+		    object_call (Lsrv, c->client_object, "switch_weapon", 1);
 		}
 		break;
 	    }
@@ -285,7 +285,7 @@ static void gameinfo_packet_queue_flush (void)
 /* XXX lots of potention buffer overflows */
 static size_t make_object_creation_packet (object_t *obj, char *buf)
 {
-    int top = lua_gettop (L);
+    int top = lua_gettop (Lsrv);
     const char *type;
     list_head_t *list;
     creation_field_t *f;
@@ -293,11 +293,11 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 
     /* look up object type alias */
     type = objtype_name (object_type (obj));
-    lua_getglobal (L, "object_alias");
-    lua_pushstring (L, type);
-    lua_rawget (L, -2);
-    if (lua_isstring (L, -1))
-	type = lua_tostring (L, -1);
+    lua_getglobal (Lsrv, "object_alias");
+    lua_pushstring (Lsrv, type);
+    lua_rawget (Lsrv, -2);
+    if (lua_isstring (Lsrv, -1))
+	type = lua_tostring (Lsrv, -1);
     
     /* create the packet */
     p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
@@ -328,7 +328,7 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 
     p += packet_encode (p, "c", 0); /* terminator */
 
-    lua_settop (L, top);
+    lua_settop (Lsrv, top);
 
     return p - buf;
 }
@@ -624,7 +624,7 @@ static void handle_svclient_controls (void)
 	 * Fire.
 	 */
 	if (c->controls & CONTROL_FIRE)
-	    object_call (obj, "_internal_fire_hook", 0);
+	    object_call (Lsrv, obj, "_internal_fire_hook", 0);
     }
 }
 
@@ -640,7 +640,7 @@ static void perform_physics (void)
     list_for_each (obj, object_list)
 	object_do_physics (obj, map); /* XXX find better name */
 
-    map_blasts_update (map);
+    map_blasts_update_with_collisions (map);
 }
 
 
@@ -772,7 +772,7 @@ void svgame_spawn_explosion (const char *name, float x, float y)
 }
 
 
-void svgame_spawn_blast (float x, float y, float radius, int damage)
+void svgame_spawn_blast (float x, float y, float radius, int damage, int owner)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
@@ -781,7 +781,7 @@ void svgame_spawn_blast (float x, float y, float radius, int damage)
 			  x, y, radius, damage);
     add_to_gameinfo_packet_queue (buf, size);
 
-    map_blast_create (map, x, y, radius, damage, 0);
+    map_blast_create (map, x, y, radius, damage, owner);
 }
 
 
@@ -982,11 +982,11 @@ static int init_game_state (void)
 
     /* Init game type.  Should be extensible in future, currently
      * hard-wired to Game_Type_Deathmatch.  */
-    lua_getglobal (L, "_internal_start_game_type");
-    if (!lua_isfunction (L, -1))
+    lua_getglobal (Lsrv, "_internal_start_game_type");
+    if (!lua_isfunction (Lsrv, -1))
 	error ("Missing _internal_start_game_type\n");
-    lua_getglobal (L, "Game_Type_Deathmatch");
-    lua_call (L, 1, 0);
+    lua_getglobal (Lsrv, "Game_Type_Deathmatch");
+    lua_call (Lsrv, 1, 0);
 
     /* Spawn a bunch of players.  */
     for_each_svclient (c)
@@ -999,10 +999,10 @@ static int init_game_state (void)
 
 static void free_game_state (void)
 {
-    lua_getglobal (L, "_internal_end_game_type");
-    if (!lua_isfunction (L, -1))
+    lua_getglobal (Lsrv, "_internal_end_game_type");
+    if (!lua_isfunction (Lsrv, -1))
 	error ("Missing _internal_end_game_type\n");
-    lua_call (L, 0, 0);
+    lua_call (Lsrv, 0, 0);
 
     if (map) {
 	map_destroy (map);

@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.11.12.25.23;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.24.07.23.01;	author tjaden;	state Exp;
@@ -30,9 +35,11 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Changed all "()" declarations to "(void)".
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
 @
 text
 @/* blod.c
@@ -114,8 +121,8 @@ void blod_spawn (map_t *map, float x, float y, long nparticles)
 	object_set_mass (obj, rnd (3000, 8000) / 10000000.);
 	object_set_collision_flags (obj, 1, 0, 0);
 
-	lua_pushcfunction (lua_state, blod_update_hook);
-	hook = lua_ref (lua_state, -1);
+	lua_pushcfunction (client_lua_namespace, blod_update_hook);
+	hook = lua_ref (client_lua_namespace, 1);
 	object_set_update_hook (obj, rnd (10 * 1000, 15 * 1000), hook);
 
 	map_link_object (map, obj);
@@ -136,6 +143,18 @@ void blod_init (void)
 void blod_shutdown (void)
 {
 }
+@
+
+
+1.4
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d80 2
+a81 2
+	lua_pushcfunction (lua_state, blod_update_hook);
+	hook = lua_ref (lua_state, -1);
 @
 
 

@@ -77,8 +77,8 @@ void blod_spawn (map_t *map, float x, float y, long nparticles)
 	object_set_mass (obj, rnd (3000, 8000) / 10000000.);
 	object_set_collision_flags (obj, 1, 0, 0);
 
-	lua_pushcfunction (lua_state, blod_update_hook);
-	hook = lua_ref (lua_state, -1);
+	lua_pushcfunction (client_lua_namespace, blod_update_hook);
+	hook = lua_ref (client_lua_namespace, 1);
 	object_set_update_hook (obj, rnd (10 * 1000, 15 * 1000), hook);
 
 	map_link_object (map, obj);

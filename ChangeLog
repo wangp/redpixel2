@@ -1,619 +1,1367 @@
-2002-07-10  Peter Wang  <tjaden@users.sourceforge.net>
+	This ChangeLog is automatically produced from RCS logs.
+	See the Makefile for details.
 
-	* client.c, bindgen.lua, netmsg.h:
-	* server.c, svgame.c, svclient.c:
-	* basic-weapon.lua, basic-player.lua, basic-gametype.lua:
-	Lots of intermingled changes for:
-	- initial game types support
-	- notifying clients about new and quitting clients
-	- scoring
-	- allowing the server to play a sound on clients in a simple way
+2002-07-11 22:31  tjaden
+
+	* basic-base.lua: Removed stub functions as they seem to
+	unnecessary now.
+
+2002-07-11 22:26  tjaden
+
+	* Makefile, gameinit.c: bindings.c deleted (stuff moved into
+	mylua.c).
+
+2002-07-11 22:23  tjaden
+
+	* mylua.c, mylua.h, object.c, object.h, objtypes.c, svgame.c,
+	map.h, map.c, gameinit.c, client.c, blod.c, blast.h, blast.c:
+	Separated the one Lua state into two namespaces: server and client,
+	so that scripts run on the server don't have access to client-only
+	functions, and vice versa.  This makes things much less murky.
+
+2002-07-11 17:06  tjaden
+
+	* bindgen.lua: object_set_stale is server-only.
+
+2002-07-11 17:03  tjaden
+
+	* bindings.c: Initial part of separating server and client
+	namespaces.
+
+2002-07-11 17:03  tjaden
+
+	* bindgen.lua: Renamed Lua's "object_destroy" to
+	"object_set_stale", as that's what it is called in C (I confused
+	myself).
+	
+	Also, initial part of separating server and client namespaces.
+
+2002-07-11 17:02  tjaden
+
+	* basic-base.lua, basic-player.lua, basic-tilelike.lua,
+	basic-weapon.lua: Renamed Lua's "object_destroy" to
+	"object_set_stale", as that's what it is called in C (I confused
+	myself).
+
+2002-07-11 16:18  tjaden
+
+	* basic-tilelike.lua, basic-weapon.lua, blast.c: Slow blast
+	spreading looks cool, but they are too easy to escape.	So we try
+	faster spreading but larger radii.
+
+2002-07-11 15:55  tjaden
+
+	* bindgen.lua, store.h: Removed the Lua binding to store_get_index
+	(it wasn't used).
+
+2002-07-11 15:51  tjaden
+
+	* client.h, explo.h, loaddata.h, object.h, objtypes.h, svgame.h,
+	store.h: Marked in comments which functions were bound to Lua.
+
+2002-07-11 15:50  tjaden
+
+	* bindgen.lua: Added cross-references about where the prototypes of
+	corresponding C functions can be found.
+
+2002-07-11 15:23  tjaden
+
+	* bindgen.lua, blast.c, blast.h, client.c, map.c, map.h, netmsg.h,
+	svgame.c, svgame.h, basic-tilelike.lua, basic-weapon.lua: Added
+	blast accreditation.
+
+2002-07-11 01:43  tjaden
+
+	* netmsg.h: Bumped network protocol version to 1, because it is
+	incompatible with the first publically release demo (2002-02-02).
+
+2002-07-11 01:39  tjaden
+
+	* basic-weapon.lua: Increased number of slugs per rifle-pickup to
+	5.
+
+2002-07-11 01:36  tjaden
+
+	* Makefile, main.c, client.c, gamemenu.c: Added screen stretching
+	(double size) and 2xSaI support.
+
+2002-07-11 01:35  tjaden
+
+	* screen.c, screen.h, 2xsai.c, 2xsai.h, 2xsai.txt, authors,
+	changes, modified.txt: Initial revision
+
+2002-07-10 20:35  tjaden
+
+	* basic-gametype.lua: Initial revision
+
+2002-07-10 20:34  tjaden
+
+	* svgame.h, basic-init.lua, basic-player.lua, basic-weapon.lua,
+	client.c, svgame.c: Lots of intermingled changes for: - initial
+	game types support - notifying clients about new and quitting
+	clients - scoring - allowing the server to play a sound on clients
+	in a simple way
+
+2002-07-10 20:29  tjaden
+
+	* bindgen.lua: Added bindings for svgame_set_score and
+	svgame_play_sound_on_clients.
+
+2002-07-10 20:28  tjaden
+
+	* svclient.h, svclient.c: Track client scores.
+
+2002-07-10 20:28  tjaden
+
+	* server.c: Tell clients about connecting and disconnecting
+	clients.
+
+2002-07-10 20:27  tjaden
+
+	* netmsg.h: New network messages: MSG_SC_CLIENT_ADD,
+	MSG_SC_CLIENT_REMOVE, MSG_SC_GAMEINFO_CLIENT_SCORE,
+	MSG_SC_GAMEINFO_SOUND_PLAY.
+
+2002-07-10 20:11  tjaden
 
 	* packet.c: Assume that NULL is a zero-length string when encoding
 	packets.
 
-	* textout.c: Refactored and completed missing functions for
+2002-07-10 20:10  tjaden
+
+	* gameinit.c: Init store with size 1024 rather than 1023 (new store
+	uses powers of two).
+
+2002-07-10 17:48  tjaden
+
+	* store.c: Use calloc instead of malloc to create buckets array
+	(forgot to clear to zero previously...)
+
+2002-07-10 14:55  tjaden
+
+	* messages.c: Refactored textout.c and completed missing functions
+	for completeness.
+
+2002-07-10 14:54  tjaden
+
+	* object.c: Abbreviated references to lua_state to L.
+
+2002-07-10 13:53  tjaden
+
+	* textout.h: Refactored textout.c and completed missing functions
+	for completeness.
+
+2002-07-10 13:53  tjaden
+
+	* textout.c: Refactor textout.c and completed missing functions for
 	completeness.
 
-	* messages.c: Made messages translucent.
-	* textout.c: Moved scattered text output functions in here.
+2002-07-10 11:51  tjaden
+
+	* Makefile: Added textout to object list.
+
+2002-07-10 10:27  tjaden
 
 	* svgame.c: Made projectiles spawn a bit away from the centre of
 	the player.
 
+2002-07-10 01:41  tjaden
+
+	* README.txt: Updated the bit about Wumpus.
+
+2002-07-10 01:20  tjaden
+
+	* client.c: Moved trans_textprintf to textout.c.  [plus a lot of
+	whitespace changes, by accident]
+
+2002-07-10 01:19  tjaden
+
+	* gamemenu.c: Moved textout_magic to textout.c.
+
+2002-07-10 01:19  tjaden
+
+	* messages.c: Moved textout_right_magic to textout.c, and made
+	messages translucent.
+
+2002-07-10 01:18  tjaden
+
+	* object.c: Moved trans_textout_centre to textout.c.
+
+2002-07-10 01:18  tjaden
+
+	* textout.h, textout.c: Initial revision
+
+2002-07-10 00:36  tjaden
+
+	* client.c, particle.c, svgame.c: Use shared #definition of M_PI.
+
+2002-07-10 00:34  tjaden
+
+	* mathcnst.h: Initial revision
+
+2002-07-10 00:27  tjaden
+
 	* blast.c: Slowed down the blast spreading speed.
 
-2002-07-09  Peter Wang  <tjaden@users.sourceforge.net>
+2002-07-09 23:14  tjaden
 
-	* render.c, object.c: Render object names if they have one.
-	* svgame.c: Client objects have names.
+	* basic-weapon.lua: Added generic weapon/ammo pickup sound.
 
-	* client.c, netmsg.h, object.c: Allow strings as creation fields.
+2002-07-09 20:17  tjaden
 
-2002-07-03  Peter Wang  <tjaden@users.sourceforge.net>
+	* svgame.c: Forgot to set the client name on player objects that
+	are created for clients that join in the middle of a game.
 
-	* main.c, gamemenu.c: Some work on the menu frontend from a *long*
-	time ago, which I didn't commit before because it wasn't the
-	design that was intended, but I only remembered after writing
-	it...
+2002-07-09 20:03  tjaden
 
-	* New Store.
+	* object.c, object.h: Added object_draw_trans_name() to draw object
+	names.	Added object_get_var_type() to allow looking up lua table
+	field types.
 
-2002-05-04  Peter Wang  <tjaden@users.sourceforge.net>
+2002-07-09 20:01  tjaden
 
-	* Upgraded to JPGalleg 1.2.
+	* render.c: Render object names if they have one
 
-2002-02-17  Peter Wang  <tjaden@users.sourceforge.net>
+2002-07-09 20:00  tjaden
 
-	* objgen.lua, object.c, mylua.h, mylua.c, gameinit.c:
-	Updated to Lua 4.1-work4.
+	* client.c: Allow strings as creation fields (and force gc before
+	entering game)
 
-2002-02-13  Peter Wang  <tjaden@users.sourceforge.net>
+2002-07-09 20:00  tjaden
+
+	* svgame.c, netmsg.h: Allow strings as creation fields
+
+2002-07-09 19:58  tjaden
+
+	* Makefile: Used -ffast-math
+
+2002-07-03 21:59  tjaden
+
+	* bjhash.inc: Whitespace issues
+
+2002-07-03 21:59  tjaden
+
+	* store.c: Formatting only
+
+2002-07-03 21:08  tjaden
+
+	* gamemenu.c, main.c: Some work on the menu frontend from a *long*
+	time ago, which I didn't commit before because it wasn't the design
+	that was intended, but I only remembered after writing it...
+
+2002-07-03 17:51  tjaden
+
+	* Makefile: Updated for new Store
+
+2002-07-03 17:48  tjaden
+
+	* mdtiles.c, mdstarts.c, mdobject.c, mdlights.c, editor.c,
+	objtypes.c, object.c, messages.c, mapfile.c, loaddata.h,
+	loaddata.c, explo.c, client.c, bindgen.lua: Updated for new Store
+
+2002-07-03 17:46  tjaden
+
+	* jpeg.c: Unused variables.
+
+2002-07-03 17:45  tjaden
+
+	* store.h: (oops)
+
+2002-07-03 17:43  tjaden
+
+	* store.c, store.h, README.txt, example.c: Changed API, new
+	implementation
+
+2002-07-03 17:43  tjaden
+
+	* bjhash.inc: Initial revision
+
+2002-05-04 10:22  tjaden
+
+	* README, jpeg.c, jpgalleg.h: Upgraded to JPGalleg 1.2
+
+2002-04-14 16:43  tjaden
+
+	* mdtiles.c, mdlights.c, store.c: Test against DAT_INFO instead of
+	GrabberInfo.
+
+2002-02-23 14:39  tjaden
+
+	* server.c: Call gettimeofday_init/shutdown from server.c instead
+	of main.c.
+
+2002-02-23 14:37  tjaden
+
+	* Makefile: Some changes.
+
+2002-02-17 01:15  tjaden
+
+	* Makefile, config.linux, config.mingw, gameinit.c, mylua.c,
+	mylua.h, object.c, objgen.lua: Updated to Lua 4.1-work4.
+
+2002-02-17 00:50  tjaden
+
+	* Makefile: Better dependency generation rules.
+
+2002-02-13 02:12  tjaden
 
 	* list.h: Added an interesting tidbit in the comments.
 
-2002-02-11  Peter Wang  <tjaden@users.sourceforge.net>
+2002-02-11 15:56  tjaden
 
-	* svgame.c:
-	Some Lua bindings can't be run while we are in the editor or it will
-	crash.  This used to be enforced by replacing such functions with
-	stubs, but we can't do that now, so we do the enforcing in here.
+	* Makefile: Initial revision
 
-	* editor.h, editor.c: Made editor more friendly to being run more
+2002-02-11 15:31  tjaden
+
+	* svgame.c: Some Lua bindings can't be run while we are in the
+	editor or it will crash.  This used to be enforced by replacing
+	such functions with stubs, but we can't do that now, so we do the
+	enforcing in here.
+
+2002-02-11 15:29  tjaden
+
+	* Makefile, main.c: Initial menu system.
+
+2002-02-11 15:28  tjaden
+
+	* editor.c, editor.h: Made editor more friendly to being run more
 	than once in a process.
 
-	* main.c, gamemenu.h, gamemenu.c: Initial menu system.
+2002-02-11 15:27  tjaden
 
-	* basic-tilelike.lua: Centre of barrel chunks is closer to 2,2
-	than 0,0.
+	* basic-tilelike.lua: Centre of barrel chunks is closer to 2,2 than
+	0,0.
+
+2002-02-11 15:27  tjaden
 
 	* client.c: Crosshair is a store bitmap, don't destroy_bitmap it.
 
+2002-02-11 15:26  tjaden
+
+	* particle.c, blast.c: No need to set the vtable in this file
+	anymore.
+
+2002-02-11 15:25  tjaden
+
 	* magic4x4.c: Set a few vtable entries for magic bitmaps.
-	* blast.c, particle.c: No need to set the vtable here anymore.
+
+2002-02-11 14:55  tjaden
 
 	* gameinit.c: Bump up the size of store hash table.
 
-	* sync.c:
-	Made sync code more PC (pthreadly correct).  `pthread_cond_wait' is
-	actually allowed to wake up for reasons other than being signalled.
+2002-02-11 14:55  tjaden
 
-2002-02-07  Peter Wang  <tjaden@users.sourceforge.net>
+	* gamemenu.c, gamemenu.h: Initial revision
 
-	* mdstarts.c, mdlights.c:
-	Don't destroy bitmaps inside store.
+2002-02-11 14:51  tjaden
 
-	* CHANGES:
-	Fixed a major memory leak.  Also, fixed the semantics of store_unload
-	(entries in the `store' array which pointed to items in the datafile
-	being unloaded get cleared to NULL; all other items keep their
-	indices).
+	* sync.c: Made sync code more PC (pthreadly correct). 
+	`pthread_cond_wait' is actually allowed to wake up for reasons
+	other than being signalled.
 
-	* README: Updated for new store_unload() semantics.
+2002-02-07 18:25  tjaden
 
-	* store.c:
-	Fixed a major memory leak.  Also, fixed the semantics of store_unload
-	(entries in the `store' array which pointed to items in the datafile
-	being unloaded get cleared to NULL; all other items keep their
-	indices).
+	* mdlights.c, mdstarts.c: Don't destroy bitmaps inside store.
 
-2002-02-06  Peter Wang  <tjaden@users.sourceforge.net>
+2002-02-07 18:24  tjaden
 
-	* basic-tilelike.lua:
-	Added barrel chunks (but they still need inertia).
+	* README.txt: Updated for new store_unload() semantics.
 
-	* explo.c: (oops, some old code)
+2002-02-07 18:21  tjaden
 
-2002-02-06  Peter Wang  <tjaden@users.sourceforge.net>
+	* store.c, CHANGES: Fixed a major memory leak.	Also, fixed the
+	semantics of store_unload (entries in the `store' array which
+	pointed to items in the datafile being unloaded get cleared to
+	NULL; all other items keep their indices).
+
+2002-02-06 23:08  tjaden
 
 	* basic-tilelike.lua: Added barrel chunks (but they still need
 	inertia).
 
-2002-02-05  Peter Wang  <tjaden@users.sourceforge.net>
+2002-02-06 21:07  tjaden
 
-	* main.c, timeval.h, timeval.c:
-	Use higher-precision timer under Windows (it was really bad before).
+	* explo.c: (oops, some old code)
 
-	* sound.h, sound.c, client.c, explo.c: Added sound panning/volume
-	based on position of the source relative to the player (although
-	it doesn't update when the player moves yet).
+2002-02-05 23:18  tjaden
 
-2002-02-02  Peter Wang  <tjaden@users.sourceforge.net>
+	* timeval.c, timeval.h, main.c, config.mingw: Use higher-precision
+	timer under Windows (it was really bad before).
+
+2002-02-05 15:09  tjaden
+
+	* basic-player.lua: Minor quirk.
+
+2002-02-05 15:08  tjaden
+
+	* explo.c, client.c, Makefile: Added sound panning/volume based on
+	position of the source relative to the player (although it doesn't
+	update when the player moves yet).
+
+2002-02-05 15:07  tjaden
+
+	* sound.c, sound.h: Initial revision
+
+2002-02-02 02:04  tjaden
+
+	* Makefile: Minor: put prefix before date in backup archive file
+	names.
+
+2002-02-02 01:57  tjaden
 
 	* client.c: Added how to abort connection in temp message.
 
-	* sync.c: Changed the Windows port to use critical sections
-	instead of semaphores for synchronisation between client and
-	server.  Also made the client not yield() in non-multithreaded, as
-	it's really not necessary and worsens performance under Windows
-	(see also recent change to yield.c).
+2002-02-02 01:56  tjaden
 
-	* yield.c, svclient.h, server.c, svstats.c, svticker.c, svgame.c,
-	* timeval.h, timeval.c, timeout.h, timeout.c, particle.c, packet.c,
-	* objtypes.c, config.mingw, Makefile, server.c:
-	Updated mingw port.
+	* server.c: Updated mingw port.
 
-2002-01-31  Peter Wang  <tjaden@users.sourceforge.net>
+2002-02-02 01:56  tjaden
 
-	* svgame.c: Fixed some missing unlockings that somehow only
-	showed up in client-server mode.
+	* sync.c: Changed the Windows port to use critical sections instead
+	of semaphores for synchronisation between client and server.  Also
+	made the client not yield() in non-multithreaded, as it's really
+	not necessary and worsens performance under Windows (see also
+	recent change to yield.c).
 
-	* messages.h, messages.c, main.c, client.h, client.c,
-	* server.h, server.c, clsvface.h, clsvface.c:
-	Added client-server mode.
+2002-02-02 01:51  tjaden
 
-2002-01-30  Peter Wang  <tjaden@users.sourceforge.net>
+	* Makefile, config.mingw, objtypes.c, packet.c, particle.c,
+	timeout.c, timeout.h, timeval.c, timeval.h, svgame.c, svticker.c,
+	svstats.c, svclient.h, yield.c: Updated mingw port.
 
-	* basic-weapon.lua, basic-tilelike.lua, basic-explosion.lua:
+2002-01-31 23:22  tjaden
+
+	* clsvface.c, clsvface.h: Initial revision
+
+2002-01-31 23:20  tjaden
+
+	* client.c: Changes for client-server mode (mostly hacks which will
+	need fixing later :-P)
+
+2002-01-31 23:20  tjaden
+
+	* server.c, server.h, client.h, main.c, messages.c, messages.h,
+	Makefile: Changes for client-server mode.
+
+2002-01-31 23:19  tjaden
+
+	* svgame.c: Fixed some missing unlockings that somehow only showed
+	up in client-server mode.
+
+2002-01-30 02:04  tjaden
+
+	* basic-explosion.lua, basic-tilelike.lua, basic-weapon.lua:
 	Renamed the "basic-simple42" explosion to "basic-explo42".
+
+2002-01-30 01:58  tjaden
 
 	* explo.c: Made explosions play more loudly.
 
-	* client.h, client.c, bindgen.lua, basic-weapon.lua,
-	* basic-player.lua:
-	Added initial (very incomplete) sound support for weapons.
+2002-01-30 01:57  tjaden
 
-	* gameinit.c, loadaud/*: Added loadaud support.
+	* basic-player.lua, basic-weapon.lua, bindgen.lua, client.c,
+	client.h: Added initial (very incomplete) sound support for
+	weapons.
 
-2002-01-29  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-30 01:52  tjaden
 
-	* explo.h, explo.c, bindgen.lua: Added sound to explosions.
-	* basic-explosion.lua: Added sound to explosions.
+	* gameinit.c, Makefile: Added loadaud support.
+
+2002-01-30 01:50  tjaden
+
+	* LICENCE.txt, README, loadaud.c, loadaud.h, MODIFIED.txt: Initial
+	revision
+
+2002-01-29 11:07  tjaden
+
+	* main.c: install_sound
+
+2002-01-29 11:07  tjaden
 
 	* basic-weapon.lua: Added bow.
+
+2002-01-29 11:06  tjaden
+
+	* basic-explosion.lua, bindgen.lua, explo.c, explo.h: Added sound
+	to explosions.
+
+2002-01-29 01:06  tjaden
+
+	* basic-weapon.lua, bindgen.lua, object.c, object.h: Made it so
+	that projectiles cannot hit other projectiles.
+
+2002-01-29 01:05  tjaden
+
+	* basic-player.lua: Fixed an oversight.
+
+2002-01-29 00:41  tjaden
 
 	* blast.c: Made it so that objects can only be hit by a single
 	blast once, even if it moves while the blast is expanding.
 
+2002-01-29 00:41  tjaden
+
+	* blast.c: Changed the blast collision detection so that a distance
+	of zero will register as a hit.
+
+2002-01-29 00:33  tjaden
+
+	* basic-player.lua: Changes for health and ammo displays.
+
+2002-01-29 00:19  tjaden
+
 	* client.c: Fixed bugs in send_gameinfo_weapon_switch().
 
-2002-01-28  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-29 00:01  tjaden
 
-	* object.h, object.c, bindgen.lua, basic-weapon.lua:
-	Made it so that projectiles cannot hit other projectiles.
+	* basic-player.lua, basic-weapon.lua: Changes for health and ammo
+	displays.
 
-	* blast.c: Changed the blast collision detection so that a
-	distance of zero will register as a hit.
+2002-01-29 00:00  tjaden
 
-	* bindgen.lua, client.c, netmsg.h, svgame.h, svgame.c,
-	* basic-player.lua, basic-weapon.lua:
-	Added client health and ammo displays.
+	* svgame.c, svgame.h, netmsg.h, client.c, bindgen.lua: Added client
+	health and ammo displays.
 
-2002-01-27  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-28 01:07  tjaden
 
 	* basic-player.lua: Don't auto-switch to a new weapon if our
 	current weapon is not an auto-switchable one.
 
-	* basic-tilelike.lua, basic-weapon.lua, svgame.h, svgame.c,
-	* render.c, netmsg.h, map.h, map.c, client.c, bindgen.lua,
-	* blast.h, blast.c:
+2002-01-28 01:05  tjaden
+
+	* Makefile, bindgen.lua, client.c, map.c, map.h, netmsg.h,
+	render.c, svgame.c, svgame.h, basic-weapon.lua, basic-tilelike.lua:
 	Added blasts.
+
+2002-01-28 01:05  tjaden
+
+	* blast.c, blast.h: Initial revision
+
+2002-01-27 00:03  tjaden
 
 	* basic-player.lua: When picking up a new weapon, don't switch to
 	it unless it is better than the current weapon, or the current
 	weapon is out of ammo.
 
-2002-01-26  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-26 23:45  tjaden
 
 	* messages.c: Reject characters < space in input, and removed ^U
 	handling (which didn't work).
 
-	* svgame.c, server.c, packet.c, netmsg.h, client.c:
-	Use shorts instead of longs to specify lengths of strings in
-	packets.
+2002-01-26 23:14  tjaden
+
+	* client.c, netmsg.h, packet.c, server.c, svgame.c: Use shorts
+	instead of longs to specify lengths of strings in packets.
+
+2002-01-26 23:13  tjaden
 
 	* basic-tilelike.lua: Made crates spawn explosion and sparks when
 	destroyed.  Also made barrels shootable.
 
-	* basic-init.lua, svgame.h, svgame.c, render.c, netmsg.h, map.h,
-	* map.c, gameinit.c, client.c, bindings.c, bindgen.lua,
-	* explo.h, explo.c, basic-explosion.lua:
+2002-01-26 22:54  tjaden
+
+	* Makefile, bindgen.lua, bindings.c, client.c, gameinit.c, map.c,
+	map.h, netmsg.h, render.c, svgame.c, svgame.h, basic-init.lua:
 	Added support for explosion graphics.
 
-2002-01-25  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-26 22:54  tjaden
 
-	* messages.c:
-	Added scrolling message text and slightly better input
-	(e.g. backspacing).
+	* explo.c, explo.h, basic-explosion.lua: Initial revision
 
-	* client.h, client.c, netmsg.h, messages.c, messages.h:
-	Added client sending text messages.
+2002-01-25 02:34  tjaden
 
-2002-01-24  Peter Wang  <tjaden@users.sourceforge.net>
+	* svclient.c, svintern.h, svgame.c: (go back to using Allegro's
+	unicode string routines)
 
-	* bindings.c, bindgen.lua, main.c:
-	Changes following cleanup of server and client sources.
+2002-01-25 02:33  tjaden
 
-	* client.c, client.h:
-	Cleaned up the client source (and renamed the file).
-	* mylibnet.c, mylibnet.h: Moved some functions here.
+	* messages.c: Added client sending text messages, scrolling message
+	text and slightly better input (e.g. backspacing).
 
-	* server.c, server.h, svticker.h, svticker.c, svstats.h,
-	* svstats.c, svlobby.h, svlobby.c, svintern.h, svgame.h,
-	* svgame.c, svclient.h, svclient.c:
-	Overhauled the server code and split into multiple files.
-	These files used to be gamesrv.c.
+2002-01-25 02:32  tjaden
 
-	* Changed all "()" declarations to "(void)".
+	* client.c, client.h, messages.h, netmsg.h, server.c: Added client
+	sending text messages.
 
-	* server.c:
-	Changed the test for a very small yv (again) from 0 <= yv < 0.0001
-	to 0 <= yv < 0.005.
+2002-01-24 18:32  tjaden
+
+	* mylibnet.c, mylibnet.h: Initial revision
+
+2002-01-24 18:24  tjaden
+
+	* packet.h: #include <stdarg.h>
+
+2002-01-24 18:23  tjaden
+
+	* bindings.h, blod.c, fps.c, bitmaskr.c, bitmaskr.h, extdata.c,
+	extdata.h, fps.h, gameinit.c, gameinit.h, loaddata.c, loaddata.h,
+	messages.c, messages.h, mylua.c, mylua.h, object.c, object.h,
+	objtypes.c, objtypes.h, path.c, path.h, sync.c, sync.h, yield.c,
+	yield.h, blod.h: Changed all "()" declarations to "(void)".
+
+2002-01-24 18:19  tjaden
+
+	* bindgen.lua, main.c, Makefile, bindings.c: Changes following
+	cleanup of server and client sources.
+
+2002-01-24 18:18  tjaden
+
+	* client.c, client.h: Cleaned up the client source (and renamed the
+	file).
+
+2002-01-24 18:15  tjaden
+
+	* cursor.c, cursor.h, editarea.c, editarea.h, editor.c, editor.h,
+	edselect.c, edselect.h, mdlights.c, mdobject.c, mdstarts.c,
+	mdtiles.c, menu.c, menu.h, modebar.h, modemgr.c, modemgr.h,
+	modes.h, selbar.c, selbar.h: Changed all "()" declarations to
+	"(void)".
+
+2002-01-24 18:12  tjaden
+
+	* server.h, server.c: Overhauled the server code and split into
+	multiple files.
+
+2002-01-24 18:12  tjaden
+
+	* textface.c, textface.h: Changes following server code overhaul.
+
+2002-01-24 18:12  tjaden
+
+	* svclient.c, svclient.h, svgame.c, svgame.h, svintern.h,
+	svlobby.c, svlobby.h, svstats.c, svstats.h, svticker.c, svticker.h:
+	Initial revision
+
+2002-01-24 18:09  tjaden
+
+	* gui.c, gui.h, guiaccel.c, guidirty.c, guiinter.h, guimouse.c,
+	guiwm.c, guiwmdef.c: Changed all "()" declarations to "(void)".
+
+2002-01-24 18:04  tjaden
+
+	* ug.h, ugdialog.c, uglayout.c, ugtheme.c, ugtheme.h, ugthmmot.c,
+	ugthmpaw.c, ug.c, store.c, magic4x4.c, magic4x4.h: Changed all "()"
+	declarations to "(void)".
+
+2002-01-24 02:57  tjaden
+
+	* server.c: Changed the test for a very small yv (again) from 0 <=
+	yv < 0.0001 to 0 <= yv < 0.005.
+
+2002-01-24 02:01  tjaden
 
 	* basic-tilelike.lua: Delay respawning of crates if they would
 	collide with another object.
 
-	* object.h, object.c, bindgen.lua, gamesrv.h, gamesrv.c:
-	Added _internal_would_collide_with_objects().
+2002-01-24 02:00  tjaden
 
-	* basic-player.lua: (minor syntax change)
+	* server.c, server.h, bindgen.lua, object.c, object.h: Added
+	_internal_would_collide_with_objects().
 
-	* basic-base.lua, gamesrv.c, bindgen.lua, gameclt.c, gamesrv.h,
-	* netmsg.h, particle.h, particle.c:
-	Added particles for respawning ball.
+2002-01-24 01:08  tjaden
 
-	* basic-weapon.lua, basic-player.lua:
-	Added auto weapon switching.
+	* particle.c, particle.h, netmsg.h, server.h, client.c,
+	bindgen.lua, server.c, basic-base.lua: Added particles for
+	respawning ball.
 
-2002-01-23  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-24 01:07  tjaden
+
+	* basic-player.lua, basic-weapon.lua: Added auto weapon switching.
+
+2002-01-23 22:17  tjaden
 
 	* basic-base.lua: Added contains() function.
 
-	* mapfile.c, gamesrv.c, gameclt.c: Link objects _before_ calling
+2002-01-23 21:02  tjaden
+
+	* basic-player.lua: Create a new respawn ball when a player is
+	spawned.
+
+2002-01-23 17:30  tjaden
+
+	* client.c, server.c, mapfile.c: Link objects _before_ calling
 	their init hooks.  This is so that objects created later in the
 	init hook will appear on top, as expected.
 
-	* object.c: Made it so that if tile_collide_hook() returns non-nil
-	then it is treated as if no collision happened.
-
-	* basic-weapon.lua:
-	Added spark particles when some projectiles hit tiles.
-
-	* basic-player.lua:
-	Create a new respawn ball when a player is spawned.
-
-	* basic-base.lua, basic-weapon.lua, basic-player.lua:
-	Made Objtype able to take an alias field and automatically call
-	add_alias() with it.
-
-	* gamesrv.c:
-	1. Fixed crashing when spawn_object() is called during map load
-	2. Link new objects at the top of the list
-	3. Clear object replication flags after a mass game state feed
+2002-01-23 17:25  tjaden
 
 	* object.c: Made it so that if tile_collide_hook() returns non-nil
 	then it is treated as if no collision happened.
 
-	* particle.c, bindgen.lua, gameclt.c, gamesrv.c, netmsg.h:
-	Added spark particles.
-	* particle.c, particle.h: (renamed from blood.c, blood.h)
+2002-01-23 17:10  tjaden
+
+	* basic-weapon.lua: Added spark particles when some projectiles hit
+	tiles.	Some other changes because Objtype handles alias fields
+	itself now.
+
+2002-01-23 17:07  tjaden
+
+	* basic-base.lua: Made Objtype able to take an alias field and
+	automatically call add_alias() with it.
+
+2002-01-23 17:05  tjaden
+
+	* server.c: 1. Fixed crashing when spawn_object() is called during
+	map load 2. Link new objects at the top of the list 3. Clear object
+	replication flags after a mass game state feed
+
+2002-01-23 14:52  tjaden
+
+	* netmsg.h, server.c, client.c, render.c, map.c, map.h,
+	bindgen.lua, Makefile, server.h: Added spark particles.
+
+2002-01-23 14:51  tjaden
+
+	* particle.c, particle.h: Added spark particles.  (blood.[ch]
+	renamed to particle.[ch])
+
+2002-01-23 14:29  tjaden
 
 	* basic-base.lua: Added lights to the respawning ball.
 
-	* basic-player.lua:
-	Made player walking animation code zero-based again to match datafile
-	item names.
+2002-01-23 02:47  tjaden
 
-	* basic-weapon.lua, basic-powerup.lua, basic-base.lua:
-	Added respawning ball to respawing items and made a wrapper around
+	* basic-player.lua: Made player walking animation code zero-based
+	again to match datafile item names.
+
+2002-01-23 02:45  tjaden
+
+	* basic-base.lua, basic-powerup.lua, basic-weapon.lua: Added
+	respawning ball to respawing items and made a wrapper around
 	Objtype for respawning items.
+
+2002-01-23 00:03  tjaden
 
 	* mylua.c: Seed lua random() function.
 
-	* gamesrv.c:
-	Changed the test for a very small yv from 0 <= yv < 0.0000001 to
-	0 <= yv < 0.0001.
+2002-01-23 00:03  tjaden
 
-	* basic-player.lua:
-	Added rest of death animations and cleaned up the code around that.
+	* server.c: Changed the test for a very small yv from 0 <= yv <
+	0.0000001 to 0 <= yv < 0.0001.
 
-2002-01-22  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-23 00:02  tjaden
 
-	* basic-powerup.lua, basic-player.lua:
-	Made lightamp powerup give player a big blue light.
+	* basic-player.lua: Added rest of death animations and cleaned up
+	the code around that.
+
+2002-01-22 22:59  tjaden
+
+	* basic-player.lua, basic-powerup.lua: Made lightamp powerup give
+	player a big blue light.
+
+2002-01-22 22:15  tjaden
+
+	* basic-weapon.lua: Updated for datafile.
+
+2002-01-22 22:15  tjaden
 
 	* basic-player.lua: Made local player's light turn red if gotten
 	shot, and made corpses use the red light.
 
-	* basic-player.lua:
-	Added start of backpacks.  Also minor clean up for walking anim.
+2002-01-22 21:03  tjaden
 
-	* editor-init.lua:
-	Some functions cannot be run while in the editor or it will crash, so
-	we make them into dummy functions.
+	* basic-player.lua: Some small fixes.
 
-	* init.lua, editor/editor.c:
-	Only run editor-init.lua when actually running the editor.
-	This allows us to put in editor-specific code in there.
+2002-01-22 15:06  tjaden
 
-	* gamesrv.c, gameclt.c, basic-weapon.lua, init.lua:
-	Added object type aliases.
+	* basic-player.lua: Added start of backpacks.  Also minor clean up
+	for walking anim.
 
-	* gamesrv.c: Added network traffic monitoring.
-	* textface.c, gamesrv.h: Added set_status() method to
+2002-01-22 15:05  tjaden
+
+	* basic-tilelike.lua: Updated for changes to datafiles.
+
+2002-01-22 15:04  tjaden
+
+	* objtypes.c: Abort with an error if icon argument to
+	objtype_register() does not point to a valid bitmap.
+
+2002-01-22 15:03  tjaden
+
+	* cursor.c, mdobject.c: Made cursor_set_magic_bitmap's hotx
+	argument not need to be multiplied by three.
+
+2002-01-22 15:00  tjaden
+
+	* init.lua, editor.c: Only run editor-init.lua when actually
+	running the editor.  This allows us to put in editor-specific code
+	in there.
+
+2002-01-22 12:48  tjaden
+
+	* server.h, textface.c: Added set_status() method to
 	game_server_interface.
 
-	* basic-player.lua, basic-powerup.lua:
-	Made health items give health.
+2002-01-22 12:48  tjaden
 
-	* basic-weapon.lua, basic-powerup.lua, basic-base.lua:
-	Allow a second argument to Objtype and Weapon, which should
-	contain a table of fields to add into or override in the first
-	argument.
+	* client.c, init.lua, basic-weapon.lua: Added object type aliases.
 
-	* basic-weapon.lua, basic-player.lua: Animated weapon firing.
+2002-01-22 12:48  tjaden
 
-	* netmsg.h, gamesrv.c, gameclt.c, basic-weapon.lua,
-	* basic-player.lua: Added weapon switching with keyboard.
+	* server.c: Added network traffic monitoring and object type
+	aliases.
 
-	* basic-weapon.lua, basic-player.lua: Added ammo limits.
+2002-01-22 04:36  tjaden
 
-2002-01-21  Peter Wang  <tjaden@users.sourceforge.net>
+	* basic-powerup.lua, basic-player.lua: Made health items give
+	health.
+
+2002-01-22 04:35  tjaden
+
+	* basic-base.lua: Allow a second argument to Objtype and Weapon,
+	which should contain a table of fields to add into or override in
+	the first argument.
+
+2002-01-22 04:07  tjaden
+
+	* basic-base.lua, basic-powerup.lua, basic-weapon.lua: Allow a
+	second argument to Objtype and Weapon, which should contain a table
+	of fields to add into or override in the first argument.
+
+2002-01-22 03:11  tjaden
+
+	* basic-player.lua, basic-weapon.lua: Animated weapon firing.
+
+2002-01-22 03:08  tjaden
+
+	* bindgen.lua: Made last argument to call_method_on_clients()
+	optional.
+
+2002-01-22 03:08  tjaden
+
+	* bindings.c: Forgot to include gameclt.h
+
+2002-01-22 02:26  tjaden
+
+	* basic-player.lua, basic-weapon.lua, client.c, server.c, netmsg.h:
+	Added weapon switching with keyboard.
+
+2002-01-22 01:19  tjaden
+
+	* basic-player.lua, basic-weapon.lua: Added ammo limits.
+
+2002-01-21 18:59  tjaden
 
 	* basic-player.lua: Made player bleed when on low health.
 
-	* gameclt.h, bindgen.lua, basic-weapon.lua, basic-player.lua,
-	* camera.h, camera.c, gameclt.c:
-	Made switching to the sniper rifle increase the max distance the
-	camera can see.
+2002-01-21 15:15  tjaden
 
-	* basic-weapon.lua: Changed the generalised declarators to take
-	table arguments, which are more verbose and easier to read.
+	* client.c, camera.c, camera.h, basic-player.lua, basic-weapon.lua,
+	bindgen.lua, client.h: Made switching to the sniper rifle increase
+	the max distance the camera can see.
 
-	* basic-player.lua, basic-weapon.lua:
-	Use the right image for the weapon we are holding (not animated yet).
+2002-01-21 11:27  tjaden
 
-	* gameclt.c, bindgen.lua, gamesrv.h, gamesrv.c, netmsg.h:
-	Added mechanism for server scripts to tell clients to execute object
+	* basic-weapon.lua: Use the right image for the weapon we are
+	holding (not animated yet).  Also, changed the generalised
+	declarators to take table arguments, which are more verbose and
+	easier to read.
+
+2002-01-21 11:26  tjaden
+
+	* basic-player.lua: Use the right image for the weapon we are
+	holding (not animated yet).
+
+2002-01-21 11:20  tjaden
+
+	* netmsg.h, server.c, server.h, bindgen.lua, client.c: Added
+	mechanism for server scripts to tell clients to execute object
 	methods (i.e. remote calls).
 
-	* object.h, object.c:
-	Allowed object_call() to take an nargs argument.  The arguments should
-	be already be pushed on the lua stack.
+2002-01-21 11:19  tjaden
+
+	* object.c, object.h: Allowed object_call() to take an nargs
+	argument.  The arguments should be already be pushed on the lua
+	stack.
+
+2002-01-21 11:18  tjaden
 
 	* basic-base.lua: Added merge function.
 
-	* gamesrv.c: Fixed a bug where sometimes you couldn't jump because
+2002-01-21 00:53  tjaden
+
+	* client.c: Added ability to "push" the camera, i.e. for the sniper
+	rifle so you can see further that your mouse would normally allow
+	on the screen.	This isn't actually enabled when you pick up a
+	sniper rifle, yet.
+
+2002-01-21 00:41  tjaden
+
+	* server.c: Fixed a bug where sometimes you couldn't jump because
 	the player's yv was very, very, very close to zero but not zero.
 
-2002-01-20  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-20 23:52  tjaden
 
-	* gameclt.c, camera.h, camera.c:
-	Added ability to "push" the camera, i.e. for the sniper rifle so you
-	can see further that your mouse would normally allow on the screen.
-	This isn't actually enabled when you pick up a sniper rifle, yet.
+	* camera.c, camera.h: Added ability to "push" the camera, i.e. for
+	the sniper rifle so you can see further that your mouse would
+	normally allow on the screen.  This isn't actually enabled when you
+	pick up a sniper rifle, yet.
 
-	* basic-weapon.lua:
-	Added initial code for AK-47 and miniguns, and shared a lot of code
-	between the weapon types.
+2002-01-20 17:59  tjaden
 
-	* basic-tilelike.lua:
-	Some initial code to make crates destructible.
+	* basic-weapon.lua: Added initial code for AK-47 and miniguns, and
+	shared a lot of code between the weapon types.
 
-	* basic-powerup.lua, basic-base.lua:
-	Added hide_and_respawn_later() method which is used a lot by objects.
+2002-01-20 17:58  tjaden
 
-2002-01-19  Peter Wang  <tjaden@users.sourceforge.net>
+	* basic-tilelike.lua: Some initial code to make crates
+	destructible.
+
+2002-01-20 17:58  tjaden
+
+	* basic-base.lua, basic-powerup.lua: Added hide_and_respawn_later()
+	method which is used a lot by objects.
+
+2002-01-19 23:37  tjaden
 
 	* objgen.lua: Exposed object's id value.  This was done for corpse
 	tracking after death, but I'm not too sure it should be done like
 	this generally.
 
-	* gamesrv.h, gamesrv.c, bindgen.lua: Made spawn_object,
+2002-01-19 23:36  tjaden
+
+	* server.c, server.h, bindgen.lua: Made spawn_object,
 	spawn_projectile return the objects they create.
 
-	* gameclt.c, basic-player.lua:
-	Added tracking corpses after death.
+2002-01-19 23:35  tjaden
 
-	* basic-weapon.lua:
-	The start of some new weapons: shotguns and sniper rifles.
+	* basic-player.lua, client.c: Added tracking corpses after death.
 
-	* bindgen.lua, gamesrv.h, gamesrv.c:
-	Added a delta_angle parameter to game_server_spawn_projectile().
+2002-01-19 19:22  tjaden
+
+	* basic-player.lua: Some changes for multiple weapons testing.
+
+2002-01-19 19:22  tjaden
+
+	* basic-weapon.lua: The start of some new weapons: shotguns and
+	sniper rifles.
+
+2002-01-19 19:21  tjaden
+
+	* server.c, server.h, bindgen.lua: Added a delta_angle parameter to
+	game_server_spawn_projectile().
+
+2002-01-19 19:20  tjaden
 
 	* object.c: Fixed collision detection so that _both_ objects'
 	conditions for collision detection have to be passed before
 	checking is done.
 
-	* editor/mdobject.c, bindgen.lua:
-	Allow objects without a category which don't show up in the editor.
+2002-01-19 12:37  tjaden
+
+	* basic-player.lua: Made test corpse not show up in map editor.
+
+2002-01-19 12:37  tjaden
+
 	* blod.c: Made blod types not show up in map editor.
-	* basic-player.lua: Made test corpse not show up in editor.
 
-	* objtypes.h, objtypes.c, basic-base.lua:
-	Return error code if registering an object type failed.
+2002-01-19 12:36  tjaden
 
-	* object.c:
-	Slow down player if ramped movement used (walking up stairs, etc.)
+	* mdobject.c, bindgen.lua: Allow objects without a category which
+	don't show up in the editor.
+
+2002-01-19 12:35  tjaden
+
+	* objtypes.c, objtypes.h, basic-base.lua: Return error code if
+	registering an object type failed.
+
+2002-01-19 12:35  tjaden
+
+	* object.c: Slow down player if ramped movement used (walking up
+	stairs, etc.)
+
+2002-01-19 04:02  tjaden
 
 	* blod.c: Added remaining blods and gave them variable masses and
 	timeouts.
 
-	* gamesrv.c: Link players at top of object list so that they
-	appear above objects that were present at map load time (ladders,
-	barrels, etc.)
+2002-01-19 03:39  tjaden
 
-	* gamesrv.c: Made jumping from standing on top of ladder position
-	to be as high as jump from normal tile.
+	* blod.c, blod.h: Initial revision
 
-	* basic-player.lua: Decreased player xv_decay, yv_decay to
-	slow down movement a little.
+2002-01-19 03:19  tjaden
 
-	* store/README, store/CHANGES, store/hash.c, store/store.c:
-	Reverted to the libc string functions and only support
-	ASCII/UTF-8 (faster).
+	* server.c: Link players at top of object list so that they appear
+	above objects that were present at map load time (ladders, barrels,
+	etc.)
 
-	* basic-player.lua, bindgen.lua, gameclt.c, gameinit.c,
-	* gamesrv.c, gamesrv.h, netmsg.h, blod.c, blod.h:
-	Added blods.
+2002-01-19 03:15  tjaden
 
-	* object.c, object.h: Added client-processed objects.
+	* server.c: Made jumping from standing on top of ladder position to
+	be as high as jump from normal tile.
 
-2002-01-18  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-19 03:14  tjaden
 
-	* blood.c: Fixed a bug where it would try to allocate zero new
+	* basic-player.lua: Decreased player xv_decay, yv_decay to slow
+	down movement a little.
+
+2002-01-19 02:42  tjaden
+
+	* store.c, hash.c, CHANGES, README.txt: Reverted to the libc string
+	functions and only support ASCII/UTF-8.
+
+2002-01-19 01:30  tjaden
+
+	* netmsg.h, server.h, server.c, gameinit.c, client.c, bindgen.lua,
+	Makefile, basic-player.lua: Added blods.
+
+2002-01-19 01:29  tjaden
+
+	* object.h, object.c: Added client-processed objects.
+
+2002-01-19 01:28  tjaden
+
+	* particle.c: Precautionary fix in case some wise guy passes zero
+	or a negative number for nparticles to blood_particles_spawn.
+
+2002-01-19 01:26  tjaden
+
+	* basic-base.lua: Got rid of last remnants of upvalues.
+
+2002-01-18 23:44  tjaden
+
+	* particle.c: Fixed a bug where it would try to allocate zero new
 	particles.
 
-	* editor/mdobject.c: Added snap to grid.
+2002-01-18 22:10  tjaden
 
-	* gamesrv.c:
-	Got rid of a bad optimisation which broke down the mechanism which
-	stopped players falling into ladders.
+	* mdobject.c: Added snap to grid.
 
-	* editor/mdobject.c:
-	Added different cursors for different object editting actions.
+2002-01-18 22:09  tjaden
 
-	* editor/cursor.c:
-	Created dot cursor bitmap at module initialisation instead of
-	creating it everytime it was set to improve efficiency.
+	* editarea.c, editarea.h: Expose grid x, y values.
 
-	* gui/guiwmdef.c, gui/gui.c:
-	Added display switching in callback to force redrawing the screen.
+2002-01-18 22:07  tjaden
 
-	* editor/cursor.c:
-	Created dot cursor bitmap at module initialisation instead of
-	creating it every time it was set to improve efficiency.
+	* server.c: Got rid of a bad optimisation which broke down the
+	mechanism which stopped players falling into ladders.
 
-	* editor/mdobject.c:
-	Added different cursors for different object editting actions.
+2002-01-18 19:47  tjaden
 
-	* object.c:
-	Use rawget, rawset instead of gettable, settable in places.
+	* menu.c: Small hack for gui_mouse after exiting file_select_ex().
 
-	* object.c, objgen.lua:
-	Removed player-only `jump' and `_ramp' variables from object
-	struc, and used the generic lua table instead.
+2002-01-18 19:38  tjaden
 
-	* gamesrv.c, bindgen.lua, object.c, basic-player.lua,
-	* basic-base.lua:
-	Prefixed internal functions/variables that are somehow accessible
-	from Lua with "_internal".
+	* cursor.c: Fixed a problem where the dynamically created mouse
+	cursor was destroyed while in use by Allegro.
 
-	* bindgen.lua, basic-tilelike.lua, gamesrv.c, object.h,
-	* object.c:
+2002-01-18 18:52  tjaden
+
+	* mdobject.c: Added different cursors for different object editting
+	actions.
+
+2002-01-18 18:47  tjaden
+
+	* cursor.c: Created dot cursor bitmap at module initialisation
+	instead of creating it everytime it was set to improve efficiency.
+
+2002-01-18 13:05  tjaden
+
+	* gui.c, guiwmdef.c: Added display switching in callback to force
+	redrawing the screen.
+
+2002-01-18 01:54  tjaden
+
+	* object.c: Use rawget, rawset instead of gettable, settable in
+	places.
+
+2002-01-18 01:29  tjaden
+
+	* objgen.lua: Removed player-only `jump' and `_ramp' variables from
+	object struc, and used the generic lua table instead.
+
+2002-01-18 01:29  tjaden
+
+	* object.c: Prefixed internal functions/variables that are somehow
+	accessible from Lua with "_internal".  Removed player-only `jump'
+	and `_ramp' variables from object struc, and used the generic lua
+	table instead.
+
+2002-01-18 01:27  tjaden
+
+	* basic-base.lua, basic-player.lua, bindgen.lua, server.c: Prefixed
+	internal functions/variables that are somehow accessible from Lua
+	with "_internal".
+
+2002-01-18 00:30  tjaden
+
+	* object.c, object.h, server.c, basic-tilelike.lua, bindgen.lua:
 	Added support for ladders.
 
-	* netmsg.h, gameclt.c: Added DOWN as a possible input.
+2002-01-18 00:29  tjaden
 
-2002-01-16  Peter Wang  <tjaden@users.sourceforge.net>
+	* client.c, netmsg.h: Added DOWN as a possible input.
 
-	* extdata.h:
-	Removed dependency on including allegro.h before including extdata.h.
+2002-01-16 17:58  tjaden
 
-	* editor/menu.c:
-	Wasn't loading objects because I changed the parameters of map_load.
+	* extdata.h: Removed dependency on including allegro.h before
+	including extdata.h.
 
-	* blood.c: Changed colour of blood particles to less red and
-	closer to colours in death fountain anim.  Also cleaned up the
-	file a bit.
+2002-01-16 10:59  tjaden
 
-	* basic-player.lua, blood.h, blood.c, gamesrv.h,
-	* bindgen.lua, netmsg.h, gameclt.c, gamesrv.c:
-	Made the spread parameter to spawn blood a float (instead of int).
+	* menu.c: Wasn't loading objects because I changed the parameters
+	of map_load.
+
+2002-01-16 01:07  tjaden
+
+	* particle.c: Changed colour of blood particles to less red and
+	closer to colours in death fountain anim.  Also cleaned up the file
+	a bit.
+
+2002-01-16 00:28  tjaden
+
+	* server.c, client.c, netmsg.h, bindgen.lua, server.h, particle.c,
+	particle.h, basic-player.lua: Made the spread parameter to spawn
+	blood a float (instead of int).
+
+2002-01-16 00:26  tjaden
 
 	* basic-player.lua: Added a light for the test corpse, which
 	disappears after its animation finishes.
 
-	* gamesrv.c: Added `a bit off' state, before the client becomes
-	`stale'.  This state is for when the client should be
-	disconnected, but we also need to tell other clients to destroy
-	the stale client's game object.  Also added handling for the case
-	where we are having problems sending to a client (then the client
-	gets disconnected).
+2002-01-16 00:24  tjaden
 
-2002-01-15  Peter Wang  <tjaden@users.sourceforge.net>
+	* Makefile: Changes I forgot previously for the Makefile.
 
-	* Updated to Lua 4.1-work3.
+2002-01-16 00:02  tjaden
 
-	* basic-weapon.lua: Removed the light from blaster
-	projectiles (it was just a test).
+	* server.c: Added `a bit off' state, before the client becomes
+	`stale'.  This state is for when the client should be disconnected,
+	but we also need to tell other clients to destroy the stale
+	client's game object.  Also added handling for the case where we
+	are having problems sending to a client (then the client gets
+	disconnected).
 
-	* blood.c: Changed blood particles to use linked lists instead of
-	an array.  This is/should/might be faster and will allocate more
+2002-01-15 21:16  tjaden
+
+	* init.lua, basic-base.lua, basic-player.lua, basic-powerup.lua,
+	basic-weapon.lua: Updated to Lua 4.1-work3.
+
+2002-01-15 21:16  tjaden
+
+	* Makefile, config.linux, config.mingw: Change main makefile a bit
+	(Lua source now included in our tree).
+
+2002-01-15 21:12  tjaden
+
+	* bindgen.lua, mylua.c, mylua.h, object.c, objgen.lua, Makefile,
+	remap.c, Makefile, rpxutil.c: Updated to Lua 4.1-work3.
+
+2002-01-15 17:07  tjaden
+
+	* basic-weapon.lua: Removed the light from blaster projectiles (it
+	was just a test).
+
+2002-01-15 17:07  tjaden
+
+	* basic-player.lua: Small changes for death fountain test corpse.
+
+2002-01-15 04:00  tjaden
+
+	* particle.c: Changed blood particles to use linked lists instead
+	of an array.  This is/should/might be faster and will allocate more
 	particles if needed.
+
+2002-01-15 03:11  tjaden
 
 	* basic-powerup.lua: Used object hidden attribute to implement
 	respawning powerups.
 
-	* basic-base.lua, bindgen.lua, gameclt.c, gamesrv.c,
-	* netmsg.h, object.h, object.c:
-	Added ``hidden'' attribute to objects.
+2002-01-15 03:05  tjaden
 
-	* basic-base.lua, bindgen.lua, object.h, object.c:
-	Added object_set_masks_centre() for the situation where you want
-	to change where the centre of all the bitmasks are at once.
+	* object.c, object.h, netmsg.h, server.c, client.c, bindgen.lua,
+	basic-base.lua: Added ``hidden'' attribute to objects.
 
-	* gameclt.c: Centred mouse sprite on mouse_x, mouse_y properly.
+2002-01-15 02:00  tjaden
 
-	* gameclt.c: Update camera at consistent rate on different
-	machines.
+	* object.c, object.h, bindgen.lua, basic-base.lua: Added
+	object_set_masks_centre() for the situation where you want to
+	change where the centre of all the bitmasks are at once.
+
+2002-01-15 01:28  tjaden
+
+	* client.c: Centred mouse sprite on mouse_x, mouse_y properly.
+
+2002-01-15 00:55  tjaden
 
 	* basic-player.lua: Flip and rotate remote clients' arms depending
 	on the aim angle.
 
-	* netmsg.h, gamesrv.c, gameclt.c: Send and receive remote player's
-	aim angles.
+2002-01-15 00:54  tjaden
+
+	* server.c, netmsg.h: Send clients' aim angles to other clients.
+
+2002-01-15 00:53  tjaden
+
+	* client.c: Receive remote player's aim angles.  Also, update
+	camera at consistent rate on different machines.
+
+2002-01-15 00:52  tjaden
 
 	* camera.c: Slowed down the camera acceleration.
 
-2002-01-14  Peter Wang  <tjaden@users.sourceforge.net>
+2002-01-14 20:33  tjaden
 
-	* magic/magichf.c: Fixed the horizontal clipping for
+	* magichf.c: Fixed the horizontal clipping for
 	draw_magic_sprite_h_flip().
+
+2002-01-14 19:41  tjaden
+
+	* bindgen.lua, object.c, object.h: Added
+	`object_moving_horizontally' function, which is a hack for the
+	player walking animation.
+
+2002-01-14 19:41  tjaden
 
 	* basic-player.lua: Put in playing walking animation.
 
-	* object.h, object.c, bindgen.lua:
-	Added `object_moving_horizontally' function, which is a hack for
-	the player walking animation.
+2002-01-14 19:39  tjaden
 
-	* gamesrv.c: Made it obvious which units the lag value is in
+	* server.c: Made it obvious which units the lag value is in
 	(msecs).
 
-	* gameclt.c: On slower machines `ticks' can change while we are
+2002-01-14 19:38  tjaden
+
+	* client.c: On slower machines `ticks' can change while we are
 	using it, so cache the value and use that fixed value instead.
 
-	* netmsg.h, gamesrv.c, gameclt.c: Added player respawning.
+2002-01-14 19:36  tjaden
+
+	* Makefile: Small changes to Makefile
+
+2002-01-14 14:51  tjaden
+
+	* basic-player.lua: Fixed a problem with the test corpse where the
+	corpse object would be replicated to new clients, but the new
+	client would think the corpse was starting at animation frame 0. 
+	The solution was to use the creation field feature.
+
+2002-01-14 14:42  tjaden
+
+	* client.c, server.c, netmsg.h: Added player respawning.
+
+2002-01-14 13:25  tjaden
 
 	* basic-weapon.lua: Rotate blaster projectile in the angle it is
-	fired.
+	fired
 
-	* basic-player.lua: The beginnings of corpses.
+2002-01-14 13:25  tjaden
 
-	* basic-base.lua, basic-player.lua: Update hook and creation
-	fields changes.
+	* basic-player.lua: Update hook changes.  Also the beginnings of
+	corpses
 
-	* gameclt.c: Limited the update rate.
+2002-01-14 13:24  tjaden
 
-	* gamesrv.c, gameclt.c: Poll objects' update hooks.  The old
-	client object's _client_update_hook is obsolete and removed.
+	* basic-base.lua: Update hook and creation fields changes
 
-	* mylua.c: Open the strlib for use from Lua.
+2002-01-14 13:22  tjaden
 
-	* object.c, object.h, bindgen.lua: Added an ``update hook''
-	feature to objects.
+	* client.c: Poll objects' update hooks.  Also limited the update
+	rate
 
-	* object.c, object.h, bindgen.lua, gameclt.c, gamesrv.c:
-	Initial creation field stuff.
+2002-01-14 13:21  tjaden
 
-	* gamesrv.c: Yom command.  Spawn projectile sets obj.angle field
-	and marks it as creation field.
+	* server.c: Poll objects' update hooks.  The old client object's
+	_client_update_hook is obsolete and removed.
 
-	* gamesrv.c, gameclt.c, netmsg.h:
-	Libnet has a maximum packet size of 512 bytes, for channels.
-	Conns take up some of those bytes (too lazy to check how many), so
-	we impose our own limit (NETWORK_MAX_PACKET_SIZE).
+2002-01-14 13:20  tjaden
 
-2002-01-13  Peter Wang  <tjaden@users.sourceforge.net>
+	* mylua.c: Open the strlib for use from Lua
 
-	* gamesrv.c, gameclt.c, bindgen.lua, gamesrv.h:
-	New lua binding to spawn an arbitrary object.  Also handle the
-	fact that clients may lose their objects (i.e. players get killed,
-	so the objects become stale).
+2002-01-14 13:20  tjaden
+
+	* object.c: Added an ``update hook'' feature to objects.  Some
+	reformatting too
+
+2002-01-14 13:18  tjaden
+
+	* bindgen.lua, object.h: Added an ``update hook'' feature to
+	objects
+
+2002-01-14 02:01  tjaden
+
+	* bindgen.lua: Bound object_add_creation_field
+
+2002-01-14 02:01  tjaden
+
+	* server.c: NET_MAX_PACKET_SIZE -> NETWORK_MAX_PACKET_SIZE.  Yom
+	command.  Spawn projectile sets obj.angle field and marks it as
+	creation field.  Unified code that generates object creation
+	packets.
+
+2002-01-14 02:01  tjaden
+
+	* netmsg.h: Libnet has a maximum packet size of 512 bytes, for
+	channels.  Conns take up some of those bytes (too lazy to check how
+	many), so we impose our own limit (NETWORK_MAX_PACKET_SIZE).
+
+2002-01-14 02:01  tjaden
+
+	* object.c, object.h: Initial creation field stuff
+
+2002-01-14 02:01  tjaden
+
+	* client.c: Initial creation field stuff.  NET_MAX_PACKET_SIZE ->
+	NETWORK_MAX_PACKET_SIZE.
+
+2002-01-13 20:30  tjaden
+
+	* client.c: Handle the fact that clients may lose their objects
+
+2002-01-13 20:28  tjaden
+
+	* server.c: New lua binding to spawn an arbitrary object Also
+	handle the fact that clients may lose their objects (i.e. players
+	get killed, so the objects become stale)
+
+2002-01-13 20:28  tjaden
+
+	* server.h, bindgen.lua: New lua binding to spawn an arbitrary
+	object
+
+2002-01-13 20:25  tjaden
 
 	* object.c: In some situations this line: while (interval--) {
-	could (and did) loop forever.
+	could (and do) loop forever.
 
-	* Started using RCS.  Note to self: to update this file
-	semi-automatically in Emacs, run C-x v a.  Strip the src, data,
-	tools prefixes as they are plain noise.
+2002-01-13 07:14  tjaden
+
+	* Makefile, config.linux, config.mingw, Makefile, cursor.c,
+	cursor.h, depths.h, editarea.c, editarea.h, editor.c, editor.h,
+	edselect.c, edselect.h, mdlights.c, mdobject.c, mdstarts.c,
+	mdtiles.c, menu.c, menu.h, modebar.h, modemgr.c, modemgr.h,
+	modes.h, rect.h, selbar.c, selbar.h, bmark.c, fastsqrt.c,
+	fastsqrt.h, fastsqrt.txt, gui.c, gui.h, guiaccel.c, guidirty.c,
+	guiinter.h, guimouse.c, guiwm.c, guiwmdef.c, README, jpeg.c,
+	jpgalleg.h, magic4x4.c, magic4x4.h, magichf.c, magicrot.c,
+	magicrot.inc, README.txt, example.c, store.c, store.h, CHANGES,
+	VERSIONS, hash.c, hash.h, ug.c, ug.h, ugblank.c, ugbutton.c,
+	ugdialog.c, ugevent.c, uginter.h, uglayout.c, ugmenu.c, ugscroll.c,
+	ugtheme.c, ugtheme.h, ugthmmot.c, ugthmpaw.c, ugwidget.c, server.h,
+	textface.c, server.c, textface.h, bindings.c, bindings.h,
+	particle.c, Makefile, alloc.c, alloc.h, fps.c, bindgen.lua,
+	bitmask.c, bitmask.h, bitmaskg.c, bitmaskg.h, bitmaskr.c,
+	bitmaskr.h, particle.h, client.c, camera.c, camera.h, error.c,
+	error.h, extdata.c, extdata.h, fps.h, client.h, gameinit.c,
+	gameinit.h, getoptc.c, getoptc.h, list.h, loaddata.c, loaddata.h,
+	main.c, map.c, map.h, mapfile.c, mapfile.h, messages.c, messages.h,
+	mylua.c, mylua.h, netmsg.h, object.c, object.h, objgen.lua,
+	objtypes.c, objtypes.h, packet.c, packet.h, path.c, path.h,
+	render.c, render.h, sync.c, sync.h, timeout.c, timeout.h,
+	timeval.c, timeval.h, yield.c, yield.h: Initial revision
+
+2002-01-13 07:10  tjaden
+
+	* init.lua, basic-base.lua, basic-init.lua, basic-player.lua,
+	basic-powerup.lua, basic-tilelike.lua, basic-weapon.lua,
+	basic-README: Initial revision
+
+2002-01-13 07:06  tjaden
+
+	* predata-map.lua, remap.c, remap.lua, Makefile, rpxutil.c: Initial
+	revision
+
+2002-01-13 07:03  tjaden
+
+	* mtfm.lua, tilelayers.scm, Makefile: Initial revision
+

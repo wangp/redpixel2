@@ -1,9 +1,4 @@
 $(OBJDIR)/alloc.o: src/alloc.c src/alloc.h src/error.h
-$(OBJDIR)/bindings.o: src/bindings.c src/bindings.h src/mylua.h \
- lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
- src/client.h src/explo.h src/extdata.h src/loaddata.h \
- src/store/store.h src/server/svgame.h src/object.h src/objtypes.h \
- src/bindings.inc
 $(OBJDIR)/bitmask.o: src/bitmask.c src/bitmask.h
 $(OBJDIR)/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
@@ -25,23 +20,23 @@ $(OBJDIR)/client.o: src/client.c libnet/include/libnet.h src/alloc.h src/blod.h 
  src/mathcnst.h src/messages.h src/mylibnet.h src/netmsg.h \
  src/object.h src/mylua.h lua-4.1-work4/include/lua.h \
  lua-4.1-work4/include/lauxlib.h src/packet.h src/particle.h \
- src/render.h src/server/server.h src/sound.h src/store/store.h \
- src/sync.h src/textout.h src/timeout.h src/timeval.h
+ src/render.h src/screen.h src/server/server.h src/sound.h \
+ src/store/store.h src/sync.h src/textout.h src/timeout.h \
+ src/timeval.h
 $(OBJDIR)/error.o: src/error.c src/error.h
 $(OBJDIR)/explo.o: src/explo.c src/alloc.h src/explo.h src/list.h \
  src/magic/magic4x4.h src/sound.h src/store/store.h
 $(OBJDIR)/extdata.o: src/extdata.c src/bitmask.h src/bitmaskg.h src/extdata.h \
  src/magic/magic4x4.h
 $(OBJDIR)/fps.o: src/fps.c src/fps.h
-$(OBJDIR)/gameinit.o: src/gameinit.c libnet/include/libnet.h src/bindings.h \
- src/bitmaskr.h src/blod.h src/explo.h src/extdata.h \
- src/fastsqrt/fastsqrt.h src/gameinit.h src/jpgalleg/jpgalleg.h \
- src/loadaud/loadaud.h src/loaddata.h src/store/store.h \
- src/magic/magic4x4.h src/mylua.h lua-4.1-work4/include/lua.h \
- lua-4.1-work4/include/lauxlib.h src/object.h src/objtypes.h \
- src/path.h
+$(OBJDIR)/gameinit.o: src/gameinit.c libnet/include/libnet.h src/bitmaskr.h \
+ src/blod.h src/explo.h src/extdata.h src/fastsqrt/fastsqrt.h \
+ src/gameinit.h src/jpgalleg/jpgalleg.h src/loadaud/loadaud.h \
+ src/loaddata.h src/store/store.h src/magic/magic4x4.h src/mylua.h \
+ lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
+ src/object.h src/objtypes.h src/path.h
 $(OBJDIR)/gamemenu.o: src/gamemenu.c src/editor/editor.h src/extdata.h \
- src/magic/magic4x4.h src/editor/menu.h src/store/store.h \
+ src/magic/magic4x4.h src/editor/menu.h src/screen.h src/store/store.h \
  src/textout.h src/messages.h src/sync.h src/client.h \
  libnet/include/libnet.h src/server/clsvface.h src/server/server.h
 $(OBJDIR)/getoptc.o: src/getoptc.c
@@ -49,8 +44,8 @@ $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
  src/loaddata.h src/store/store.h src/path.h
 $(OBJDIR)/main.o: src/main.c libnet/include/libnet.h src/client.h \
  src/server/clsvface.h src/editor/editor.h src/gameinit.h \
- src/gamemenu.h src/getoptc.h src/messages.h src/server/server.h \
- src/sync.h src/server/textface.h src/timeval.h
+ src/gamemenu.h src/getoptc.h src/messages.h src/screen.h \
+ src/server/server.h src/sync.h src/server/textface.h src/timeval.h
 $(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blast.h src/explo.h \
  src/list.h src/map.h src/object.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
@@ -64,7 +59,9 @@ $(OBJDIR)/mylibnet.o: src/mylibnet.c libnet/include/libnet.h src/netmsg.h \
  src/packet.h
 $(OBJDIR)/mylua.o: src/mylua.c lua-4.1-work4/include/lua.h \
  lua-4.1-work4/include/lualib.h src/mylua.h \
- lua-4.1-work4/include/lauxlib.h src/path.h
+ lua-4.1-work4/include/lauxlib.h src/path.h src/client.h src/explo.h \
+ src/extdata.h src/loaddata.h src/store/store.h src/server/svgame.h \
+ src/object.h src/objtypes.h src/bindings.inc
 $(OBJDIR)/object.o: src/object.c src/alloc.h src/bitmask.h src/bitmaskg.h \
  src/bitmaskr.h src/list.h src/magic/magic4x4.h src/map.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
@@ -81,6 +78,8 @@ $(OBJDIR)/render.o: src/render.c src/camera.h src/explo.h src/list.h \
  src/magic/magic4x4.h src/map.h src/object.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/particle.h src/store/store.h src/render.h
+$(OBJDIR)/screen.o: src/screen.c src/2xsai/2xsai.h src/error.h \
+ src/magic/magic4x4.h src/screen.h
 $(OBJDIR)/sound.o: src/sound.c src/fastsqrt/fastsqrt.h src/sound.h
 $(OBJDIR)/sync.o: src/sync.c src/sync.h src/yield.h
 $(OBJDIR)/textout.o: src/textout.c src/magic/magic4x4.h src/textout.h
@@ -96,6 +95,7 @@ $(OBJDIR)/bmark.o: src/fastsqrt/bmark.c src/fastsqrt/fastsqrt.h
 $(OBJDIR)/fastsqrt.o: src/fastsqrt/fastsqrt.c src/fastsqrt/fastsqrt.h
 $(OBJDIR)/jpeg.o: src/jpgalleg/jpeg.c
 $(OBJDIR)/loadaud.o: src/loadaud/loadaud.c src/loadaud/loadaud.h
+$(OBJDIR)/2xsai.o: src/2xsai/2xsai.c src/2xsai/2xsai.h
 $(OBJDIR)/gui.o: src/gui/gui.c src/gui/gui.h src/gui/guiinter.h src/yield.h
 $(OBJDIR)/guiaccel.o: src/gui/guiaccel.c src/gui/gui.h src/gui/guiinter.h
 $(OBJDIR)/guidirty.o: src/gui/guidirty.c src/gui/gui.h src/gui/guiinter.h

@@ -1,9 +1,15 @@
-head	1.38;
+head	1.39;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.39; strict;
 comment	@# @;
 
+
+1.39
+date	2002.07.11.07.02.44;	author tjaden;	state Exp;
+branches;
+next	1.38;
 
 1.38
 date	2002.07.10.10.34.24;	author tjaden;	state Exp;
@@ -200,13 +206,10 @@ desc
 @@
 
 
-1.38
+1.39
 log
-@Lots of intermingled changes for:
-- initial game types support
-- notifying clients about new and quitting clients
-- scoring
-- allowing the server to play a sound on clients in a simple way
+@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
+it is called in C (I confused myself).
 @
 text
 @-- basic-player.lua
@@ -402,7 +405,7 @@ local player_nonproxy_init = function (self)
 	    end
 
 	    -- destroy the object
-	    self:destroy ()
+	    self:set_stale ()
 
 	else
 
@@ -750,10 +753,28 @@ Objtype {
 	self:set_collision_flags ("pt")
 	function self:collide_hook (player)
 	    -- give goodies
-	    self:destroy ()
+	    self:set_stale ()
 	end
     end
 }
+@
+
+
+1.38
+log
+@Lots of intermingled changes for:
+- initial game types support
+- notifying clients about new and quitting clients
+- scoring
+- allowing the server to play a sound on clients in a simple way
+@
+text
+@d194 1
+a194 1
+	    self:destroy ()
+d542 1
+a542 1
+	    self:destroy ()
 @
 
 

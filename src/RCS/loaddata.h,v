@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.07.11.05.51.24;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.07.03.07.49.58;	author tjaden;	state Exp;
@@ -25,9 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Updated for new Store
+@Marked in comments which functions were bound to Lua.
 @
 text
 @#ifndef __included_loaddata_h
@@ -38,17 +43,31 @@ text
 
 
 int tiles_init (void);
-int tiles_load (const char *filename, const char *prefix);
+int tiles_load (const char *filename, const char *prefix); /* Lua binding */
 void tiles_shutdown (void);
 void tiles_enumerate (void (*proc) (const char *prefix, store_file_t));
 
 int lights_init (void);
-int lights_load (const char *filename, const char *prefix);
+int lights_load (const char *filename, const char *prefix); /* Lua binding */
 void lights_shutdown (void);
 void lights_enumerate (void (*proc) (const char *prefix, store_file_t));
 
 
 #endif
+@
+
+
+1.3
+log
+@Updated for new Store
+@
+text
+@d9 1
+a9 1
+int tiles_load (const char *filename, const char *prefix);
+d14 1
+a14 1
+int lights_load (const char *filename, const char *prefix);
 @
 
 

@@ -7,6 +7,7 @@ struct object;
 struct blood_particles;
 struct spark_particles;
 struct BITMAP;
+struct lua_State;
 
 
 typedef struct light light_t;
@@ -56,8 +57,9 @@ void map_explosions_draw (map_t *map, struct BITMAP *dest, int offset_x, int off
 void map_explosions_draw_lights (map_t *map, struct BITMAP *dest, int offset_x, int offset_y);
 
 
-void map_blast_create (map_t *map, float x, float y, float radius, int damage, int visual_only);
-void map_blasts_update (map_t *map);
+void map_blast_create (map_t *map, float x, float y, float radius, int damage, int owner);
+void map_blasts_update_with_collisions (map_t *map);
+void map_blasts_update_visually_only (map_t *map);
 void map_blasts_draw (map_t *map, struct BITMAP *dest, int offset_x, int offset_y);
 
 

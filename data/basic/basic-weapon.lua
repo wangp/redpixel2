@@ -49,13 +49,13 @@ local Standard_Projectile = function (t)
 	    object_set_collision_is_projectile (self)
 	    function self:collide_hook (obj)
 		obj:receive_damage (t.damage, self.owner)
-		self:destroy ()
+		self:set_stale ()
 	    end
 	    function self:tile_collide_hook ()
 		if t.sparks then
 		    spawn_sparks (self.x, self.y, t.sparks, 2)
 		end
-		self:destroy ()
+		self:set_stale ()
 	    end	
 	end
     })
@@ -74,8 +74,8 @@ local Explosive_Projectile = function (t)
 		if t.sparks then
 		    spawn_sparks (self.x, self.y, t.sparks, 2)
 		end
-		spawn_blast (self.x, self.y, t.radius, t.damage)
-		self:destroy ()
+		spawn_blast (self.x, self.y, t.radius, t.damage, self.owner)
+		self:set_stale ()
 	    end
 	    self.collide_hook = hook
 	    self.tile_collide_hook = hook
@@ -170,7 +170,7 @@ Explosive_Projectile {
     name = "basic-arrow-projectile",
     alias = "~ap",
     icon = "/basic/weapon/bow/projectile",
-    radius = 35,
+    radius = 55,
     damage = 40,
     explosion = "basic-explo42",
     proxy_init = function (self)
@@ -308,7 +308,7 @@ Explosive_Projectile {
     name = "basic-rocket-projectile",
     alias = "~rp",
     icon = "/basic/weapon/rpg/projectile",
-    radius = 50,
+    radius = 75,
     damage = 80,
     explosion = "basic-explo42",
     proxy_init = function (self)
@@ -397,7 +397,7 @@ Standard_Pickup {
     icon = "/basic/weapon/rifle/pickup",
     weapon_to_give = "basic-rifle",
     ammo_to_give = "basic-slug",
-    ammo_amount = 2,
+    ammo_amount = 5,
     respawn_secs = 10
 }
 
@@ -408,7 +408,7 @@ Objtype {
     nonproxy_init = function (self)
 	function self:collide_hook (obj)
 	    obj:receive_damage (50, self.owner)
-	    self:destroy ()
+	    self:set_stale ()
 	end
 	function self:tile_collide_hook (obj)
 	    -- sniper rifle slugs don't collide with tiles, but for fun

@@ -1,0 +1,46 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2002.07.10.15.36.04;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@
+v0.91 -> v0.92  (Bob)
+* Sped up the two engines by 20%
+* Fixed a couple of bugs
+* New API make it easier to use and more flexibale.
+* Original 2xSaI API is available again.
+
+v0.9 -> v0.91  (Bob)
+* Fixed stupid bugs from prev release.
+* Peter Wang added a Unix make file
+* Made it work on RGBA/BGRA/etc etc
+* Combined 16 and 32 bpp code.
+* Wrote some more docs.
+* 32 bpp works now.
+* Added 3 command line options to 'convert' (type 'convert -?' for help)
+* Added the SuperEagle Engine.
+
+v0.7 -> v0.9  (Bob)
+* Temporarily diabled other engines. Only Super2xSaI works.
+* Ported Super2xSaI to new Allegro. Cleaned up C code.
+* Covnerted C++ -> C
+* Wrote make file system
+
+@

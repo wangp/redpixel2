@@ -26,6 +26,7 @@
 #include "packet.h"
 #include "particle.h"
 #include "render.h"
+#include "screen.h"
 #include "server.h"
 #include "sound.h"
 #include "store.h"
@@ -43,6 +44,8 @@
 
 typedef unsigned char uchar_t;
 typedef unsigned long ulong_t;
+
+#define Lclt client_lua_namespace
 
 
 /* our connection */
@@ -304,7 +307,7 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
     for (i = 0; i < delta_ticks; i++) {
 	particles_update (map_particles (map), map);
 	map_explosions_update (map);
-	map_blasts_update (map);
+	map_blasts_update_visually_only (map);
     }
 }
 
@@ -381,7 +384,6 @@ static void send_gameinfo_controls (void)
 static void send_gameinfo_weapon_switch (void)
 {
     static char last_key[10] = {0,0,0,0,0,0,0,0,0,0};
-    lua_State *L = lua_state;
     int cant_set = 0;
     int i;
 
@@ -392,15 +394,15 @@ static void send_gameinfo_weapon_switch (void)
 	int is_down = key[KEY_1 + i];
 
 	if (!cant_set && is_down && !last_key[i]) {
-	    lua_getglobal (L, "weapon_order");
-	    lua_pushnumber (L, i+1);
-	    lua_rawget (L, -2);
-	    if (lua_isstring (L, -1)) {
+	    lua_getglobal (Lclt, "weapon_order");
+	    lua_pushnumber (Lclt, i+1);
+	    lua_rawget (Lclt, -2);
+	    if (lua_isstring (Lclt, -1)) {
 		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
 				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
-				     lua_tostring (L, -1));
+				     lua_tostring (Lclt, -1));
 	    }
-	    lua_pop (L, 1);
+	    lua_pop (Lclt, 1);
 	    cant_set = 1;
 	}
 
@@ -488,8 +490,7 @@ SC_GAMEINFO_HANDLER (sc_client_score)
 
 SC_GAMEINFO_HANDLER (sc_object_create)
 {
-    lua_State *L = lua_state;
-    int top = lua_gettop (L);
+    int top = lua_gettop (Lclt);
 
     char type[NETWORK_MAX_PACKET_SIZE];
     short len;
@@ -506,11 +507,11 @@ SC_GAMEINFO_HANDLER (sc_object_create)
 			  &x, &y, &xv, &yv, &ctag);
 
     /* look up the object type alias */
-    lua_getglobal (L, "reverse_object_alias");
-    lua_pushstring (L, type);
-    lua_rawget (L, -2);
-    if (lua_isstring (L, -1))
-	realtype = lua_tostring (L, -1);
+    lua_getglobal (Lclt, "reverse_object_alias");
+    lua_pushstring (Lclt, type);
+    lua_rawget (Lclt, -2);
+    if (lua_isstring (Lclt, -1))
+	realtype = lua_tostring (Lclt, -1);
     else
 	realtype = type;
 
@@ -571,7 +572,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     if (object_get_number (obj, "_internal_stalk_me") == client_id)
 	tracked_object = obj;
 
-    lua_settop (L, top);
+    lua_settop (Lclt, top);
 
     return buf;
 }
@@ -640,8 +641,8 @@ SC_GAMEINFO_HANDLER (sc_object_call)
 
     buf += packet_decode (buf, "lss", &id, &method_len, method, &arg_len, arg);
     if ((obj = map_find_object (map, id))) {
-	lua_pushstring (lua_state, arg);
-	object_call (obj, method, 1);
+	lua_pushstring (Lclt, arg);
+	object_call (Lclt, obj, method, 1);
     }
 
     return buf;
@@ -708,7 +709,7 @@ SC_GAMEINFO_HANDLER (sc_blast_create)
     long damage;
 
     buf += packet_decode (buf, "fffl", &x, &y, &rad, &damage);
-    map_blast_create (map, x, y, rad, damage, 1);
+    map_blast_create (map, x, y, rad, damage, OBJID_CLIENT_PROCESSED);
 
     return buf;
 }
@@ -966,9 +967,7 @@ static void update_screen (void)
 	draw_scores (bmp);
 
     scare_mouse ();
-    acquire_screen ();
-    blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
-    release_screen ();
+    blit_magic_bitmap_to_screen (bmp);
     unscare_mouse ();
 
     frames++;
@@ -1101,7 +1100,7 @@ void client_run (int client_server)
 	    else
 		blit (lobby_bmp, bmp, 0, 0, 0, 0, bmp->w, bmp->h);
 	    messages_render (bmp);
-	    blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
+	    blit_magic_bitmap_to_screen (bmp);
 
 	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
 		sync_client_unlock ();
@@ -1242,7 +1241,7 @@ void client_run (int client_server)
 	ulong_t last_ticks, t;
 
 	/* good time to force gc */
-	lua_setgcthreshold (lua_state, 0);
+	lua_setgcthreshold (Lclt, 0);
 
 	ticks_init ();
 	last_ticks = ticks;
@@ -1377,7 +1376,7 @@ void client_run (int client_server)
 		net_send_rdm_byte (conn, MSG_CS_PING);
 	    }
 
-	    lua_setgcthreshold (lua_state, 0);
+	    lua_setgcthreshold (Lclt, 0);
 
 	    sync_client_unlock ();
 	}
@@ -1434,8 +1433,8 @@ int client_init (const char *name, int net_driver, const char *addr)
 
     client_name = ustrdup (name);
 
-    bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
-    cam = camera_create (SCREEN_W, SCREEN_H);
+    bmp = create_magic_bitmap (screen_width, screen_height);
+    cam = camera_create (screen_width, screen_height);
 
     /* XXX */ {
 	PALETTE pal;

@@ -2,7 +2,7 @@
 #define __included_netmsg_h
 
 
-#define NETWORK_PROTOCOL_VERSION	0
+#define NETWORK_PROTOCOL_VERSION	1
 
 /* Libnet has a maximum packet size of 512 bytes, for channels.  Conns
    take up some of those bytes (too lazy to check how many), so we
@@ -308,7 +308,7 @@ enum {
     MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e',
 
 
-    /* Tell clients to create a blast.
+    /* Tell clients to create a (visual-only) blast.
 
        Args: float x, float y, float max_radius, long damage.
      */

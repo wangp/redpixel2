@@ -426,21 +426,35 @@ void map_explosions_draw_lights (map_t *map, BITMAP *dest,
 
 
 void map_blast_create (map_t *map, float x, float y, float radius,
-		       int damage, int visual_only)
+		       int damage, int owner)
 {
     blast_t *b;
-    b = blast_create (x, y, radius, damage, visual_only);
+    b = blast_create (x, y, radius, damage, owner);
     list_add (map->blasts, b);
 }
 
 
-void map_blasts_update (map_t *map)
+void map_blasts_update_with_collisions (map_t *map)
 {
     blast_t *b, *next;
 
     for (b = map->blasts.next; list_neq (b, &map->blasts); b = next) {
 	next = list_next (b);
-	if (blast_update (b, &map->objects) < 0) {
+	if (blast_update_with_collisions (b, &map->objects) < 0) {
+	    list_remove (b);
+	    blast_destroy (b);
+	}
+    }
+}
+
+
+void map_blasts_update_visually_only (map_t *map)
+{
+    blast_t *b, *next;
+
+    for (b = map->blasts.next; list_neq (b, &map->blasts); b = next) {
+	next = list_next (b);
+	if (blast_update_visually_only (b) < 0) {
 	    list_remove (b);
 	    blast_destroy (b);
 	}

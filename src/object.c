@@ -143,19 +143,16 @@ static lua_ref_t object_metatable;
  */
 
 
-#define L lua_state
-
-
 int object_init (void)
 {
     next_id = OBJID_PLAYER_MAX;
 
     /* Metatable for objects.  */
-    lua_newtable (L);
-    object_metatable = lua_ref (L, 1);
-    lua_getref (L, object_metatable);
-    REGISTER_OBJECT_METATABLE_METHODS (L);
-    lua_pop (L, 1); /* pop the metatable */
+    lua_newtable (the_lua_state);
+    object_metatable = lua_ref (the_lua_state, 1);
+    lua_getref (the_lua_state, object_metatable);
+    REGISTER_OBJECT_METATABLE_METHODS (the_lua_state);
+    lua_pop (the_lua_state, 1); /* pop the metatable */
 
     return 0;
 }
@@ -163,7 +160,7 @@ int object_init (void)
 
 void object_shutdown (void)
 {
-    lua_unref (L, object_metatable);
+    lua_unref (the_lua_state, object_metatable);
 }
 
 
@@ -171,6 +168,10 @@ void object_shutdown (void)
 /*
  * Creation / destruction.
  */
+
+
+#define lua_namespace_for(OBJ) \
+  ((OBJ->is_proxy) ? client_lua_namespace : server_lua_namespace)
 
 
 object_t *object_create (const char *type_name)
@@ -189,6 +190,7 @@ object_t *object_create (const char *type_name)
  * with `object_create', two objects may end up with the same id.  */
 object_t *object_create_ex (const char *type_name, objid_t id)
 {
+    lua_State *S = the_lua_state; /* namespace doesn't matter */
     objtype_t *type;
     object_t *obj;
     BITMAP *icon;
@@ -204,8 +206,8 @@ object_t *object_create_ex (const char *type_name, objid_t id)
     obj->xv_decay = 1.0;
     obj->yv_decay = 1.0;
 
-    lua_newtable (L);
-    obj->table = lua_ref (L, 1);
+    lua_newtable (S);
+    obj->table = lua_ref (S, 1);
 
     obj->update_hook = LUA_NOREF;
 
@@ -240,16 +242,18 @@ object_t *object_create_proxy (const char *type_name, objid_t id)
 
 void object_run_init_func (object_t *obj)
 {
+    lua_State *S = lua_namespace_for (obj);
+
     /* Call base object init hook.  */
-    lua_getglobal (L, "_internal_object_init_hook");
-    lua_pushobject (L, obj);
-    lua_call (L, 1, 0);
+    lua_getglobal (S, "_internal_object_init_hook");
+    lua_pushobject (S, obj);
+    lua_call (S, 1, 0);
     
     /* Call type specific init function, if any.  */
     if (objtype_init_func (obj->type) != LUA_NOREF) {
-	lua_getref (L, objtype_init_func (obj->type));
-	lua_pushobject (L, obj);
-	lua_call (L, 1, 0);
+	lua_getref (S, objtype_init_func (obj->type));
+	lua_pushobject (S, obj);
+	lua_call (S, 1, 0);
     }
 }
 
@@ -261,7 +265,7 @@ void object_destroy (object_t *obj)
     object_remove_all_lights (obj);
     object_remove_all_layers (obj);
     object_remove_update_hook (obj);
-    lua_unref (L, obj->table);
+    lua_unref (the_lua_state, obj->table);
     free (obj);
 }
 
@@ -570,7 +574,7 @@ void object_set_update_hook (object_t *obj, int msecs, lua_ref_t hook)
 void object_remove_update_hook (object_t *obj)
 {
     if (obj->update_hook != LUA_NOREF) {
-	lua_unref (L, obj->update_hook);
+	lua_unref (the_lua_state, obj->update_hook);
 	obj->update_hook = LUA_NOREF;
     }
 }
@@ -578,15 +582,17 @@ void object_remove_update_hook (object_t *obj)
 
 void object_poll_update_hook (object_t *obj, int elapsed_msecs)
 {
+    lua_State *S = lua_namespace_for (obj);
+
     if (obj->update_hook == LUA_NOREF)
 	return;
 
     elapsed_msecs += obj->update_hook_unused_msecs;
 
     while (elapsed_msecs > obj->update_hook_msecs) {
-	lua_getref (L, obj->update_hook);
-	lua_pushobject (L, obj);
-	lua_call (L, 1, 0);
+	lua_getref (S, obj->update_hook);
+	lua_pushobject (S, obj);
+	lua_call (S, 1, 0);
 	elapsed_msecs -= obj->update_hook_msecs;
     }
 
@@ -957,21 +963,22 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 				 y - mask[mask_num].centre_y,
 				 0, 0))
     {
-	int top = lua_gettop (L);
+	lua_State *S = lua_namespace_for (obj);
+	int top = lua_gettop (S);
 	int collide = 1;
 
 	/* if tile_collide_hook returns non-nil then no collision */
-	lua_getref (L, obj->table);
-	lua_pushstring (L, "tile_collide_hook");
-	lua_rawget (L, -2);
-	if (lua_isfunction (L, -1)) {
-	    lua_pushobject (L, obj);
-	    lua_call (L, 1, 1);
-	    if (!lua_isnil (L, -1))
+	lua_getref (S, obj->table);
+	lua_pushstring (S, "tile_collide_hook");
+	lua_rawget (S, -2);
+	if (lua_isfunction (S, -1)) {
+	    lua_pushobject (S, obj);
+	    lua_call (S, 1, 1);
+	    if (!lua_isnil (S, -1))
 		collide = 0;
 	}
 
-	lua_settop (L, top);
+	lua_settop (S, top);
 	return collide;
     }
 
@@ -981,8 +988,8 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 
 static void call_collide_hook (object_t *obj, object_t *touched_obj)
 {
-    lua_pushobject (L, touched_obj);
-    object_call (obj, "collide_hook", 1);
+    lua_pushobject (server_lua_namespace, touched_obj);
+    object_call (server_lua_namespace, obj, "collide_hook", 1);
 }
 
 
@@ -1407,27 +1414,28 @@ object_t *lua_toobject (lua_State *L, int index)
 }
 
 
-void object_call (object_t *obj, const char *method, int nargs)
+void object_call (lua_State *S, object_t *obj, const char *method, int nargs)
 {
-    int top = lua_gettop (L);
+    int top = lua_gettop (S);
     int i;
 
-    lua_getref (L, obj->table);
-    lua_pushstring (L, method);
-    lua_rawget (L, -2);
-    if (lua_isfunction (L, -1)) {
-	lua_pushobject (L, obj);
+    lua_getref (S, obj->table);
+    lua_pushstring (S, method);
+    lua_rawget (S, -2);
+    if (lua_isfunction (S, -1)) {
+	lua_pushobject (S, obj);
 	for (i = 0; i < nargs; i++)
-	    lua_pushvalue (L, -3 - nargs);
-	lua_call (L, 1 + nargs, 0);
+	    lua_pushvalue (S, -3 - nargs);
+	lua_call (S, 1 + nargs, 0);
     }
 
-    lua_settop (L, top - nargs);
+    lua_settop (S, top - nargs);
 }
 
 
 int object_get_var_type (object_t *obj, const char *var)
 {
+    lua_State *L = the_lua_state; /* namespace doesn't matter */
     int type;
 
     lua_getref (L, obj->table);
@@ -1442,6 +1450,7 @@ int object_get_var_type (object_t *obj, const char *var)
 
 float object_get_number (object_t *obj, const char *var)
 {
+    lua_State *L = the_lua_state; /* namespace doesn't matter */
     float val = 0.0;
 
     lua_getref (L, obj->table);
@@ -1457,6 +1466,7 @@ float object_get_number (object_t *obj, const char *var)
 
 void object_set_number (object_t *obj, const char *var, float value)
 {
+    lua_State *L = the_lua_state; /* namespace doesn't matter */
     lua_getref (L, obj->table);
     lua_pushstring (L, var);
     lua_pushnumber (L, value);
@@ -1467,6 +1477,7 @@ void object_set_number (object_t *obj, const char *var, float value)
 
 const char *object_get_string (object_t *obj, const char *var)
 {
+    lua_State *L = the_lua_state; /* namespace doesn't matter */
     const char *str = NULL;
 
     lua_getref (L, obj->table);
@@ -1482,6 +1493,7 @@ const char *object_get_string (object_t *obj, const char *var)
 
 void object_set_string (object_t *obj, const char *var, const char *value)
 {
+    lua_State *L = the_lua_state; /* namespace doesn't matter */
     lua_getref (L, obj->table);
     lua_pushstring (L, var);
     lua_pushstring (L, value);
