@@ -21,6 +21,7 @@
 #include "mapfile.h"
 #include "mathcnst.h"
 #include "messages.h"
+#include "music.h"
 #include "mylibnet.h"
 #include "netmsg.h"
 #include "object.h"
@@ -1077,6 +1078,8 @@ static void update_screen (int mouse_x, int mouse_y)
 
 void client_run (int client_server)
 {
+    music_select_playlist ("data/music/music-game.txt");
+
     dbg ("connecting (state 1)");
     {
 	int status;

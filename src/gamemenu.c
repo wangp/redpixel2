@@ -10,6 +10,7 @@
 #include "lobby.h"
 #include "magic4x4.h"
 #include "menu.h"
+#include "music.h"
 #include "screen.h"
 #include "store.h"
 #include "textout.h"
@@ -51,6 +52,13 @@ static BITMAP *dbuf;
 static int generic_back (void)
 {
     return -1;
+}
+
+
+
+static void select_frontend_music (void)
+{
+    music_select_playlist ("data/music/music-frontend.txt");
 }
 
 
@@ -104,6 +112,8 @@ static int mp_client_server (void)
 
     messages_shutdown ();
 
+    select_frontend_music ();
+
     return 0;
 }
 
@@ -131,6 +141,8 @@ static int mp_client (void)
 	}
 	messages_shutdown ();
     }
+
+    select_frontend_music ();
 
     return 0;
 }
@@ -295,6 +307,8 @@ static void run_menu (menu_t *menu)
 
 void gamemenu_run (void)
 {
+    select_frontend_music ();
+
     run_menu (root_menu);
 }
 

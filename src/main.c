@@ -15,6 +15,7 @@
 #include "gamemenu.h"
 #include "getoptc.h"
 #include "messages.h"
+#include "music.h"
 #include "screen.h"
 #include "server.h"
 #include "sync.h"
@@ -214,6 +215,8 @@ int main (int argc, char *argv[])
     else
 	setup_allegro (w, h, d, stretch_method);
 
+    music_init();
+
     game_init ();
 
     if (run_server) {
@@ -239,6 +242,8 @@ int main (int argc, char *argv[])
     }
 
     game_shutdown ();
+
+    music_shutdown ();
 
     if (!run_server)
 	unsetup_allegro ();

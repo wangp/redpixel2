@@ -12,7 +12,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/loadaud src/2xsai src/gui src/ug src/editor src/server
 
 CC := gcc
-CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
+CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT -fno-builtin \
 	  -I libnet/include -I lua/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
@@ -28,6 +28,10 @@ else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
 endif
+
+# DUMB
+CFLAGS += -I dumb/include
+LDLIBS += dumb/lib/unix/libaldmb.a dumb/lib/unix/libdumb.a 
 
 PROGRAM := program$(PLAT_EXE)
 OBJDIR := $(PLAT_OBJDIR)
@@ -121,6 +125,7 @@ MODULES_GAME :=					\
 	map					\
 	mapfile					\
 	messages				\
+	music					\
 	mylibnet				\
 	mylua					\
 	object					\
@@ -128,6 +133,7 @@ MODULES_GAME :=					\
 	packet					\
 	particle				\
 	path					\
+	ral					\
 	render					\
 	screen					\
 	sound					\
@@ -167,7 +173,7 @@ src/bindings.inc: src/bindgen.lua
 src/objectmt.inc: src/objgen.lua
 	$(PLAT_LUABIN) $< > $@
 
-$(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA)
+$(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA) $(PLAT_LIBDUMB)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
 #----------------------------------------------------------------------
@@ -181,6 +187,10 @@ $(PLAT_LIBNET):
 $(PLAT_LIBLUA):
 	$(MAKE) -C lua
 
+$(PLAT_LIBDUMB):
+	cd dumb ; ./fix.sh unix
+	$(MAKE) -C dumb core lib/unix/libaldmb.a
+
 endif
 
 ifeq "$(PLATFORM)" "MINGW"
@@ -193,6 +203,7 @@ $(PLAT_LIBLUA):
 	$(MAKE) -C lua/src
 	$(MAKE) -C lua/src/lib
 	$(MAKE) -C lua/src/lua
+
 endif
 
 #----------------------------------------------------------------------
