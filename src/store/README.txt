@@ -41,7 +41,7 @@ API
 
 	Note: the actual size used will not necessarily be exactly the
 	size you requested.  In the current implementation, it is
-	round up to the next power of two, for speed reasons.
+	rounded up to the next power of two, for speed reasons.
 
     void store_shutdown (void);
 
@@ -111,10 +111,10 @@ API
 
 See also
 
-    Store is based partly off Wumpus, a similar library I wrote last
-    year (June 1999).  You might want to take a look at that if Store
-    does not do things the way you want.  Or you could just edit the
-    source code.
+    Store is based partly off Wumpus, a similar library I wrote in
+    June 1999.  You might want to take a look at that if Store does
+    not do things the way you want.  Actually, you can't, as I never
+    released it.  Just edit the source code.
 
 
 Credits
