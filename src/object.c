@@ -77,7 +77,7 @@ struct object {
     float old_xa, old_ya;
 
     char collision_flags;
-    char collision_tag;
+    objtag_t collision_tag;
     objmask_t mask[OBJECT_MASK_MAX];
     char replication_flags;
 
@@ -128,6 +128,7 @@ struct object {
 static void set_default_masks (object_t *obj);
 
 static objid_t next_id;
+static objtag_t next_tag;
 static lua_ref_t object_metatable;
 
 
@@ -148,6 +149,7 @@ static lua_ref_t object_metatable;
 int object_init (void)
 {
     next_id = OBJID_PLAYER_MAX;
+    next_tag = OBJTAG_PLAYER_MAX;
 
     /* Metatable for objects.  */
     lua_newtable (the_lua_state);
@@ -163,6 +165,12 @@ int object_init (void)
 void object_shutdown (void)
 {
     lua_unref (the_lua_state, object_metatable);
+}
+
+
+objtag_t new_object_collision_tag (void)
+{
+    return next_tag++;
 }
 
 
@@ -529,13 +537,13 @@ void object_set_collision_flags_string (object_t *obj, const char *flags)
 }
 
 
-int object_collision_tag (object_t *obj)
+objtag_t object_collision_tag (object_t *obj)
 {
     return obj->collision_tag;
 }
 
 
-void object_set_collision_tag (object_t *obj, int tag)
+void object_set_collision_tag (object_t *obj, objtag_t tag)
 {
     obj->collision_tag = tag;
 }
