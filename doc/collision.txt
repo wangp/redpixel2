@@ -1,0 +1,77 @@
+Ideas about collision detection
+-------------------------------
+
+Types of things that are all game objects but must act differently
+when it comes to collision detection:
+
+- players
+- powerups
+- crates (and barrels, etc.)
+- projectiles
+- ladders (and monkeybars, etc.)
+- corpses
+- gates (and triggers, etc.)
+
+
+`players' can touch anything except players.
+
+	is-player: true
+	touch-non-player: true
+	touch-player: false
+	touch-tile: true
+	tag: {team tag}
+
+
+`powerups' can touch nothing except players.
+
+	is-player: false
+	touch-non-player: false
+	touch-player: true
+	touch-tile: false
+	tag: none
+
+
+`crates' can touch anything.
+
+	is-player: false
+	touch-non-player: true
+	touch-player: true
+	touch-tile: true
+	tag: none
+
+
+`projectiles' can touch anything except friendly players.
+
+	is-player: false
+	touch-non-player: true
+	touch-player: true
+	touch-tile: true
+	tag: {team tag}
+
+
+'ladders' can touch nothing except players.
+
+	is-player: false
+	touch-non-player: false
+	touch-player: true
+	touch-tile: true
+	tag: {team tag}
+
+
+`gates' can touch nothing.
+
+	is-player: false
+	touch-non-player: false
+	touch-player: false
+	touch-tile: false
+	tag: none
+
+
+function check_collision (a, b)
+    return (not (a.tag and b.tag and a.tag == b.tag)) and
+	   ((a.is_player and b.touch_player) or
+	    (b.is_player and a.touch_player) or
+	    (not a.is_player and b.touch_non_player) or
+	    (not b.is_player and a.touch_non_player)) and
+	   (check_pp_collision (a, b))
+end

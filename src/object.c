@@ -27,33 +27,46 @@ typedef struct objmask {
 } objmask_t;
 
 
+/* collision flags */
+#define CNFLAG_IS_PLAYER	0x01
+#define CNFLAG_TOUCH_TILES	0x02
+#define CNFLAG_TOUCH_PLAYERS	0x04
+#define CNFLAG_TOUCH_NONPLAYERS	0x08
+#define CNFLAG_TOUCH_OBJECTS	(CNFLAG_TOUCH_PLAYERS | CNFLAG_TOUCH_NONPLAYERS)
+#define CNFLAG_DEFAULT		(CNFLAG_TOUCH_TILES | CNFLAG_TOUCH_OBJECTS)
+
+
 struct object {
     object_t *next;
     object_t *prev;
     objtype_t *type;
     objid_t id;
+    char is_stale;
+    char is_proxy;
 
     /* server/client */
-    float x, y;
+    float x;
+    float y;
     float xv;
-    float yv;			/* on client this is mixed in with mass * gravity */
+    float yv;			/* in proxy this is mixed in with mass * gravity */
+    float xv_decay;
+    float yv_decay;
+    lua_ref_t table;
+
+    /* server (non-proxy) */
+    float mass;
+    int _ramp;
+    int jump;
+    objmask_t mask[OBJECT_MASK_MAX];
+    unsigned short collision_flags;
+    unsigned short collision_tag;
+    int replication_flags;
+    float proxy_yv;		/* this is the yv that the proxy will receive */
+
+    /* client (proxy) */
     list_head_t layers;
     list_head_t lights;
-    objmask_t mask[5];
-
-    /* server */
-    float client_yv;		/* this is the yv that the client will receive */
-    float mass;
-    int ramp;
-    int jump;
-    int need_replication;
-
-    /* client */
-    int is_proxy;
-    unsigned long proxy_time;	/* time when real values were last updated */
-
-    /* lua table */
-    lua_ref_t table;
+    int catchup;		/* number of ticks needed to catch up because of lag */
 };
 
 
@@ -110,11 +123,16 @@ object_t *object_create_ex (const char *type_name, objid_t id)
     obj->type = type;
     obj->id = id;
 
-    /* C object references Lua table.  */
+    obj->xv_decay = 1.0;
+    obj->yv_decay = 1.0;
+
     lua_newtable (L);
     obj->table = lua_ref (L, 1);
 
-    /* Initialise some C variables.  */
+    set_default_masks (obj);
+
+    obj->collision_flags = CNFLAG_DEFAULT;
+
     list_init (obj->layers);
     icon = store_dat (objtype_icon (obj->type));
     object_add_layer (obj, objtype_icon (obj->type), 
@@ -122,13 +140,6 @@ object_t *object_create_ex (const char *type_name, objid_t id)
 
     list_init (obj->lights);
 
-    set_default_masks (obj);
-
-    /* Call base object init function.  */
-    lua_getglobal (L, "object_init");
-    lua_pushobject (L, obj);
-    lua_call (L, 1, 0);
-    
     return obj;
 }
 
@@ -149,6 +160,12 @@ void object_run_init_func (object_t *obj)
 {
     lua_State *L = lua_state;
 
+    /* Call base object init hook.  */
+    lua_getglobal (L, "_object_init_hook");
+    lua_pushobject (L, obj);
+    lua_call (L, 1, 0);
+    
+    /* Call type specific init function, if any.  */
     if (objtype_init_func (obj->type) != LUA_NOREF) {
 	lua_getref (L, objtype_init_func (obj->type));
 	lua_pushobject (L, obj);
@@ -172,9 +189,22 @@ objtype_t *object_type (object_t *obj)
     return obj->type;
 }
 
+
 objid_t object_id (object_t *obj)
 {
     return obj->id;
+}
+
+
+inline int object_stale (object_t *obj)
+{
+    return obj->is_stale;
+}
+
+
+void object_set_stale (object_t *obj)
+{
+    obj->is_stale = 1;
 }
 
 
@@ -221,15 +251,34 @@ void object_set_yv (object_t *obj, float yv)
 }
 
 
-float object_client_yv (object_t *obj)
+void object_set_xvyv (object_t *obj, float xv, float yv)
 {
-    return obj->client_yv;
+    obj->xv = xv;
+    obj->yv = yv;
 }
 
 
-void object_set_client_yv (object_t *obj, float yv)
+float object_proxy_yv (object_t *obj)
 {
-    obj->client_yv = yv;
+    return obj->proxy_yv;
+}
+
+
+void object_set_proxy_yv (object_t *obj, float yv)
+{
+    obj->proxy_yv = yv;
+}
+
+
+float object_xv_decay (object_t *obj)
+{
+    return obj->xv_decay;
+}
+
+
+float object_yv_decay (object_t *obj)
+{
+    return obj->yv_decay;
 }
 
 
@@ -247,13 +296,13 @@ void object_set_mass (object_t *obj, float mass)
 
 int object_ramp (object_t *obj)
 {
-    return obj->ramp;
+    return obj->_ramp;
 }
 
 
 void object_set_ramp (object_t *obj, int ramp)
 {
-    obj->ramp = ramp;
+    obj->_ramp = ramp;
 }
 
 
@@ -269,33 +318,76 @@ void object_set_jump (object_t *obj, int jump)
 }
 
 
-int object_need_replication (object_t *obj)
+void object_set_collision_is_player (object_t *obj)
 {
-    return obj->need_replication;
+    obj->collision_flags |= CNFLAG_IS_PLAYER;
 }
 
 
-void object_set_need_replication (object_t *obj)
+void object_set_collision_flags (object_t *obj, int tiles, int players,
+				 int nonplayers)
 {
-    obj->need_replication = 1;
+    obj->collision_flags &= CNFLAG_IS_PLAYER;
+    obj->collision_flags |= ((tiles ? CNFLAG_TOUCH_TILES : 0)
+			     | (players ? CNFLAG_TOUCH_PLAYERS : 0)
+			     | (nonplayers ? CNFLAG_TOUCH_NONPLAYERS : 0));
 }
 
 
-void object_clear_need_replication (object_t *obj)
+/* for lua bindings */
+void object_set_collision_flags_string (object_t *obj, const char *flags)
 {
-    obj->need_replication = 0;
+    int tiles = 0, players = 0, nonplayers = 0;
+
+    for (; *flags; flags++) {
+	if (*flags == 't') tiles = 1;
+	else if (*flags == 'p') players = 1;
+	else if (*flags == 'n') nonplayers = 1;
+    }
+
+    object_set_collision_flags (obj, tiles, players, nonplayers);
 }
 
 
-unsigned long object_proxy_time (object_t *obj)
+int object_collision_tag (object_t *obj)
 {
-    return obj->proxy_time;
+    return obj->collision_tag;
 }
 
 
-void object_set_proxy_time (object_t *obj, unsigned long proxy_time)
+void object_set_collision_tag (object_t *obj, int tag)
 {
-    obj->proxy_time = proxy_time;
+    obj->collision_tag = tag;
+}
+
+
+int object_need_replication (object_t *obj, int flag)
+{
+    return obj->replication_flags & flag;
+}
+
+
+void object_set_replication_flag (object_t *obj, int flag)
+{
+    obj->replication_flags |= flag;
+}
+
+
+void object_clear_replication_flag (object_t *obj, int flag)
+{
+    obj->replication_flags &=~ flag;
+}
+
+
+int object_catchup (object_t *obj)
+{
+    return obj->catchup;
+}
+
+
+void object_set_catchup (object_t *obj, int nticks)
+{
+    obj->catchup = nticks;
 }
 
 
@@ -576,7 +668,7 @@ int object_remove_mask (object_t *obj, int mask_num)
 void object_remove_all_masks (object_t *obj)
 {
     int i;
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < OBJECT_MASK_MAX; i++)
 	object_remove_mask (obj, i);
 }
 
@@ -590,7 +682,7 @@ static void set_default_masks (object_t *obj)
     xcen = bitmask_width (mask) / 2;
     ycen = bitmask_height (mask) / 2;
 
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < OBJECT_MASK_MAX; i++)
 	set_mask (obj, i, mask, 0, xcen, ycen);
 }
 
@@ -598,19 +690,53 @@ static void set_default_masks (object_t *obj)
 /* Collisions.  */
 
 
+#define is_player(o)		((o)->collision_flags & CNFLAG_IS_PLAYER)
+#define is_nonplayer(o)		(!is_player (o))
+#define touch_tiles(o)		((o)->collision_flags & CNFLAG_TOUCH_TILES)
+#define touch_players(o)	((o)->collision_flags & CNFLAG_TOUCH_PLAYERS)
+#define touch_nonplayers(o)	((o)->collision_flags & CNFLAG_TOUCH_NONPLAYERS)
+#define touch_objects(o)	((o)->collision_flags & CNFLAG_TOUCH_OBJECTS)
+
+
 static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, int x, int y)
 {
     objmask_t *mask;
+
+    if (!touch_tiles (obj))
+	return 0;
 
     mask = obj->mask;
     if (!mask[mask_num].ref)
 	return 0;
 
-    return bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
-				    map_tile_mask (map),
-				    x - mask[mask_num].centre_x,
-				    y - mask[mask_num].centre_y,
-				    0, 0);
+    if (bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
+				 map_tile_mask (map),
+				 x - mask[mask_num].centre_x,
+				 y - mask[mask_num].centre_y,
+				 0, 0)) {
+	object_call (obj, "tile_collide_hook");
+	return 1;
+    }
+
+    return 0;
+}
+
+
+static void call_collide_hook (object_t *obj, object_t *touched_obj)
+{
+    lua_State *L = lua_state;
+    int top = lua_gettop (L);
+
+    lua_pushobject (L, obj);
+    lua_pushstring (L, "collide_hook");
+    lua_gettable (L, -2);
+    if (lua_isfunction (L, -1)) {
+	lua_pushvalue (L, -2);
+	lua_pushobject (L, touched_obj);
+	lua_call (L, 2, 0);
+    }
+
+    lua_settop (L, top);
 }
 
 
@@ -621,19 +747,47 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
     objmask_t *mask;
     object_t *p;
 
+    if (object_stale (obj) || !touch_objects (obj))
+	return 0;
+
     mask = obj->mask;
     if (!mask[mask_num].ref)
 	return 0;
 
     list = map_object_list (map);
-    list_for_each (p, list) if ((obj->id != p->id) && (p->mask[0].ref))
-	if (bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
-				     bitmask_ref_bitmask (p->mask[0].ref),
-				     x - mask[mask_num].centre_x,
-				     y - mask[mask_num].centre_y,
-				     p->x - p->mask[0].centre_x, 
-				     p->y - p->mask[0].centre_y))
+    list_for_each (p, list) {
+	if (/* can't collide with self (we assume same address == same id) */
+	    (p != obj)
+	    /* must not be stale */
+	    && (!object_stale (p))
+	    /* must have bitmask */
+	    && (p->mask[0].ref)
+	    /* must have no collision tag or different collision tags */
+	    && (!(p->collision_tag)
+		|| (p->collision_tag != obj->collision_tag))
+	    /* must have matching flags to touch players or non-players */
+	    && ((is_player (obj) && touch_players (p))
+		|| (is_nonplayer (obj) && touch_nonplayers (p)))
+	    /* bitmasks must collide */
+	    && (bitmask_check_collision
+		(bitmask_ref_bitmask (mask[mask_num].ref),
+		 bitmask_ref_bitmask (p->mask[0].ref),
+		 x - mask[mask_num].centre_x, y - mask[mask_num].centre_y,
+		 p->x - p->mask[0].centre_x, p->y - p->mask[0].centre_y)))
+	{
+	    /* Finally, we have a collision! */
+	    
+	    call_collide_hook (p, obj);
+	    if (object_stale (p)) continue;
+	    if (object_stale (obj)) return 0;
+
+	    call_collide_hook (obj, p);
+	    if (object_stale (p)) continue;
+	    if (object_stale (obj)) return 0;
+
 	    return 1;
+	}
+    }
     
     return 0;
 }
@@ -705,7 +859,7 @@ int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
 	obj->x += idx;
 	if (ir) {
 	    obj->y -= ir;
-	    object_set_need_replication (obj);
+	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
 	}
 
 	dx = (ABS (dx) < 1) ? 0 : SIGN (dx) * (ABS (dx) - 1);

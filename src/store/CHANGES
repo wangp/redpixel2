@@ -1,0 +1,11 @@
+History
+
+02 July 2001: Updated for new Allegro Unicode API (although it's still not
+properly Unicode-enabled).
+
+1 June 2001: Use AL_CONST instead of const.
+
+28 April 2001: Some changes in the hash table implementation.
+
+June 2000: Initial version, for Red Pixel II.
+

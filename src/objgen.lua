@@ -20,7 +20,7 @@ types = {
     },
     Bool = {
 	predicate = nil,
-	get = 'if (@VAR@) lua_pushnumber(L, @VAR@); else lua_pushnil(L);',
+	get = 'if (@VAR@) lua_pushnumber(L, 1); else lua_pushnil(L);',
 	set = '@VAR@ = !lua_isnil(@LUA@);'
     }
 }
@@ -32,9 +32,12 @@ cvars = {{ Float, 'x' },
 	 { Float, 'y' },
 	 { Float, 'xv' },
 	 { Float, 'yv' },
+	 { Float, 'xv_decay' },
+	 { Float, 'yv_decay' },
 	 { Float, 'mass' },
-	 { Int, 'ramp' },
-	 { Bool, "is_proxy" }}
+	 { Bool, 'is_proxy' },
+	 { Int, '_ramp' },
+	 { Int, 'collision_tag' }}
 
 
 -- helpers

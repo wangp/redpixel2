@@ -164,6 +164,20 @@ void map_unlink_object (object_t *p)
 }
 
 
+void map_destroy_stale_objects (map_t *map)
+{
+    object_t *obj, *next;
+
+    for (obj = map->objects.next; list_neq (obj, &map->objects); obj = next) {
+	next = list_next (obj);
+	if (object_stale (obj)) {
+	    map_unlink_object (obj);
+	    object_destroy (obj);
+	}
+    }
+}
+
+
 object_t *map_find_object (map_t *map, int id)
 {
     object_t *p;

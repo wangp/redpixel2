@@ -3,34 +3,157 @@
 
 store_load ("basic/basic-weapon.dat", "/basic/weapon/")
 
--- uses nothing
-objtype_register ("weapon", "basic-blaster", "/basic/weapon/blaster/pickup")
-objtype_register ("projectile",	"basic-blaster-projectile",
-                  "/basic/weapon/blaster/projectile")
 
--- uses arrows			
-objtype_register ("weapon", "basic-bow", "/basic/weapon/bow/pickup")
-objtype_register ("weapon", "basic-arrow", "/basic/weapon/ammo/arrow")
-objtype_register ("projectile", "basic-arrow-projectile",
-                  "/basic/weapon/bow/projectile")
+----------------------------------------------------------------------
+--  Blaster
+----------------------------------------------------------------------
 
--- uses bullets
-objtype_register ("weapon", "basic-ak", "/basic/weapon/ak/pickup")
-objtype_register ("weapon", "basic-minigun", "/basic/weapon/minigun/pickup")
-objtype_register ("weapon", "basic-bullet", "/basic/weapon/ammo/bullet")
+Weapon {
+    name = "basic-blaster",
+    can_fire = function (player)
+	return 1
+    end,
+    fire = function (player)
+	spawn_projectile ("basic-blaster-projectile", player, 10)
+	player.fire_delay = 5
+    end
+}
 
--- uses rockets
-objtype_register ("weapon", "basic-rpg", "/basic/weapon/rpg/pickup")
-objtype_register ("weapon", "basic-rocket", "/basic/weapon/ammo/rocket")
-objtype_register ("projectile",	"basic-rocket-projectile", 
-                  "/basic/weapon/rpg/projectile")
+Objtype {
+    category = "weapon",
+    name = "basic-blaster",
+    icon = "/basic/weapon/blaster/pickup",
+    nonproxy_init = function (self)
+	self:set_collision_flags ("p")
+        function self.collide_hook (self, player)
+	    player:receive_weapon ("basic-blaster")
+	    self:destroy ()
+	end
+    end
+}
 
--- uses shells
-objtype_register ("weapon", "basic-shotgun", "/basic/weapon/shotgun/pickup")
-objtype_register ("weapon", "basic-shell", "/basic/weapon/ammo/shell")
+Objtype {
+    category = "projectile",
+    name = "basic-blaster-projectile",
+    icon = "/basic/weapon/blaster/projectile",
+    nonproxy_init = function (self)
+	function self.collide_hook (self, obj)
+	    -- hurt player here
+	    self:destroy ()
+	end
+	function self.tile_collide_hook (self)
+	    self:destroy ()
+	end
+    end,
+    proxy_init = function (self)
+	self:add_light ("/basic/light/white-16", 0, 0)
+    end
+}
 
--- uses sniper bullets
-objtype_register ("weapon", "basic-rifle", "/basic/weapon/rifle/pickup")
 
--- uses mines
-objtype_register ("weapon", "basic-mine", "/basic/weapon/mine/pickup")
+----------------------------------------------------------------------
+--  Bow and arrow
+----------------------------------------------------------------------
+
+Objtype {
+    category = "weapon",
+    name = "basic-bow",
+    icon = "/basic/weapon/bow/pickup"
+}
+
+Objtype {
+    category = "weapon",
+    name = "basic-arrow",
+    icon = "/basic/weapon/ammo/arrow"
+}
+
+Objtype {
+    category = "projectile",
+    name = "basic-arrow-projectile",
+    icon = "/basic/weapon/bow/projectile"
+}
+
+
+----------------------------------------------------------------------
+--  Bullet weapons
+----------------------------------------------------------------------
+
+Objtype {
+    category = "weapon",
+    name = "basic-ak",
+    icon = "/basic/weapon/ak/pickup"
+}
+
+Objtype {
+    category = "weapon", 
+    name = "basic-minigun", 
+    icon = "/basic/weapon/minigun/pickup"
+}
+
+Objtype {
+    category = "weapon", 
+    name = "basic-bullet", 
+    icon = "/basic/weapon/ammo/bullet"
+}
+
+
+----------------------------------------------------------------------
+--  Rocket weapons
+----------------------------------------------------------------------
+
+Objtype {
+    category = "weapon", 
+    name = "basic-rpg", 
+    icon = "/basic/weapon/rpg/pickup"
+}
+
+Objtype {
+    category = "weapon", 
+    name = "basic-rocket", 
+    icon = "/basic/weapon/ammo/rocket"
+}
+
+Objtype {
+    category = "projectile",
+    name = "basic-rocket-projectile", 
+    icon = "/basic/weapon/rpg/projectile"
+}
+
+
+----------------------------------------------------------------------
+--  Shotgun
+----------------------------------------------------------------------
+
+Objtype {
+    category = "weapon", 
+    name = "basic-shotgun", 
+    icon = "/basic/weapon/shotgun/pickup"
+}
+
+Objtype {
+    category = "weapon", 
+    name = "basic-shell", 
+    icon = "/basic/weapon/ammo/shell"
+}
+
+
+----------------------------------------------------------------------
+--  Sniper rifle
+----------------------------------------------------------------------
+
+Objtype {
+    category = "weapon", 
+    name = "basic-rifle", 
+    icon = "/basic/weapon/rifle/pickup"
+}
+
+
+----------------------------------------------------------------------
+--  Mines
+----------------------------------------------------------------------
+
+Objtype {
+    category = "weapon", 
+    name = "basic-mine", 
+    icon = "/basic/weapon/mine/pickup"
+}

@@ -1,3 +1,24 @@
+2001-07-17  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Began proper firing code.
+
+	* bindgen.lua, gamesrv.c (game_server_spawn_projectile): New
+	function, binds to spawn_projectile in Lua.
+
+	* physics.c, object.c, objgen.lua: Moved x_decay, y_decay into
+	objects as attributes (xv_decay, yv_decay).
+
+	* Many changes in Lua scripts, including introduction of
+	"constructors".
+	
+	* object.c, bindgen.lua, gamesrv.c, gameclt.c: Introduced
+	staleness.  `object_destroy' in Lua binds to `object_set_stale' in
+	C.
+	
+	* object.c, bindgen.lua: Collision flags and collision tags.
+
+	* Made internal hooks and attributes have an underscore in front.
+	
 2001-07-16  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* object.c, gameclt.c: Exposed is_proxy attribute, added is_client

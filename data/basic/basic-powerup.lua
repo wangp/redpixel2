@@ -2,22 +2,91 @@
 
 store_load ("basic/basic-powerup.dat", "/basic/powerup/")
 
+function basic_powerup_init (self)
+    self:set_collision_flags ("p")
+    function self.collide_hook (self, player)
+	self:destroy (self)
+    end
+end
+
 -- enhancements
-objtype_register ("item", "basic-armour-brown", "/basic/powerup/armour/brown")
-objtype_register ("item", "basic-armour-purple", "/basic/powerup/armour/purple")
-objtype_register ("item", "basic-armour-blue", "/basic/powerup/armour/blue")
-objtype_register ("item", "basic-bloodlust", "/basic/powerup/bloodlust/000")
-objtype_register ("item", "basic-cordial", "/basic/powerup/cordial")
-objtype_register ("item", "basic-lightamp", "/basic/powerup/lightamp/000", 
-			function (self)
-			    if self.is_proxy then
-				self:add_light ("/basic/light/blue-16", 0, 0)
-			    end
-			end)
+Objtype {
+    category = "item", 
+    name = "basic-armour-brown", 
+    icon = "/basic/powerup/armour/brown",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-armour-purple", 
+    icon = "/basic/powerup/armour/purple",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-armour-blue", 
+    icon = "/basic/powerup/armour/blue",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-bloodlust", 
+    icon = "/basic/powerup/bloodlust/000",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-cordial", 
+    icon = "/basic/powerup/cordial",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item",
+    name = "basic-lightamp", 
+    icon = "/basic/powerup/lightamp/000", 
+    nonproxy_init = function (self)
+	basic_powerup_init (self)
+	self:add_light ("/basic/light/blue-16", 0, 0)
+    end
+}
 
 -- health restoration
-objtype_register ("item", "basic-burger", "/basic/powerup/burger")
-objtype_register ("item", "basic-chocolate", "/basic/powerup/chocolate")
-objtype_register ("item", "basic-joltcola", "/basic/powerup/joltcola")
-objtype_register ("item", "basic-medikit", "/basic/powerup/medikit")
-objtype_register ("item", "basic-pizza", "/basic/powerup/pizza")
+Objtype {
+    category = "item",
+    name = "basic-burger",
+    icon = "/basic/powerup/burger",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-chocolate", 
+    icon = "/basic/powerup/chocolate",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-joltcola", 
+    icon = "/basic/powerup/joltcola",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-medikit", 
+    icon = "/basic/powerup/medikit",
+    nonproxy_init = basic_powerup_init
+}
+
+Objtype {
+    category = "item", 
+    name = "basic-pizza", 
+    icon = "/basic/powerup/pizza",
+    nonproxy_init = basic_powerup_init
+}

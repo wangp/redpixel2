@@ -161,7 +161,7 @@ enum {
     /* Tell clients to create a new object.
 
        Args: long len, char type[], long object_id, float x, float y,
-             float xv, float yv.
+             float xv, float yv, long collision_tag.
      */
 
     MSG_SC_GAMEINFO_OBJECT_CREATE = 'c',

@@ -111,13 +111,3 @@ Contact
 
     Email:	tjaden@users.sourceforge.net
     WWW: 	http://www.alphalink.com.au/~tjaden/
-
-
-History
-
-    1 June 2001: Use AL_CONST instead of const.
-
-    28 April 2001: Some changes in the hash table implementation.
-
-    June 2000: Initial version, for Red Pixel II.
-

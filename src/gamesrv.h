@@ -2,6 +2,8 @@
 #define __included_gamesrv_h
 
 
+struct object;
+
 
 typedef struct {
     void(*init) ();
@@ -14,6 +16,9 @@ typedef struct {
 int game_server_init (game_server_interface_t *);
 void game_server_run ();
 void game_server_shutdown ();
+
+
+int game_server_spawn_projectile (const char *typename, struct object *, float speed);
 
 
 #endif

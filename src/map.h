@@ -25,6 +25,7 @@ struct bitmask *map_tile_mask (map_t *map);
 void map_link_object (map_t *map, struct object *obj);
 void map_link_object_bottom (map_t *map, struct object *obj);
 void map_unlink_object (struct object *obj);
+void map_destroy_stale_objects (map_t *map);
 struct object *map_find_object (map_t *map, int id);
 struct list_head *map_object_list (map_t *map);
 

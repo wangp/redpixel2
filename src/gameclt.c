@@ -51,8 +51,6 @@ static int parallax_x = 2;
 static int parallax_y = 2;
 
 static BITMAP *crosshair;
-static float aim_angle;
-static float last_aim_angle;
 
 /* the game state */
 static map_t *map;
@@ -64,6 +62,8 @@ static int pinging;
 static ulong_t last_ping_time;
 static int lag;
 static int last_controls;
+static float aim_angle;
+static float last_aim_angle;
 
 /* misc */
 static int backgrounded;
@@ -131,12 +131,14 @@ static void perform_simple_physics ()
 {
     list_head_t *object_list;
     object_t *obj;
-/*      ulong_t t = ticks; */
+    int i;
     
     object_list = map_object_list (map);
-    list_for_each (obj, object_list)
-	physics_interpolate_object (physics, obj, 1);
-/*  				    t - object_proxy_time (obj)); */
+    list_for_each (obj, object_list) {
+	for (i = 0; i < 1 + object_catchup (obj); i++)
+	    physics_interpolate_proxy (physics, obj);
+	object_set_catchup (obj, 0);
+    }
 }
 
 
@@ -159,8 +161,10 @@ static void send_gameinfo_controls ()
 	update = 1;
 
     if (last_aim_angle != aim_angle) {
-	if (ABS (aim_angle - last_aim_angle) > (M_PI/8))
-	    update = 1;
+	if (!update)
+	    update = ((controls & CONTROL_FIRE)
+		      ? (ABS (aim_angle - last_aim_angle) > (M_PI/256))
+		      : (ABS (aim_angle - last_aim_angle) > (M_PI/8)));
 	object_set_number (local_object, "aim_angle", aim_angle);
     }
 
@@ -210,16 +214,17 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		objid_t id;
 		float x, y;
 		float xv, yv;
+		int ctag;
 		object_t *obj;
 
-		buf += packet_decode (buf, "slffff", &len, type, &id, &x, &y, &xv, &yv);
+		buf += packet_decode (buf, "slffffl", &len, type, &id, &x, &y, &xv, &yv, &ctag);
 		obj = object_create_proxy (type, id);
 		object_set_xy (obj, x, y);
-		object_set_xv (obj, xv);
-		object_set_yv (obj, yv);
+		object_set_xvyv (obj, xv, yv);
+		object_set_collision_tag (obj, ctag);
 		if (id == local_object_id) {
 		    local_object = obj;
-		    object_set_number (obj, "is_client", 1);
+		    object_set_number (obj, "is_local", 1);
 		}
 		object_run_init_func (obj);
 		map_link_object (map, obj);
@@ -233,9 +238,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		buf += packet_decode (buf, "l", &id);
 		if ((obj = map_find_object (map, id))) {
-		    map_unlink_object (obj);
-		    object_destroy (obj);
-		    if (id == local_object_id)
+		    object_set_stale (obj);
+		    if (obj == local_object)
 			local_object = NULL;
 		}
 		break;
@@ -251,14 +255,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		buf += packet_decode (buf, "lffff", &id, &x, &y, &xv, &yv);
 		if ((obj = map_find_object (map, id))) {
 		    object_set_xy (obj, x, y);
-		    object_set_xv (obj, xv);
-		    object_set_yv (obj, yv);
-		    object_set_proxy_time (obj, ticks - lag);
-		    {
-			int i;
-			for (i=0; i<lag; i++)
-			    physics_interpolate_object (physics, obj, 1);
-		    }
+		    object_set_xvyv (obj, xv, yv);
+		    object_set_catchup (obj, lag);
 		}
 		break;
 	    }
@@ -442,6 +440,9 @@ void game_client_run ()
 	net_send_rdm_byte (conn, MSG_CS_GAMESTATEFEED_ACK);
 
 	while (1) {
+	    if (key[KEY_Q])
+		goto disconnect;
+
 	    size = net_receive_rdm (conn, buf, sizeof buf);
 	    if (size <= 0) {
 		yield ();
@@ -511,15 +512,16 @@ void game_client_run ()
 	while (1) {
 	    if (key[KEY_Q])
 		goto disconnect;
-    
-	    if (ticks != last_ticks) {
-		dbg ("perform simple physics");
-		perform_simple_physics ();
 
+	    if (ticks != last_ticks) {
 		dbg ("send gameinfo");
 		send_gameinfo_controls ();
-
-		last_ticks = ticks;
+	    }
+    
+	    while (ticks != last_ticks) {
+		dbg ("perform simple physics");
+		perform_simple_physics ();
+		last_ticks++;
 		redraw = 1;
 	    }
 
@@ -581,7 +583,9 @@ void game_client_run ()
 	    }
 
 	    if (local_object)
-		object_call (local_object, "client_update");
+		object_call (local_object, "_client_update_hook");
+
+	    map_destroy_stale_objects (map);
 
 	    if (update_camera ())
 		redraw = 1;

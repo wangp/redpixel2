@@ -179,6 +179,24 @@ generate {
 }
 
 generate {
+    cname	= "object_set_stale",
+    lname	= "object_destroy",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_set_collision_is_player",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_set_collision_flags_string",
+    lname	= "object_set_collision_flags",
+    args	= {{ Object, "obj" },
+		   { String, "flags" }}
+}
+
+generate {
     cname 	= "object_add_layer",
     args  	= {{ Object, "obj" },
                    { StoreKey, "image" },
@@ -204,6 +222,14 @@ generate {
 		   { Int, "layerid" },
 		   { Int, "xoffset" },
 		   { Int, "yoffset" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
+    cname	= "object_rotate_layer",
+    args	= {{ Object, "obj" },
+		   { Int, "layerid" },
+		   { Int, "angle" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -280,6 +306,15 @@ generate {
 generate {
     cname	= "object_remove_all_masks",
     args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "game_server_spawn_projectile",
+    lname	= "spawn_projectile",
+    args	= {{ String, "typename" },
+		   { Object, "owner" },
+		   { Float, "speed" }},
+    ret		= { Int, "ret", "$ < 0" }
 }
 
 print (reg)

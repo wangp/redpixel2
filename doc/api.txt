@@ -38,6 +38,13 @@ all type names start with a capital letter.
 	the function is being invoked on.
 
 
+- Type: Constructor
+
+	A special function that takes a table and creates some form
+	data from it.  By convertion, constructors begin with a
+	capital letter.
+
+
 - Function: store_load (String filename, String prefix)
 
 	Loads the datafile named by FILENAME, prefixing all the item
@@ -63,52 +70,149 @@ all type names start with a capital letter.
 	Returns the store index of item with key KEY, or nil on error.
 
 
-- Function: objtype_register (String type, String name, StoreKey icon, 
-				Nil | Method initfunc)
+- Constructor: Objtype
 
-	Registers a new object type.
+	Registers a new object type.  The table entries are as
+	follows:
 
-	- TYPE is used to categorise the type in the map editor.
-	Current types include: item, objtile, food, player.
+	- `type' (String): used to categorise the type in the map
+	editor.  Some current types include: item, objtile, food,
+	player.
 
-	- NAME is the name of the type.  This will be used for map
-	loading and saving purposes, so should not be changed unless
-	you really mean it.
+	- `name' (String): the name of the type.  This will be used
+	for map loading and saving purposes, so should not be changed
+	unless you really mean it.
 
-	- ICON points to a Store image item, which will be used to
-	represent the object in the map editor.  It will also be used
-	as the default object layer for instances of this object type.
-		
-	- INITFUNC will be invoked on new instances of this object type.
-	It may be `nil' if it is not necessary.
+	- `icon' (String): points to a Store image item, which will be
+	used to represent the object in the map editor.  It will also
+	be used as the default object layer for instances of this
+	object type.
 
-	Returns nil on error.
+	- `proxy_init' (Method): an initialiser method which be
+	invoked on new proxy instances of this object type.  This
+	entry is optional.
+
+	- `nonproxy_init' (Method): an initialiser method which be
+	invoked on new nonproxy instances of this object type.  This
+	entry is optional.
+
+
+- Constructor: Weapon
+
+	Registers a new weapon type.  The table entries are as
+	follows:
+
+	- `name' (String): the name of the weapon.  It will be used to
+	give player weapons, etc.
+
+	- `can_fire' (Function): this function takes a single
+	argument, which is the player holding the weapon to be fired.
+	It should return non-nil if firing is possible (e.g. enough
+	ammunition).
+
+	- `fire' (Function): this function takes a single argument,
+	which the the player holding the weapon to be fired.  It
+	should whatever is necessary for firing (e.g. spawn a
+	projectile) and set the player's `fire_delay' attribute.
+
+
+- Function: object_set_collision_is_player (Object object)
+
+	Internal function.  Marks OBJECT as a "player" for collision
+	detection purposes.  Returns nil on error.
+
 
 
 Objects have the following attributes, hooks and methods:
 
 
-- Attribute: is_proxy
+- Attribute: is_proxy	[RO]
 
-	True if the object is not a proxy object, but the real game
-	object residing on the game server.
+	True if the object is a proxy object, that is, not the real
+	object existing on the game server, but an approximation of it
+	residing on one of many clients.
 
 
-- Attribute: is_client
+- Attribute: is_local	[RO]
 
 	True if the object represents the local client's player.
 
 
-- Attribute: aim_angle
+- Attribute: x		[RO]
+- Attribute: y		[RO]
 
-	The angle at which the local player is aiming the mouse.  This
-	attribute only exists if `is_client' is true.
+	These give the x and y positions of the object.
 
 
-- Hook: client_update (Object self)
+- Attribute: xv		[RO]
+- Attribute: yv		[RO]
 
-	Called every game tick for the client's local player object.
-	This hook only functions if `is_client' is true.
+	These give the horizontal and vertical velocity of the object.
+	If `is_proxy' is false, these are the true velocities.  If
+	`is_proxy' is true, the vertical velocity is mixed in with the
+	object's mass.
+
+
+- Attribute: xv_decay	[R/W]
+- Attribute: yv_decay	[R/W]
+
+	Factor by which to change the object's `xv' and `yv'
+	attributes per tick.  By default they are both 1.0, meaning
+	objects will continue to move at constant speed.  Proxy
+	objects MUST have the same xv_decay and yv_decay values, else
+	simulation of the object movement on clients will be wrong.
+
+
+- Attribute: mass	[R/W]
+
+	This is the mass of the object, when combined with gravity
+	gives the speed at which the object will fall if unsupported.
+
+	This attribute only exists if `proxy' is false.
+
+
+- Attribute: _ramp	[INTERNAL]
+
+	This is used to control how far an object can be "ramped"
+	vertically when moving horizontally.
+
+
+- Attribute: aim_angle	[RO]
+
+	The angle at which the local player is aiming the mouse.  
+
+	This attribute only exists if `is_local' is true.
+
+
+- Attribute: fire_delay	[R/W]
+
+	The amount of time, in ticks, before the player may fire
+	again.  Each tick is 20 msec.  When fire_delay is zero or
+	below, the player may fire.
+
+
+- Hook: _client_update_hook (Object self)	[INTERNAL]
+
+	This is called once per tick for the local client's player
+	object.
+
+
+- Method: destroy (Object self)
+
+	This marks an object for destruction.
+
+
+- Method: set_collision_flags (Object self, String flags)
+
+	Tells the engine what objects SELF can collide with.  FLAGS is
+	a string containing the following lowercase letters:
+
+	    't' - self can collide with tiles
+	    'p' - self can collide with player objects
+	    'n' - self can collide with non-player objects
+
+	Other letters will be ignored.  By default, an object can
+	collide with everything.  Returns nil on error.
 
 
 - Method: add_layer (Object self, StoreKey image, Int xcentre, Int ycentre)
