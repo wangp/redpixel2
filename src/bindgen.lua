@@ -366,7 +366,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_object",
+    cname	= "svgame_spawn_object",
     lname	= "spawn_object",
     args	= {{ String, "typename" },
 		   { Float, "x" },
@@ -376,7 +376,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_projectile",
+    cname	= "svgame_spawn_projectile",
     lname	= "spawn_projectile",
     check	= "sun[nN-]",
     args	= {{ String, "typename" },
@@ -389,7 +389,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_blood",
+    cname	= "svgame_spawn_blood",
     lname	= "spawn_blood",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -398,7 +398,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_sparks",
+    cname	= "svgame_spawn_sparks",
     lname	= "spawn_sparks",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -407,7 +407,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_respawn_particles",
+    cname	= "svgame_spawn_respawn_particles",
     lname	= "spawn_respawn_particles",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -416,7 +416,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_blod",
+    cname	= "svgame_spawn_blod",
     lname	= "spawn_blod",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -424,7 +424,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_call_method_on_clients",
+    cname	= "svgame_call_method_on_clients",
     lname	= "call_method_on_clients",
     check	= "us[sN-]",
     args	= {{ Object, "obj" },
@@ -434,14 +434,14 @@ generate {
 }
 
 generate {
-    cname	= "game_server_object_would_collide_with_objects",
+    cname	= "svgame_object_would_collide_with_objects",
     lname	= "_internal_would_collide_with_objects",
     args	= {{ Object, "obj" }},
     ret		= { Int, "ret", "!$" }
 }
 
 generate {
-    cname	= "game_client_set_camera",
+    cname	= "client_set_camera",
     lname	= "_internal_set_camera",
     args	= {{ Int, "pushable" },	-- XXX should be Bool
 		   { Int, "max_dist" }}

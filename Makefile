@@ -5,17 +5,18 @@
 include config.linux
 
 SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
-	   src/gui src/ug src/editor
+	   src/gui src/ug src/editor src/server
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
 	  -I libnet/include -I lua-4.1-work3/include \
-	  $(addprefix -I,$(SRCDIRS)) -g
+	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+CFLAGS += -O2
+# -fomit-frame-pointer -funroll-loops
 else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
@@ -76,6 +77,14 @@ MODULES_EDITOR :=				\
 	modemgr					\
 	selbar
 
+MODULES_SERVER :=				\
+	server					\
+	svclient				\
+	svgame					\
+	svlobby					\
+	svstats					\
+	svticker
+
 MODULES_GAME :=					\
 	alloc					\
 	bindings				\
@@ -84,18 +93,18 @@ MODULES_GAME :=					\
 	bitmaskr				\
 	blod					\
 	camera					\
+	client					\
 	error					\
 	extdata					\
 	fps					\
 	gameinit				\
-	gameclt					\
-	gamesrv					\
 	getoptc					\
 	loaddata				\
 	main					\
 	map					\
 	mapfile					\
 	messages				\
+	mylibnet				\
 	mylua					\
 	object					\
 	objtypes				\
@@ -117,6 +126,7 @@ MODULES := 					\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\
+	$(MODULES_SERVER)			\
 	$(MODULES_GAME)
 
 OBJS := $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
