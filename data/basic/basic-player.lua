@@ -64,16 +64,6 @@ local player_nonproxy_init = function (self)
 	end
     end
 
-    -- update hook
-    self:set_update_hook (
-	1000/50,
-	function (self)
-	    if self.fire_delay > 0 then
-		self.fire_delay = self.fire_delay - 1
-	    end
-	end
-    )
-
     -- health stuff
     self.health = 100
     function self:receive_damage (damage)
@@ -91,6 +81,26 @@ local player_nonproxy_init = function (self)
 	    self:destroy ()
 	end
     end
+
+    -- update hook (fire delay and blood trails)
+    self.trail_tics = 0
+    self:set_update_hook (
+	1000/50,
+	function (self)
+	    if self.fire_delay > 0 then
+		self.fire_delay = self.fire_delay - 1
+	    end
+
+	    if self.health <= 20 then
+		if self.trail_tics > 0 then
+		    self.trail_tics = self.trail_tics - 1
+		else
+		    self.trail_tics = 50
+		    spawn_blood (self.x + cx, self.y + cx, 40, 2)
+		end
+	    end
+	end
+    )
 end
 
 
