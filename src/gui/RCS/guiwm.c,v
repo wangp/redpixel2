@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.09.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.19;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* guiwm.c
@@ -40,12 +45,12 @@ void gui_wm_set (gui_wm_t *wm)
     gui_wm = wm;
 }
 
-void gui_wm_init ()
+void gui_wm_init (void)
 {
     gui_wm->wm_init ();
 }
 
-void gui_wm_shutdown ()
+void gui_wm_shutdown (void)
 {
     gui_wm->wm_shutdown ();
 }
@@ -132,12 +137,14 @@ void gui_window_set_self (gui_window_t *w, void *self)
     gui_wm->window_set_self (w, self);
 }
 
-void gui_window_set_draw_proc (gui_window_t *w, void (*draw) (void *, struct BITMAP *))
+void gui_window_set_draw_proc (gui_window_t *w,
+			       void (*draw) (void *, struct BITMAP *))
 {
     gui_wm->window_set_draw_proc (w, draw);
 }
 
-void gui_window_set_event_proc (gui_window_t *w, void (*event) (void *, gui_event_t, int))
+void gui_window_set_event_proc (gui_window_t *w,
+				void (*event) (void *, gui_event_t, int))
 {
     gui_wm->window_set_event_proc (w, event);
 }
@@ -147,4 +154,24 @@ int gui_window_y (gui_window_t *w) { return gui_wm->window_y (w); }
 int gui_window_w (gui_window_t *w) { return gui_wm->window_w (w); }
 int gui_window_h (gui_window_t *w) { return gui_wm->window_h (w); }
 int gui_window_hidden (gui_window_t *w) { return gui_wm->window_hidden (w); }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d21 1
+a21 1
+void gui_wm_init ()
+d26 1
+a26 1
+void gui_wm_shutdown ()
+d113 2
+a114 1
+void gui_window_set_draw_proc (gui_window_t *w, void (*draw) (void *, struct BITMAP *))
+d119 2
+a120 1
+void gui_window_set_event_proc (gui_window_t *w, void (*event) (void *, gui_event_t, int))
 @

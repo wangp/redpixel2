@@ -36,7 +36,7 @@ static void display_switch_in_callback (void)
 }
 
 
-int gui_init ()
+int gui_init (void)
 {
     bmp = create_bitmap (SCREEN_W, SCREEN_H);
     if (!bmp)
@@ -50,7 +50,7 @@ int gui_init ()
     switch (get_display_switch_mode ()) {
 	case SWITCH_AMNESIA:
 	case SWITCH_BACKAMNESIA:
-	    set_display_switch_callback (SWITCH_IN, display_switch_in_callback);
+	set_display_switch_callback (SWITCH_IN, display_switch_in_callback);
     }
 
     gui_dirty_init ();
@@ -60,7 +60,7 @@ int gui_init ()
 }
 
 
-void gui_shutdown ()
+void gui_shutdown (void)
 {
     gui_wm_shutdown ();
     gui_dirty_shutdown ();
@@ -72,7 +72,7 @@ void gui_shutdown ()
 }
 
 
-static void update_screen ()
+static void update_screen (void)
 {
     if (force_reblit) {
 	scare_mouse ();
@@ -89,7 +89,7 @@ static void update_screen ()
 }
 
 
-void gui_main ()
+void gui_main (void)
 {
     int i;
     
@@ -121,7 +121,8 @@ void gui_main ()
 	gui_mouse_update();
 	
 	if (gui_mouse.dx || gui_mouse.dy) 
-	    gui_wm_event (GUI_EVENT_MOUSE_MOVE, (gui_mouse.dx << 16) | (gui_mouse.dy));
+	    gui_wm_event (GUI_EVENT_MOUSE_MOVE,
+			  (gui_mouse.dx << 16) | (gui_mouse.dy));
 	
 	if (gui_mouse.dz) 
 	    gui_wm_event (GUI_EVENT_MOUSE_WHEEL, gui_mouse.dz);
@@ -148,7 +149,7 @@ void gui_main ()
 }
 
 
-void gui_quit ()
+void gui_quit (void)
 {
     quit = 1;
 }

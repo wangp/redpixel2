@@ -18,12 +18,12 @@ void gui_wm_set (gui_wm_t *wm)
     gui_wm = wm;
 }
 
-void gui_wm_init ()
+void gui_wm_init (void)
 {
     gui_wm->wm_init ();
 }
 
-void gui_wm_shutdown ()
+void gui_wm_shutdown (void)
 {
     gui_wm->wm_shutdown ();
 }
@@ -110,12 +110,14 @@ void gui_window_set_self (gui_window_t *w, void *self)
     gui_wm->window_set_self (w, self);
 }
 
-void gui_window_set_draw_proc (gui_window_t *w, void (*draw) (void *, struct BITMAP *))
+void gui_window_set_draw_proc (gui_window_t *w,
+			       void (*draw) (void *, struct BITMAP *))
 {
     gui_wm->window_set_draw_proc (w, draw);
 }
 
-void gui_window_set_event_proc (gui_window_t *w, void (*event) (void *, gui_event_t, int))
+void gui_window_set_event_proc (gui_window_t *w,
+				void (*event) (void *, gui_event_t, int))
 {
     gui_wm->window_set_event_proc (w, event);
 }

@@ -11,7 +11,7 @@
 static int fg, mg, bg, textcol;
 
 
-static int theme_init ()
+static int theme_init (void)
 {
     fg = makecol (0xf0, 0xf0, 0xf0);
     mg = makecol (0xc0, 0xc0, 0xc0);
@@ -22,7 +22,7 @@ static int theme_init ()
 }
 
 
-static void theme_shutdown ()
+static void theme_shutdown (void)
 {
 }
 

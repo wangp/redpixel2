@@ -1,9 +1,19 @@
-head	1.20;
+head	1.22;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.22
+date	2002.01.24.07.19.13;	author tjaden;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	2002.01.23.15.00.29;	author tjaden;	state Exp;
+branches;
+next	1.20;
 
 1.20
 date	2002.01.23.14.09.37;	author tjaden;	state Exp;
@@ -110,9 +120,9 @@ desc
 @@
 
 
-1.20
+1.22
 log
-@Added particles for respawning ball.
+@Changes following cleanup of server and client sources.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -483,7 +493,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_object",
+    cname	= "svgame_spawn_object",
     lname	= "spawn_object",
     args	= {{ String, "typename" },
 		   { Float, "x" },
@@ -493,7 +503,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_projectile",
+    cname	= "svgame_spawn_projectile",
     lname	= "spawn_projectile",
     check	= "sun[nN-]",
     args	= {{ String, "typename" },
@@ -506,7 +516,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_blood",
+    cname	= "svgame_spawn_blood",
     lname	= "spawn_blood",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -515,7 +525,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_sparks",
+    cname	= "svgame_spawn_sparks",
     lname	= "spawn_sparks",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -524,7 +534,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_respawn_particles",
+    cname	= "svgame_spawn_respawn_particles",
     lname	= "spawn_respawn_particles",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -533,7 +543,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_spawn_blod",
+    cname	= "svgame_spawn_blod",
     lname	= "spawn_blod",
     args	= {{ Float, "x" },
 		   { Float, "y" },
@@ -541,7 +551,7 @@ generate {
 }
 
 generate {
-    cname	= "game_server_call_method_on_clients",
+    cname	= "svgame_call_method_on_clients",
     lname	= "call_method_on_clients",
     check	= "us[sN-]",
     args	= {{ Object, "obj" },
@@ -551,7 +561,14 @@ generate {
 }
 
 generate {
-    cname	= "game_client_set_camera",
+    cname	= "svgame_object_would_collide_with_objects",
+    lname	= "_internal_would_collide_with_objects",
+    args	= {{ Object, "obj" }},
+    ret		= { Int, "ret", "!$" }
+}
+
+generate {
+    cname	= "client_set_camera",
     lname	= "_internal_set_camera",
     args	= {{ Int, "pushable" },	-- XXX should be Bool
 		   { Int, "max_dist" }}
@@ -561,6 +578,50 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.21
+log
+@Added _internal_would_collide_with_objects().
+@
+text
+@d369 1
+a369 1
+    cname	= "game_server_spawn_object",
+d379 1
+a379 1
+    cname	= "game_server_spawn_projectile",
+d392 1
+a392 1
+    cname	= "game_server_spawn_blood",
+d401 1
+a401 1
+    cname	= "game_server_spawn_sparks",
+d410 1
+a410 1
+    cname	= "game_server_spawn_respawn_particles",
+d419 1
+a419 1
+    cname	= "game_server_spawn_blod",
+d427 1
+a427 1
+    cname	= "game_server_call_method_on_clients",
+d437 1
+a437 1
+    cname	= "game_server_object_would_collide_with_objects",
+d444 1
+a444 1
+    cname	= "game_client_set_camera",
+@
+
+
+1.20
+log
+@Added particles for respawning ball.
+@
+text
+@d437 7
 @
 
 

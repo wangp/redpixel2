@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.04.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* uglayout.c
@@ -31,7 +36,7 @@ text
 #include "ug.h"
 
 
-ug_dialog_layout_t *ug_dialog_layout_create ()
+ug_dialog_layout_t *ug_dialog_layout_create (void)
 {
     ug_dialog_layout_t *p, end = { UG_DIALOG_LAYOUT_END };
 
@@ -75,4 +80,15 @@ ug_dialog_layout_t *ug_dialog_layout_insert (ug_dialog_layout_t *p,
     
     return q;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+a12 1
+ug_dialog_layout_t *ug_dialog_layout_create ()
 @

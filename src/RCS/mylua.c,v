@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.22.13.03.59;	author tjaden;	state Exp;
@@ -30,9 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Seed lua random() function.
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* mylua.c
@@ -70,7 +75,7 @@ int mylua_open (int stacksize)
 }
 
 
-void mylua_close ()
+void mylua_close (void)
 {
     lua_close (lua_state);
 }
@@ -148,6 +153,17 @@ int lua_checkargs (lua_State *L, const char *argtypes)
 
     return 1;
 }
+@
+
+
+1.4
+log
+@Seed lua random() function.
+@
+text
+@d36 1
+a36 1
+void mylua_close ()
 @
 
 

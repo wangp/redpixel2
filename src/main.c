@@ -6,12 +6,12 @@
 
 #include <stdio.h>
 #include <allegro.h>
-#include <libnet.h>
+#include "libnet.h"
+#include "client.h"
 #include "editor.h"
 #include "gameinit.h"
-#include "gameclt.h"
-#include "gamesrv.h"
 #include "getoptc.h"
+#include "server.h"
 #include "sync.h"
 #include "textface.h"
 
@@ -70,7 +70,7 @@ static void setup_allegro (int w, int h, int d)
 }
 
 
-static void setup_minimal_allegro ()
+static void setup_minimal_allegro (void)
 {
     install_allegro (SYSTEM_NONE, &errno, atexit);
 
@@ -81,7 +81,7 @@ static void setup_minimal_allegro ()
 
 static void *server_thread (void *arg)
 {
-    game_server_run ();
+    server_run ();
     return NULL;
 }
 
@@ -155,19 +155,20 @@ int main (int argc, char *argv[])
     }
     
     if (run_parallel) {
-	if ((game_server_init (NULL, NET_DRIVER_LOCAL) < 0) ||
-	    (game_client_init (name, NET_DRIVER_LOCAL, "0") < 0)) {
-	    allegro_message ("Error initialising game server or client.  Perhaps another\n"
-			     "game server is already running on the same port?\n");
+	if ((server_init (NULL, NET_DRIVER_LOCAL) < 0) ||
+	    (client_init (name, NET_DRIVER_LOCAL, "0") < 0)) {
+	    allegro_message (
+		"Error initialising game server or client.  Perhaps another\n"
+		"game server is already running on the same port?\n");
 	} else {
-	    game_server_enable_single_hack ();
+	    server_enable_single_hack ();
 
 	    sync_init (server_thread);
-	    game_client_run ();
+	    client_run ();
 	    sync_shutdown ();
 
-	    game_client_shutdown ();
-	    game_server_shutdown ();
+	    client_shutdown ();
+	    server_shutdown ();
 
 	    allegro_errno = &errno;	/* errno is thread-specific */
 	}
@@ -175,24 +176,24 @@ int main (int argc, char *argv[])
     }
     
     if (run_server) {
-	if (game_server_init (&game_server_text_interface, INET_DRIVER) < 0) {
+	if (server_init (server_text_interface, INET_DRIVER) < 0) {
 	    allegro_message ("Error initialising game server.  Perhaps another\n"
 			     "game server is already running on the same port?\n");
 	} else {
 	    sync_init (NULL);
-	    game_server_run ();
+	    server_run ();
 	    sync_shutdown ();
-	    game_server_shutdown ();
+	    server_shutdown ();
 	}
 	goto end;
     }
 
     /* run client */
-    if (game_client_init (name, INET_DRIVER, addr) == 0) {
+    if (client_init (name, INET_DRIVER, addr) == 0) {
 	sync_init (NULL);
-	game_client_run ();
+	client_run ();
 	sync_shutdown ();
-	game_client_shutdown ();
+	client_shutdown ();
     }
 
   end:

@@ -5,7 +5,7 @@
 struct DATAFILE;
 
 
-void register_extended_datafile ();
+void register_extended_datafile (void);
 struct DATAFILE *load_extended_datafile (const char *filename);
 
 

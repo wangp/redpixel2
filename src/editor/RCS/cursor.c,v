@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.01.24.07.15.16;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.22.04.03.20;	author tjaden;	state Exp;
@@ -30,10 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Made cursor_set_magic_bitmap's hotx argument not need to be multiplied
-by three.
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* cursor.c
@@ -54,7 +58,7 @@ static BITMAP *dynamic_cursor;
 static BITMAP *dot_cursor;
 
 
-static void destroy_dynamic_cursor ()
+static void destroy_dynamic_cursor (void)
 {
     if (dynamic_cursor) {
 	destroy_bitmap (dynamic_cursor);
@@ -63,7 +67,7 @@ static void destroy_dynamic_cursor ()
 }
 
 
-int cursor_init ()
+int cursor_init (void)
 {
     dot_cursor = create_bitmap (1, 1);
     putpixel (dot_cursor, 0, 0, HIGHLIGHT);
@@ -72,7 +76,7 @@ int cursor_init ()
 }
 
 
-void cursor_shutdown ()
+void cursor_shutdown (void)
 {
     destroy_dynamic_cursor ();
     destroy_bitmap (dot_cursor);
@@ -110,18 +114,42 @@ void cursor_set_magic_bitmap (BITMAP *bmp, int hotx, int hoty)
 }
 
 
-void cursor_set_dot ()
+void cursor_set_dot (void)
 {
     change (dot_cursor, 0, 0);
     destroy_dynamic_cursor ();
 }
 
 
-void cursor_set_default ()
+void cursor_set_default (void)
 {
     change (0, 0, 0);
     destroy_dynamic_cursor ();
 }
+@
+
+
+1.4
+log
+@Made cursor_set_magic_bitmap's hotx argument not need to be multiplied
+by three.
+@
+text
+@d19 1
+a19 1
+static void destroy_dynamic_cursor ()
+d28 1
+a28 1
+int cursor_init ()
+d37 1
+a37 1
+void cursor_shutdown ()
+d75 1
+a75 1
+void cursor_set_dot ()
+d82 1
+a82 1
+void cursor_set_default ()
 @
 
 

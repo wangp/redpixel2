@@ -17,7 +17,7 @@ typedef unsigned long objid_t;
 
 /* Zero is reserved for objects which the server doesn't care about
  * and only exist on game clients (e.g. blods).  Before thinking about
- * using these, read the warnings in gameclt.c.  */
+ * using these, read the warnings in client.c.  */
 #define OBJID_CLIENT_PROCESSED	0
 
 /* Numbers less than OBJID_PLAYER_MAX are reserved for use by objects
@@ -25,8 +25,8 @@ typedef unsigned long objid_t;
 #define OBJID_PLAYER_MAX	1024
 
 
-int object_init ();
-void object_shutdown ();
+int object_init (void);
+void object_shutdown (void);
 
 
 object_t *object_create (const char *type_name);
@@ -138,6 +138,7 @@ void object_remove_all_masks (object_t *);
 /* Collisions.  */
 
 int object_supported (object_t *, struct map *);
+int object_collide_with_objects_raw (object_t *, int mask_num, struct map *, float x, float y);
 
 
 /* Ladder.  */

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.04.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* ugtheme.c
@@ -38,12 +43,12 @@ extern struct ug_theme ug_theme_motif;
 static struct ug_theme *theme = &ug_theme_thepaw;
 
 
-int ug_theme_init ()
+int ug_theme_init (void)
 {
     return theme->init ();
 }
 
-void ug_theme_shutdown ()
+void ug_theme_shutdown (void)
 {
     theme->shutdown ();
 }
@@ -113,4 +118,18 @@ FONT *ug_theme_font (int type)
 {
     return theme->font (type);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d19 1
+a19 1
+int ug_theme_init ()
+d24 1
+a24 1
+void ug_theme_shutdown ()
 @

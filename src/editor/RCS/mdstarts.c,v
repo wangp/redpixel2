@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.15.16;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.08;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* mdstarts.c
@@ -50,13 +55,13 @@ static int top, selected;
 
 /* Save / restore selectbar state.  */
  
-static void save_list ()
+static void save_list (void)
 {
     top = selectbar_top ();
     selected = selectbar_selected ();
 }
 
-static void restore_list ()
+static void restore_list (void)
 {
     selectbar_set_top (top);
     selectbar_set_selected (selected);
@@ -65,7 +70,7 @@ static void restore_list ()
 
 /* Mode manager callbacks.  */
 
-static void enter_mode ()
+static void enter_mode (void)
 {
     editarea_layer_activate ("starts");
     selectbar_set_list (list);
@@ -73,7 +78,7 @@ static void enter_mode ()
     restore_list ();
 } 
 
-static void leave_mode ()
+static void leave_mode (void)
 {
     save_list ();
     selectbar_set_list (0);
@@ -166,7 +171,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 /* Module init / shutdown.  */
 
-int mode_starts_init ()
+int mode_starts_init (void)
 {
     modemgr_register (&start_mode);
     editarea_layer_register ("starts", draw_layer, event_layer, DEPTH_STARTS);
@@ -180,9 +185,35 @@ int mode_starts_init ()
     return 0;
 }
 
-void mode_starts_shutdown ()
+void mode_starts_shutdown (void)
 {
     ed_select_list_destroy (list);
     destroy_bitmap (icon);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d31 1
+a31 1
+static void save_list ()
+d37 1
+a37 1
+static void restore_list ()
+d46 1
+a46 1
+static void enter_mode ()
+d54 1
+a54 1
+static void leave_mode ()
+d147 1
+a147 1
+int mode_starts_init ()
+d161 1
+a161 1
+void mode_starts_shutdown ()
 @

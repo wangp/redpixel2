@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.04.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* ugthmmot.c - Motif theme for UG
@@ -33,7 +38,7 @@ text
 static int fg, mg, bg, textcol;
 
 
-static int theme_init ()
+static int theme_init (void)
 {
     fg = makecol (0xf0, 0xf0, 0xf0);
     mg = makecol (0xc0, 0xc0, 0xc0);
@@ -44,7 +49,7 @@ static int theme_init ()
 }
 
 
-static void theme_shutdown ()
+static void theme_shutdown (void)
 {
 }
 
@@ -99,4 +104,18 @@ struct ug_theme ug_theme_motif = {
     theme_font,
     theme_text
 };
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d14 1
+a14 1
+static int theme_init ()
+d25 1
+a25 1
+static void theme_shutdown ()
 @

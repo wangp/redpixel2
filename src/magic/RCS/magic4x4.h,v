@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.07.12;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.28;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_magic4x4_h
@@ -32,9 +37,9 @@ text
 BITMAP *get_magic_bitmap_format(BITMAP *orig, PALETTE pal);
 BITMAP *unget_magic_bitmap_format(BITMAP *orig);
 
-void generate_magic_color_map();
-void free_magic_color_map ();
-void generate_magic_conversion_tables();
+void generate_magic_color_map(void);
+void free_magic_color_map(void);
+void generate_magic_conversion_tables(void);
 void blit_magic_format(BITMAP *bmp, BITMAP *dest, int w, int h);
 void set_magic_bitmap_brightness(BITMAP *bmp, int r, int g, int b);
 
@@ -80,4 +85,17 @@ void rotate_scaled_lit_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite, int x, i
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 3
+a15 3
+void generate_magic_color_map();
+void free_magic_color_map ();
+void generate_magic_conversion_tables();
 @

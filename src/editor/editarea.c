@@ -66,7 +66,8 @@ static void draw (void *p, BITMAP *bmp)
     blit_magic_format (magic, bmp, bmp->w, bmp->h);
 
     if (grid)
-	dot_grid (bmp, 0, 0, editarea_grid_x, editarea_grid_y, makecol (0x40, 0x60, 0x40));
+	dot_grid (bmp, 0, 0, editarea_grid_x, editarea_grid_y,
+		  makecol (0x40, 0x60, 0x40));
     rect (bmp, 0, 0, bmp->w - 1, bmp->h - 1, makecol (0x40, 0x40, 0x40));
 }
 
@@ -198,7 +199,8 @@ static void event (void *p, gui_event_t event, int d)
 
 void editarea_install (int x, int y, int w, int h)
 {
-    window = gui_window_create (x, y, w, h, GUI_HINT_NOFRAME | GUI_HINT_STEALFOCUS);
+    window = gui_window_create (x, y, w, h,
+				GUI_HINT_NOFRAME | GUI_HINT_STEALFOCUS);
     gui_window_set_depth (window, -1);
     gui_window_set_draw_proc (window, draw);
     gui_window_set_event_proc (window, event);
@@ -219,7 +221,7 @@ static void free_layer (struct layer *p)
 }
 
 
-void editarea_uninstall ()
+void editarea_uninstall (void)
 {
     list_free (layers, free_layer);
     destroy_bitmap (magic);
@@ -227,7 +229,7 @@ void editarea_uninstall ()
 }
 
 
-void editarea_reset_offset ()
+void editarea_reset_offset (void)
 {
     offsetx = offsety = 0;
     gui_window_dirty (window);
@@ -246,8 +248,10 @@ static void link_layer (struct layer *layer)
 }
 
 
-void editarea_layer_register (const char *name, void (*draw) (BITMAP *, int offx, int offy),
-			      int (*event) (int event, struct editarea_event *), int depth)
+void editarea_layer_register (const char *name,
+			      void (*draw) (BITMAP *, int offx, int offy),
+			      int (*event) (int event, struct editarea_event *),
+			      int depth)
 {
     struct layer *p = alloc (sizeof *p);
     

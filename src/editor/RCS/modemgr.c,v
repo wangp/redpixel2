@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.15.16;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.08;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* modemgr.c
@@ -33,21 +38,21 @@ text
 #include "modemgr.h"
 
 
-static void modebar_make ();
+static void modebar_make (void);
 
 
 static struct editmode **modes;
 static int num, current;
 
 
-void modemgr_init ()
+void modemgr_init (void)
 {
     modes = 0;
     num = 0;
     current = -1;
 }
 
-void modemgr_shutdown ()
+void modemgr_shutdown (void)
 {
     free (modes);
 }
@@ -101,14 +106,14 @@ void modebar_install (int x, int y, int w, int h)
 }
 
 
-void modebar_uninstall ()
+void modebar_uninstall (void)
 {
     ug_dialog_destroy (dialog);
     gui_window_destroy (window);
 }
 
 
-static void modebar_make ()
+static void modebar_make (void)
 {
     ug_dialog_layout_t *lay;
     int i;
@@ -147,4 +152,27 @@ static void slot (ug_widget_t *p, ug_signal_t signal, void *d)
 		break;
 	    }
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d14 1
+a14 1
+static void modebar_make ();
+d21 1
+a21 1
+void modemgr_init ()
+d28 1
+a28 1
+void modemgr_shutdown ()
+d82 1
+a82 1
+void modebar_uninstall ()
+d89 1
+a89 1
+static void modebar_make ()
 @

@@ -55,14 +55,14 @@ static void destroy (bitmask_ref_t *ref)
 }
 
 
-int bitmask_ref_init ()
+int bitmask_ref_init (void)
 {
     list_init (ref_list);
     return 0;
 }
 
 
-void bitmask_ref_shutdown ()
+void bitmask_ref_shutdown (void)
 {
     list_free (ref_list, destroy);
 }

@@ -1,1 +1,1 @@
-void yield ();
+void yield (void);

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.04.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_ugtheme_h
@@ -32,8 +37,8 @@ text
 
 
 struct ug_theme {
-    int (*init) ();
-    void (*shutdown) ();
+    int (*init) (void);
+    void (*shutdown) (void);
     
     void (*tile) (struct BITMAP *, int, int, int, int, int);
     void (*bevel) (struct BITMAP *, int, int, int, int, int);
@@ -43,8 +48,8 @@ struct ug_theme {
 };
 
     
-int ug_theme_init ();
-void ug_theme_shutdown ();
+int ug_theme_init (void);
+void ug_theme_shutdown (void);
 
 void ug_theme_tile (struct BITMAP *, int x, int y, int w, int h, int type);
 void ug_theme_bevel (struct BITMAP *, int x, int y, int w, int h, int invert);
@@ -55,4 +60,20 @@ struct FONT *ug_theme_font (int type);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 2
+a14 2
+    int (*init) ();
+    void (*shutdown) ();
+d24 2
+a25 2
+int ug_theme_init ();
+void ug_theme_shutdown ();
 @

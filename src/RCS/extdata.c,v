@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* extdata.c
@@ -61,7 +66,7 @@ static void callback (DATAFILE *d)
 }
 
 
-void register_extended_datafile ()
+void register_extended_datafile (void)
 {
     register_datafile_object (DAT_MASK, NULL, (void (*)(void *)) bitmask_destroy);
 }
@@ -71,4 +76,15 @@ DATAFILE *load_extended_datafile (const char *filename)
 {
     return load_datafile_callback (filename, callback);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d42 1
+a42 1
+void register_extended_datafile ()
 @

@@ -12,7 +12,7 @@
 struct gui_mouse_state gui_mouse;
 
 
-void gui_mouse_update ()
+void gui_mouse_update (void)
 {
     int i, mb;
     
@@ -42,7 +42,7 @@ void gui_mouse_restrict (gui_window_t *w)
 }
 
 
-void gui_mouse_unrestrict ()
+void gui_mouse_unrestrict (void)
 {
     set_mouse_range (0, 0, SCREEN_W - 1, SCREEN_H - 1);
 }

@@ -87,10 +87,22 @@ enum {
     MSG_SC_LOBBY = 'l',
 
 
-    /* The server broadcasts this to clients to tell them to display a
-       text message.  */
+    /* The client sends this to the server to request sending a text
+       message to all clients.
 
-    MSG_SC_TEXT = 't',
+       Args: long len, byte text[].
+    */
+
+    MSG_CS_TEXT = 't',
+    
+
+    /* The server broadcasts this to clients to tell them to display a
+       text message.
+
+       Args: long len, byte text[].
+    */
+
+    MSG_SC_TEXT = 'T',
 
 
     /* The client sends this to the server to initiate the ping
@@ -156,15 +168,7 @@ enum {
        Args: long len, byte weapon_name[].
      */
 
-    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w',
-
-
-    /* Tell server to broadcast text message to all clients.
-
-       Args: long len, char text[].
-     */
-
-    MSG_CS_GAMEINFO_TEXT = 't'
+    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w'
 };
 
 
@@ -252,15 +256,7 @@ enum {
        Args: float x, float y, long nparticles.
      */
 
-    MSG_SC_GAMEINFO_BLOD_CREATE = 'B',
-
-
-    /* Tell clients to display a text message.
-
-       Args: long len, byte text[].
-     */
-
-    MSG_SC_GAMEINFO_TEXT = 't',
+    MSG_SC_GAMEINFO_BLOD_CREATE = 'B'
 };
 
 

@@ -1,9 +1,19 @@
-head	1.10;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2002.01.24.07.12.57;	author tjaden;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2002.01.23.15.00.22;	author tjaden;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2002.01.23.14.09.19;	author tjaden;	state Exp;
@@ -60,18 +70,42 @@ desc
 @@
 
 
-1.10
+1.12
 log
-@Added particles for respawning ball.
+@Overhauled the server code and split into multiple files.
 @
 text
-@#ifndef __included_gamesrv_h
+@#ifndef __included_server_h
+#define __included_server_h
+
+
+struct server_interface;
+
+
+int server_init (struct server_interface *, int net_driver);
+void server_enable_single_hack (void);
+void server_run (void);
+void server_shutdown (void);
+
+
+#endif
+@
+
+
+1.11
+log
+@Added _internal_would_collide_with_objects().
+@
+text
+@d1 2
+a2 2
+#ifndef __included_gamesrv_h
 #define __included_gamesrv_h
-
-
+d5 1
+a5 1
 struct object;
-
-
+d8 4
+a11 23
 typedef struct {
     void(*init) ();
     void (*shutdown) ();
@@ -94,9 +128,16 @@ void game_server_spawn_sparks (float x, float y, long nparticles, float spread);
 void game_server_spawn_respawn_particles (float x, float y, long nparticles, float spread);
 void game_server_spawn_blod (float x, float y, long nparticles);
 void game_server_call_method_on_clients (struct object *, const char *method, const char *arg);
+int game_server_object_would_collide_with_objects (struct object *);
+@
 
 
-#endif
+1.10
+log
+@Added particles for respawning ball.
+@
+text
+@d30 1
 @
 
 

@@ -1,9 +1,19 @@
-head	1.9;
+head	1.11;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.11
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2002.01.23.15.00.42;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.01.21.00.19.17;	author tjaden;	state Exp;
@@ -55,10 +65,9 @@ desc
 @@
 
 
-1.9
+1.11
 log
-@Allowed object_call() to take an nargs argument.  The arguments should
-be already be pushed on the lua stack.
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_object_h
@@ -80,7 +89,7 @@ typedef unsigned long objid_t;
 
 /* Zero is reserved for objects which the server doesn't care about
  * and only exist on game clients (e.g. blods).  Before thinking about
- * using these, read the warnings in gameclt.c.  */
+ * using these, read the warnings in client.c.  */
 #define OBJID_CLIENT_PROCESSED	0
 
 /* Numbers less than OBJID_PLAYER_MAX are reserved for use by objects
@@ -88,8 +97,8 @@ typedef unsigned long objid_t;
 #define OBJID_PLAYER_MAX	1024
 
 
-int object_init ();
-void object_shutdown ();
+int object_init (void);
+void object_shutdown (void);
 
 
 object_t *object_create (const char *type_name);
@@ -201,6 +210,7 @@ void object_remove_all_masks (object_t *);
 /* Collisions.  */
 
 int object_supported (object_t *, struct map *);
+int object_collide_with_objects_raw (object_t *, int mask_num, struct map *, float x, float y);
 
 
 /* Ladder.  */
@@ -247,6 +257,31 @@ void object_bounding_box (object_t *, int *rx1, int *ry1, int *rx2, int *ry2);
 
 
 #endif
+@
+
+
+1.10
+log
+@Added _internal_would_collide_with_objects().
+@
+text
+@d20 1
+a20 1
+ * using these, read the warnings in gameclt.c.  */
+d28 2
+a29 2
+int object_init ();
+void object_shutdown ();
+@
+
+
+1.9
+log
+@Allowed object_call() to take an nargs argument.  The arguments should
+be already be pushed on the lua stack.
+@
+text
+@d141 1
 @
 
 

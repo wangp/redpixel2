@@ -1,5 +1,3 @@
-/* XXX: Replace this with Allegro once it is fixed up.  */
-
 /* yield.c - yield a timeslice
  *
  * Peter Wang <tjaden@users.sourceforge.net>
@@ -11,9 +9,12 @@
 #include "yield.h"
 
 
-void yield ()
+void yield (void)
 {
 #ifdef ALLEGRO_UNIX
+
+    /* Under Unix we use select() instead of the sched_yield() that
+     * Allegro uses for a stronger effect.  */
     
     struct timeval tv;
     tv.tv_sec = 0;

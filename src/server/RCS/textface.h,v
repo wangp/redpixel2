@@ -1,0 +1,50 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	2002.01.24.07.12.57;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Changes following server code overhaul.
+@
+text
+@#ifndef __included_textface_h
+#define __included_textface_h
+
+
+extern struct server_interface *server_text_interface;
+
+
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 1
+a5 4
+#include "gamesrv.h"
+
+
+extern game_server_interface_t game_server_text_interface;
+@

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* fps.c
@@ -32,7 +37,7 @@ text
 
 volatile int frames, fps;
 
-static void fps_ticker ()
+static void fps_ticker (void)
 {
     fps = frames;
     frames = 0;
@@ -41,7 +46,7 @@ static void fps_ticker ()
 END_OF_STATIC_FUNCTION (fps_ticker);
 
 
-void fps_init ()
+void fps_init (void)
 {
     LOCK_VARIABLE (frames);
     LOCK_VARIABLE (fps);
@@ -52,8 +57,25 @@ void fps_init ()
 }
 
 
-void fps_shutdown ()
+void fps_shutdown (void)
 {
     remove_int (fps_ticker);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 1
+a13 1
+static void fps_ticker ()
+d22 1
+a22 1
+void fps_init ()
+d33 1
+a33 1
+void fps_shutdown ()
 @

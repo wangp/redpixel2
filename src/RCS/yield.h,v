@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,10 +20,21 @@ desc
 @@
 
 
+1.2
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@void yield (void);
+@
+
+
 1.1
 log
 @Initial revision
 @
 text
-@void yield ();
+@d1 1
+a1 1
+void yield ();
 @

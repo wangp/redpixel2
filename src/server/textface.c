@@ -4,16 +4,13 @@
  */
 
 
-/* XXX this module is extremely ASCII right now.  Should probably make
-   it do Unicode <-> ASCII conversions.  */
-
-
 #include <ctype.h>
 #include <curses.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
-#include "gamesrv.h"
+#include "server.h"
+#include "svintern.h"
 #include "textface.h"
 
 
@@ -23,7 +20,7 @@ int __stdcall FreeConsole (void);
 #endif
 
 
-static void refresh_all ();
+static void refresh_all (void);
 
 
 #define CTRL(k)		(k - 'A' + 1)
@@ -52,7 +49,7 @@ struct logline {
 static struct logline loglines[MAXLOGLINES];
 static int nloglines;
 
-static void repaint_loglines ()
+static void repaint_loglines (void)
 {
     int h = LAST_LOG_ROW, y, i;
     
@@ -91,13 +88,13 @@ static void add_logline (const char *prefix, const char *text)
     refresh_all ();
 }
 
-static void init_loglines ()
+static void init_loglines (void)
 {
     memset (loglines, 0, MAXLOGLINES * (sizeof (struct logline)));
     nloglines = 0;
 }
 
-static void end_loglines ()
+static void end_loglines (void)
 {
     int i;
 
@@ -114,7 +111,7 @@ static void end_loglines ()
 
 static char status_line[128];
 
-static void repaint_status ()
+static void repaint_status (void)
 {
     bkgdset (COLOR_PAIR (PAIR_STATUS));
     mvaddstr (STATUS_ROW, 0,
@@ -123,12 +120,12 @@ static void repaint_status ()
     bkgdset (A_NORMAL);
 }
 
-static void init_status ()
+static void init_status (void)
 {
     status_line[0] = 0;
 }
 
-static void end_status ()
+static void end_status (void)
 {
 }
 
@@ -152,12 +149,12 @@ static char save_input[1024];
 static char input[1024];
 static int left, pos;
 
-static void move_to_input_cursor ()
+static void move_to_input_cursor (void)
 {
     move (INPUT_ROW, 2 + pos - left);
 }
 
-static void repaint_input ()
+static void repaint_input (void)
 {
     int width = COLS-2;
     int margin = (width > 10) ? 10 : 0;
@@ -175,14 +172,14 @@ static void repaint_input ()
     clrtoeol ();
 }
 
-static void refresh_input ()
+static void refresh_input (void)
 {
     repaint_input ();
     move_to_input_cursor ();
     refresh ();
 }
 
-static const char *poll_input ()
+static const char *poll_input (void)
 {
     int c = getch ();
 
@@ -264,14 +261,14 @@ static const char *poll_input ()
     return NULL;
 }
 
-static void init_input ()
+static void init_input (void)
 {
     memset (input, 0, sizeof input);
     left = 0;
     pos = 0;
 }
 
-static void end_input ()
+static void end_input (void)
 {
 }
 
@@ -291,7 +288,7 @@ static void sigwinch_handler (int num)
 }
 #endif
 
-static void refresh_all ()
+static void refresh_all (void)
 {
     repaint_loglines ();
     repaint_status ();
@@ -300,7 +297,7 @@ static void refresh_all ()
     refresh ();
 }
 
-static void init_curses ()
+static void init_curses (void)
 {
     initscr ();
     keypad (stdscr, TRUE);
@@ -321,7 +318,7 @@ static void init_curses ()
 #endif
 }
 
-static void end_curses ()
+static void end_curses (void)
 {
 #ifdef SIGWINCH
     signal (SIGWINCH, old_sigwinch_handler);
@@ -332,7 +329,7 @@ static void end_curses ()
 
 /* External interface.  */
 
-static void textface_init ()
+static void textface_init (void)
 {
 #ifdef TARGET_WINDOWS
     AllocConsole ();
@@ -345,7 +342,7 @@ static void textface_init ()
     refresh_all ();
 }
 
-static void textface_shutdown ()
+static void textface_shutdown (void)
 {
     end_input ();
     end_status ();
@@ -366,15 +363,17 @@ static void textface_set_status (const char *text)
     set_status (text);
 }
 
-static const char *textface_poll ()
+static const char *textface_poll (void)
 {
     return poll_input ();
 }
 
-game_server_interface_t game_server_text_interface = {
+static server_interface_t the_interface = {
     textface_init,
     textface_shutdown,
     textface_add_log,
     textface_set_status,
     textface_poll
 };
+
+server_interface_t *server_text_interface = &the_interface;

@@ -1,9 +1,19 @@
-head	1.1;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.24.15.33.42;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +25,9 @@ desc
 @@
 
 
-1.1
+1.3
 log
-@Initial revision
+@Added client sending text messages.
 @
 text
 @#ifndef __included_messages_h
@@ -27,12 +37,37 @@ text
 struct BITMAP;
 
 
-int messages_init ();
-void messages_shutdown ();
+int messages_init (void);
+void messages_shutdown (void);
 void messages_render (struct BITMAP *);
 void messages_add (const char *fmt, ...);
-void messages_poll_input ();
+void messages_poll_input (void);
+int messages_grabbed_keyboard (void);
 
 
 #endif
+@
+
+
+1.2
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d13 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 2
+a9 2
+int messages_init ();
+void messages_shutdown ();
+d12 1
+a12 1
+void messages_poll_input ();
 @

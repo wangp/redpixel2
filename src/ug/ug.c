@@ -11,7 +11,7 @@
 static int count;
 
 
-int ug_init ()
+int ug_init (void)
 {
     if (!count) {
 	if (ug_theme_init () < 0)
@@ -23,7 +23,7 @@ int ug_init ()
 }
 
 
-void ug_shutdown ()
+void ug_shutdown (void)
 {
     if (--count < 1) 
 	ug_theme_shutdown ();

@@ -10,9 +10,9 @@
 BITMAP *get_magic_bitmap_format(BITMAP *orig, PALETTE pal);
 BITMAP *unget_magic_bitmap_format(BITMAP *orig);
 
-void generate_magic_color_map();
-void free_magic_color_map ();
-void generate_magic_conversion_tables();
+void generate_magic_color_map(void);
+void free_magic_color_map(void);
+void generate_magic_conversion_tables(void);
 void blit_magic_format(BITMAP *bmp, BITMAP *dest, int w, int h);
 void set_magic_bitmap_brightness(BITMAP *bmp, int r, int g, int b);
 

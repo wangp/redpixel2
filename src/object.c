@@ -141,7 +141,7 @@ static lua_ref_t object_eventtable;
  */
 
 
-int object_init ()
+int object_init (void)
 {
     next_id = OBJID_PLAYER_MAX;
 
@@ -156,7 +156,7 @@ int object_init ()
 }
 
 
-void object_shutdown ()
+void object_shutdown (void)
 {
     lua_unref (lua_state, object_eventtable);
 }
@@ -1049,6 +1049,20 @@ int object_supported (object_t *obj, map_t *map)
 {
     return obj->ladder_state
 	|| check_collision (obj, OBJECT_MASK_BOTTOM, map, obj->x, obj->y+1);
+}
+
+
+int object_collide_with_objects_raw (object_t *obj, int mask_num, map_t *map,
+				     float x, float y)
+{
+    int save = obj->is_hidden;
+    int ret;
+    
+    obj->is_hidden = 0;
+    ret = check_collision_with_objects (obj, OBJECT_MASK_MAIN, map, obj->x, obj->y);
+    obj->is_hidden = save;
+
+    return ret;
 }
 
 

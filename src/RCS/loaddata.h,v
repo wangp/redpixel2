@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,25 +20,45 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_loaddata_h
 #define __included_loaddata_h
 
 
-int tiles_init ();
+int tiles_init (void);
 int tiles_load (const char *filename, const char *prefix);
-void tiles_shutdown ();
+void tiles_shutdown (void);
 void tiles_enumerate (void (*proc) (const char *prefix, int id));
 
-int lights_init ();
+int lights_init (void);
 int lights_load (const char *filename, const char *prefix);
-void lights_shutdown ();
+void lights_shutdown (void);
 void lights_enumerate (void (*proc) (const char *prefix, int id));
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 1
+a5 1
+int tiles_init ();
+d7 1
+a7 1
+void tiles_shutdown ();
+d10 1
+a10 1
+int lights_init ();
+d12 1
+a12 1
+void lights_shutdown ();
 @

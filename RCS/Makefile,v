@@ -1,9 +1,15 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.7; strict;
 comment	@# @;
 
+
+1.7
+date	2002.01.24.07.19.44;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.01.23.03.53.39;	author tjaden;	state Exp;
@@ -40,9 +46,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Added spark particles.
+@Changes following cleanup of server and client sources.
 @
 text
 @##
@@ -52,17 +58,18 @@ text
 include config.linux
 
 SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
-	   src/gui src/ug src/editor
+	   src/gui src/ug src/editor src/server
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
 	  -I libnet/include -I lua-4.1-work3/include \
-	  $(addprefix -I,$(SRCDIRS)) -g
+	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+CFLAGS += -O2
+# -fomit-frame-pointer -funroll-loops
 else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
@@ -123,6 +130,14 @@ MODULES_EDITOR :=				\
 	modemgr					\
 	selbar
 
+MODULES_SERVER :=				\
+	server					\
+	svclient				\
+	svgame					\
+	svlobby					\
+	svstats					\
+	svticker
+
 MODULES_GAME :=					\
 	alloc					\
 	bindings				\
@@ -131,18 +146,18 @@ MODULES_GAME :=					\
 	bitmaskr				\
 	blod					\
 	camera					\
+	client					\
 	error					\
 	extdata					\
 	fps					\
 	gameinit				\
-	gameclt					\
-	gamesrv					\
 	getoptc					\
 	loaddata				\
 	main					\
 	map					\
 	mapfile					\
 	messages				\
+	mylibnet				\
 	mylua					\
 	object					\
 	objtypes				\
@@ -164,6 +179,7 @@ MODULES := 					\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\
+	$(MODULES_SERVER)			\
 	$(MODULES_GAME)
 
 OBJS := $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
@@ -257,6 +273,30 @@ suidroot:
 ##
 ## End of Makefile
 ##
+@
+
+
+1.6
+log
+@Added spark particles.
+@
+text
+@d8 1
+a8 1
+	   src/gui src/ug src/editor
+d13 1
+a13 1
+	  $(addprefix -I,$(SRCDIRS)) -g
+d18 2
+a19 1
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops
+d80 8
+d96 1
+a100 2
+	gameclt					\
+	gamesrv					\
+d107 1
+d129 1
 @
 
 

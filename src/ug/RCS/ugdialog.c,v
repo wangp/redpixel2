@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.04.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* ugdialog.c
@@ -51,7 +56,7 @@ struct ug_dialog {
 #define is_real_widget(x)	(x != 0)
 
 
-static ug_dialog_t *create_dialog ()
+static ug_dialog_t *create_dialog (void)
 {
     ug_dialog_t *d = malloc (sizeof *d);
     if (d) memset (d, 0, sizeof *d);
@@ -389,4 +394,15 @@ ug_widget_t *ug_dialog_widget (ug_dialog_t *d, char *id)
 
     return 0;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d32 1
+a32 1
+static ug_dialog_t *create_dialog ()
 @

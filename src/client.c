@@ -1,4 +1,4 @@
-/* gameclt.c
+/* client.c
  *
  * Peter Wang <tjaden@users.sourceforge.net>
  */
@@ -6,17 +6,18 @@
 
 #include <math.h>
 #include <allegro.h>
-#include <libnet.h>
+#include "libnet.h"
 #include "blod.h"
 #include "camera.h"
+#include "client.h"
 #include "error.h"
 #include "fps.h"
-#include "gameclt.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "mapfile.h"
 #include "messages.h"
+#include "mylibnet.h"
 #include "netmsg.h"
 #include "object.h"
 #include "packet.h"
@@ -71,14 +72,54 @@ static int last_controls;
 static float aim_angle;
 static float last_aim_angle;
 
-/* misc */
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Display switch callbacks
+ *----------------------------------------------------------------------
+ */
+
+
 static int backgrounded;
 
 
-/*----------------------------------------------------------------------*/
+static void switch_in_callback (void)
+{
+    backgrounded = 0;
+}
 
 
-/* keep in sync with gamesrv.c */
+static void switch_out_callback (void)
+{
+    backgrounded = 1;
+}
+
+
+static void display_switch_init (void)
+{
+    set_display_switch_callback (SWITCH_IN, switch_in_callback);
+    set_display_switch_callback (SWITCH_OUT, switch_out_callback);
+    backgrounded = 0;
+}
+
+
+static void display_switch_shutdown (void)
+{
+    remove_display_switch_callback (switch_out_callback);
+    remove_display_switch_callback (switch_in_callback);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Tick counter
+ *----------------------------------------------------------------------
+ */
+
+
+/* keep in sync with server */
 #define TICKS_PER_SECOND	(50)
 #define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
 
@@ -86,7 +127,7 @@ static int backgrounded;
 static volatile ulong_t ticks;
 
 
-static void ticker ()
+static void ticker (void)
 {
     ticks++;
 }
@@ -94,7 +135,7 @@ static void ticker ()
 END_OF_STATIC_FUNCTION (ticker);
 
 
-static void ticks_init ()
+static void ticks_init (void)
 {
     LOCK_VARIABLE (ticks);
     LOCK_FUNCTION (ticker);
@@ -103,35 +144,18 @@ static void ticks_init ()
 }
 
 
-static void ticks_shutdown ()
+static void ticks_shutdown (void)
 {
     remove_int (ticker);
 }
 
 
-/*----------------------------------------------------------------------*/
 
-
-static int net_send_rdm_byte (NET_CONN *conn, uchar_t c)
-{
-    return net_send_rdm (conn, &c, 1);
-}
-
-
-static int net_send_rdm_encode (NET_CONN *conn, const char *fmt, ...)
-{
-    va_list ap;
-    uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-    size_t size;
-
-    va_start (ap, fmt);
-    size = packet_encode_v (buf, fmt, ap);
-    va_end (ap);
-    return net_send_rdm (conn, buf, size);
-}
-
-
-/*----------------------------------------------------------------------*/
+/*
+ *----------------------------------------------------------------------
+ *	Perform simple physics (simulation)
+ *----------------------------------------------------------------------
+ */
 
 
 static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
@@ -168,7 +192,12 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
 }
 
 
-/*----------------------------------------------------------------------*/
+
+/*
+ *----------------------------------------------------------------------
+ *	Poll object update hooks
+ *----------------------------------------------------------------------
+ */
 
 
 static void poll_update_hooks (int elapsed_msecs)
@@ -186,19 +215,27 @@ static void poll_update_hooks (int elapsed_msecs)
 }
 
 
-/*----------------------------------------------------------------------*/
+
+/*
+ *----------------------------------------------------------------------
+ *	Send input controls to server
+ *----------------------------------------------------------------------
+ */
 
 
-static void send_gameinfo_controls ()
+static void send_gameinfo_controls (void)
 {
     int controls = 0;
     int update = 0;
 
-    if (key[KEY_A]) controls |= CONTROL_LEFT;
-    if (key[KEY_D]) controls |= CONTROL_RIGHT;
-    if (key[KEY_W]) controls |= CONTROL_UP;
-    if (key[KEY_S]) controls |= CONTROL_DOWN;
-    if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
+    if (!messages_grabbed_keyboard ()) {
+	if (key[KEY_A]) controls |= CONTROL_LEFT;
+	if (key[KEY_D]) controls |= CONTROL_RIGHT;
+	if (key[KEY_W]) controls |= CONTROL_UP;
+	if (key[KEY_S]) controls |= CONTROL_DOWN;
+	if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
+    }
+    
     if (mouse_b & 1) controls |= CONTROL_FIRE;
 
     if (controls != last_controls)
@@ -223,11 +260,15 @@ static void send_gameinfo_controls ()
 }
 
 
-static void send_gameinfo_weapon_switch () /* XXX stuff in the same packet as _CONTROLS? */
+/* XXX stuff in the same packet as _CONTROLS? */
+static void send_gameinfo_weapon_switch (void)
 {
     static int last_key[10] = {0,0,0,0,0,0,0,0,0,0};
     lua_State *L = lua_state;
     int i;
+
+    if (messages_grabbed_keyboard ())
+	return;
 
     for (i = 0; i < 10; i++) {
 	int K = KEY_1 + i;
@@ -252,7 +293,231 @@ static void send_gameinfo_weapon_switch () /* XXX stuff in the same packet as _C
 }
 
 
-/*----------------------------------------------------------------------*/
+
+/*
+ *----------------------------------------------------------------------
+ *	Process server-to-client gameinfo packets
+ *----------------------------------------------------------------------
+ */
+
+
+#define SC_GAMEINFO_HANDLER(NAME)	\
+static const uchar_t *NAME (const uchar_t *buf)
+
+
+SC_GAMEINFO_HANDLER (sc_mapload)
+{
+    char filename[NETWORK_MAX_PACKET_SIZE];
+    long len;
+    
+    buf += packet_decode (buf, "s", &len, filename);
+    if (map)
+	map_destroy (map);
+    map = map_load (filename, 1, NULL);
+    
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_object_create)
+{
+    lua_State *L = lua_state;
+    int top = lua_gettop (L);
+    
+    char type[NETWORK_MAX_PACKET_SIZE];
+    long len;
+    objid_t id;
+    char hidden;
+    float x, y;
+    float xv, yv;
+    int ctag;
+    object_t *obj;
+    const char *realtype;
+
+    /* decode the start of the packet */
+    buf += packet_decode (buf, "slcffffc", &len, type, &id, &hidden,
+			  &x, &y, &xv, &yv, &ctag);
+
+    /* look up the object type alias */
+    lua_getglobal (L, "reverse_object_alias");
+    lua_pushstring (L, type);
+    lua_rawget (L, -2);
+    if (lua_isstring (L, -1))
+	realtype = lua_tostring (L, -1);
+    else
+	realtype = type;
+
+    /* create proxy object */
+    obj = object_create_proxy (realtype, id);
+    if (!obj)
+	error ("error: unable to create a proxy object (unknown type?)");
+    if (hidden)
+	object_hide (obj);
+    else
+	object_show (obj);
+    object_set_auth_info (obj, ticks - lag, x, y, xv, yv, 0, 0);
+    object_set_xy (obj, x, y);
+    object_set_collision_tag (obj, ctag);
+    if (id == client_id) {
+	tracked_object = local_object = obj;
+	object_set_number (obj, "is_local", 1);
+    }
+
+    /* decode optional extra fields */
+    {
+	char type;
+	char name[NETWORK_MAX_PACKET_SIZE];
+	long len;
+	float f;
+		    
+	do {
+	    buf += packet_decode (buf, "c", &type);
+	    if (type == 'f') {
+		buf += packet_decode (buf, "sf", &len, name, &f);
+		object_set_number (obj, name, f);
+	    }
+	    else if (type) {
+		error ("error: unknown field type in object "
+		       "creation packet (client)\n");
+	    }
+	} while (type);
+    }
+
+    /* link and init */
+    map_link_object (map, obj);
+    object_run_init_func (obj);
+
+    /* hack to get the camera to track a player's corpse */
+    if (object_get_number (obj, "_internal_stalk_me") == client_id)
+	tracked_object = obj;
+
+    lua_settop (L, top);
+
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_object_destroy)
+{
+    objid_t id;
+    object_t *obj;
+
+    buf += packet_decode (buf, "l", &id);
+    if ((obj = map_find_object (map, id))) {
+	object_set_stale (obj);
+	if (obj == local_object)
+	    local_object = NULL;
+	if (obj == tracked_object)
+	    tracked_object = NULL;
+    }
+
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_object_update)
+{
+    objid_t id;
+    float x, y;
+    float xv, yv;
+    float xa, ya;
+    object_t *obj;
+
+    buf += packet_decode (buf, "lffffff", &id, &x, &y, &xv, &yv, &xa, &ya);
+    if ((obj = map_find_object (map, id)))
+	object_set_auth_info (obj, ticks - lag, x, y, xv, yv, xa, ya);
+
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_object_hidden)
+{
+    objid_t id;
+    char hidden;
+    object_t *obj;
+
+    buf += packet_decode (buf, "lc", &id, &hidden);
+    if ((obj = map_find_object (map, id))) {
+	if (hidden)
+	    object_hide (obj);
+	else
+	    object_show (obj);
+    }
+
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_object_call)
+{
+    long id;
+    long method_len;
+    char method[NETWORK_MAX_PACKET_SIZE];
+    long arg_len;
+    char arg[NETWORK_MAX_PACKET_SIZE];
+    object_t *obj;
+		
+    buf += packet_decode (buf, "lss", &id, &method_len, method, &arg_len, arg);
+    if ((obj = map_find_object (map, id))) {
+	lua_pushstring (lua_state, arg);
+	object_call (obj, method, 1);
+    }
+
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_client_aim_angle)
+{
+    long id;
+    float angle;
+    object_t *obj;
+
+    buf += packet_decode (buf, "lf", &id, &angle);
+    if ((id != client_id) && (obj = map_find_object (map, id)))
+	object_set_number (obj, "aim_angle", angle);
+
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_particles_create)
+{
+    char type;
+    float x;
+    float y;
+    long nparticles;
+    float spread;
+    void (*spawner)(particles_t *, float, float, long, float) = NULL;
+
+    buf += packet_decode (buf, "cfflf", &type, &x, &y, &nparticles, &spread);
+    switch (type) {
+	case 'b': spawner = particles_spawn_blood; break;
+	case 's': spawner = particles_spawn_spark; break;
+	case 'r': spawner = particles_spawn_respawn_particles; break;
+    }
+
+    if (!spawner)
+	error ("error: unknown particle type in gameinfo packet (client)\n");
+    else
+	(*spawner) (map_particles (map), x, y, nparticles, spread);
+
+    return buf;
+}
+
+
+SC_GAMEINFO_HANDLER (sc_blod_create)
+{
+    float x;
+    float y;
+    long nparticles;
+		
+    buf += packet_decode (buf, "ffl", &x, &y, &nparticles);
+    blod_spawn (map, x, y, nparticles);
+
+    return buf;
+}
 
 
 static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
@@ -266,201 +531,40 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 	switch (*buf++) {
 
 	    case MSG_SC_GAMEINFO_MAPLOAD:
-	    {
-		char filename[NETWORK_MAX_PACKET_SIZE];
-		long len;
-		
-		buf += packet_decode (buf, "s", &len, filename);
-		if (map)
-		    map_destroy (map);
-		map = map_load (filename, 1, NULL);
+		buf = sc_mapload (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_OBJECT_CREATE:
-	    {
-		lua_State *L = lua_state;
-		int top = lua_gettop (L);
-		char type[NETWORK_MAX_PACKET_SIZE];
-		long len;
-		objid_t id;
-		char hidden;
-		float x, y;
-		float xv, yv;
-		int ctag;
-		object_t *obj;
-		const char *realtype;
-
-		/* decode the start of the packet */
-		buf += packet_decode (buf, "slcffffc", &len, type, &id, &hidden,
-				      &x, &y, &xv, &yv, &ctag);
-
-		/* look up the object type alias */
-		lua_getglobal (L, "reverse_object_alias");
-		lua_pushstring (L, type);
-		lua_rawget (L, -2);
-		if (lua_isstring (L, -1))
-		    realtype = lua_tostring (L, -1);
-		else
-		    realtype = type;
-
-		/* create proxy object */
-		obj = object_create_proxy (realtype, id);
-		if (!obj)
-		    error ("error: unable to create a proxy object (unknown type?)");
-		if (hidden)
-		    object_hide (obj);
-		else
-		    object_show (obj);
-		object_set_auth_info (obj, ticks - lag, x, y, xv, yv, 0, 0);
-		object_set_xy (obj, x, y);
-		object_set_collision_tag (obj, ctag);
-		if (id == client_id) {
-		    tracked_object = local_object = obj;
-		    object_set_number (obj, "is_local", 1);
-		}
-
-		/* decode optional extra fields */
-		{
-		    char type;
-		    char name[NETWORK_MAX_PACKET_SIZE];
-		    long len;
-		    float f;
-		    
-		    do {
-			buf += packet_decode (buf, "c", &type);
-			if (type == 'f') {
-			    buf += packet_decode (buf, "sf", &len, name, &f);
-			    object_set_number (obj, name, f);
-			}
-			else if (type) {
-			    error ("error: unknown field type in object creation packet (client)\n");
-			}
-		    } while (type);
-		}
-
-		/* link and init */
-		map_link_object (map, obj);
-		object_run_init_func (obj);
-
-		/* hack to get the camera to track a player's corpse */
-		if (object_get_number (obj, "_internal_stalk_me") == client_id)
-		    tracked_object = obj;
-
-		lua_settop (L, top);
+		buf = sc_object_create (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_OBJECT_DESTROY:
-	    {
-		objid_t id;
-		object_t *obj;
-
-		buf += packet_decode (buf, "l", &id);
-		if ((obj = map_find_object (map, id))) {
-		    object_set_stale (obj);
-		    if (obj == local_object)
-			local_object = NULL;
-		    if (obj == tracked_object)
-			tracked_object = NULL;
-		}
+		buf = sc_object_destroy (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_OBJECT_UPDATE:
-	    {
-		objid_t id;
-		float x, y;
-		float xv, yv;
-		float xa, ya;
-		object_t *obj;
-
-		buf += packet_decode (buf, "lffffff", &id, &x, &y, &xv, &yv, &xa, &ya);
-		if ((obj = map_find_object (map, id)))
-		    object_set_auth_info (obj, ticks - lag, x, y, xv, yv, xa, ya);
+		buf = sc_object_update (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_OBJECT_HIDDEN:
-	    {
-		objid_t id;
-		char hidden;
-		object_t *obj;
-
-		buf += packet_decode (buf, "lc", &id, &hidden);
-		if ((obj = map_find_object (map, id))) {
-		    if (hidden)
-			object_hide (obj);
-		    else
-			object_show (obj);
-		}
+		buf = sc_object_hidden (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_OBJECT_CALL:
-	    {
-		long id;
-		long method_len;
-		char method[NETWORK_MAX_PACKET_SIZE];
-		long arg_len;
-		char arg[NETWORK_MAX_PACKET_SIZE];
-		object_t *obj;
-		
-		buf += packet_decode (buf, "lss", &id, &method_len, method, &arg_len, arg);
-		if ((obj = map_find_object (map, id))) {
-		    lua_pushstring (lua_state, arg);
-		    object_call (obj, method, 1);
-		}
+		buf = sc_object_call (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE:
-	    {
-		long id;
-		float angle;
-		object_t *obj;
-
-		buf += packet_decode (buf, "lf", &id, &angle);
-		if ((id != client_id) && (obj = map_find_object (map, id)))
-		    object_set_number (obj, "aim_angle", angle);
+		buf = sc_client_aim_angle (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_PARTICLES_CREATE:
-	    {
-		char type;
-		float x;
-		float y;
-		long nparticles;
-		float spread;
-
-		buf += packet_decode (buf, "cfflf", &type, &x, &y, &nparticles, &spread);
-		switch (type) {
-		    case 'b':
-			particles_spawn_blood (map_particles (map), x, y, nparticles, spread);
-			break;
-		    case 's':
-			particles_spawn_spark (map_particles (map), x, y, nparticles, spread);
-			break;
-		    case 'r':
-			particles_spawn_respawn_particles (map_particles (map), x, y, nparticles, spread);
-			break;
-		    default:
-			error ("error: unknown particle type in gameinfo packet (client)\n");
-		}
+		buf = sc_particles_create (buf);
 		break;
-	    }
 
 	    case MSG_SC_GAMEINFO_BLOD_CREATE:
-	    {
-		float x;
-		float y;
-		long nparticles;
-		
-		buf += packet_decode (buf, "ffl", &x, &y, &nparticles);
-		blod_spawn (map, x, y, nparticles);
+		buf = sc_blod_create (buf);
 		break;
-	    }
 
 	    default:
 		error ("error: unknown code in gameinfo packet (client)\n");
@@ -471,13 +575,60 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 }
 
 
-/*----------------------------------------------------------------------*/
+
+/*
+ *----------------------------------------------------------------------
+ *	Send text message
+ *----------------------------------------------------------------------
+ */
 
 
-void game_client_set_camera (int pushable, int max_dist)
+void client_send_text_message (const char *text)
+{
+    net_send_rdm_encode (conn, "cs", MSG_CS_TEXT, text);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Camera stuff
+ *----------------------------------------------------------------------
+ */
+
+
+/* (lua binding) */
+void client_set_camera (int pushable, int max_dist)
 {
     camera_set (cam, pushable, max_dist);
 }
+
+
+static int update_camera (void)
+{
+    int oldx, oldy;
+
+    if (backgrounded)
+	return 0;
+
+    if (!tracked_object)
+	return 0;
+    
+    oldx = camera_x (cam);
+    oldy = camera_y (cam);
+
+    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y);
+
+    return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Draw stuff to screen
+ *----------------------------------------------------------------------
+ */
 
 
 static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
@@ -499,26 +650,7 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 }
 
 
-static int update_camera ()
-{
-    int oldx, oldy;
-
-    if (backgrounded)
-	return 0;
-
-    if (!tracked_object)
-	return 0;
-    
-    oldx = camera_x (cam);
-    oldy = camera_y (cam);
-
-    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y);
-
-    return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
-}
-
-
-static void update_screen ()
+static void update_screen (void)
 {
     if (backgrounded)
 	return;
@@ -570,25 +702,15 @@ static void update_screen ()
 }
 
 
-/*----------------------------------------------------------------------*/
+
+/*
+ *----------------------------------------------------------------------
+ *	The game client outer loop (XXX too big)
+ *----------------------------------------------------------------------
+ */
 
 
-static void switch_in_callback ()
-{
-    backgrounded = 0;
-}
-
-
-static void switch_out_callback ()
-{
-    backgrounded = 1;
-}
-
-
-/*----------------------------------------------------------------------*/
-
-
-void game_client_run ()
+void client_run (void)
 {
     dbg ("connecting (state 1)");
     {
@@ -907,10 +1029,15 @@ void game_client_run ()
 }
 
 
-/*----------------------------------------------------------------------*/
+
+/*
+ *----------------------------------------------------------------------
+ *	Initialisation and shutdown
+ *----------------------------------------------------------------------
+ */
 
 
-int game_client_init (const char *name, int net_driver, const char *addr)
+int client_init (const char *name, int net_driver, const char *addr)
 {
     if (!(conn = net_openconn (net_driver, NULL)))
 	return -1;
@@ -946,9 +1073,7 @@ int game_client_init (const char *name, int net_driver, const char *addr)
 
     fps_init ();
 
-    set_display_switch_callback (SWITCH_IN, switch_in_callback);
-    set_display_switch_callback (SWITCH_OUT, switch_out_callback);
-    backgrounded = 0;
+    display_switch_init ();
 
     last_controls = 0;
 
@@ -956,10 +1081,9 @@ int game_client_init (const char *name, int net_driver, const char *addr)
 }
 
 
-void game_client_shutdown ()
+void client_shutdown (void)
 {
-    remove_display_switch_callback (switch_out_callback);
-    remove_display_switch_callback (switch_in_callback);
+    display_switch_shutdown ();
     fps_shutdown ();
     if (map) {
 	map_destroy (map);

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.09.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.19;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_gui_h
@@ -56,18 +61,18 @@ typedef enum gui_event gui_event_t;
 /* gui.c */
 
 /*: Initialise the GUI subsystem.  */
-int gui_init ();
+int gui_init (void);
 
 /*: Shutdown the GUI subsystem.  */
-void gui_shutdown ();
+void gui_shutdown (void);
 
 /*: Run the GUI subsystem.  This will not return until gui_quit is
  *  called.  See also: gui_quit.  */
-void gui_main ();
+void gui_main (void);
 
 /*: Stop running the GUI subsystem.  After this, you can rerun the
  *  system with gui_main, or clean up with gui_shutdown.  */
-void gui_quit ();
+void gui_quit (void);
 
 
 /* guiwm.c */
@@ -182,7 +187,7 @@ typedef struct gui_accel gui_accel_t;
  *
  *  Example:  accel = gui_accel_create (GUI_ACCEL_CTRL ('z'), foo);
  */
-gui_accel_t *gui_accel_create (int key, void (*proc) ());
+gui_accel_t *gui_accel_create (int key, void (*proc) (void));
 
 /*: Free the memory associated with an accelerator key.  */
 void gui_accel_destroy (gui_accel_t *);
@@ -227,8 +232,34 @@ extern struct gui_mouse_state gui_mouse;
 void gui_mouse_restrict (gui_window_t *);
 
 /*: Allow the mouse to move around the entire screen).  */
-void gui_mouse_unrestrict ();
+void gui_mouse_unrestrict (void);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d37 1
+a37 1
+int gui_init ();
+d40 1
+a40 1
+void gui_shutdown ();
+d44 1
+a44 1
+void gui_main ();
+d48 1
+a48 1
+void gui_quit ();
+d163 1
+a163 1
+gui_accel_t *gui_accel_create (int key, void (*proc) ());
+d208 1
+a208 1
+void gui_mouse_unrestrict ();
 @

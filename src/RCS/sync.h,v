@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_sync_h
@@ -25,13 +30,29 @@ text
 
 
 void sync_init (void *(*server_thread)(void *));
+void sync_shutdown (void);
+void sync_server_lock (void);
+void sync_server_unlock (void);
+int sync_server_stop_requested (void);
+void sync_client_lock (void);
+void sync_client_unlock (void);
+
+
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d6 6
+a11 6
 void sync_shutdown ();
 void sync_server_lock ();
 void sync_server_unlock ();
 int sync_server_stop_requested ();
 void sync_client_lock ();
 void sync_client_unlock ();
-
-
-#endif
 @

@@ -1,40 +1,794 @@
-/* gamesrv.c
+head	1.31;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.31
+date	2002.01.24.15.34.13;	author tjaden;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	2002.01.24.07.12.57;	author tjaden;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	2002.01.23.15.57.28;	author tjaden;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	2002.01.23.15.00.09;	author tjaden;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	2002.01.23.14.10.06;	author tjaden;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	2002.01.23.06.30.55;	author tjaden;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	2002.01.23.06.05.30;	author tjaden;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	2002.01.23.03.52.34;	author tjaden;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	2002.01.22.13.03.33;	author tjaden;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	2002.01.22.01.48.03;	author tjaden;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	2002.01.21.15.27.08;	author tjaden;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	2002.01.21.00.20.34;	author tjaden;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	2002.01.20.13.41.28;	author tjaden;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	2002.01.19.12.36.08;	author tjaden;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	2002.01.19.08.21.33;	author tjaden;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	2002.01.18.16.19.31;	author tjaden;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	2002.01.18.16.15.47;	author tjaden;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2002.01.18.14.30.48;	author tjaden;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2002.01.18.11.07.38;	author tjaden;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2002.01.17.14.28.23;	author tjaden;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2002.01.17.13.31.03;	author tjaden;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2002.01.15.13.28.18;	author tjaden;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2002.01.15.13.02.56;	author tjaden;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2002.01.14.16.06.13;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.01.14.13.54.02;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.01.14.08.39.17;	author tjaden;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2002.01.14.03.42.30;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.01.14.02.21.24;	author tjaden;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2002.01.13.15.01.43;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.13.09.28.02;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.31
+log
+@Added client sending text messages.
+@
+text
+@/* server.c
  *
- * Peter Wang <tjaden@users.sourceforge.net>
+ * Peter Wang <tjaden@@users.sourceforge.net>
  */
 
 
-#include <math.h>
+#include <allegro.h>
+#include "libnet.h"
+#include "error.h"
+#include "list.h"
+#include "netmsg.h"
+#include "object.h"
+#include "packet.h"
+#include "server.h"
+#include "svclient.h"
+#include "svgame.h"
+#include "svintern.h"
+#include "svlobby.h"
+#include "sync.h"
+
+
+static server_interface_t *interface;
+static NET_CONN *listen;
+
+static server_state_t curr_state;
+static server_state_t next_state;
+
+string_t server_current_map_file;
+string_t server_next_map_file;
+
+/* Single hack: waits for one client, then starts, and quits when that
+ * client leaves.  For testing the client-server.  */
+static int single_hack = 0;
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Helper for logging things
+ *----------------------------------------------------------------------
+ */
+
+
+void server_log (const char *fmt, ...)
+{
+    char buf[1024];
+    va_list ap;
+
+    va_start (ap, fmt);
+    vsnprintf (buf, sizeof buf, fmt, ap);
+    buf[sizeof buf - 1] = 0;
+    if (interface)
+	interface->add_log (NULL, buf);
+    else
+	puts (buf); /* XXX temp */
+    va_end (ap);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Process incoming network traffic from clients
+ *----------------------------------------------------------------------
+ */
+
+
+static void poll_client_joining (svclient_t *c)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    char name[NETWORK_MAX_PACKET_SIZE];
+    long len;
+    char version;
+
+    if (svclient_receive_rdm (c, buf, sizeof buf) <= 0)
+	return;
+	    
+    switch (buf[0]) {
+
+	case MSG_CS_JOININFO:
+	    packet_decode (buf+1, "cs", &version, &len, &name);
+	    svclient_set_name (c, name);
+	    svclient_set_state (c, SVCLIENT_STATE_JOINED);
+	    if (curr_state == SERVER_STATE_GAME)
+		svclient_set_wantfeed (c);
+	    server_log ("Client %s joined", c->name);
+	    if (version != NETWORK_PROTOCOL_VERSION) {
+		svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+		svclient_set_state (c, SVCLIENT_STATE_STALE);
+		server_log ("Client %s was disconnected for compatibility "
+			    "reasons", c->name);
+	    }
+	    break;
+
+	case MSG_CS_DISCONNECT_ASK:
+	    svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+	    svclient_set_state (c, SVCLIENT_STATE_STALE);
+	    server_log ("Client %s was disconnected by request", c->name);
+	    break;
+    }
+}
+
+
+static void poll_client_joined (svclient_t *c)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    size = svclient_receive_rdm (c, buf, sizeof buf);
+    if (size <= 0)
+	return;
+
+    switch (buf[0]) {
+
+	case MSG_CS_GAMEINFO:
+	    if (curr_state == SERVER_STATE_GAME)
+		svgame_process_cs_gameinfo_packet (c, buf+1, size-1);
+	    break;
+
+	case MSG_CS_TEXT: {
+	    long len;
+	    char text[NETWORK_MAX_PACKET_SIZE];
+	    char tmp[NETWORK_MAX_PACKET_SIZE];
+
+	    packet_decode (buf+1, "s", &len, text);
+	    uszprintf (tmp, sizeof tmp, "<%s> %s", c->name, text);
+	    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, tmp);
+	    server_log (tmp);
+	    break;
+	}
+
+	case MSG_CS_PING:
+	    if (curr_state == SERVER_STATE_GAME)
+		svgame_process_cs_ping (c);
+	    break;
+
+	case MSG_CS_BOING:
+	    if (curr_state == SERVER_STATE_GAME)
+		svgame_process_cs_boing (c);
+	    break;
+
+	case MSG_CS_DISCONNECT_ASK:
+	    svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+	    svclient_set_state (c, SVCLIENT_STATE_BITOFF);
+	    server_log ("Client %s was disconnected by request", c->name);
+	    break;
+    }
+}
+
+
+static void poll_clients (void)
+{
+    svclient_t *c;
+
+    for_each_svclient (c) switch (c->state) {
+
+	case SVCLIENT_STATE_JOINING:
+	    poll_client_joining (c);
+	    break;
+
+	case SVCLIENT_STATE_JOINED:
+	    poll_client_joined (c);
+	    break;
+
+	case SVCLIENT_STATE_BITOFF:
+	case SVCLIENT_STATE_STALE:
+	    break;
+    }
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Process commands from the game server interface
+ *----------------------------------------------------------------------
+ */
+
+
+static const char *whitespace = " \t";
+
+
+static void command_list (char **last)
+{
+    int n = svclients_count ();
+    svclient_t *c;	
+
+    server_log ("Clients: %d", n);
+
+    for_each_svclient (c) {
+	switch (c->state) {
+	    case SVCLIENT_STATE_BITOFF:
+	    case SVCLIENT_STATE_STALE:
+		server_log ("%4d  %s (stale)", c->id, c->name);
+		break;
+	    default:
+		if (curr_state == SERVER_STATE_GAME)
+		    server_log ("%4d  %s (lag: %d)", c->id, c->name, c->lag);
+		else
+		    server_log ("%4d  %s", c->id, c->name);
+		break;
+	}
+    }
+}
+
+
+/* XXX 'kick' needs to take an optional 'reason' argument */
+static void command_kick (char **last)
+{
+    char *word;
+    svclient_t *c;
+
+    word = ustrtok_r (NULL, whitespace, last);
+    if (!word) {
+	server_log ("KICK requires an argument");
+	return;
+    }
+
+    if (uisdigit (ugetc (word))) {
+	objid_t id = ustrtol (word, NULL, 10);
+	c = svclients_find_by_id (id);
+	if (!c) {
+	    server_log ("No client with id %d", id);
+	    return;
+	}
+    }
+    else {
+	c = svclients_find_by_name (word);
+	if (!c) {
+	    server_log ("No client with name %s", word);
+	    return;
+	}
+    }
+
+    if ((c->state == SVCLIENT_STATE_BITOFF) || (c->state == SVCLIENT_STATE_STALE)) {
+	server_log ("Client %s already disconnected", c->name);
+	return;
+    }
+
+    svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
+    svclient_set_state (c, SVCLIENT_STATE_BITOFF);
+    server_log ("Client %s was kicked", c->name);
+}
+
+
+static void command_msg (char **last)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+
+    if (!*last) {
+	server_log ("MSG requires an argument");
+	return;
+    }
+
+    uszprintf (buf, sizeof buf, "[server] %s", *last);
+    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
+    server_log (buf);
+}
+
+
+static void poll_interface (void)
+{
+#define wordis(test)	(0 == ustricmp (word, test))
+
+    const char *cmd;
+    char *copy, *word, *last;
+
+    if ((!interface) || !(cmd = interface->poll ()))
+	return;
+
+    copy = ustrdup (cmd);
+    word = ustrtok_r (copy, whitespace, &last);
+
+    if (word) {
+	if (wordis ("help") || wordis ("?")) {
+	    server_log ("Commands:");
+	    server_log ("  MAP <filename>           - select a map");
+	    server_log ("  MAP                      - display current map");
+	    server_log ("  START                    - enter game mode");
+	    server_log ("  STOP                     - return to the lobby");
+	    server_log ("  RESTART                  - restart game mode (with new map)");
+	    server_log ("  QUIT                     - quit completely");
+	    server_log ("  LIST                     - list clients");
+	    server_log ("  KICK <id|name> [reason]  - forcefully disconnect a client");
+	    server_log ("  MSG <message>            - broadcast text message to clients");
+	    server_log ("  CONTEXT                  - show current context");
+	}
+
+	else if (wordis ("map")) {
+	    word = ustrtok_r (NULL, whitespace, &last);
+	    if (!word) {
+		server_log ("Current map: %s", server_current_map_file);
+		server_log ("Selected map: %s", server_next_map_file);
+	    } else {
+		string_set (server_next_map_file, word);
+		server_log ("Setting map to %s", server_next_map_file);
+	    }
+	}
+	
+	else if (wordis ("start")) {
+	    next_state = SERVER_STATE_GAME;
+	}
+
+	else if (wordis ("stop")) {
+	    next_state = SERVER_STATE_LOBBY;
+	}
+
+	else if (wordis ("quit")) {
+	    next_state = SERVER_STATE_QUIT;
+	}
+
+	else if (wordis ("list")) {
+	    command_list (&last);
+	}
+
+	else if (wordis ("kick")) {
+	    command_kick (&last);
+	}
+
+	else if (wordis ("msg")) {
+	    command_msg (&last);
+	}
+
+	else if (wordis ("context")) {
+	    server_log ((curr_state == SERVER_STATE_LOBBY) ? "In the lobby" :
+			(curr_state == SERVER_STATE_GAME) ? "Playing a game" :
+			"Unknown context (probably in a transition)");
+	}
+
+	else if (wordis ("yom")) {
+	    server_log ("You can't use yom like that!");
+	}
+
+	else {
+	    server_log ("Unrecognised command: %s", word);
+	}
+    }
+
+    free (copy);
+
+#undef wordis
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	The outer loop
+ *----------------------------------------------------------------------
+ */
+
+
+static server_state_procs_t **server_state_procs[] =
+{
+    /* Keep this in sync with server_state_t in server.h. */
+    &svlobby_procs,
+    &svgame_procs,
+    NULL  /* quit */
+};
+
+
+static void check_new_connections (void)
+{
+    NET_CONN *conn;
+    svclient_t *c;
+
+    conn = net_poll_listen (listen);
+    if (!conn)
+	return;
+    c = svclient_create (conn);
+    svclient_set_state (c, SVCLIENT_STATE_JOINING);
+    svclient_send_rdm_encode (c, "cl", MSG_SC_JOININFO, c->id);
+}
+
+
+/* Upgrade ``bit off'' clients to ``stale'' status. */
+static void handle_bit_off_clients (void)
+{
+    svclient_t *c;
+
+    for_each_svclient (c) {
+	if (c->state != SVCLIENT_STATE_BITOFF)
+	    continue;
+	if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
+	    object_set_stale (c->client_object);
+	svclient_set_state (c, SVCLIENT_STATE_STALE);
+    }
+}
+
+
+void server_run (void)
+{
+    server_state_procs_t *p = NULL;
+
+    curr_state = -1;
+    next_state = SERVER_STATE_LOBBY;
+
+    do {
+	sync_server_lock ();
+
+	while (curr_state != next_state) {
+	    p = (*server_state_procs[next_state]);
+	    if ((p->init) && (p->init () < 0))
+		curr_state = -1;
+	    else
+		curr_state = next_state;
+	}
+
+	/* Do this before p->poll so that this will set "a bit off"
+	 * client objects to "stale", which game state poll can
+	 * see to tell other clients to destroy the stale object.
+	 */
+	handle_bit_off_clients ();
+
+	if (p->poll)
+	    p->poll ();
+
+	if (curr_state == next_state) {
+	    check_new_connections ();
+	    poll_clients ();
+	    svclients_remove_stale ();
+	    poll_interface ();
+	}
+
+	if ((single_hack) && (curr_state == next_state)) {
+	    svclient_t *c;
+	    int n = 0;
+	    for_each_svclient (c) if (c->state == SVCLIENT_STATE_JOINED) n++; 
+
+	    if (single_hack == 1) {
+		if (n > 0) {
+		    next_state = SERVER_STATE_GAME;
+		    single_hack = 2;
+		}
+	    }
+	    else if (single_hack == 2) {
+		if (n < 1) {
+		    next_state = SERVER_STATE_QUIT;
+		    single_hack = 3;
+		}
+	    }
+	}
+
+	if (curr_state != next_state) {
+	    if (p->shutdown)
+		p->shutdown ();
+	}
+
+	sync_server_unlock ();
+    } while ((next_state != SERVER_STATE_QUIT) && 
+	     (!sync_server_stop_requested ()));
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Initialisation and shutdown
+ *----------------------------------------------------------------------
+ */
+
+
+int server_init (server_interface_t *iface, int net_driver)
+{
+    listen = net_openconn (net_driver, "");
+    if (!listen)
+	return -1;
+    net_listen (listen);
+
+    interface = iface;
+    if (interface)
+	interface->init ();
+
+    svclients_init ();
+
+    string_init (server_current_map_file);
+    string_init (server_next_map_file);
+    string_set (server_current_map_file, "test.pit");
+    string_set (server_next_map_file,  "test.pit");
+
+    return 0;    
+}
+
+
+void server_enable_single_hack (void)
+{
+    single_hack = 1;
+}
+
+
+void server_shutdown (void)
+{
+    server_log ("Disconnecting clients");
+    svclients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
+    server_log ("Quitting");
+
+    string_free (server_next_map_file);
+    string_free (server_current_map_file);
+
+    svclients_shutdown ();
+
+    if (interface)
+	interface->shutdown ();
+
+    net_closeconn (listen);
+}
+
+
+
+/*
+ *----------------------------------------------------------------------
+ *	Things for other server modules
+ *----------------------------------------------------------------------
+ */
+
+
+void server_set_next_state (server_state_t state)
+{
+    next_state = state;
+}
+
+
+void server_interface_set_status (const char *text)
+{
+    if (interface)
+	interface->set_status (text);
+}
+@
+
+
+1.30
+log
+@Overhauled the server code and split into multiple files.
+@
+text
+@d7 1
+a7 4
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
+d120 12
+a134 1
+	    
+d197 4
+a200 1
+		server_log ("%4d  %s (lag: %d)", c->id, c->name, c->lag);
+d213 1
+a213 1
+    word = strtok_r (NULL, whitespace, last);
+d219 2
+a220 2
+    if (isdigit (word[0])) {
+	objid_t id = strtol (word, NULL, 10);
+d248 3
+a250 1
+    if (!*last)
+d252 1
+a252 3
+    else {
+	svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, *last);
+	server_log (*last);
+d254 4
+d263 1
+a263 1
+#define wordis(test)	(0 == strcasecmp (word, test))
+d271 2
+a272 2
+    copy = strdup (cmd);
+    word = strtok_r (copy, whitespace, &last);
+d290 1
+a290 1
+	    word = strtok_r (NULL, whitespace, &last);
+@
+
+
+1.29
+log
+@Changed the test for a very small yv (again) from 0 <= yv < 0.0001
+to 0 <= yv < 0.005.
+@
+text
+@d1 1
+a1 1
+/* gamesrv.c
+d7 3
+a9 1
+#include <math.h>
+d11 1
+a11 3
 #include <allegro.h>
 #include <libnet.h>
 #include "alloc.h"
-#include "error.h"
+a12 1
 #include "gamesrv.h"
-#include "list.h"
+a13 2
 #include "map.h"
 #include "mapfile.h"
-#include "netmsg.h"
-#include "object.h"
+a15 1
 #include "objtypes.h"
-#include "packet.h"
-#include "sync.h"
+d17 5
+a22 1
 #include "timeout.h"
-
-
+d25 2
+a26 2
 typedef unsigned char uchar_t;
 typedef unsigned long ulong_t;
-
+d28 2
+a29 4
 typedef char *string_t;
 #define string_init(var)	(var = NULL)
 #define string_set(var,str)	({ free (var); var = ustrdup (str); })
 #define string_free(var)	({ free (var); var = NULL; })
-
-
-
+d31 2
+d34 3
+a37 1
 static void server_log (const char *fmt, ...);
-
-
+d40 5
+a44 307
 
 /*----------------------------------------------------------------------*/
 /*			          Ticker	      			*/
@@ -342,8 +1096,8 @@ static void clients_shutdown ()
 
 
 static void add_to_gameinfo_packet_queue (void *packet, size_t size);
-
-
+d47 1
+a47 23
 typedef enum {
     /* Keep this in sync with server_state_procs. */
     SERVER_STATE_LOBBY,
@@ -367,22 +1121,13 @@ static int single_hack = 0;
 /* Helper for logging things. */
 
 static void server_log (const char *fmt, ...)
-{
-    char buf[1024];
-    va_list ap;
-
-    va_start (ap, fmt);
+d53 2
+a54 1
     uvszprintf (buf, sizeof buf, fmt, ap);
-    if (interface)
-	interface->add_log (NULL, buf);
-    else
-	puts (buf); /* XXX temp */
-    va_end (ap);
-}
-
-
+a62 1
 /* Upgrade ``bit off'' clients to ``stale'' status. */
-
+d64 5
+a68 12
 static void server_handle_bit_off_clients ()
 {
     client_t *c;
@@ -395,12 +1140,13 @@ static void server_handle_bit_off_clients ()
 	client_set_state (c, CLIENT_STATE_STALE);
     }
 }
-
-
+d71 1
+a71 3
 /* Check new connections on the listening conn. */
 
 static void server_check_new_connections ()
-{
+d73 1
+a73 49
     NET_CONN *conn;
     client_t *c;
 
@@ -450,250 +1196,155 @@ static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, 
 static void server_poll_clients_state_joining (client_t *c)
 {
     uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-    char name[NETWORK_MAX_PACKET_SIZE];
-    long len;
-    char version;
-
+d78 1
+a78 1
     if (client_receive_rdm (c, buf, sizeof buf) <= 0)
-	return;
-	    
-    switch (buf[0]) {
-
-	case MSG_CS_JOININFO:
-	    packet_decode (buf+1, "cs", &version, &len, &name);
+d85 2
+a86 2
 	    client_set_name (c, name);
 	    client_set_state (c, CLIENT_STATE_JOINED);
-	    if (curr_state == SERVER_STATE_GAME)
+d88 1
+a88 1
 		client_set_wantfeed (c);
-	    server_log ("Client %s joined", c->name);
-	    if (version != NETWORK_PROTOCOL_VERSION) {
+d91 4
+a94 3
 		client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
 		client_set_state (c, CLIENT_STATE_STALE);
 		server_log ("Client %s was disconnected for compatibility reasons", c->name);
-	    }
-	    break;
-
-	case MSG_CS_DISCONNECT_ASK:
+d99 2
+a100 2
 	    client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
 	    client_set_state (c, CLIENT_STATE_STALE);
-	    server_log ("Client %s was disconnected by request", c->name);
-	    break;
-    }
-}
-
+d106 2
+a107 1
 static void server_poll_clients_state_joined (client_t *c)
-{
+d109 1
+a109 1
     uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-    size_t size;
-
+d112 1
+a112 1
     size = client_receive_rdm (c, buf, sizeof buf);
-    if (size <= 0)
-	return;
-
-    switch (buf[0]) {
-
-	case MSG_CS_GAMEINFO:
-	    if (curr_state == SERVER_STATE_GAME)
+d120 1
+a120 1
 		server_process_cs_gameinfo_packet (c, buf+1, size-1);
-	    break;
-
-	case MSG_CS_PING:
+d124 3
+a126 2
 	    c->pong_time = ticks;
 	    client_send_rdm_byte (c, MSG_SC_PONG);
-	    break;
-
-	case MSG_CS_BOING:
+d130 2
+a131 1
 	    c->lag = (ticks - c->pong_time) / 2;
-	    break;
-
-	case MSG_CS_DISCONNECT_ASK:
+d135 2
+a136 2
 	    client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
 	    client_set_state (c, CLIENT_STATE_BITOFF);
-	    server_log ("Client %s was disconnected by request", c->name);
-	    break;
-    }
-}
-
+d142 2
+a143 1
 static void server_poll_clients ()
-{
+d145 1
+a145 1
     client_t *c;
-
+d147 1
+a147 1
     for_each_client (c) switch (c->state) {
-
+d149 2
+a150 2
 	case CLIENT_STATE_JOINING:
 	    server_poll_clients_state_joining (c);
-	    break;
-
+d153 2
+a154 2
 	case CLIENT_STATE_JOINED:
 	    server_poll_clients_state_joined (c);
-	    break;
-
+d157 2
+a158 2
 	case CLIENT_STATE_BITOFF:
 	case CLIENT_STATE_STALE:
-	    break;
-    }
-}
-
-
+d164 7
+a170 1
 /* Processing commands from the game server interface. */
-
-static const char *whitespace = " \t";
-
+d174 2
+a175 1
 static void poll_interface_command_list (char **last)
-{
+d177 2
+a178 2
     int n = clients_count ();
     client_t *c;	
-
-    server_log ("Clients: %d", n);
-
+d182 1
+a182 1
     for_each_client (c) {
-	switch (c->state) {
+d184 2
+a185 2
 	    case CLIENT_STATE_BITOFF:
 	    case CLIENT_STATE_STALE:
-		server_log ("%4d  %s (stale)", c->id, c->name);
-		break;
-	    default:
+d189 1
+a189 2
 		server_log ("%4d  %s (lag: %d x %d msecs)", c->id, c->name, 
 			    c->lag, MSECS_PER_TICK);
-		break;
-	}
-    }
-}
-
-/* XXX 'kick' needs to take an optional 'reason' argument */
+d195 1
+d197 1
+a197 1
 static void poll_interface_command_kick (char **last)
-{
-    char *word;
+d200 1
+a200 1
     client_t *c;
-
+d202 1
+a202 1
     word = ustrtok_r (NULL, whitespace, last);
-    if (!word) {
-	server_log ("KICK requires an argument");
-	return;
-    }
-
+d208 3
+a210 3
     if (uisdigit (ugetc (word))) {
 	objid_t id = ustrtol (word, NULL, 10);
 	c = clients_find_by_id (id);
-	if (!c) {
-	    server_log ("No client with id %d", id);
-	    return;
-	}
-    }
-    else {
+d217 1
+a217 1
 	c = clients_find_by_name (word);
-	if (!c) {
-	    server_log ("No client with name %s", word);
-	    return;
-	}
-    }
-
+d224 1
+a224 1
     if ((c->state == CLIENT_STATE_BITOFF) || (c->state == CLIENT_STATE_STALE)) {
-	server_log ("Client %s already disconnected", c->name);
-	return;
-    }
-
+d229 2
+a230 2
     client_send_rdm_byte (c, MSG_SC_DISCONNECTED);
     client_set_state (c, CLIENT_STATE_BITOFF);
-    server_log ("Client %s was kicked", c->name);
-}
-
+d234 2
+a235 1
 static void poll_interface_command_msg (char **last)
-{
-    if (!*last)
-	server_log ("MSG requires an argument");
-    else {
+d240 1
+a240 1
 	clients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, *last);
-	server_log (*last);
-    }
-}
-
+d245 2
+a246 1
 static void server_poll_interface ()
-{
+d248 1
+a248 1
 #define wordis(test)	(0 == ustricmp (word, test))
-
-    const char *cmd;
-    char *copy, *word, *last;
-
-    if ((!interface) || !(cmd = interface->poll ()))
-	return;
-
+d256 2
+a257 2
     copy = ustrdup (cmd);
     word = ustrtok_r (copy, whitespace, &last);
-
-    if (word) {
-	if (wordis ("help") || wordis ("?")) {
-	    server_log ("Commands:");
-	    server_log ("  MAP <filename>           - select a map");
-	    server_log ("  MAP                      - display current map");
-	    server_log ("  START                    - enter game mode");
-	    server_log ("  STOP                     - return to the lobby");
-	    server_log ("  RESTART                  - restart game mode (with new map)");
-	    server_log ("  QUIT                     - quit completely");
-	    server_log ("  LIST                     - list clients");
-	    server_log ("  KICK <id|name> [reason]  - forcefully disconnect a client");
-	    server_log ("  MSG <message>            - broadcast text message to clients");
-	    server_log ("  CONTEXT                  - show current context");
-	}
-
-	else if (wordis ("map")) {
+d275 1
+a275 1
 	    word = ustrtok_r (NULL, whitespace, &last);
-	    if (!word) {
+d277 2
+a278 2
 		server_log ("Current map: %s", current_map_file);
 		server_log ("Selected map: %s", next_map_file);
-	    } else {
+d280 2
+a281 2
 		string_set (next_map_file, word);
 		server_log ("Setting map to %s", next_map_file);
-	    }
-	}
-	
-	else if (wordis ("start")) {
-	    next_state = SERVER_STATE_GAME;
-	}
-
-	else if (wordis ("stop")) {
-	    next_state = SERVER_STATE_LOBBY;
-	}
-
-	else if (wordis ("quit")) {
-	    next_state = SERVER_STATE_QUIT;
-	}
-
-	else if (wordis ("list")) {
+d298 1
+a298 1
 	    poll_interface_command_list (&last);
-	}
-
-	else if (wordis ("kick")) {
+d302 1
+a302 1
 	    poll_interface_command_kick (&last);
-	}
-
-	else if (wordis ("msg")) {
+d306 1
+a306 1
 	    poll_interface_command_msg (&last);
-	}
-
-	else if (wordis ("context")) {
-	    server_log ((curr_state == SERVER_STATE_LOBBY) ? "In the lobby" :
-			(curr_state == SERVER_STATE_GAME) ? "Playing a game" :
-			"Unknown context (probably in a transition)");
-	}
-
-	else if (wordis ("yom")) {
-	    server_log ("You can't use yom like that!");
-	}
-
-	else {
-	    server_log ("Unrecognised command: %s", word);
-	}
-    }
-
-    free (copy);
-
-#undef wordis
-}
-
-
+a329 1
 /* Spawn an object (Lua binding). */
-
+d331 5
+a335 18
 object_t *game_server_spawn_object (const char *typename, float x, float y)
 {
     object_t *obj;
@@ -712,12 +1363,13 @@ object_t *game_server_spawn_object (const char *typename, float x, float y)
     object_run_init_func (obj);
     return obj;
 }
-
-
+d338 1
+a338 3
 /* Spawn a projectile (Lua binding). */
 
 object_t *game_server_spawn_projectile (const char *typename, object_t *owner, float speed, float delta_angle)
-{
+d340 5
+a344 27
     client_t *c;
     object_t *obj;
     float angle;
@@ -745,11 +1397,13 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
     return obj;
 }
 
-
+a345 1
 /* Spawn some particles (Lua bindings). */
-
+d347 1
+a347 1
 static void queue_particle_packet (char type, float x, float y, long nparticles, float spread)
-{
+d349 2
+a350 7
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
@@ -757,17 +1411,18 @@ static void queue_particle_packet (char type, float x, float y, long nparticles,
 			  type, x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
 }
-
+d352 6
+a357 3
 void game_server_spawn_blood (float x, float y, long nparticles, float spread)
 {
     queue_particle_packet ('b', x, y, nparticles, spread);
-}
-
+a359 4
 void game_server_spawn_sparks (float x, float y, long nparticles, float spread)
 {
     queue_particle_packet ('s', x, y, nparticles, spread);
 }
-
+d361 2
+a362 288
 void game_server_spawn_respawn_particles (float x, float y, long nparticles, float spread)
 {
     queue_particle_packet ('r', x, y, nparticles, spread);
@@ -799,6 +1454,17 @@ void game_server_call_method_on_clients (object_t *obj, const char *method, cons
     size = packet_encode (buf, "clss", MSG_SC_GAMEINFO_OBJECT_CALL,
 			  object_id (obj), method, arg);
     add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+/* Check if an object would collide with other objects, if it were to
+ * be unhidden (Lua binding).  */
+
+int game_server_object_would_collide_with_objects (object_t *obj)
+{
+    return (!object_stale (obj) &&
+	    object_collide_with_objects_raw (obj, OBJECT_MASK_MAIN, map,
+					     object_x (obj), object_y (obj)));
 }
 
 
@@ -1045,7 +1711,8 @@ static void server_feed_game_state_to (client_t *c)
 }
 
 static void server_perform_mass_game_state_feed ()
-{
+d364 1
+a364 48
     client_t *c;
     object_t *obj;
     int done;
@@ -1094,7 +1761,8 @@ static void server_perform_mass_game_state_feed ()
 	sync_server_unlock ();
     } while (!done);
     sync_server_lock ();
-
+d366 2
+a367 26
     list_for_each (obj, map_object_list (map))
 	object_clear_replication_flags (obj);
 	
@@ -1121,7 +1789,8 @@ static void server_perform_single_game_state_feed (client_t *c)
 	}
 
 	if (client_receive_rdm (c, &byte, 1) <= 0)
-	    continue;
+d369 3
+a371 315
 
 	if (byte == MSG_CS_GAMESTATEFEED_ACK) {
 	    server_feed_game_state_to (c);
@@ -1437,9 +2106,7 @@ static void server_state_game_poll ()
 		      avg_incoming_bytes, avg_outgoing_bytes);
 	    interface->set_status (buf);
 	}
-    }
-}
-
+a374 30
 static void server_state_game_shutdown ()
 {
     server_log ("Leaving game");
@@ -1470,112 +2137,710 @@ static server_state_procs_t server_state_procs[] =
       server_state_game_shutdown },
     { NULL, NULL, NULL } /* quit */
 };
-
+d376 1
+a376 1
 void game_server_run ()
-{
-    server_state_procs_t *p = NULL;
-
-    curr_state = -1;
-    next_state = SERVER_STATE_LOBBY;
-
-    do {
-	sync_server_lock ();
-
-	while (curr_state != next_state) {
+d387 1
+a387 1
 	    p = server_state_procs + next_state;
-	    if ((p->init) && (p->init () < 0))
-		curr_state = -1;
-	    else
-		curr_state = next_state;
-	}
-
-	/* Do this before p->poll so that this will set "a bit off"
+d395 1
+a395 1
 	 * client objects to "stale", which server_state_game_poll can
-	 * see to tell other clients to destroy the stale object.
-	 */
+d398 1
+a398 1
 	server_handle_bit_off_clients ();
-
-	if (p->poll)
-	    p->poll ();
-
-	if (curr_state == next_state) {
+d404 4
+a407 4
 	    server_check_new_connections ();
 	    server_poll_clients ();
 	    clients_remove_stale ();
 	    server_poll_interface ();
-	}
-
-	if ((single_hack) && (curr_state == next_state)) {
+d411 1
+a411 1
 	    client_t *c;
-	    int n = 0;
+d413 1
+a413 1
 	    for_each_client (c) if (c->state == CLIENT_STATE_JOINED) n++; 
-
-	    if (single_hack == 1) {
-		if (n > 0) {
-		    next_state = SERVER_STATE_GAME;
-		    single_hack = 2;
-		}
-	    }
-	    else if (single_hack == 2) {
-		if (n < 1) {
-		    next_state = SERVER_STATE_QUIT;
-		    single_hack = 3;
-		}
-	    }
-	}
-
-	if (curr_state != next_state) {
-	    if (p->shutdown)
-		p->shutdown ();
-	}
-
-	sync_server_unlock ();
-    } while ((next_state != SERVER_STATE_QUIT) && 
-	     (!sync_server_stop_requested ()));
-}
-
-
+a439 1
 /* Initialisation and shutdown. */
-
+d441 8
+a448 1
 int game_server_init (game_server_interface_t *iface, int net_driver)
-{
-    listen = net_openconn (net_driver, "");
-    if (!listen)
-	return -1;
-    net_listen (listen);
-
-    interface = iface;
-    if (interface)
-	interface->init ();
-
+d459 1
+a459 1
     clients_init ();
-
+d461 4
+a464 6
     gameinfo_packet_queue_init ();
 
     string_init (current_map_file);
     string_init (next_map_file);
     string_set (current_map_file, "test.pit");
     string_set (next_map_file,  "test.pit");
-
-    return 0;    
-}
-
+d469 2
+a470 1
 void game_server_enable_single_hack ()
-{
-    single_hack = 1;
-}
-
+d475 2
+a476 1
 void game_server_shutdown ()
-{
-    server_log ("Disconnecting clients");
+d479 1
+a479 1
     clients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
-    server_log ("Quitting");
-
+d482 5
+a486 4
     string_free (next_map_file);
     string_free (current_map_file);
     gameinfo_packet_queue_shutdown ();
     clients_shutdown ();
-    if (interface)
-	interface->shutdown ();
-    net_closeconn (listen);
+d489 1
+d491 21
+@
+
+
+1.28
+log
+@Added _internal_would_collide_with_objects().
+@
+text
+@d1211 1
+a1211 1
+			if ((yv >= 0.0) && (yv < 0.0001))
+@
+
+
+1.27
+log
+@Added particles for respawning ball.
+@
+text
+@d805 11
+@
+
+
+1.26
+log
+@Link objects _before_ calling their init hooks.  This is so that
+objects created later in the init hook will appear on top, as
+expected.
+@
+text
+@d749 1
+a749 1
+/* Spawn some blood (Lua binding). */
+d751 1
+a751 1
+void game_server_spawn_blood (float x, float y, long nparticles, float spread)
+d757 1
+a757 1
+			  'b', x, y, nparticles, spread);
+d761 4
+d766 4
+a769 1
+/* Spawn some sparks (Lua binding). */
+d771 1
+a771 1
+void game_server_spawn_sparks (float x, float y, long nparticles, float spread)
+d773 1
+a773 6
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+    
+    size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
+			  's', x, y, nparticles, spread);
+    add_to_gameinfo_packet_queue (buf, size);
+@
+
+
+1.25
+log
+@1. Fixed crashing when spawn_object() is called during map load
+2. Link new objects at the top of the list
+3. Clear object replication flags after a mass game state feed
+@
+text
+@d711 1
+a712 1
+    map_link_object (map, obj);
+d743 1
+a744 1
+    map_link_object (map, obj);
+d833 1
+a834 1
+    map_link_object (map, obj);
+d1376 1
+a1377 1
+	    map_link_object (map, obj);
+@
+
+
+1.24
+log
+@Added spark particles.
+@
+text
+@d701 5
+d712 1
+a712 1
+    map_link_object_bottom (map, obj);
+d744 1
+a744 1
+    map_link_object_bottom (map, obj);
+d1048 1
+d1096 3
+@
+
+
+1.23
+log
+@Changed the test for a very small yv from 0 <= yv < 0.0000001 to
+0 <= yv < 0.0001.
+@
+text
+@d751 15
+a765 2
+    size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
+			  x, y, nparticles, spread);
+@
+
+
+1.22
+log
+@Added network traffic monitoring and object type aliases.
+@
+text
+@d1176 1
+a1176 1
+			if ((yv >= 0.0) && (yv < 0.0000001))
+@
+
+
+1.21
+log
+@Added weapon switching with keyboard.
+@
+text
+@d87 47
+d220 1
+a220 1
+static int client_send_rdm (client_t *c, const void *buf, int size)
+d223 3
+a225 1
+    if (x < 0) {
+d241 1
+a241 1
+    int size;
+d249 1
+a249 1
+static int client_receive_rdm (client_t *c, void *buf, int size)
+d251 1
+d254 3
+a256 1
+    return net_receive_rdm (c->conn, buf, size);
+d261 1
+a261 1
+static void clients_broadcast_rdm (const void *buf, int size)
+d280 1
+a280 1
+    int size;
+d418 1
+a418 1
+static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, int size)
+d487 1
+a487 1
+    int size;
+d749 1
+a749 1
+    int size;
+d762 1
+a762 1
+    int size;
+d777 1
+a777 1
+    int size;
+d958 3
+a960 1
+    char *p;
+d963 9
+d973 1
+d975 1
+a975 1
+			     objtype_name (object_type (obj)), 
+d989 3
+d1323 1
+d1387 1
+a1387 1
+    
+d1407 10
+d1422 3
+@
+
+
+1.20
+log
+@Added mechanism for server scripts to tell clients to execute object
+methods (i.e. remote calls).
+@
+text
+@d377 12
+@
+
+
+1.19
+log
+@Fixed a bug where sometimes you couldn't jump because the player's yv
+was very, very, very close to zero but not zero.
+@
+text
+@d682 1
+a682 1
+int game_server_spawn_blood (float x, float y, long nparticles, float spread)
+a689 1
+    return 0;
+d695 1
+a695 1
+int game_server_spawn_blod (float x, float y, long nparticles)
+d703 15
+a717 1
+    return 0;
+d1122 1
+a1122 1
+	    object_call (obj, "_internal_fire_hook");
+@
+
+
+1.18
+log
+@Made spawn_object, spawn_projectile return the objects they create.
+@
+text
+@d1082 4
+a1085 2
+		    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
+			object_set_jump (obj, 1);
+@
+
+
+1.17
+log
+@Added a delta_angle parameter to game_server_spawn_projectile().
+@
+text
+@d633 1
+a633 1
+int game_server_spawn_object (const char *typename, float x, float y)
+d638 1
+a638 1
+	return -1;
+d644 1
+a644 1
+    return 0;
+d650 1
+a650 1
+int game_server_spawn_projectile (const char *typename, object_t *owner, float speed, float delta_angle)
+d658 1
+a658 1
+	return -1;
+d661 1
+a661 1
+	return -1;
+d676 1
+a676 1
+    return 0;
+@
+
+
+1.16
+log
+@Link players at top of object list so that they appear above objects
+that were present at map load time (ladders, barrels, etc.)
+@
+text
+@d650 1
+a650 1
+int game_server_spawn_projectile (const char *typename, object_t *owner, float speed)
+d654 1
+d663 4
+a666 2
+    xv = speed * cos (c->aim_angle);
+    yv = speed * sin (c->aim_angle);
+d672 1
+a672 1
+    object_set_number (obj, "angle", c->aim_angle);
+@
+
+
+1.15
+log
+@Made jumping from standing on top of ladder position to be as high as
+jump from normal tile.
+@
+text
+@d736 1
+a736 1
+    map_link_object_bottom (map, obj);
+d1257 1
+a1257 1
+	    map_link_object_bottom (map, obj);
+@
+
+
+1.14
+log
+@Added blods.
+@
+text
+@d1065 4
+@
+
+
+1.13
+log
+@Got rid of a bad optimisation which broke down the mechanism which
+stopped players falling into ladders.
+@
+text
+@d136 1
+a136 1
+static int clients_next_id;
+d686 14
+@
+
+
+1.12
+log
+@Prefixed internal functions/variables that are somehow accessible from
+Lua with "_internal".
+@
+text
+@d1078 1
+a1078 3
+		/* test against old_controls to save a lua table lookup */		    
+		if (c->old_controls & CONTROL_DOWN)
+		    object_set_number (obj, "_internal_down_ladder", 0);
+@
+
+
+1.11
+log
+@Added support for ladders.
+@
+text
+@d1071 1
+a1071 1
+		    object_set_number (obj, "internal: down ladder", 1);
+d1080 1
+a1080 1
+		    object_set_number (obj, "internal: down ladder", 0);
+d1088 1
+a1088 1
+	    object_call (obj, "_fire_hook");
+@
+
+
+1.10
+log
+@Made the spread parameter to spawn blood a float (instead of int).
+@
+text
+@d111 1
+d373 1
+d1025 14
+a1038 5
+	/* left */
+	if (c->controls & CONTROL_LEFT) {
+/*  	    object_set_xv (obj, object_xv (obj) - 1.4); */
+/*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+	    object_set_xa (obj, -2);
+d1040 35
+d1076 6
+a1081 5
+	/* right */
+	else if (c->controls & CONTROL_RIGHT) {
+/*  	    object_set_xv (obj, object_xv (obj) + 1.4); */
+/*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+	    object_set_xa (obj, +2);
+d1084 3
+a1086 33
+	else
+	    object_set_xa (obj, 0);
+	    
+	/* up */
+	if (c->controls & CONTROL_UP) {
+	    float jump = object_jump (obj);
+
+	    if (jump > 0) {
+/*  		object_set_yv (obj, object_yv (obj) - MIN (8, 20 / jump)); */
+/*  		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0); */
+/*  		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+
+		/* new jump based on accel */
+/*  		object_set_ya (obj, object_ya (obj) - object_mass (obj) - .7); */
+		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
+		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); /* XXX --- maybe this can be avoided */
+	    }
+	    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
+/*  		object_set_yv (obj, object_yv (obj) - 4); */
+/*  		object_set_jump (obj, 1); */
+/*  		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+
+		/* new jump based on accel */
+		object_set_ya (obj, object_ya (obj) - 15);
+		object_set_jump (obj, 1);
+		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
+	    }
+	}
+	else {
+	    object_set_jump (obj, 0);
+	}
+	
+	/* fire */
+@
+
+
+1.9
+log
+@Added `a bit off' state, before the client becomes `stale'.  This
+state is for when the client should be disconnected, but we also need
+to tell other clients to destroy the stale client's game object.  Also
+added handling for the case where we are having problems sending to a
+client (then the client gets disconnected).
+@
+text
+@d677 1
+a677 1
+int game_server_spawn_blood (float x, float y, long nparticles, long spread)
+d682 1
+a682 1
+    size = packet_encode (buf, "cffll", MSG_SC_GAMEINFO_BLOOD_CREATE,
+@
+
+
+1.8
+log
+@Added ``hidden'' attribute to objects.
+@
+text
+@d34 5
+d95 4
+a98 1
+    CLIENT_STATE_STALE,
+d175 4
+a178 2
+    if (x < 0)
+	error ("internal error: exceeded conn outqueue\n");
+d213 2
+a214 1
+	if (c->state != CLIENT_STATE_STALE)
+d331 16
+d445 1
+a445 1
+	    client_set_state (c, CLIENT_STATE_STALE);
+a446 3
+
+	    if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
+		object_set_stale (c->client_object);
+d465 1
+d485 1
+d525 1
+a525 1
+    if (c->state == CLIENT_STATE_STALE) {
+d531 1
+a531 1
+    client_set_state (c, CLIENT_STATE_STALE);
+a532 3
+    
+    if ((curr_state == SERVER_STATE_GAME) && (c->client_object))
+	object_set_stale (c->client_object);
+d1323 6
+@
+
+
+1.7
+log
+@Send clients' aim angles to other clients.
+@
+text
+@d843 1
+a843 1
+    p = buf + packet_encode (buf, "cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+d845 1
+a845 1
+			     object_id (obj),
+d1116 1
+a1116 1
+	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE)) {
+d1122 4
+a1125 2
+/*  	    server_log ("replicated %d\n", random()%100); */
+	}
+@
+
+
+1.6
+log
+@Made it obvious which units the lag value is in (msecs).
+@
+text
+@d104 1
+d690 1
+d698 4
+d1078 16
+d1245 1
+@
+
+
+1.5
+log
+@Added player respawning.
+@
+text
+@d463 1
+a463 1
+		server_log ("%4d  %s (lag: %d x %d)", c->id, c->name, 
+@
+
+
+1.4
+log
+@Poll objects' update hooks.  The old client object's
+_client_update_hook is obsolete and removed.
+@
+text
+@d986 5
+a990 1
+	if (!(obj = c->client_object))
+d992 1
+@
+
+
+1.3
+log
+@NET_MAX_PACKET_SIZE -> NETWORK_MAX_PACKET_SIZE.
+Yom command.
+Spawn projectile sets obj.angle field and marks it as creation field.
+Unified code that generates object creation packets.
+@
+text
+@d834 1
+d846 2
+a847 1
+    list_for_each (f, object_creation_fields (obj))
+d1054 13
+a1102 12
+/* Poll client objects' update hooks.  */
+
+static void server_poll_client_update_hooks ()
+{
+    client_t *c;
+
+    for_each_client (c)
+	if ((c->client_object) && (!object_stale (c->client_object)))
+	    object_call (c->client_object, "_client_update_hook");
 }
+
+
+d1203 1
+a1203 1
+    long dt;
+d1211 2
+a1212 2
+    
+    while (dt--) {
+d1214 2
+a1215 2
+	server_poll_client_update_hooks ();
+    }
+@
+
+
+1.2
+log
+@New lua binding to spawn an arbitrary object
+Also handle the fact that clients may lose their objects (i.e. players get killed, so the objects become stale)
+@
+text
+@d179 1
+a179 1
+    uchar_t buf[NET_MAX_PACKET_SIZE];
+d214 1
+a214 1
+    uchar_t buf[NET_MAX_PACKET_SIZE];
+d358 2
+a359 2
+    uchar_t buf[NET_MAX_PACKET_SIZE];
+    char name[NET_MAX_PACKET_SIZE];
+d392 1
+a392 1
+    uchar_t buf[NET_MAX_PACKET_SIZE];
+d590 4
+d643 2
+d655 1
+a655 1
+    char buf[NET_MAX_PACKET_SIZE];
+d729 1
+a729 1
+static char gameinfo_packet_buf[NET_MAX_PACKET_SIZE];
+d758 1
+a758 1
+    char buf[NET_MAX_PACKET_SIZE];
+d828 26
+d867 2
+d871 4
+a874 7
+	list_for_each (obj, list)
+	    add_to_gameinfo_packet ("cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+				    objtype_name (object_type (obj)), 
+				    object_id (obj),
+				    object_x (obj), object_y (obj),
+				    object_xv (obj), object_yv (obj),
+				    object_collision_tag (obj));
+d1058 2
+d1069 4
+a1072 7
+	if (object_need_replication (obj, OBJECT_REPLICATE_CREATE))
+	    add_to_gameinfo_packet ("cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+				    objtype_name (object_type (obj)),
+				    object_id (obj), 
+				    object_x (obj), object_y (obj),
+				    object_xv (obj), object_yv (obj),
+				    object_collision_tag (obj));
+d1171 5
+a1175 5
+	    clients_broadcast_rdm_encode
+		("ccslffffc", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
+		 objtype_name (object_type (obj)),
+		 object_id (obj), object_x (obj), object_y (obj),
+		 object_xv (obj), object_yv (obj), object_collision_tag (obj));
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d601 17
+d645 1
+a645 1
+/* Spawn some blood (Lua binding).  */
+d679 14
+d704 3
+a706 12
+    for_each_client (c) if (c->state == CLIENT_STATE_JOINED) {
+	start_t *start;
+	object_t *obj;
+
+	start = server_pick_random_start ();
+	obj = object_create_ex ("player", c->id);
+	object_set_xy (obj, map_start_x (start), map_start_y (start));
+	object_set_collision_tag (obj, c->id); /* XXX temp */
+	object_run_init_func (obj);
+	map_link_object_bottom (map, obj);
+	c->client_object = obj;
+    }
+d1156 11
+d1188 2
+a1189 2
+    
+    map_destroy_stale_objects (map);
+@

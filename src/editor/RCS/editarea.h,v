@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.24.07.15.16;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.18.11.09.49;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Expose grid x, y values.
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_editarea_h
@@ -55,8 +60,8 @@ extern int editarea_grid_y;
 
 
 void editarea_install (int x, int y, int w, int h);
-void editarea_uninstall ();
-void editarea_reset_offset ();
+void editarea_uninstall (void);
+void editarea_reset_offset (void);
 
 void editarea_layer_register (const char *name,
 			      void (*draw) (struct BITMAP *, int offx, int offy),
@@ -67,6 +72,18 @@ void editarea_layer_activate (const char *name);
 
 
 #endif
+@
+
+
+1.2
+log
+@Expose grid x, y values.
+@
+text
+@d31 2
+a32 2
+void editarea_uninstall ();
+void editarea_reset_offset ();
 @
 
 

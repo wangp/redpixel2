@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.24.07.06.35;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.18.15.42.38;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Reverted to the libc string functions and only support ASCII/UTF-8.
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* store.c
@@ -48,7 +53,7 @@ struct file {
 static int file_id;
 static struct file file_list;
 
-static void list_init ()
+static void list_init (void)
 {
     file_list.next = 0;
     file_id = 0;
@@ -99,7 +104,7 @@ static void list_remove (int id)
     }
 }
 
-static void list_shutdown ()
+static void list_shutdown (void)
 {
     while (file_list.next)
 	list_remove (file_list.next->id);
@@ -110,13 +115,13 @@ static void list_shutdown ()
 static int idx;
 DATAFILE **store;
 
-static void data_init ()
+static void data_init (void)
 {
     store = 0;
     idx = 1;
 }
 
-static void data_shutdown ()
+static void data_shutdown (void)
 {
     free (store);
 }
@@ -144,7 +149,7 @@ static int table_init (int size)
     return !hash_construct (&table, size) ? (-1) : 0;
 }
 
-static void table_shutdown ()
+static void table_shutdown (void)
 {
     if (table.size)
 	hash_free (&table, 0);
@@ -221,7 +226,7 @@ int store_load (AL_CONST char *filename, AL_CONST char *prefix)
     return store_load_ex (filename, prefix, load_datafile);
 }
 
-static void refresh ()
+static void refresh (void)
 {
     int size;
     struct file *p;
@@ -282,6 +287,32 @@ DATAFILE *store_file (int id)
     struct file *f = list_find (id, 0);
     return (f) ? (f->dat) : 0;
 }
+@
+
+
+1.2
+log
+@Reverted to the libc string functions and only support ASCII/UTF-8.
+@
+text
+@d24 1
+a24 1
+static void list_init ()
+d75 1
+a75 1
+static void list_shutdown ()
+d86 1
+a86 1
+static void data_init ()
+d92 1
+a92 1
+static void data_shutdown ()
+d120 1
+a120 1
+static void table_shutdown ()
+d197 1
+a197 1
+static void refresh ()
 @
 
 

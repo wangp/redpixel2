@@ -1,4 +1,40 @@
+2002-01-25  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* messages.c:
+	Added scrolling message text and slightly better input
+	(e.g. backspacing).
+
+	* client.h, client.c, netmsg.h, messages.c, messages.h:
+	Added client sending text messages.
+
 2002-01-24  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* bindings.c, bindgen.lua, main.c:
+	Changes following cleanup of server and client sources.
+
+	* client.c, client.h:
+	Cleaned up the client source (and renamed the file).
+	* mylibnet.c, mylibnet.h: Moved some functions here.
+
+	* server.c, server.h, svticker.h, svticker.c, svstats.h,
+	* svstats.c, svlobby.h, svlobby.c, svintern.h, svgame.h, 
+	* svgame.c, svclient.h, svclient.c:
+	Overhauled the server code and split into multiple files.
+	These files used to be gamesrv.c.
+
+	* Changed all "()" declarations to "(void)".
+
+	* src/server/server.c:
+	Changed the test for a very small yv (again) from 0 <= yv < 0.0001
+	to 0 <= yv < 0.005.
+
+	* basic-tilelike.lua: Delay respawning of crates if they would
+	collide with another object.
+
+	* object.h, object.c, bindgen.lua, gamesrv.h, gamesrv.c:
+	Added _internal_would_collide_with_objects().
+
+	* data/basic/basic-player.lua: (minor syntax change)
 
 	* basic-base.lua, gamesrv.c, bindgen.lua, gameclt.c, gamesrv.h,
 	* netmsg.h, particle.h, particle.c: 

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.05.36;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* ug.c
@@ -33,7 +38,7 @@ text
 static int count;
 
 
-int ug_init ()
+int ug_init (void)
 {
     if (!count) {
 	if (ug_theme_init () < 0)
@@ -45,9 +50,23 @@ int ug_init ()
 }
 
 
-void ug_shutdown ()
+void ug_shutdown (void)
 {
     if (--count < 1) 
 	ug_theme_shutdown ();
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d14 1
+a14 1
+int ug_init ()
+d26 1
+a26 1
+void ug_shutdown ()
 @

@@ -28,13 +28,13 @@ static int top, selected;
 
 /* Save / restore selectbar state.  */
  
-static void save_list ()
+static void save_list (void)
 {
     top = selectbar_top ();
     selected = selectbar_selected ();
 }
 
-static void restore_list ()
+static void restore_list (void)
 {
     selectbar_set_top (top);
     selectbar_set_selected (selected);
@@ -43,7 +43,7 @@ static void restore_list ()
 
 /* Mode manager callbacks.  */
 
-static void enter_mode ()
+static void enter_mode (void)
 {
     editarea_layer_activate ("starts");
     selectbar_set_list (list);
@@ -51,7 +51,7 @@ static void enter_mode ()
     restore_list ();
 } 
 
-static void leave_mode ()
+static void leave_mode (void)
 {
     save_list ();
     selectbar_set_list (0);
@@ -144,7 +144,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 /* Module init / shutdown.  */
 
-int mode_starts_init ()
+int mode_starts_init (void)
 {
     modemgr_register (&start_mode);
     editarea_layer_register ("starts", draw_layer, event_layer, DEPTH_STARTS);
@@ -158,7 +158,7 @@ int mode_starts_init ()
     return 0;
 }
 
-void mode_starts_shutdown ()
+void mode_starts_shutdown (void)
 {
     ed_select_list_destroy (list);
     destroy_bitmap (icon);

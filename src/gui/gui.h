@@ -34,18 +34,18 @@ typedef enum gui_event gui_event_t;
 /* gui.c */
 
 /*: Initialise the GUI subsystem.  */
-int gui_init ();
+int gui_init (void);
 
 /*: Shutdown the GUI subsystem.  */
-void gui_shutdown ();
+void gui_shutdown (void);
 
 /*: Run the GUI subsystem.  This will not return until gui_quit is
  *  called.  See also: gui_quit.  */
-void gui_main ();
+void gui_main (void);
 
 /*: Stop running the GUI subsystem.  After this, you can rerun the
  *  system with gui_main, or clean up with gui_shutdown.  */
-void gui_quit ();
+void gui_quit (void);
 
 
 /* guiwm.c */
@@ -160,7 +160,7 @@ typedef struct gui_accel gui_accel_t;
  *
  *  Example:  accel = gui_accel_create (GUI_ACCEL_CTRL ('z'), foo);
  */
-gui_accel_t *gui_accel_create (int key, void (*proc) ());
+gui_accel_t *gui_accel_create (int key, void (*proc) (void));
 
 /*: Free the memory associated with an accelerator key.  */
 void gui_accel_destroy (gui_accel_t *);
@@ -205,7 +205,7 @@ extern struct gui_mouse_state gui_mouse;
 void gui_mouse_restrict (gui_window_t *);
 
 /*: Allow the mouse to move around the entire screen).  */
-void gui_mouse_unrestrict ();
+void gui_mouse_unrestrict (void);
 
 
 #endif

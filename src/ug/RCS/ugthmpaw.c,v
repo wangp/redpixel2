@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.04.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* ugthmpaw.c - The Paw theme for UG
@@ -34,7 +39,7 @@ static int fg, bg, textcol;
 static BITMAP *tile;
 
 
-static int theme_init ()
+static int theme_init (void)
 {
     fg = makecol (0xa0, 0xa0, 0xa0);
     bg = makecol (0x40, 0x40, 0x40);
@@ -46,7 +51,7 @@ static int theme_init ()
 }
 
 
-static void theme_shutdown ()
+static void theme_shutdown (void)
 {
     destroy_bitmap (tile);
 }
@@ -163,4 +168,18 @@ struct ug_theme ug_theme_thepaw = {
     theme_font,
     theme_text
 };
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 1
+a15 1
+static int theme_init ()
+d27 1
+a27 1
+static void theme_shutdown ()
 @

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.04.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.45;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_ug_h
@@ -31,10 +36,10 @@ struct BITMAP;
 /* ug.c */
 
 /*: Initialise the UG subsystem.  */
-int ug_init ();
+int ug_init (void);
 
 /*: Shutdown the UG subsystem.  */
-void ug_shutdown ();
+void ug_shutdown (void);
 
 
 /* ugwidget.c */
@@ -225,7 +230,7 @@ typedef struct ug_dialog_layout {
 
 /*: Create a dynamic dialog layout and return a pointer to it.  If 
  *  possible, you should use a static dialog layout instead of this.  */
-ug_dialog_layout_t *ug_dialog_layout_create ();
+ug_dialog_layout_t *ug_dialog_layout_create (void);
 
 /*: Free the memory associated with a dynamic dialog layout.  */
 void ug_dialog_layout_destroy (ug_dialog_layout_t *);
@@ -342,4 +347,21 @@ typedef struct ug_menu_root {
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+a12 1
+int ug_init ();
+d15 1
+a15 1
+void ug_shutdown ();
+d206 1
+a206 1
+ug_dialog_layout_t *ug_dialog_layout_create ();
 @

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.09.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.19;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_guiinter_h
@@ -31,8 +36,8 @@ int gui_accel_handle_key (int key);
 
 /* guidirty.c */
 
-void gui_dirty_init ();
-void gui_dirty_shutdown ();
+void gui_dirty_init (void);
+void gui_dirty_shutdown (void);
 void gui_dirty_add_rect (int x, int y, int w, int h);
 void gui_dirty_clear (struct BITMAP *);
 void gui_dirty_blit (struct BITMAP *bmp, struct BITMAP *dest);
@@ -40,14 +45,14 @@ void gui_dirty_blit (struct BITMAP *bmp, struct BITMAP *dest);
 
 /* guimouse.c */
 
-void gui_mouse_update ();
+void gui_mouse_update (void);
 
 
 /* guiwm.c */
 
 struct gui_wm {
-    void (*wm_init) ();
-    void (*wm_shutdown) ();
+    void (*wm_init) (void);
+    void (*wm_shutdown) (void);
     void (*wm_event) (gui_event_t, int);
     int (*wm_update_screen) (struct BITMAP *);
     
@@ -76,11 +81,34 @@ struct gui_wm {
 
 extern gui_wm_t *gui_wm;
 
-void gui_wm_init ();
-void gui_wm_shutdown ();
+void gui_wm_init (void);
+void gui_wm_shutdown (void);
 void gui_wm_event (gui_event_t, int d);
 int gui_wm_update_screen (struct BITMAP *);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 2
+a13 2
+void gui_dirty_init ();
+void gui_dirty_shutdown ();
+d21 1
+a21 1
+void gui_mouse_update ();
+d27 2
+a28 2
+    void (*wm_init) ();
+    void (*wm_shutdown) ();
+d57 2
+a58 2
+void gui_wm_init ();
+void gui_wm_shutdown ();
 @

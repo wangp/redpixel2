@@ -11,10 +11,10 @@
 /* Import bindings.  */
 
 #include <allegro.h>
+#include "client.h"
 #include "extdata.h"
-#include "gameclt.h"
-#include "gamesrv.h"
 #include "loaddata.h"
+#include "svgame.h"
 #include "store.h"
 #include "object.h"
 #include "objtypes.h"
@@ -25,12 +25,12 @@
 
 /* Module stuff.  */
 
-void bindings_init ()
+void bindings_init (void)
 {
     DO_REGISTRATION(lua_state);
 }
 
 
-void bindings_shutdown ()
+void bindings_shutdown (void)
 {
 }

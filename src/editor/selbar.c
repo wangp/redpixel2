@@ -16,9 +16,9 @@ static ug_dialog_t *dialog;
 static ug_widget_t *sel;
 static ed_select_list_t *list;
 
-static void (*left_proc) ();
-static void (*right_proc) ();
-static void (*selected_proc) ();
+static void (*left_proc) (void);
+static void (*right_proc) (void);
+static void (*selected_proc) (void);
 
 
 static void up_slot (ug_widget_t *p, ug_signal_t signal, void *data)
@@ -65,7 +65,7 @@ void selectbar_install (int x, int y, int w, int h)
     left_proc = right_proc = 0;
 }
 
-void selectbar_uninstall ()
+void selectbar_uninstall (void)
 {
     ug_dialog_destroy (dialog);
     gui_window_destroy (window);
@@ -82,23 +82,24 @@ void selectbar_set_icon_size (int w, int h)
     ed_select_set_icon_size (sel, w, h);
 }
 
-void selectbar_set_change_set_proc (void (*_left) (), void (*_right) ())
+void selectbar_set_change_set_proc (void (*_left) (void),
+				    void (*_right) (void))
 {
     left_proc = _left;
     right_proc = _right;
 }
 
-void selectbar_set_selected_proc (void (*proc) ())
+void selectbar_set_selected_proc (void (*proc) (void))
 {
     selected_proc = proc;
 }
 
-void selectbar_scroll_up ()
+void selectbar_scroll_up (void)
 {
     ed_select_scroll_up (sel);
 }
 
-void selectbar_scroll_down ()
+void selectbar_scroll_down (void)
 {
     ed_select_scroll_down (sel);
 }
@@ -108,7 +109,7 @@ void selectbar_set_top (int top)
     ed_select_set_top (sel, top);
 }
 
-int selectbar_top ()
+int selectbar_top (void)
 {
     return ed_select_top (sel);
 }
@@ -118,12 +119,12 @@ void selectbar_set_selected (int selected)
     ed_select_set_selected (sel, selected);
 }
 
-int selectbar_selected ()
+int selectbar_selected (void)
 {
     return ed_select_selected (sel);
 }
 
-char *selectbar_selected_name ()
+char *selectbar_selected_name (void)
 {
     return ed_select_list_item_name (list, selectbar_selected ());
 }

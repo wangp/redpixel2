@@ -1,9 +1,14 @@
-head	1.12;
+head	1.13;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.13
+date	2002.01.24.15.34.04;	author tjaden;	state Exp;
+branches;
+next	1.12;
 
 1.12
 date	2002.01.23.14.09.12;	author tjaden;	state Exp;
@@ -70,9 +75,9 @@ desc
 @@
 
 
-1.12
+1.13
 log
-@Added particles for respawning ball.
+@Added client sending text messages.
 @
 text
 @#ifndef __included_netmsg_h
@@ -164,10 +169,22 @@ enum {
     MSG_SC_LOBBY = 'l',
 
 
-    /* The server broadcasts this to clients to tell them to display a
-       text message.  */
+    /* The client sends this to the server to request sending a text
+       message to all clients.
 
-    MSG_SC_TEXT = 't',
+       Args: long len, byte text[].
+    */
+
+    MSG_CS_TEXT = 't',
+    
+
+    /* The server broadcasts this to clients to tell them to display a
+       text message.
+
+       Args: long len, byte text[].
+    */
+
+    MSG_SC_TEXT = 'T',
 
 
     /* The client sends this to the server to initiate the ping
@@ -233,15 +250,7 @@ enum {
        Args: long len, byte weapon_name[].
      */
 
-    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w',
-
-
-    /* Tell server to broadcast text message to all clients.
-
-       Args: long len, char text[].
-     */
-
-    MSG_CS_GAMEINFO_TEXT = 't'
+    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w'
 };
 
 
@@ -329,6 +338,39 @@ enum {
        Args: float x, float y, long nparticles.
      */
 
+    MSG_SC_GAMEINFO_BLOD_CREATE = 'B'
+};
+
+
+#endif
+@
+
+
+1.12
+log
+@Added particles for respawning ball.
+@
+text
+@d90 9
+d100 1
+a100 1
+       text message.  */
+d102 4
+a105 1
+    MSG_SC_TEXT = 't',
+d171 1
+a171 9
+    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w',
+
+
+    /* Tell server to broadcast text message to all clients.
+
+       Args: long len, char text[].
+     */
+
+    MSG_CS_GAMEINFO_TEXT = 't'
+d259 1
+a259 9
     MSG_SC_GAMEINFO_BLOD_CREATE = 'B',
 
 
@@ -338,10 +380,6 @@ enum {
      */
 
     MSG_SC_GAMEINFO_TEXT = 't',
-};
-
-
-#endif
 @
 
 

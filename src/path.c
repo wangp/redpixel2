@@ -15,7 +15,7 @@ char *path_share[] = {
 };
 
 
-void path_init ()
+void path_init (void)
 {
     /*
       XXX:
@@ -26,6 +26,6 @@ void path_init ()
 }
 
 
-void path_shutdown ()
+void path_shutdown (void)
 {
 }

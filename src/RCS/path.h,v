@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_path_h
@@ -27,9 +32,21 @@ text
 extern char *path_share[];
 
 
-void path_init ();
-void path_shutdown ();
+void path_init (void);
+void path_shutdown (void);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 2
+a9 2
+void path_init ();
+void path_shutdown ();
 @

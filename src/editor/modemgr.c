@@ -11,21 +11,21 @@
 #include "modemgr.h"
 
 
-static void modebar_make ();
+static void modebar_make (void);
 
 
 static struct editmode **modes;
 static int num, current;
 
 
-void modemgr_init ()
+void modemgr_init (void)
 {
     modes = 0;
     num = 0;
     current = -1;
 }
 
-void modemgr_shutdown ()
+void modemgr_shutdown (void)
 {
     free (modes);
 }
@@ -79,14 +79,14 @@ void modebar_install (int x, int y, int w, int h)
 }
 
 
-void modebar_uninstall ()
+void modebar_uninstall (void)
 {
     ug_dialog_destroy (dialog);
     gui_window_destroy (window);
 }
 
 
-static void modebar_make ()
+static void modebar_make (void)
 {
     ug_dialog_layout_t *lay;
     int i;

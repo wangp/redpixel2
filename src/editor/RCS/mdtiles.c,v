@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.15.16;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.08;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* mdtiles.c
@@ -92,7 +97,7 @@ static void callback (const char *prefix, int id)
     list_add (file_list, f);
 }
 
-static int make_file_list ()
+static int make_file_list (void)
 {
     list_init (file_list);
     tiles_enumerate (callback);
@@ -105,7 +110,7 @@ static void do_free_file (struct file *f)
     free (f);
 }
 
-static void free_file_list ()
+static void free_file_list (void)
 {
     list_free (file_list, do_free_file);
 }
@@ -113,13 +118,13 @@ static void free_file_list ()
 
 /* Save / restore selectbar state.  */
  
-static void save_current ()
+static void save_current (void)
 {
     current->top = selectbar_top ();
     current->selected = selectbar_selected ();
 }
 
-static void restore_current ()
+static void restore_current (void)
 {
     selectbar_set_top (current->top);
     selectbar_set_selected (current->selected);
@@ -136,7 +141,7 @@ static void change_set (struct file *p)
 
 /* Selectbar callbacks.  */
  
-static void left_proc ()
+static void left_proc (void)
 {
     struct file *prev = current->prev;
     if (prev == (struct file *) &file_list)
@@ -145,7 +150,7 @@ static void left_proc ()
 	change_set (prev);
 }
 
-static void right_proc ()
+static void right_proc (void)
 {    
     struct file *next = current->next;
     if (next == (struct file *) &file_list)
@@ -157,7 +162,7 @@ static void right_proc ()
 
 /* Mode manager callbacks.  */
 
-static void enter_mode ()
+static void enter_mode (void)
 {
     editarea_layer_activate ("tiles");
     selectbar_set_list (current->list);
@@ -166,7 +171,7 @@ static void enter_mode ()
     restore_current ();
 }
 
-static void leave_mode ()
+static void leave_mode (void)
 {
     save_current ();
     selectbar_set_change_set_proc (0, 0);
@@ -270,7 +275,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 /* Module init / shutdown.  */
 
-int mode_tiles_init ()
+int mode_tiles_init (void)
 {
     if (make_file_list () < 0)
 	return -1;
@@ -281,8 +286,46 @@ int mode_tiles_init ()
     return 0;
 }
 
-void mode_tiles_shutdown ()
+void mode_tiles_shutdown (void)
 {
     free_file_list ();
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d73 1
+a73 1
+static int make_file_list ()
+d86 1
+a86 1
+static void free_file_list ()
+d94 1
+a94 1
+static void save_current ()
+d100 1
+a100 1
+static void restore_current ()
+d117 1
+a117 1
+static void left_proc ()
+d126 1
+a126 1
+static void right_proc ()
+d138 1
+a138 1
+static void enter_mode ()
+d147 1
+a147 1
+static void leave_mode ()
+d251 1
+a251 1
+int mode_tiles_init ()
+d262 1
+a262 1
+void mode_tiles_shutdown ()
 @

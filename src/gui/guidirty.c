@@ -25,13 +25,13 @@ struct list {
 static struct list dirty, old_dirty;
 
 
-void gui_dirty_init ()
+void gui_dirty_init (void)
 {
     dirty.count = old_dirty.count = 0;
 }
 
 
-void gui_dirty_shutdown ()
+void gui_dirty_shutdown (void)
 {
 }
 

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* bitmaskr.c - bitmask references
@@ -77,14 +82,14 @@ static void destroy (bitmask_ref_t *ref)
 }
 
 
-int bitmask_ref_init ()
+int bitmask_ref_init (void)
 {
     list_init (ref_list);
     return 0;
 }
 
 
-void bitmask_ref_shutdown ()
+void bitmask_ref_shutdown (void)
 {
     list_free (ref_list, destroy);
 }
@@ -129,4 +134,18 @@ bitmask_t *bitmask_ref_bitmask (bitmask_ref_t *ref)
 {
     return ref->mask;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d58 1
+a58 1
+int bitmask_ref_init ()
+d65 1
+a65 1
+void bitmask_ref_shutdown ()
 @

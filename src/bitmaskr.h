@@ -8,8 +8,8 @@ struct bitmask;
 typedef struct bitmask_ref bitmask_ref_t;
 
 
-int bitmask_ref_init ();
-void bitmask_ref_shutdown ();
+int bitmask_ref_init (void);
+void bitmask_ref_shutdown (void);
 bitmask_ref_t *bitmask_ref_create (struct bitmask *mask, int free);
 void bitmask_ref_destroy (bitmask_ref_t *ref);
 struct bitmask *bitmask_ref_bitmask (bitmask_ref_t *ref);

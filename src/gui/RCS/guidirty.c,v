@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.09.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.19;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* guidirty.c - yet another hack of `demo.c'
@@ -47,13 +52,13 @@ struct list {
 static struct list dirty, old_dirty;
 
 
-void gui_dirty_init ()
+void gui_dirty_init (void)
 {
     dirty.count = old_dirty.count = 0;
 }
 
 
-void gui_dirty_shutdown ()
+void gui_dirty_shutdown (void)
 {
 }
 
@@ -193,4 +198,18 @@ void gui_dirty_blit (BITMAP *src, BITMAP *dest)
     if (vid) 
 	release_bitmap (dest);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d28 1
+a28 1
+void gui_dirty_init ()
+d34 1
+a34 1
+void gui_dirty_shutdown ()
 @

@@ -12,7 +12,7 @@ static int fg, bg, textcol;
 static BITMAP *tile;
 
 
-static int theme_init ()
+static int theme_init (void)
 {
     fg = makecol (0xa0, 0xa0, 0xa0);
     bg = makecol (0x40, 0x40, 0x40);
@@ -24,7 +24,7 @@ static int theme_init ()
 }
 
 
-static void theme_shutdown ()
+static void theme_shutdown (void)
 {
     destroy_bitmap (tile);
 }

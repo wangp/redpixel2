@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.09.41;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.19;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/* guiaccel.c
@@ -33,7 +38,7 @@ text
 
 struct gui_accel {
     int key;
-    void (*proc) ();
+    void (*proc) (void);
     void *param;
     struct gui_accel *next;
 };
@@ -61,7 +66,7 @@ static void unlink_accel (gui_accel_t *p, gui_accel_t *q)
 }
 
 
-gui_accel_t *gui_accel_create (int key, void (*proc) ())
+gui_accel_t *gui_accel_create (int key, void (*proc) (void))
 {
     gui_accel_t *p;
 
@@ -95,4 +100,18 @@ int gui_accel_handle_key (int key)
 
     return 0;
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d14 1
+a14 1
+    void (*proc) ();
+d42 1
+a42 1
+gui_accel_t *gui_accel_create (int key, void (*proc) ())
 @

@@ -5,7 +5,7 @@
 extern struct map *editor_map;
 
 
-int editor ();
+int editor (void);
 
 
 #endif

@@ -26,7 +26,7 @@
 map_t *editor_map;
 
 
-int editor ()
+int editor (void)
 {
     FONT *f;
 

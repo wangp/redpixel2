@@ -1,2 +1,2 @@
-void game_init ();
-void game_shutdown ();
+void game_init (void);
+void game_shutdown (void);

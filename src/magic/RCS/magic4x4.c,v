@@ -1,10 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
-locks
-	tjaden:1.1; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.07.12;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.28;	author tjaden;	state Exp;
@@ -16,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @/*  Modified version of exlights.c, by Shawn Hargreaves.
@@ -118,7 +122,7 @@ BITMAP *unget_magic_bitmap_format(BITMAP *orig)
  * alpha levels, or for doing additive color, which can work happily
  * in parallel with the light blending.
  */
-void generate_magic_color_map()
+void generate_magic_color_map(void)
 {
    int x, y, c, xc, yc, l, xl, yl;
 
@@ -147,7 +151,7 @@ void generate_magic_color_map()
 }
 
 
-void free_magic_color_map ()
+void free_magic_color_map(void)
 {
    free(color_map);
    color_map = 0;
@@ -161,7 +165,7 @@ static unsigned short gbtable[0x10000];
 
 
 /* Builds some helper tables for doing color conversions.  */
-void generate_magic_conversion_tables()
+void generate_magic_conversion_tables(void)
 {
    int r, g, b;
    int cr, cg, cb;
@@ -326,4 +330,21 @@ void draw_lit_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int color)
 {
     draw_lit_sprite(bmp, sprite, x * 3, y, color);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d98 1
+a98 1
+void generate_magic_color_map()
+d127 1
+a127 1
+void free_magic_color_map ()
+d141 1
+a141 1
+void generate_magic_conversion_tables()
 @

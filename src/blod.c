@@ -86,7 +86,7 @@ void blod_spawn (map_t *map, float x, float y, long nparticles)
 }
 
 
-void blod_init ()
+void blod_init (void)
 {
     int i;
     for (i = 0; blod_type_list[i].name; i++)
@@ -96,6 +96,6 @@ void blod_init ()
 }
 
 
-void blod_shutdown ()
+void blod_shutdown (void)
 {
 }

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.15.16;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.08;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
 @#ifndef __included_menu_h
@@ -25,8 +30,19 @@ text
 
 
 void menu_install (int x, int y, int w, int h);
-void menu_uninstall ();
+void menu_uninstall (void);
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d6 1
+a6 1
+void menu_uninstall ();
 @

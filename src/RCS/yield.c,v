@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.24.07.23.01;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,14 +20,12 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Changed all "()" declarations to "(void)".
 @
 text
-@/* XXX: Replace this with Allegro once it is fixed up.  */
-
-/* yield.c - yield a timeslice
+@/* yield.c - yield a timeslice
  *
  * Peter Wang <tjaden@@users.sourceforge.net>
  */
@@ -33,9 +36,12 @@ text
 #include "yield.h"
 
 
-void yield ()
+void yield (void)
 {
 #ifdef ALLEGRO_UNIX
+
+    /* Under Unix we use select() instead of the sched_yield() that
+     * Allegro uses for a stronger effect.  */
     
     struct timeval tv;
     tv.tv_sec = 0;
@@ -48,4 +54,19 @@ void yield ()
 
 #endif
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a0 2
+/* XXX: Replace this with Allegro once it is fixed up.  */
+
+d12 1
+a12 1
+void yield ()
+d15 3
 @
