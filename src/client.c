@@ -360,11 +360,11 @@ static void send_gameinfo_controls (void)
     int update = 0;
 
     if (!ingame_messages_grabbed_keyboard ()) {
-	if (key[KEY_A]) controls |= CONTROL_LEFT;
-	if (key[KEY_D]) controls |= CONTROL_RIGHT;
-	if (key[KEY_W]) controls |= CONTROL_UP;
-	if (key[KEY_S]) controls |= CONTROL_DOWN;
-	if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
+	if (key[KEY_A] || key[KEY_LEFT])  controls |= CONTROL_LEFT;
+	if (key[KEY_D] || key[KEY_RIGHT]) controls |= CONTROL_RIGHT;
+	if (key[KEY_W] || key[KEY_UP])    controls |= CONTROL_UP;
+	if (key[KEY_S] || key[KEY_DOWN])  controls |= CONTROL_DOWN;
+	if (key[KEY_SPACE])               controls |= CONTROL_RESPAWN;
     }
 
     {
