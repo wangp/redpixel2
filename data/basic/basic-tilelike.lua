@@ -2,56 +2,78 @@
 
 store_load ("basic/basic-tilelike.dat", "/basic/tilelike/")
 
-objtype_register ("objtile", "basic-barrel-red", "/basic/tilelike/barrel-red/main")
-objtype_register ("objtile", "basic-barrel-grey", "/basic/tilelike/barrel-gray/main")
-
-
 
 ----------------------------------------------------------------------
 --  Crates
 ----------------------------------------------------------------------
 
-local make_crate_nonproxy_init = function (health, respawn_secs)
-    return function (self)
-	self.health = health
-	function self:receive_damage (amount)
-	    self.health = self.health - amount
-	    if self.health <= 0 then
-		self:hide ()
-		function the_hook (self)
-		    if _internal_would_collide_with_objects (self) then
-			-- try again later
-			self:set_update_hook (700, the_hook)
-		    else
-			self:show ()
-			self:remove_update_hook ()
+local Crate = function (t)
+    return Objtype (t, {
+	category = "objtile",
+	nonproxy_init = function (self)
+	    self.health = t.health
+	    function self:receive_damage (amount)
+		self.health = self.health - amount
+		if self.health <= 0 then
+		    spawn_explosion ("basic-simple42", self.x, self.y)
+		    spawn_sparks (self.x, self.y, 30, 3)
+		    self:hide ()
+		    function the_hook (self)
+			if _internal_would_collide_with_objects (self) then
+			    -- try again later
+			    self:set_update_hook (700, the_hook)
+			else
+			    self:show ()
+			    self:remove_update_hook ()
+			end
 		    end
+		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
 		end
-		self:set_update_hook (respawn_secs * 1000, the_hook)
 	    end
 	end
-    end
+    })
 end
 
-Objtype {
-    category = "objtile",
+Crate {
     name = "basic-crate-000",
     icon = "/basic/tilelike/crate-normal000",
-    nonproxy_init = make_crate_nonproxy_init (15, 20)
+    health = 15,
+    respawn_secs = 20
 }
 
-Objtype {
-    category = "objtile",
+Crate {
     name = "basic-crate-001",
     icon = "/basic/tilelike/crate-normal001",
-    nonproxy_init = make_crate_nonproxy_init (15, 20)
+    health = 15,
+    respawn_secs = 20
 }
 
-Objtype {
-    category = "objtile",
+Crate {
     name = "basic-crate-large-000",
     icon = "/basic/tilelike/crate-large000",
-    nonproxy_init = make_crate_nonproxy_init (30, 20)
+    health = 30,
+    respawn_secs = 20
+}
+
+
+----------------------------------------------------------------------
+--  Barrels
+----------------------------------------------------------------------
+
+local Barrel = Crate	-- temporary
+
+Barrel {
+    name = "basic-barrel-red",
+    icon = "/basic/tilelike/barrel-red/main",
+    health = 30,
+    respawn_secs = 20
+}
+
+Barrel {
+    name = "basic-barrel-grey",
+    icon = "/basic/tilelike/barrel-gray/main",
+    health = 30,
+    respawn_secs = 20
 }
 
 
