@@ -102,7 +102,7 @@ void svgame_process_cs_gameinfo_packet (svclient_t *c, const char *buf,
 		break;
 
 	    case MSG_CS_GAMEINFO_WEAPON_SWITCH: {
-		long len;
+		short len;
 		char name[NETWORK_MAX_PACKET_SIZE];
 		
 		buf += packet_decode (buf, "s", &len, name);

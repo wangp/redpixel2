@@ -69,7 +69,7 @@ static void poll_client_joining (svclient_t *c)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     char name[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     char version;
 
     if (svclient_receive_rdm (c, buf, sizeof buf) <= 0)
@@ -118,7 +118,7 @@ static void poll_client_joined (svclient_t *c)
 	    break;
 
 	case MSG_CS_TEXT: {
-	    long len;
+	    short len;
 	    char text[NETWORK_MAX_PACKET_SIZE];
 	    char tmp[NETWORK_MAX_PACKET_SIZE];
 

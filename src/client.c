@@ -310,7 +310,7 @@ static const uchar_t *NAME (const uchar_t *buf)
 SC_GAMEINFO_HANDLER (sc_mapload)
 {
     char filename[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     
     buf += packet_decode (buf, "s", &len, filename);
     if (map)
@@ -327,7 +327,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     int top = lua_gettop (L);
     
     char type[NETWORK_MAX_PACKET_SIZE];
-    long len;
+    short len;
     objid_t id;
     char hidden;
     float x, y;
@@ -369,7 +369,7 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     {
 	char type;
 	char name[NETWORK_MAX_PACKET_SIZE];
-	long len;
+	short len;
 	float f;
 		    
 	do {
@@ -454,9 +454,9 @@ SC_GAMEINFO_HANDLER (sc_object_hidden)
 SC_GAMEINFO_HANDLER (sc_object_call)
 {
     long id;
-    long method_len;
+    short method_len;
     char method[NETWORK_MAX_PACKET_SIZE];
-    long arg_len;
+    short arg_len;
     char arg[NETWORK_MAX_PACKET_SIZE];
     object_t *obj;
 		
@@ -525,7 +525,7 @@ SC_GAMEINFO_HANDLER (sc_blod_create)
 SC_GAMEINFO_HANDLER (sc_explosion_create)
 {
     char name[NETWORK_MAX_PACKET_SIZE];
-    size_t len;
+    short len;
     float x;
     float y;
     
@@ -950,7 +950,7 @@ void client_run (void)
 
 			case MSG_SC_TEXT: {
 			    char string[NETWORK_MAX_PACKET_SIZE];
-			    long len;
+			    short len;
 			    
 			    packet_decode (buf+1, "s", &len, string);
 			    messages_add ("%s", string);

@@ -16,7 +16,19 @@
 #endif
 
 
-static long get_long (const unsigned char *buf)
+static inline short get_short (const unsigned char *buf)
+{
+    return ntohs (*((short *) buf));
+}
+
+
+static inline void put_short (unsigned char *buf, short s)
+{
+    *((short *) buf) = htons (s);
+}
+
+
+static inline long get_long (const unsigned char *buf)
 {
     return ntohl (*((long *) buf));
 }
@@ -75,11 +87,11 @@ int packet_encode_v (unsigned char *buf, const char *fmt, va_list ap)
 
 	case 's': {
 	    const char *str;
-	    long len;
+	    short len;
 		
 	    str = va_arg (ap, const char *);
 	    len = strlen (str);
-	    put_long (buf, len); buf += 4;
+	    put_short (buf, len); buf += 2;
 	    memcpy (buf, str, len); buf += len;
 	    break;
 	}
@@ -116,11 +128,11 @@ int packet_decode (const unsigned char *buf, const char *fmt, ...)
 
 	case 's': {
 	    /* XXX possible buffer overflow */
-	    long *len;
+	    short *len;
 	    char *s;
 
-	    len = va_arg (ap, long *);
-	    *len = get_long (buf); buf += 4;
+	    len = va_arg (ap, short *);
+	    *len = get_short (buf); buf += 2;
 	    s = va_arg (ap, char *);
 	    memcpy (s, buf, *len);
 	    s[*len] = '\0';
