@@ -20,6 +20,15 @@
 #include "sync.h"
 
 
+/* Hack: Mingw (at least the oldish version I have) doesn't have
+ * strtok_r yet.  In this file, we can substitute it by Allegro's
+ * ustrtok_r, if Allegro is in UTF-8 or ASCII modes (which it is).
+ */
+#ifdef TARGET_WINDOWS
+#define strtok_r ustrtok_r
+#endif
+
+
 static server_interface_t *interface;
 static NET_CONN *listen;
 
