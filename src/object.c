@@ -1426,6 +1426,21 @@ void object_call (object_t *obj, const char *method, int nargs)
 }
 
 
+int object_get_var_type (object_t *obj, const char *var)
+{
+    lua_State *L = lua_state;
+    int type;
+
+    lua_getref (L, obj->table);
+    lua_pushstring (L, var);
+    lua_rawget (L, -2);
+    type = lua_type (L, -1);
+    lua_pop (L, 2);
+
+    return type;
+}
+
+
 float object_get_number (object_t *obj, const char *var)
 {
     lua_State *L = lua_state;
@@ -1520,6 +1535,40 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
 		   layer->centre_x, bmp->h - layer->centre_y,
 		   (layer->angle + 128) << 16);
 	}
+    }
+}
+
+
+static void trans_textout_centre (BITMAP *bmp, FONT *font, const char *s,
+				  int x, int y, int color)
+{
+    BITMAP *tmp = create_magic_bitmap (text_length (font, s),
+				       text_height (font));
+    clear_bitmap (tmp);
+    textout (tmp, font, s, 0, 0, color);
+    draw_trans_magic_sprite (bmp, tmp, x - tmp->w/3/2, y);
+    destroy_bitmap (tmp);
+}
+
+
+void object_draw_trans_name (BITMAP *dest, object_t *obj,
+			     int offset_x, int offset_y)
+{
+    const char *name;
+
+    if (object_hidden (obj))
+	return;
+
+    name = object_get_string (obj, "name");
+    if (name) {
+	FONT *fnt = store_get_dat ("/basic/font/mini"); /* XXX? */
+	int x1, y1, x2, y2;
+
+	object_bounding_box (obj, &x1, &y1, &x2, &y2);
+	trans_textout_centre (dest, fnt, name,
+			      -offset_x + object_x (obj),
+			      -offset_y + object_y (obj) + y2,
+			      makecol24 (12, 10, 10));
     }
 }
 
