@@ -478,6 +478,8 @@ local mine_anim = {
     "/basic/weapon/mine/mine003"
 }
 
+local mine_tag = new_object_collision_tag ()
+
 Objtype {
     name = "basic-mine-dropped",
     alias = "~Md",
@@ -489,6 +491,9 @@ Objtype {
 	-- Initially the mine doesn't touch players..
 	self:set_collision_flags ("tn")
 	self:set_mask (mask_bottom, "/basic/weapon/mine/dropping-mask", 0, 0)
+
+	-- It doesn't touch other mines either
+	object_set_collision_tag (self, mine_tag)
 
 	self:set_update_hook (
 	    1000,
@@ -572,7 +577,7 @@ Standard_Projectile {
     name = "basic-mine-projectiles",
     alias = "~Mp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 10   
+    damage = 10
 }
 
 
