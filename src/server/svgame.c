@@ -74,7 +74,7 @@ static object_t *spawn_player (objid_t id)
     start = pick_random_start ();
     obj = object_create_ex ("player", id);
     object_set_xy (obj, map_start_x (start), map_start_y (start));
-    object_set_collision_tag (obj, id); /* XXX temp */
+    object_set_collision_tag (obj, id);
     map_link_object (map, obj);
     object_run_init_func (obj);
 
@@ -300,7 +300,7 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 	type = lua_tostring (Lsrv, -1);
     
     /* create the packet */
-    p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+    p = buf + packet_encode (buf, "cslcffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
 			     type,
 			     object_id (obj), object_hidden (obj),
 			     object_x (obj), object_y (obj),

@@ -240,7 +240,7 @@ enum {
     /* Tell clients to create a new object.
 
        Args: string type, long object_id, byte hidden_or_not,
-	     float x, float y, float xv, float yv, byte collision_tag.
+	     float x, float y, float xv, float yv, long collision_tag.
 
        This is followed by extra fields for the proxy object.
        Each field is of the following format:

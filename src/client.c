@@ -576,12 +576,12 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     char hidden;
     float x, y;
     float xv, yv;
-    int ctag;
+    objtag_t ctag;
     object_t *obj;
     const char *realtype;
 
     /* decode the start of the packet */
-    buf += packet_decode (buf, "slcffffc", &len, type, &id, &hidden,
+    buf += packet_decode (buf, "slcffffl", &len, type, &id, &hidden,
 			  &x, &y, &xv, &yv, &ctag);
 
     /* look up the object type alias */
