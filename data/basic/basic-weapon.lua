@@ -124,6 +124,7 @@ end
 
 Weapon {
     name = "basic-blaster", 
+    icon = "/basic/weapon/blaster/icon",
     arm_anim = {
 	"/basic/weapon/blaster/1arm000",
 	"/basic/weapon/blaster/1arm001",
@@ -167,6 +168,7 @@ Standard_Projectile {
 
 Weapon {
     name = "basic-bow",
+    icon = "/basic/weapon/bow/icon",
     ammo_type = "basic-arrow",
     fire = function (player)
 	local proj = spawn_projectile ("basic-arrow-projectile", player, 12, 
@@ -233,6 +235,7 @@ Standard_Pickup {
 
 Weapon_With_Firer {
     name = "basic-ak",
+    icon = "/basic/weapon/ak/icon",
     ammo_type = "basic-bullet",
     projectile = "basic-ak-projectile",
     projectile_speed = 12,
@@ -267,6 +270,7 @@ Standard_Projectile {
 
 Weapon {
     name = "basic-minigun",
+    icon = "/basic/weapon/minigun/icon",
     ammo_type = "basic-bullet",
     fire = function (player)
 	local proj = spawn_projectile ("basic-minigun-projectile", player, 12,
@@ -312,6 +316,7 @@ Standard_Projectile {
 
 Weapon_With_Firer {
     name = "basic-rpg",
+    icon = "/basic/weapon/rpg/icon",
     ammo_type = "basic-rocket",
     projectile = "basic-rocket-projectile",
     projectile_speed = 10,
@@ -374,6 +379,7 @@ explosion_type_register (
 
 Weapon {
     name = "basic-shotgun",
+    icon = "/basic/weapon/shotgun/icon",
     ammo_type = "basic-shell",
     fire = function (player)
 	local spread = math.pi / 96
@@ -430,6 +436,7 @@ Standard_Projectile {
 
 Weapon_With_Firer {
     name = "basic-rifle",
+    icon = "/basic/weapon/rifle/icon",
     ammo_type = "basic-slug",
     projectile = "basic-rifle-projectile",
     projectile_speed = 15,
@@ -491,6 +498,7 @@ Standard_Pickup {
 
 Weapon_With_Firer {
     name = "basic-vulcan",
+    icon = "/basic/weapon/vulcan/icon",
     ammo_type = "basic-vulcan-ammo",
     projectile = "basic-vulcan-projectile",
     projectile_speed = 300,

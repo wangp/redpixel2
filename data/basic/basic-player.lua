@@ -132,7 +132,19 @@ local player_nonproxy_init = function (self)
 
     function self:receive_weapon (name)
 	if weapons[name] and not self.have_weapon[name] then
+
 	    self.have_weapon[name] = true
+
+	    -- tell the proxy object about the new weapon 
+	    call_method_on_clients (self, "get_new_weapon_hook", name)
+
+	    -- if this is the first weapon, always switch to it
+	    -- (it will be the blaster anyway)
+	    if not self.current_weapon then
+		self:switch_weapon (name)
+		return
+	    end
+
 
 	    -- check the new weapon is auto-switchable
 	    if not contains (weapon_auto_switch_order, name) then
@@ -450,8 +462,7 @@ local player_nonproxy_init = function (self)
     --------------------------------------------------
 
     -- initial weapon
-    self.have_weapon["basic-blaster"] = true
-    self:switch_weapon ("basic-blaster")
+    self:receive_weapon ("basic-blaster")
 
     -- create a respawning ball where the player is
     spawn_object ("basic-respawning-ball", self.x, self.y)
@@ -618,6 +629,20 @@ local player_proxy_init = function (self)
 	    if self.current_weapon.sound then
 		play_sound (self, self.current_weapon.sound)
 	    end
+	end
+    end
+
+    -- (called by nonproxy receive_weapon)
+    self._internal_draw_weapons_list = {}
+    function self:get_new_weapon_hook (weapon_name)
+	if self.is_local then
+	    local w = weapons[weapon_name]
+	    table.insert (self._internal_draw_weapons_list, w)
+	    table.sort (self._internal_draw_weapons_list,
+			function (w1, w2)
+			    return (index_of (weapon_order, w1.name) < 
+				    index_of (weapon_order, w2.name))
+			end)
 	end
     end
 

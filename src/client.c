@@ -967,6 +967,98 @@ static int update_camera (int mouse_x, int mouse_y)
  */
 
 
+static void draw_background (BITMAP *bmp)
+{
+    if (bkgd) {
+	int x = -(camera_x (cam) / (3*parallax_x));
+	int y = -(camera_y (cam) / parallax_y);
+	int w = bkgd->w;
+	int h = bkgd->h;
+
+	if (x > 0)
+	    rectfill (bmp, 0, 0, x, bmp->h, 0);
+	if (y > 0)
+	    rectfill (bmp, 0, 0, bmp->w, y, 0);
+
+	blit (bkgd, bmp, 0, 0, x, y, w, h);
+	blit (bkgd, bmp, 0, 0, x, y+h, w, h);
+	blit (bkgd, bmp, 0, 0, x+w, y, w, h);
+	blit (bkgd, bmp, 0, 0, x+w, y+h, w, h);
+    }
+    else
+	clear_bitmap (bmp);
+}
+
+
+static void draw_torch (BITMAP *bmp)
+{
+    if (local_object) {
+	int x = object_x (local_object) - camera_x (cam);
+	int y = object_y (local_object) - camera_y (cam);
+
+	aim_angle = atan2 (mouse_y - y, mouse_x - x);
+
+	pivot_trans_magic_sprite (bmp, store_get_dat ("/basic/player/torch"),
+				  x, y, 0, 115/2,
+				  fixatan2 (mouse_y - y, mouse_x - x));
+    }
+}
+
+
+static void draw_weapons_list (BITMAP *bmp)
+{
+    int top, current_weapon;
+    int i, y;
+
+    if (!local_object)
+	return;
+
+    top = lua_gettop (Lclt);
+
+    lua_pushobject (Lclt, local_object); /* obj */
+    lua_pushstring (Lclt, "current_weapon"); /* obj str */
+    lua_gettable (Lclt, -2);	/* obj currwpn */
+    current_weapon = lua_gettop (Lclt);
+
+    lua_pushobject (Lclt, local_object); /* ... obj */
+    lua_pushstring (Lclt, "_internal_draw_weapons_list"); /* ... obj str */
+    lua_gettable (Lclt, -2); /* ... obj list */
+
+    y = bmp->h;
+    for (i = 1; ; i++) {
+	int is_current;
+	const char *s;
+	BITMAP *icon;
+
+	lua_pushnumber (Lclt, i); /* ... obj list i */
+	lua_gettable (Lclt, -2); /* ... obj list weapon */
+	if (!lua_istable (Lclt, -1))
+	    break;
+
+	is_current = lua_equal (Lclt, current_weapon, -1);
+	
+	lua_pushstring (Lclt, "icon"); /* ... obj list weapon str */
+	lua_gettable (Lclt, -2); /* ... obj list weapon icon */
+
+	s = lua_tostring (Lclt, -1);
+	if (s) {
+	    icon = store_get_dat (s);
+	    if (icon) {
+		y -= icon->h + 2;
+		if (is_current)
+		    draw_lit_magic_sprite (bmp, icon, 5, y, 0x8);
+		else
+		    draw_magic_sprite (bmp, icon, 3, y);
+	    }
+	}
+
+	lua_pop (Lclt, 2);
+    }
+
+    lua_settop (Lclt, top);
+}
+
+
 static void draw_status (BITMAP *bmp)
 {
     FONT *f = store_get_dat ("/basic/font/ugly");
@@ -1019,37 +1111,14 @@ static void update_screen (int mouse_x, int mouse_y)
     if (backgrounded)
 	return;
 
-    clear_bitmap (bmp);
-
-    if (bkgd) {
-	int x = -(camera_x (cam) / (3*parallax_x));
-	int y = -(camera_y (cam) / parallax_y);
-	int w = bkgd->w;
-	int h = bkgd->h;
-
-	blit (bkgd, bmp, 0, 0, x, y, w, h);
-	blit (bkgd, bmp, 0, 0, x, y+h, w, h);
-	blit (bkgd, bmp, 0, 0, x+w, y, w, h);
-	blit (bkgd, bmp, 0, 0, x+w, y+h, w, h);
-    }
-
+    draw_background (bmp);
     render (bmp, map, cam);
+    draw_torch (bmp);
+    draw_weapons_list (bmp);
 
-    if (local_object) {
-	int x = object_x (local_object) - camera_x (cam);
-	int y = object_y (local_object) - camera_y (cam);
-
-	aim_angle = atan2 (mouse_y - y, mouse_x - x);
-
-	pivot_trans_magic_sprite (bmp, store_get_dat ("/basic/player/torch"),
-				  x, y, 0, 115/2,
-				  fixatan2 (mouse_y - y, mouse_x - x));
-    }
-
-    if (crosshair) {
-	draw_lit_magic_sprite (bmp, crosshair, mouse_x-2, mouse_y-2,
-			       makecol24 (0xff, 0xff, 0xff));
-    }
+    /* crosshair */
+    draw_lit_magic_sprite (bmp, crosshair, mouse_x-2, mouse_y-2,
+			   makecol24 (0xff, 0xff, 0xff));
 
     draw_status (bmp);
 
