@@ -589,7 +589,7 @@ static void handle_svclient_controls (void)
 		    if ((jump > 0) && (!object_extrinsic_ya (obj))) {
 			object_add_intrinsic_ya (obj, (- object_mass (obj)
 						       - 4/object_jump(obj)));
-			object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
+			object_set_jump (obj, (jump < 12) ? (jump + 1) : 0);
 		    }
 		    else if ((jump == 0) && (object_supported (obj, map))) {
 			float yv = object_yv (obj);

@@ -77,7 +77,16 @@ end
 ----------------------------------------------------------------------
 
 
-local xv_decay, yv_decay = 0.7, 0.45
+-- xv_decay = 0.7 -- normal
+-- xv_decay = 0.685 -- medium
+-- xv_decay = 0.68 -- snail pace
+-- needs to be send to clients as well
+
+-- yv_decay = 0.45 -- demo2 speed
+-- yv_decay = 0.41 -- probably better, but floats down stairs too much..
+
+--local xv_decay, yv_decay = 0.7, 0.41
+local xv_decay, yv_decay = 0.67, 0.41
 
 -- centre of the player sprites (really?)
 local cx, cy = 5, 5
