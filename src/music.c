@@ -29,6 +29,9 @@ static pthread_t the_thread;
 static int thread_started;
 
 
+float music_desired_volume = 1.0; /* 0.0 to 1.0 */
+
+
 
 /*
  * Various helpers
@@ -201,6 +204,7 @@ static void *player_thread_func (void *unused)
     AL_DUH_PLAYER *dp = NULL;
     const char *last_song = NULL;
     const char *song;
+    float actual_volume = music_desired_volume;
 
     (void)unused;
 
@@ -212,6 +216,11 @@ static void *player_thread_func (void *unused)
 		unload_duh (duh);
 		duh = NULL;
 	    }
+
+	    if (music_desired_volume != actual_volume) {
+		actual_volume = music_desired_volume;
+		al_duh_set_volume (dp, actual_volume);
+	    }
 	}
 
 	if (!duh) {
@@ -222,7 +231,8 @@ static void *player_thread_func (void *unused)
 
 	    duh = my_load_duh (song);
 	    if (duh) {
-		dp = al_start_duh (duh, 2, 0, 1.0, bufsize, freq);
+		actual_volume = music_desired_volume;
+		dp = al_start_duh (duh, 2, 0, actual_volume, bufsize, freq);
 		force_no_loop (dp);
 	    }
 	}
