@@ -6,6 +6,7 @@
 #include "yield.h"
 
 static int gray, light_gray, white;
+DIALOG_PLAYER *fancy_active_player;
 BITMAP *fancy_screen;
 FONT *fancy_edit_font;
 FONT *fancy_font;
@@ -818,13 +819,22 @@ int blit_fancy_dirty_to_screen (DIALOG *dialog)
 int fancy_do_dialog (DIALOG *dialog, int focus_obj)
 {
     DIALOG_PLAYER *player;
+    DIALOG_PLAYER *old_player;
+    int ret;
 
     show_mouse (screen);
 
     player = init_dialog (dialog, focus_obj);
 
+    old_player = fancy_active_player;
+    fancy_active_player = player;
+    
     while (update_dialog (player))
 	blit_fancy_dirty_to_screen (dialog);
 
-    return shutdown_dialog (player);
+    ret = shutdown_dialog (player);
+
+    fancy_active_player = old_player;
+
+    return ret;
 }

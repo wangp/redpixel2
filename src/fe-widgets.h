@@ -7,6 +7,7 @@
 #define rectfill_wh(b, x, y, w, h, c)	rectfill (b, x, y, x + w - 1, y + h - 1, c)
 #define set_clip_wh(b, x, y, w, h)	set_clip (b, x, y, x + w - 1, y + h - 1)
 
+extern DIALOG_PLAYER *fancy_active_player;
 extern FONT *fancy_edit_font;
 extern FONT *fancy_font;
 extern SAMPLE *type_sound;
