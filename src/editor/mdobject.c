@@ -128,6 +128,7 @@ enum {
 static gui_window_t *actions_win;
 static ug_dialog_t *actions_dlg;
 static int action = ACTION_ADD;
+static int snap_to_grid = 0;
 
 static void set_cursor_for_action ()
 {
@@ -180,6 +181,11 @@ static void edit_slot (ug_widget_t *p, ug_signal_t s, void *d)
     set_cursor_for_action ();
 }
 
+static void snap_slot (ug_widget_t *p, ug_signal_t s, void *d)
+{
+    snap_to_grid = !snap_to_grid;
+}
+
 static ug_dialog_layout_t actions_layout[] =
 {
     { &ug_button, -50, 16, "add", add_slot, NULL },
@@ -190,12 +196,14 @@ static ug_dialog_layout_t actions_layout[] =
     { &ug_button, -100, 16, "lower", lower_slot, NULL },
     { UG_DIALOG_LAYOUT_BR },
     { &ug_button, -100, 16, "edit", edit_slot, NULL },
+    { UG_DIALOG_LAYOUT_BR },
+    { &ug_button, -100, 16, "snap", snap_slot, NULL },
     { UG_DIALOG_LAYOUT_END }
 };
 
 static void create_actions_box ()
 {
-    actions_win = gui_window_create (150, 50, 50, 70, 0);
+    actions_win = gui_window_create (150, 50, 50, 80, 0);
     gui_window_hide (actions_win);
     gui_window_set_title (actions_win, "obj");
     gui_window_set_alpha (actions_win, 0x70);
@@ -370,6 +378,14 @@ static void do_object_pickup (object_t *p)
     }
 }
 
+static void do_snap (int *x, int *y)
+{
+    if (snap_to_grid) {
+	*x -= *x % editarea_grid_x;
+	*y -= *y % editarea_grid_y;
+    }
+}
+
 static int event_layer (int event, struct editarea_event *d)
 {
     static object_t *move;
@@ -397,11 +413,19 @@ static int event_layer (int event, struct editarea_event *d)
 			}
 			else if (p) {
 			    move = p;
-			    move_offx = x - object_x (p);
-			    move_offy = y - object_y (p);
+			    if (snap_to_grid) {
+				BITMAP *icon = store_dat (objtype_icon (object_type (p)));
+				move_offx = -icon->w/3/2;
+				move_offy = -icon->h/2;
+			    }
+			    else {
+				move_offx = x - object_x (p);
+				move_offy = y - object_y (p);
+			    }
 			}
 			else {
 			    p = object_create (selectbar_selected_name ());
+			    do_snap (&x, &y);
 			    object_set_xy (p, x + cursor_offset_x, y + cursor_offset_y);
 			    object_run_init_func (p);
 			    map_link_object (editor_map, p);
@@ -458,7 +482,10 @@ static int event_layer (int event, struct editarea_event *d)
 	    y = map_y (d->mouse.y);
 
 	    if (move) {
-		object_set_xy (move, x - move_offx, y - move_offy);
+		do_snap (&x, &y);
+		x -= move_offx;
+		y -= move_offy;
+		object_set_xy (move, x, y);
 		cursor_set_dot ();
 		return 1;
 	    }
