@@ -1,9 +1,73 @@
 -- basic-player.lua
+--	Player, corpse, backpack stuff.
+--	Some weapon and powerup specific stuff too.
+
 
 store_load ("basic/basic-player.dat", "/basic/player/")
 
 
+-- holds the various types of corpses
 local corpses = {}
+
+
+
+----------------------------------------------------------------------
+--  Helpers for complicated update hooks
+--  (move out of here if other files need it too one day)
+----------------------------------------------------------------------
+
+function install_multiple_update_hook_system (obj, speed)
+    obj._update_hooks = {}
+
+    -- Add a new hook PROC to be called every NTICS.
+    -- Returns a new hook structure (don't touch it!)
+    function obj:add_update_hook (ntics, enabled, proc)
+	local t = {
+	    tics = ntics,
+	    ntics = ntics,
+	    enabled = enabled,
+	    proc = proc
+	}
+	tinsert (self._update_hooks, t)
+	return t
+    end
+
+    -- Make a registered hook be called every NTICS.  The current
+    -- counter is reset.
+    function obj:adjust_update_hook_speed (t, ntics)
+	t.ntics = ntics
+	t.tics = ntics
+    end
+
+    -- Enable a previously disabled hook.
+    function obj:enable_update_hook (t)
+	t.enabled = true
+    end
+
+    -- This is the raw update hook that does the work of dispatching
+    -- registered hooks.  When a registered hook is called, it may
+    -- return `false' to disable itself.
+    obj:set_update_hook (
+	speed,
+	function (self)
+	    for i, t in self._update_hooks do
+		if i ~= "n" and t.enabled then
+		    t.tics = t.tics - 1
+		    if t.tics < 1 then
+			t.tics = t.ntics
+			if t.proc (self) == false then
+			    t.enabled = false
+			end
+		    end
+		end
+	    end
+	end
+    )
+
+    -- After this, the set_update_hook method no longer makes sense.
+    obj.set_update_hook = nil
+end
+
 
 
 ----------------------------------------------------------------------
@@ -13,29 +77,43 @@ local corpses = {}
 
 local xv_decay, yv_decay = 0.7, 0.45
 
--- centre of the player sprites
+-- centre of the player sprites (really?)
 local cx, cy = 5, 5
 
+local player_update_hook_speed = 1000/50
+  -- try not to change this, a lot of things are currently
+  -- determined from this and not from "real-time" time
 
---
--- Non-proxy
---
-
-local index_of = function (t, v)
-    for i, x in t do
-	if x == v then return i end
-    end
-    return false
+function secs_to_tics (secs)
+    return (secs * 1000) / player_update_hook_speed
 end
 
+
+
+------------------------------------------------------------
+--  Non-proxy player object
+------------------------------------------------------------
+
+
 local player_nonproxy_init = function (self)
-    -- some properties
+
+    install_multiple_update_hook_system (self, player_update_hook_speed)
+
+
+    --------------------------------------------------
+    --  Some properties
+    --------------------------------------------------
+
     self.xv_decay = xv_decay
     self.yv_decay = yv_decay
     self.mass = 0.9
     self._internal_ramp = 6
 
-    -- collision stuff
+
+    --------------------------------------------------
+    --  Collision stuff
+    --------------------------------------------------
+
     object_set_collision_is_player (self)
     self:set_collision_flags ("tn")
     self:set_mask (mask_main, "/basic/player/mask/whole", cx, cy)
@@ -44,7 +122,11 @@ local player_nonproxy_init = function (self)
     self:set_mask (mask_left, "/basic/player/mask/left", cx, cy)
     self:set_mask (mask_right, "/basic/player/mask/right", cx, cy)
 
-    -- weapon stuff
+
+    --------------------------------------------------
+    --  Weapon stuff
+    --------------------------------------------------
+
     self.have_weapon = {}
 
     function self:receive_weapon (name)
@@ -74,7 +156,7 @@ local player_nonproxy_init = function (self)
 
     function self:post_weapon_switch_hook ()
 	local w = self.current_weapon
-	call_method_on_clients (self, "switch_weapon", w.name)
+	call_method_on_clients (self, "switch_weapon_hook", w.name)
 	_internal_tell_ammo (self, self._ammo[w.ammo_type] or 0)
     end
 
@@ -122,7 +204,11 @@ local player_nonproxy_init = function (self)
 	end
     end
 
-    -- ammo stuff
+
+    --------------------------------------------------
+    --  Ammo stuff
+    --------------------------------------------------
+
     self._ammo = {}
 
     function self:receive_ammo (ammo_type, amount)
@@ -159,25 +245,79 @@ local player_nonproxy_init = function (self)
 	return ammo ~= nil and ammo > 0
     end
 
-    -- initial weapon
-    self.have_weapon["basic-blaster"] = true
-    self:switch_weapon ("basic-blaster")
 
-    -- firing stuff
-    self.fire_delay = 0
+    --------------------------------------------------
+    --  Firing stuff
+    --------------------------------------------------
 
-    function self:_internal_fire_hook ()
-	if self.fire_delay <= 0 then
-	    if self:has_ammo_for (self.current_weapon) then
-		self.current_weapon.fire (self)
-		call_method_on_clients (self, "start_firing_anim")
-	    else
-		self:auto_switch_weapon ()
-	    end
+    -- fire delay stuff
+
+    self.can_fire = true
+
+    local reenable_firing_hook = self:add_update_hook (
+	0,			-- dummy speed
+	false,			-- initially disabled
+	function (self)
+	    self.can_fire = true
+	    return false
 	end
+    )
+
+    function self:set_fire_delay (secs)
+	self.can_fire = false
+	self:adjust_update_hook_speed (reenable_firing_hook, secs_to_tics (secs))
+	self:enable_update_hook (reenable_firing_hook)
     end
 
-    -- health (and armour) stuff
+    -- damage factor stuff
+
+    self.damage_factor = 1
+
+    self.revert_damage_factor_hook = self:add_update_hook (
+	secs_to_tics (30),
+	false,
+	function (self)
+	    self.damage_factor = 1
+	    return false
+	end
+    )
+
+    function self:get_bloodlust_hook ()
+	self.damage_factor = 2
+	self:enable_update_hook (self.revert_damage_factor_hook)
+    end
+
+    -- fire hook
+
+    function self:_internal_fire_hook ()
+	if self.can_fire == false then
+	    return
+	elseif not self:has_ammo_for (self.current_weapon) then
+	    self:auto_switch_weapon ()
+	    return
+	end
+
+	-- have ammo, will fire
+	local proj = self.current_weapon.fire (self)
+
+	if self.damage_factor ~= 1 then
+	    if type (proj) == "table" then
+		for _, p in proj do
+		    p.damage = p.damage * self.damage_factor
+		end
+	    else
+		proj.damage = proj.damage * self.damage_factor
+	    end
+	end
+
+	call_method_on_clients (self, "start_firing_anim")
+    end
+
+
+    --------------------------------------------------
+    --  Health (and armour) stuff
+    --------------------------------------------------
+
     self.health = 100
     _internal_tell_health (self, self.health)
 
@@ -267,153 +407,200 @@ local player_nonproxy_init = function (self)
 	end
     end
 
-    -- update hook (fire delay and blood trails)
-    self.trail_tics = 0
-    self:set_update_hook (
-	1000/50,
-	function (self)
-	    if self.fire_delay > 0 then
-		self.fire_delay = self.fire_delay - 1
-	    end
 
+    --------------------------------------------------
+    --  Blood trails
+    --------------------------------------------------
+
+    self:add_update_hook (
+	secs_to_tics (1),
+	true,
+	function (self)
 	    if self.health <= 20 then
-		if self.trail_tics > 0 then
-		    self.trail_tics = self.trail_tics - 1
-		else
-		    self.trail_tics = 50
-		    spawn_blood_on_clients (self.x + cx, self.y + cx, 40, 2)
-		end
+		spawn_blood_on_clients (self.x, self.y, 40, 2)
 	    end
 	end
     )
+
+
+    --------------------------------------------------
+    --  Dunno stuff
+    --------------------------------------------------
+
+    -- initial weapon
+    self.have_weapon["basic-blaster"] = true
+    self:switch_weapon ("basic-blaster")
 
     -- create a respawning ball where the player is
     spawn_object ("basic-respawning-ball", self.x, self.y)
+
 end
 
 
---
--- Proxy
---
 
-local walk_anim = {}
-for i = 0,7 do
-    walk_anim[i] = format ("/basic/player/walk/%03d", i)
-end
+------------------------------------------------------------
+--  Proxy player object
+------------------------------------------------------------
 
-local animate_player_proxy_firing = function (self)
-    -- this situation can arise due to network conditions
-    if not self.current_weapon then
-	return
-    end
-    if self.animate_arm then
-	if self.arm_tics > 0 then
-	    self.arm_tics = self.arm_tics - 1
-	else
-	    local anim = self.current_weapon.arm_anim
-	    self.arm_tics = anim.tics or 5
-	    self.arm_frame = self.arm_frame + 1
-	    if self.arm_frame > getn (self.current_weapon.arm_anim) then
-		self.arm_frame = 1
-		self.animate_arm = false
-	    end
-	    self:replace_layer (self.arm_layer, anim[self.arm_frame], anim.cx, anim.cy)
-	end
-    end
-end
 
-local animate_player_proxy_walking = function (self)
-    if not _internal_object_moving_horizontally (self) then
-	return
-    end
-    
-    if self.walk_frame_tics > 0 then
-	self.walk_frame_tics = self.walk_frame_tics - 1
-    else
-	self.walk_frame_tics = 2
+local walk_anim = {
+    "/basic/player/walk/000",
+    "/basic/player/walk/001",
+    "/basic/player/walk/002",
+    "/basic/player/walk/003",
+    "/basic/player/walk/004",
+    "/basic/player/walk/005",
+    "/basic/player/walk/006",
+    "/basic/player/walk/007"
+}
 
-	self.walk_frame = self.walk_frame + 1
-	if self.walk_frame >= getn (walk_anim) then
-	    self.walk_frame = 0
-	end
-	self:replace_layer (0, walk_anim[self.walk_frame], cx, cy)
-    end
-end
-
-local animate_player_proxy_lighting = function (self)
-    if self.restore_lighting_tics > 0 then
-	self.restore_lighting_tics = self.restore_lighting_tics - 1
-	if self.restore_lighting_tics == 0 then
-	    self:replace_light (0, "/basic/light/white-64", 0, 0)
-	end
-    end
-
-    if self.restore_unhighlighting_tics > 0 then
-	self.restore_unhighlighting_tics = self.restore_unhighlighting_tics - 1
-	if self.restore_unhighlighting_tics == 0 then
-	    self:set_highlighted (false)
-	end
-    end
-end
-
-local rotate_and_flip_player_proxy_based_on_aim_angle = function (self)
-    if self.last_aim_angle == self.aim_angle then
-	return
-    end
-
-    self.last_aim_angle = self.aim_angle
-
-    local angle = radian_to_bangle (self.aim_angle)
-    local hflip = (angle < -63 or angle > 63)
-    self:hflip_layer (0, hflip)
-    self:hflip_layer (self.arm_layer, hflip)
-    self:rotate_layer (self.arm_layer, angle - (hflip and 128 or 0))
-end
 
 local player_proxy_init = function (self)
-    -- some properties
+
+    install_multiple_update_hook_system (self, player_update_hook_speed)
+
+
+    --------------------------------------------------
+    -- Some properties
+    --------------------------------------------------
+
     self.xv_decay = xv_decay
     self.yv_decay = yv_decay
 
-    -- layers
+
+    --------------------------------------------------
+    --  Layers
+    --------------------------------------------------
+
     self:move_layer (0, cx, cy)
-
-    -- light
-    self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
-
-    -- arm stuff
     self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
     self.arm_frame = 1
 
-    -- (called by nonproxy fire hook)
-    function self:start_firing_anim ()
-	if not self.current_weapon then
-	    return
-	end
-	if not self.animate_arm then
-	    self.animate_arm = true
-	    self.arm_tics = 0
-	end
-	if self.current_weapon.sound then
-	    play_sound (self, self.current_weapon.sound)
-	end
-    end
 
-    -- animation and update hook
-    self.walk_frame = 0
-    self.walk_frame_tics = 0
-    self:set_update_hook (
-	1000/50,
+    --------------------------------------------------
+    --  Lighting stuff
+    --------------------------------------------------
+
+    self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
+
+    self.current_light_priority = 0
+
+    self.restore_lighting_hook = self:add_update_hook (
+	0,			-- dummy
+	false,			-- initially off
 	function (self)
-	    animate_player_proxy_firing (self)
-	    animate_player_proxy_walking (self)
-	    animate_player_proxy_lighting (self)
-	    rotate_and_flip_player_proxy_based_on_aim_angle (self)
+	    self:replace_light (0, "/basic/light/white-64", 0, 0)
 	end
     )
 
-    -- switch weapon (called by nonproxy switch_weapon)
-    function self:switch_weapon (weapon_name)
+    function self:change_light (light, timeout, priority)
+	if self.is_local then
+	    if priority >= self.current_light_priority then
+		self:replace_light (0, light, 0, 0)
+		self.current_light_priority = priority
+		self:adjust_update_hook_speed (self.restore_lighting_hook, timeout)
+		self:enable_update_hook (self.restore_lighting_hook)
+	    end
+	end
+    end
+
+
+    --------------------------------------------------
+    --  Highlighting stuff
+    --------------------------------------------------
+
+    self.restore_unhighlighting_hook = self:add_update_hook (
+	10,
+	false,			-- initially off
+	function (self)
+	    self:set_highlighted (false)
+	end
+    )
+
+    function self:go_highlighted () -- XXX rename
+	self:set_highlighted (true)
+	self:enable_update_hook (self.restore_unhighlighting_hook)
+    end
+
+    
+    --------------------------------------------------
+    --  Walking and aiming animation hooks
+    --------------------------------------------------
+
+    self.walk_frame = 1
+
+    self:add_update_hook (
+	2,
+	true,
+
+	function (self)
+
+	    -- walking
+	    if _internal_object_moving_horizontally (self) then
+		self.walk_frame = self.walk_frame + 1
+		if self.walk_frame > getn (walk_anim) then
+		    self.walk_frame = 1
+		end
+		self:replace_layer (0, walk_anim[self.walk_frame], cx, cy)
+	    end
+
+	    -- aiming
+	    if self.last_aim_angle ~= self.aim_angle then
+		self.last_aim_angle = self.aim_angle
+
+		local angle = radian_to_bangle (self.aim_angle)
+		local hflip = (angle < -63 or angle > 63)
+		self:hflip_layer (0, hflip)
+		self:hflip_layer (self.arm_layer, hflip)
+		self:rotate_layer (self.arm_layer, angle - (hflip and 128 or 0))
+	    end
+
+	end
+    )
+
+
+    --------------------------------------------------
+    --  Firing animation hook
+    --------------------------------------------------
+
+    self.arm_animation_hook = self:add_update_hook (
+	0,			-- dummy
+	false,			-- initially off
+	function (self)
+	    -- this situation can arise due to network conditions
+	    if not self.current_weapon then return end
+
+	    local anim = self.current_weapon.arm_anim
+	    self.arm_frame = self.arm_frame + 1
+	    if self.arm_frame > getn (self.current_weapon.arm_anim) then
+		self.arm_frame = 1
+		self:replace_layer (self.arm_layer, anim[self.arm_frame], anim.cx, anim.cy)
+		return false  -- end of animation
+	    else
+		self:replace_layer (self.arm_layer, anim[self.arm_frame], anim.cx, anim.cy)
+	    end
+	end
+    )    
+
+
+    --------------------------------------------------
+    --  Hooks
+    --------------------------------------------------
+
+    -- (called by nonproxy fire hook)
+    function self:start_firing_anim ()
+	if self.current_weapon then
+	    self:adjust_update_hook_speed (self.arm_animation_hook,
+					   self.current_weapon.arm_anim.tics or 5)
+	    self:enable_update_hook (self.arm_animation_hook)
+	    if self.current_weapon.sound then
+		play_sound (self, self.current_weapon.sound)
+	    end
+	end
+    end
+
+    -- (called by nonproxy switch_weapon)
+    function self:switch_weapon_hook (weapon_name)
 	local w = weapons[weapon_name]
 	self.current_weapon = w
 	self:replace_layer (self.arm_layer, w.arm_anim[1], w.arm_anim.cx, w.arm_anim.cy)
@@ -425,29 +612,12 @@ local player_proxy_init = function (self)
 	end
     end
 
-    -- lighting (and highlighting) stuff
-    self.restore_lighting_tics = 0
-    self.current_light_priority = 0
-
-    self.restore_unhighlighting_tics = 0
-
-    function self:change_light (light, timeout, priority)
-	if self.is_local then
-	    if priority >= self.current_light_priority then
-		self:replace_light (0, light, 0, 0)
-		self.current_light_priority = priority
-		self.restore_lighting_tics = timeout
-	    end
-	end
-    end
-
     -- (called by nonproxy receive damage function)
     function self:get_hurt_hook ()
 	if self.is_local then
 	    self:change_light ("/basic/light/red-64", 38, 10)
 	else
-	    self:set_highlighted (true)
-	    self.restore_unhighlighting_tics = 10
+	    self:go_highlighted ()
 	end
     end
 
@@ -467,6 +637,7 @@ Objtype {
     nonproxy_init = player_nonproxy_init,
     proxy_init = player_proxy_init
 }
+
 
 
 ----------------------------------------------------------------------
@@ -611,6 +782,7 @@ Corpse {
     cx = 13,
     cy = 8
 }
+
 
 
 ----------------------------------------------------------------------

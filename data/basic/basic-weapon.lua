@@ -15,9 +15,10 @@ store_load ("basic/basic-weapon.dat", "/basic/weapon/")
 local Weapon_With_Firer = function (t)
     return Weapon (t, {
 	fire = function (player)
-	    spawn_projectile (t.projectile, player, t.projectile_speed)
-	    player.fire_delay = t.fire_delay_secs * 50
+	    local proj = spawn_projectile (t.projectile, player, t.projectile_speed)
+	    player:set_fire_delay (t.fire_delay_secs)
 	    player:deduct_ammo (t.ammo_type)
+	    return proj
 	end
     })
 end
@@ -47,8 +48,9 @@ local Standard_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    self.damage = t.damage
 	    function self:collide_hook (obj)
-		obj:receive_damage (t.damage, self.owner)
+		obj:receive_damage (self.damage, self.owner)
 		self:set_stale ()
 	    end
 	    function self:tile_collide_hook ()
@@ -67,6 +69,7 @@ local Explosive_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    self.damage = t.damage
 	    local hook = function (self, obj)
 		if t.explosion then
 		    spawn_explosion_on_clients (t.explosion, self.x, self.y)
@@ -74,7 +77,7 @@ local Explosive_Projectile = function (t)
 		if t.sparks then
 		    spawn_sparks_on_clients (self.x, self.y, t.sparks, 2)
 		end
-		spawn_blast (self.x, self.y, t.radius, t.damage, self.owner)
+		spawn_blast (self.x, self.y, t.radius, self.damage, self.owner)
 		self:set_stale ()
 	    end
 	    self.collide_hook = hook
@@ -116,8 +119,9 @@ Weapon {
 	cx = 0, cy = 3, tics = 2
     },
     fire = function (player)
-	spawn_projectile ("basic-blaster-projectile", player, 10)
-	player.fire_delay = 50 * 0.1
+	local proj = spawn_projectile ("basic-blaster-projectile", player, 10)
+	player:set_fire_delay (0.1)
+	return proj
     end,
     sound = "/basic/weapon/blaster/sound"
 }
@@ -133,7 +137,7 @@ Standard_Projectile {
     name = "basic-blaster-projectile",
     alias = "~bp",
     icon = "/basic/weapon/blaster/projectile",
-    damage = 10,
+    damage = 8,
     sparks = 30,
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
@@ -149,10 +153,11 @@ Weapon {
     name = "basic-bow",
     ammo_type = "basic-arrow",
     fire = function (player)
-	spawn_projectile ("basic-arrow-projectile", player, 12,
-			  ((random(10) - 5) / 10) * (PI/48))
-	player.fire_delay = 0.3 * 50
+	local proj = spawn_projectile ("basic-arrow-projectile", player, 12,
+				       ((random(10) - 5) / 10) * (PI/48))
+	player:set_fire_delay (0.3)
 	player:deduct_ammo ("basic-arrow")
+	return proj
     end,
     arm_anim = {
 	"/basic/weapon/bow/2arm000",
@@ -238,7 +243,7 @@ Standard_Projectile {
     name = "basic-ak-projectile",
     alias = "~Ap",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 10,
+    damage = 12,
     sparks = 40
 }
 
@@ -246,10 +251,11 @@ Weapon {
     name = "basic-minigun",
     ammo_type = "basic-bullet",
     fire = function (player)
-	spawn_projectile ("basic-minigun-projectile", player, 12,
-			  ((random(10) - 5) / 10) * (PI/48))
-	player.fire_delay = 0.05 * 50
+	local proj = spawn_projectile ("basic-minigun-projectile", player, 12,
+				       ((random(10) - 5) / 10) * (PI/48))
+	player:set_fire_delay (0.05)
 	player:deduct_ammo ("basic-bullet")
+	return proj
     end,
     arm_anim = {
 	"/basic/weapon/minigun/2arm000",
@@ -350,13 +356,16 @@ Weapon {
     ammo_type = "basic-shell",
     fire = function (player)
 	local spread = PI / 96
-	spawn_projectile ("basic-shotgun-projectile", player, 10, -2 * spread)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, -spread)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, 0)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, spread)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, 2 * spread)
-	player.fire_delay = 50 * 0.4
+	local proj = {
+	    spawn_projectile ("basic-shotgun-projectile", player, 10, -2 * spread),
+	    spawn_projectile ("basic-shotgun-projectile", player, 10, -spread),
+	    spawn_projectile ("basic-shotgun-projectile", player, 10, 0),
+	    spawn_projectile ("basic-shotgun-projectile", player, 10, spread),
+	    spawn_projectile ("basic-shotgun-projectile", player, 10, 2 * spread)
+	}
+	player:set_fire_delay (0.4)
 	player:deduct_ammo ("basic-shell")
+	return proj
     end,
     arm_anim = {
 	"/basic/weapon/shotgun/2arm000",

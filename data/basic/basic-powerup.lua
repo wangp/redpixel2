@@ -39,10 +39,37 @@ Armour_Item {
     give_armour = 30
 }
 
+local bloodlust_anim = {
+    "/basic/powerup/bloodlust/000",
+    "/basic/powerup/bloodlust/001",
+    "/basic/powerup/bloodlust/002",
+    "/basic/powerup/bloodlust/003",
+    "/basic/powerup/bloodlust/004",
+    "/basic/powerup/bloodlust/005",
+    "/basic/powerup/bloodlust/006",
+    "/basic/powerup/bloodlust/007"
+}
+
 Item {
     name = "basic-bloodlust", 
     icon = "/basic/powerup/bloodlust/000",
-    respawn_secs = 10
+    respawn_secs = 60,
+    collide_hook = function (self, player)
+	player:get_bloodlust_hook ()
+    end,
+    proxy_init = function (self)
+	self.frame = 1
+	self:set_update_hook (
+	    150 + random (50),
+	    function (self)
+		self.frame = self.frame + 1
+		if self.frame > getn (bloodlust_anim) then
+		    self.frame = 1
+		end
+		self:replace_layer (0, bloodlust_anim[self.frame], 7, 3)
+	    end
+	)
+    end
 }
 
 Item {
