@@ -88,7 +88,7 @@ local Explosive_Projectile = function (t)
 
 	    if t.smoke_trails then
 		self:set_update_hook (
-		    60,
+		    80,
 		    function (self)
 			spawn_explosion (t.smoke_trails, self.x, self.y)
 		    end
