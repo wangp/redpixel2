@@ -1,9 +1,14 @@
-head	1.27;
+head	1.28;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.28
+date	2002.01.29.14.57.43;	author tjaden;	state Exp;
+branches;
+next	1.27;
 
 1.27
 date	2002.01.29.00.07.13;	author tjaden;	state Exp;
@@ -145,9 +150,9 @@ desc
 @@
 
 
-1.27
+1.28
 log
-@Added sound to explosions.
+@Added initial (very incomplete) sound support for weapons.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -644,6 +649,13 @@ generate {
 }
 
 generate {
+    cname	= "client_play_sound",
+    lname	= "play_sound",
+    args	= {{ Object, "obj" },
+		   { String, "sample" }}
+}
+
+generate {
     cname	= "client_set_camera",
     lname	= "_internal_set_camera",
     args	= {{ Int, "pushable" },	-- XXX should be Bool
@@ -654,6 +666,15 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.27
+log
+@Added sound to explosions.
+@
+text
+@d495 7
 @
 
 

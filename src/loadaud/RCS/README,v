@@ -1,0 +1,188 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2002.01.29.14.50.06;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@    loadaud 0.9
+    by Peter Wang
+    03 January 2002
+
+
+#include <std_disclaimer.h>
+
+   "I do not accept responsibility for any effects, adverse or otherwise, 
+    that this code may have on you, your computer, your sanity, your dog, 
+    and anything else that you can think of. Use it at your own risk."
+
+
+What's new?
+-----------
+
+version 0.9: (second upload)
+
+    - zlib licence
+
+version 0.9:
+
+    - aud_init in loadaud.c was meant to be register_aud_file_type
+
+version 0.8:
+
+    - some functions renamed
+    
+    - convert.c part of main distribution (still a hack though)
+
+version 0.7:
+
+    - minor changes for Allegro 4.0
+    
+    - back to nice version numbers :-)
+
+version 0.6c:
+
+    - fixed 2 bugs, both important, one stupid, one not
+
+    - added AUD <-> SAMP grabber plugin
+
+version 0.6b:
+
+    - changed loadaud.h slightly to work with C++ programs
+
+    - added `install' target to Makefile
+
+version 0.6a:
+
+    - channels are encoded/decoded intedependantly.  Although I still have 
+      not found a stereo aud to test with, it seems this is the more 
+      logical method.  Note that STEREO AUDS MADE WITH PREVIOUS VERSIONS 
+      WILL BE INCOMPATIBLE.  Please use the new format.  If you do not 
+      have the original wav/vocs to re-makeaud, please email me.
+
+    - added load_imaadpcm_wav (does not work properly)
+
+version 0.6:
+
+    - grabber/datafile plugin capability
+
+    - fixed variable name in load_aud (just for clarity, not a bug)
+
+
+Intro
+-----
+
+    aud is the sound format used in many Westwood Studios games.  It comes 
+    in two flavours: 8 bit and 16 bit.  All normal frequencies and mono / 
+    stereo channels are supported.
+
+    loadaud supports 16 bit auds only.  These use the IMA ADPCM 
+    compression algorithm and provide 4:1 compression ratio (16bit -> 
+    4bit) with low loss of quality.
+
+    8 bit auds use a proprietary algorithm and therefore are unsupported.
+
+
+Installation
+------------
+
+    Type `make' at the command line to compile the library and utilities.
+
+    To install the grabber plugin, copy these four files into your 
+    allegro/tools/plugins directory:
+
+	loadaud.c loadaud.h dataud.c dataud.inc
+
+    Then, in Allegro's root directory, type `make grabber'.  You can then 
+    use grabber to import auds from aud/wav/voc files, and export as auds.
+    You can also convert between SAMP and AUD datafile types, as long 
+    as the samples are 16bit.
+
+
+Functions
+---------
+
+    SAMPLE *load_aud(char *filename);
+	Loads the specified aud into memory as a sample.
+
+    SAMPLE *load_aud_packfile(PACKFILE *f);
+	Loads an aud from a PACKFILE pointer.  Used internally, but also 
+	useful for creating you're own DAT/WAD style files.
+
+    int save_aud(char *filename, SAMPLE *spl);
+	Save a sample into an aud file.  Note that this can ONLY save 
+	16bit samples, and that this is a lossy compression algorithm.
+
+    int save_aud_packfile(PACKFILE *f, SAMPLE *spl);
+	Save a sample into a PACKFILE.
+
+    void register_aud_file_type(void);
+	Call this at the start of your program so that load_datafile can 
+	automagically load auds-inside-datafiles (see grabber plugin) as 
+	SAMPLEs.
+
+
+Creation
+--------
+
+    Use the `makeaud' utility provided, or get the `audwav' package by
+    Vladan Bato, available at (DOS only):
+
+	http://www.geocities.com/SiliconValley/8682
+
+    which supports converting very large files off disk.  makeaud has to 
+    load the sample into memory first, but can save stereo files.  As I 
+    have not come across a stereo aud file, I cannot say that makeaud 
+    generates file format compliant stereo files.
+
+
+Thanks to
+---------
+
+    - Vladan Bato (bat22@@geocities.com) for aud3.txt, which contains the 
+    actual file format.
+
+    - Jack Jansen (jack@@cwi.nl) who wrote some fast ADPCM code available 
+    at: ftp://ftp.cwi.nl/pub/audio/adpcm.zip off which I based =) my 
+    routines.
+
+    - Grzegorz Adam Hankiewicz (gah@@jet.es) for suggesting I turn my 
+    AUDlib package into this.  The idea was on the back of my mind, but I 
+    was too lazy to do it until he asked. 
+
+    - Someone for suggesting I added grabber plugin support. (somehow I 
+    lost the mail, sorry)
+
+
+Free software
+-------------
+
+    loadaud is released under the zlib licence, which is contained in the
+    LICENCE.txt file.
+
+
+Contacting me
+-------------
+
+    Email:  tjaden@@users.sourceforge.net
+    WWW:    http://www.alphalink.com.au/~tjaden/
+
+
+P.S. check out AUDlib for streaming large auds (e.g. music) off disk, at 
+the site above.
+@

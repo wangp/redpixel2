@@ -116,7 +116,7 @@ explosion_t *explosion_create (const char *name, int x, int y)
     e->tics = t->tics;
 
     if (t->sound) {
-	play_sample (t->sound, 128, 128, 1000, FALSE); /* XXX */
+	play_sample (t->sound, 255, 128, 1000, FALSE); /* XXX */
     }
     
     return e;

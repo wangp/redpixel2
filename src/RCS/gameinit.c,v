@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.01.29.14.52.40;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.26.11.55.02;	author tjaden;	state Exp;
@@ -30,9 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Added support for explosion graphics.
+@Added loadaud support.
 @
 text
 @/* gameinit.c - main init and shutdown
@@ -51,6 +56,7 @@ text
 #include "fastsqrt.h"
 #include "gameinit.h"
 #include "jpgalleg.h"
+#include "loadaud.h"
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "mylua.h"
@@ -69,6 +75,7 @@ void game_init (void)
     
     register_bitmap_file_type ("jpg", load_jpg, NULL);
     register_extended_datafile ();
+    register_aud_file_type ();
 
     path_init ();
     store_init (200);
@@ -117,6 +124,16 @@ void game_shutdown (void)
 
     free_magic_color_map ();
 }
+@
+
+
+1.4
+log
+@Added support for explosion graphics.
+@
+text
+@d17 1
+d36 1
 @
 
 

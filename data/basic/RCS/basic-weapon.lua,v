@@ -1,9 +1,19 @@
-head	1.21;
+head	1.23;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.23
+date	2002.01.29.15.04.50;	author tjaden;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	2002.01.29.14.57.36;	author tjaden;	state Exp;
+branches;
+next	1.21;
 
 1.21
 date	2002.01.29.00.07.03;	author tjaden;	state Exp;
@@ -115,9 +125,9 @@ desc
 @@
 
 
-1.21
+1.23
 log
-@Added bow.
+@Renamed the "basic-simple42" explosion to "basic-explo42".
 @
 text
 @-- basic-weapon.lua
@@ -222,7 +232,8 @@ Weapon {
     fire = function (player)
 	spawn_projectile ("basic-blaster-projectile", player, 10)
 	player.fire_delay = 50 * 0.1
-    end
+    end,
+    sound = "/basic/weapon/blaster/sound"
 }
 
 Standard_Pickup {
@@ -265,7 +276,8 @@ Weapon {
 	"/basic/weapon/bow/2arm004",
 	"/basic/weapon/bow/2arm005";
 	cx = 4, cy = 5, tics = 3
-    }
+    },
+    sound = "/basic/weapon/bow/sound"
 }
 
 Standard_Pickup {
@@ -291,7 +303,7 @@ Explosive_Projectile {
     icon = "/basic/weapon/bow/projectile",
     radius = 35,
     damage = 40,
-    explosion = "basic-simple42",
+    explosion = "basic-explo42",
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
@@ -323,7 +335,8 @@ Weapon_With_Firer {
 	"/basic/weapon/ak/2arm003",
 	"/basic/weapon/ak/2arm004";
 	cx = 0, cy = 3
-    }
+    },
+    sound = "/basic/weapon/ak/sound"
 }
 
 Standard_Pickup {
@@ -361,7 +374,8 @@ Weapon {
 	"/basic/weapon/minigun/2arm005",
 	"/basic/weapon/minigun/2arm006";
 	cx = 0, cy = 1, tics = 2
-    }
+    },
+    sound = "/basic/weapon/minigun/sound"
 }
 
 Standard_Pickup {
@@ -400,7 +414,8 @@ Weapon_With_Firer {
 	"/basic/weapon/rpg/2arm004",
 	"/basic/weapon/rpg/2arm005";
 	cx = 13, cy = 3, tics = 3
-    }
+    },
+    sound = "/basic/weapon/rpg/sound"
 }
 
 Standard_Pickup {
@@ -426,7 +441,7 @@ Explosive_Projectile {
     icon = "/basic/weapon/rpg/projectile",
     radius = 50,
     damage = 80,
-    explosion = "basic-simple42",
+    explosion = "basic-explo42",
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
@@ -456,7 +471,8 @@ Weapon {
 	"/basic/weapon/shotgun/2arm002",
 	"/basic/weapon/shotgun/2arm003";
 	cx = 1, cy = 4, tics = 4
-    }
+    },
+    sound = "/basic/weapon/shotgun/sound"
 }
 
 Standard_Pickup {
@@ -503,7 +519,8 @@ Weapon_With_Firer {
     },
     client_switch_to_hook = function ()
 	_internal_set_camera (1, 300)
-    end
+    end,
+    sound = "/basic/weapon/rifle/sound"
 }
 
 Standard_Pickup {
@@ -570,6 +587,49 @@ weapon_auto_switch_order = {
     "basic-shotgun",
     "basic-blaster"
 }
+@
+
+
+1.22
+log
+@Added initial (very incomplete) sound support for weapons.
+@
+text
+@d174 1
+a174 1
+    explosion = "basic-simple42",
+d312 1
+a312 1
+    explosion = "basic-simple42",
+@
+
+
+1.21
+log
+@Added bow.
+@
+text
+@d103 2
+a104 1
+    end
+d147 2
+a148 1
+    }
+d206 2
+a207 1
+    }
+d245 2
+a246 1
+    }
+d285 2
+a286 1
+    }
+d342 2
+a343 1
+    }
+d390 2
+a391 1
+    end
 @
 
 

@@ -58,6 +58,7 @@ static void setup_allegro (int w, int h, int d)
 	exit (1);
     }
 
+    set_volume_per_voice (1);
     install_sound (DIGI_AUTODETECT, MIDI_NONE, 0);
 
     set_window_title ("Red Pixel II");

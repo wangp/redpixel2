@@ -1,10 +1,14 @@
-head	1.35;
+head	1.36;
 access;
 symbols;
-locks
-	tjaden:1.35; strict;
+locks; strict;
 comment	@# @;
 
+
+1.36
+date	2002.01.29.14.57.16;	author tjaden;	state Exp;
+branches;
+next	1.35;
 
 1.35
 date	2002.01.28.14.05.52;	author tjaden;	state Exp;
@@ -186,9 +190,9 @@ desc
 @@
 
 
-1.35
+1.36
 log
-@Fixed an oversight.
+@Added initial (very incomplete) sound support for weapons.
 @
 text
 @-- basic-player.lua
@@ -514,6 +518,9 @@ local player_proxy_init = function (self)
 	    self.arm_tics = 0
 	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
 	end
+	if self.current_weapon.sound then
+	    play_sound (self, self.current_weapon.sound)
+	end
     end
 
     -- animation and update hook
@@ -713,6 +720,15 @@ Objtype {
 	end
     end
 }
+@
+
+
+1.35
+log
+@Fixed an oversight.
+@
+text
+@d324 3
 @
 
 

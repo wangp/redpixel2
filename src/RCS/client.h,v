@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.01.29.14.57.54;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.01.24.15.32.35;	author tjaden;	state Exp;
@@ -30,13 +35,16 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Added client sending text messages.
+@Added initial (very incomplete) sound support for weapons.
 @
 text
 @#ifndef __included_client_h
 #define __included_client_h
+
+
+struct object;
 
 
 int client_init (const char *name, int net_driver, const char *addr);
@@ -46,10 +54,21 @@ void client_shutdown (void);
 void client_send_text_message (const char *text);
 
 /* lua bindings */
+void client_play_sound (struct object *, const char *sample);
 void client_set_camera (int pushable, int max_dist);
 
 
 #endif
+@
+
+
+1.4
+log
+@Added client sending text messages.
+@
+text
+@d5 3
+d15 1
 @
 
 

@@ -1,3 +1,57 @@
+2002-01-30  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* data/basic/basic-player.lua:
+	Added initial (very incomplete) sound support.
+
+	* Makefile, src/gameinit.c: Added loadaud support.
+
+	* src/loadaud/MODIFIED.txt, src/loadaud/loadaud.h, src/loadaud/loadaud.c, src/loadaud/README, src/loadaud/LICENCE.txt:
+	New file.
+
+2002-01-29  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* src/main.c: install_sound
+
+	* src/explo.h, src/explo.c, src/bindgen.lua: Added sound to explosions.
+
+	* data/basic/basic-weapon.lua: Added bow.
+
+	* data/basic/basic-explosion.lua: Added sound to explosions.
+
+	* src/object.h, src/object.c, src/bindgen.lua, data/basic/basic-weapon.lua:
+	Made it so that projectiles cannot hit other projectiles.
+
+	* data/basic/basic-player.lua: Fixed an oversight.
+
+	* src/blast.c:
+	Made it so that objects can only be hit by a single blast once, even
+	if it moves while the blast is expanding.
+
+	* src/blast.c:
+	Changed the blast collision detection so that a distance of zero will
+	register as a hit.
+
+	* data/basic/basic-player.lua: Changes for health and ammo displays.
+
+	* src/client.c: Fixed bugs in send_gameinfo_weapon_switch().
+
+	* data/basic/basic-weapon.lua, data/basic/basic-player.lua:
+	Changes for health and ammo displays.
+
+	* src/bindgen.lua, src/client.c, src/netmsg.h, src/server/svgame.h, src/server/svgame.c:
+	Added client health and ammo displays.
+
+2002-01-28  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* data/basic/basic-player.lua:
+	Don't auto-switch to a new weapon if our current weapon is not an
+	auto-switchable one.
+
+	* data/basic/basic-tilelike.lua, data/basic/basic-weapon.lua, src/server/svgame.h, src/server/svgame.c, src/render.c, src/netmsg.h, src/map.h, src/map.c, src/client.c, src/bindgen.lua, Makefile:
+	Added blasts.
+
+	* src/blast.h, src/blast.c: New file.
+
 2002-01-28  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* object.h, object.c, bindgen.lua, basic-weapon.lua:

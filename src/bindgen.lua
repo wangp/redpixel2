@@ -492,6 +492,13 @@ generate {
 }
 
 generate {
+    cname	= "client_play_sound",
+    lname	= "play_sound",
+    args	= {{ Object, "obj" },
+		   { String, "sample" }}
+}
+
+generate {
     cname	= "client_set_camera",
     lname	= "_internal_set_camera",
     args	= {{ Int, "pushable" },	-- XXX should be Bool

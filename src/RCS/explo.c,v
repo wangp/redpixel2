@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.29.14.58.16;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.29.00.07.25;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Added sound to explosions.
+@Made explosions play more loudly.
 @
 text
 @/* explo.c
@@ -143,7 +148,7 @@ explosion_t *explosion_create (const char *name, int x, int y)
     e->tics = t->tics;
 
     if (t->sound) {
-	play_sample (t->sound, 128, 128, 1000, FALSE); /* XXX */
+	play_sample (t->sound, 255, 128, 1000, FALSE); /* XXX */
     }
     
     return e;
@@ -192,6 +197,17 @@ void explosion_draw_lights (BITMAP *dest, explosion_t *explo,
 				 explo->x - offset_x - bmp->w/3/2,
 				 explo->y - offset_y - bmp->h/2);
 }
+@
+
+
+1.2
+log
+@Added sound to explosions.
+@
+text
+@d119 1
+a119 1
+	play_sample (t->sound, 128, 128, 1000, FALSE); /* XXX */
 @
 
 

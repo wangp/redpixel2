@@ -1,9 +1,14 @@
-head	1.9;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.10
+date	2002.01.29.14.53.02;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.01.27.14.05.26;	author tjaden;	state Exp;
@@ -55,9 +60,9 @@ desc
 @@
 
 
-1.9
+1.10
 log
-@Added blasts.
+@Added loadaud support.
 @
 text
 @##
@@ -67,7 +72,7 @@ text
 include config.linux
 
 SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
-	   src/gui src/ug src/editor src/server
+	   src/loadaud src/gui src/ug src/editor src/server
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
@@ -102,6 +107,9 @@ MODULES_FASTSQRT :=				\
 
 MODULES_JPGALLEG :=				\
 	jpeg
+
+MODULES_LOADAUD :=				\
+	loadaud
 
 MODULES_GUI :=					\
 	gui					\
@@ -186,6 +194,7 @@ MODULES := 					\
 	$(MODULES_MAGIC)			\
 	$(MODULES_FASTSQRT)			\
 	$(MODULES_JPGALLEG)			\
+	$(MODULES_LOADAUD)			\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\
@@ -283,6 +292,19 @@ suidroot:
 ##
 ## End of Makefile
 ##
+@
+
+
+1.9
+log
+@Added blasts.
+@
+text
+@d8 1
+a8 1
+	   src/gui src/ug src/editor src/server
+d44 3
+d130 1
 @
 
 
