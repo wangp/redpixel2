@@ -24,6 +24,14 @@ function merge (t1, t2)
     return t
 end
 
+-- Return true if t contains v as a value.
+function contains (t, v)
+    for _,x in t do
+	if x == v then return true end
+    end
+    return false
+end
+
 
 ----------------------------------------------------------------------
 -- Constants
