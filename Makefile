@@ -12,7 +12,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/loadaud src/2xsai src/gui src/ug src/editor src/server
 
 CC := gcc
-CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT -fno-builtin \
+CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
 	  -I libnet/include -I lua/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
@@ -137,6 +137,8 @@ MODULES_GAME :=					\
 	render					\
 	screen					\
 	sound					\
+	strlcat					\
+	strlcpy					\
 	sync					\
 	textout					\
 	timeout					\
