@@ -1,0 +1,33 @@
+Red Pixel 2 addon: Template version X.Y.Z
+
+This directory demonstrates how we think addons should be organised.
+We recommend that you follow it to keep things consistent, but you
+don't have to if you don't want to, or if it doesn't fit your addon.
+
+All data files in addon `tmpl' should have the prefix "tmpl-",
+therefore:
+
+    tmpl-bkgd/		-- directory containing backgrounds
+    tmpl-tile.dat	-- tile graphics
+    tmpl-weapon.dat	-- weapon graphics
+    tmpl-powerup.dat	-- powerup graphics
+	...
+
+The initialisation file would then be called `tmpl-init.lua'.  The
+initialisation file needs to load datafiles, and register new object
+types, etc.  Again, we recommend you use the addon's name as a prefix
+for everything.  For example:
+
+    store_load ("tmpl/tmpl-weapon.dat", "/tmpl/weapon")
+    objtype_register ("item", "tmpl-zapper",
+    		      "/tmpl/weapon/zapper/pickup", tmpl_zapper_init)
+	...
+
+Each module should also have a README file like this one, containing:
+
+    - name and version of the addon
+    - required addons, if any
+    - a short description
+    - installation instructions
+    - authors' name, web site, email addresses, etc.
+
