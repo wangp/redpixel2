@@ -5,6 +5,7 @@
 struct BITMAP;
 struct map;
 struct lua_State;
+struct list_head;
 
 
 typedef struct object object_t;
@@ -66,6 +67,16 @@ void object_set_collision_tag (object_t *, int);
 int object_need_replication (object_t *, int);
 void object_set_replication_flag (object_t *, int);
 void object_clear_replication_flags (object_t *);
+
+typedef struct creation_field creation_field_t;
+struct creation_field {
+    creation_field_t *next;
+    creation_field_t *prev;
+    char name[0];
+};
+
+void object_add_creation_field (object_t *, const char *name);
+struct list_head *object_creation_fields (object_t *);
 
 
 /* Layers.  */
