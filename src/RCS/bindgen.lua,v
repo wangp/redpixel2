@@ -1,9 +1,14 @@
-head	1.23;
+head	1.24;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.24
+date	2002.01.27.14.05.42;	author tjaden;	state Exp;
+branches;
+next	1.23;
 
 1.23
 date	2002.01.26.11.54.44;	author tjaden;	state Exp;
@@ -125,9 +130,9 @@ desc
 @@
 
 
-1.23
+1.24
 log
-@Added support for explosion graphics.
+@Added blasts.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -577,6 +582,15 @@ generate {
 }
 
 generate {
+    cname	= "svgame_spawn_blast",
+    lname	= "spawn_blast",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+	           { Float, "radius" },
+	       	   { Int, "damage" }}
+}
+
+generate {
     cname	= "svgame_call_method_on_clients",
     lname	= "call_method_on_clients",
     check	= "us[sN-]",
@@ -604,6 +618,15 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.23
+log
+@Added support for explosion graphics.
+@
+text
+@d448 9
 @
 
 

@@ -92,6 +92,7 @@ void render (BITMAP *bmp, map_t *map, camera_t *cam)
     render_object_layers (bmp, map, x, y);
     render_particles (bmp, map, x, y);
     map_explosions_draw (map, bmp, x, y);
+    map_blasts_draw (map, bmp, x, y);
     render_lights (bmp, map, x, y);
     render_object_lights (bmp, map, x, y);
     map_explosions_draw_lights (map, bmp, x, y);

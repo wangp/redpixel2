@@ -9,6 +9,9 @@ $(OBJDIR)/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
 $(OBJDIR)/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
  src/list.h
+$(OBJDIR)/blast.o: src/blast.c src/alloc.h src/blast.h src/fastsqrt/fastsqrt.h \
+ src/list.h src/mylua.h lua-4.1-work3/include/lua.h \
+ lua-4.1-work3/include/lauxlib.h src/object.h
 $(OBJDIR)/blod.o: src/blod.c src/blod.h src/map.h src/mylua.h \
  lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
  src/object.h src/objtypes.h
@@ -39,9 +42,10 @@ $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
 $(OBJDIR)/main.o: src/main.c libnet/include/libnet.h src/client.h \
  src/editor/editor.h src/gameinit.h src/getoptc.h src/server/server.h \
  src/sync.h src/server/textface.h
-$(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/explo.h src/list.h \
- src/map.h src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
- lua-4.1-work3/include/lauxlib.h src/particle.h src/store/store.h
+$(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blast.h src/explo.h \
+ src/list.h src/map.h src/object.h src/mylua.h \
+ lua-4.1-work3/include/lua.h lua-4.1-work3/include/lauxlib.h \
+ src/particle.h src/store/store.h
 $(OBJDIR)/mapfile.o: src/mapfile.c src/list.h src/map.h src/mapfile.h \
  src/object.h src/mylua.h lua-4.1-work3/include/lua.h \
  lua-4.1-work3/include/lauxlib.h src/objtypes.h src/store/store.h

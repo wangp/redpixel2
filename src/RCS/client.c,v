@@ -1,9 +1,14 @@
-head	1.25;
+head	1.26;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.26
+date	2002.01.27.14.05.50;	author tjaden;	state Exp;
+branches;
+next	1.25;
 
 1.25
 date	2002.01.26.12.14.36;	author tjaden;	state Exp;
@@ -135,9 +140,9 @@ desc
 @@
 
 
-1.25
+1.26
 log
-@Use shorts instead of longs to specify lengths of strings in packets.
+@Added blasts.
 @
 text
 @/* client.c
@@ -332,6 +337,7 @@ static void perform_simple_physics (ulong_t curr_ticks, int delta_ticks)
     for (i = 0; i < delta_ticks; i++) {
 	particles_update (map_particles (map), map);
 	map_explosions_update (map);
+	map_blasts_update (map);
     }
 }
 
@@ -678,6 +684,20 @@ SC_GAMEINFO_HANDLER (sc_explosion_create)
 }
 
 
+SC_GAMEINFO_HANDLER (sc_blast_create)
+{
+    float x;
+    float y;
+    float rad;
+    long damage;
+    
+    buf += packet_decode (buf, "fffl", &x, &y, &rad, &damage);
+    map_blast_create (map, x, y, rad, damage, 1);
+
+    return buf;
+}
+
+
 static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 {
     const void *end = buf + size;
@@ -726,6 +746,10 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 
 	    case MSG_SC_GAMEINFO_EXPLOSION_CREATE:
 		buf = sc_explosion_create (buf);
+		break;
+
+	    case MSG_SC_GAMEINFO_BLAST_CREATE:
+		buf = sc_blast_create (buf);
 		break;
 
 	    default:
@@ -1259,6 +1283,17 @@ void client_shutdown (void)
     messages_shutdown ();
     net_closeconn (conn);
 }
+@
+
+
+1.25
+log
+@Use shorts instead of longs to specify lengths of strings in packets.
+@
+text
+@d193 1
+d540 14
+d602 4
 @
 
 

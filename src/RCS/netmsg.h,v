@@ -1,9 +1,14 @@
-head	1.15;
+head	1.16;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.16
+date	2002.01.27.14.06.10;	author tjaden;	state Exp;
+branches;
+next	1.15;
 
 1.15
 date	2002.01.26.12.14.42;	author tjaden;	state Exp;
@@ -85,9 +90,9 @@ desc
 @@
 
 
-1.15
+1.16
 log
-@Use shorts instead of longs to specify lengths of strings in packets.
+@Added blasts.
 @
 text
 @#ifndef __included_netmsg_h
@@ -355,11 +360,30 @@ enum {
        Args: string name, float x, float y, long nparticles.
      */
 
-    MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e'
+    MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e',
+
+
+    /* Tell clients to create a blast.
+
+       Args: float x, float y, float max_radius, long damage.
+     */
+
+    MSG_SC_GAMEINFO_BLAST_CREATE = 'b'
 };
 
 
 #endif
+@
+
+
+1.15
+log
+@Use shorts instead of longs to specify lengths of strings in packets.
+@
+text
+@d266 9
+a274 1
+    MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e'
 @
 
 

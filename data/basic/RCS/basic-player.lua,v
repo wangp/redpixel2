@@ -1,9 +1,14 @@
-head	1.31;
+head	1.32;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.32
+date	2002.01.27.14.07.20;	author tjaden;	state Exp;
+branches;
+next	1.31;
 
 1.31
 date	2002.01.26.13.03.30;	author tjaden;	state Exp;
@@ -165,10 +170,10 @@ desc
 @@
 
 
-1.31
+1.32
 log
-@When picking up a new weapon, don't switch to it unless it is better
-than the current weapon, or the current weapon is out of ammo.
+@Don't auto-switch to a new weapon if our current weapon is not an
+auto-switchable one.
 @
 text
 @-- basic-player.lua
@@ -223,14 +228,30 @@ local player_nonproxy_init = function (self)
     function self:receive_weapon (name)
 	if weapons[name] and not self.have_weapon[name] then
 	    self.have_weapon[name] = true
-	    if contains (weapon_auto_switch_order, name) then
-		if ((not self.current_weapon) or
-		    (not self.current_weapon.can_fire (self)) or
-		    (index_of (weapon_auto_switch_order, name) < 
-		     index_of (weapon_auto_switch_order, self.current_weapon.name)))
-		then
-		    self:switch_weapon (name)
-		end
+
+	    -- check the new weapon is auto-switchable
+	    if not contains (weapon_auto_switch_order, name) then
+		return
+	    end
+
+	    -- if we're not holding a weapon currently, use the new one
+	    if not self.current_weapon then
+		self:switch_weapon (name)
+		return
+	    end
+
+	    -- don't switch if our current weapon is not auto-switchable
+	    if not contains (weapon_auto_switch_order, self.current_weapon.name) then
+		return
+	    end
+
+	    -- if our current weapon is out of ammo, switch
+	    -- if the new weapon is better than the current weapon, switch
+	    if not self.current_weapon.can_fire (self) or
+	       (index_of (weapon_auto_switch_order, name) < 
+		index_of (weapon_auto_switch_order, self.current_weapon.name))
+	    then
+		self:switch_weapon (name)
 	    end
 	end
     end
@@ -655,6 +676,25 @@ Objtype {
 	end
     end
 }
+@
+
+
+1.31
+log
+@When picking up a new weapon, don't switch to it unless it is better
+than the current weapon, or the current weapon is out of ammo.
+@
+text
+@d53 24
+a76 8
+	    if contains (weapon_auto_switch_order, name) then
+		if ((not self.current_weapon) or
+		    (not self.current_weapon.can_fire (self)) or
+		    (index_of (weapon_auto_switch_order, name) < 
+		     index_of (weapon_auto_switch_order, self.current_weapon.name)))
+		then
+		    self:switch_weapon (name)
+		end
 @
 
 

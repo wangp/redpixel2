@@ -1,4 +1,26 @@
+2002-01-28  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-player.lua: Don't auto-switch to a new weapon if our
+	current weapon is not an auto-switchable one.
+
+	* basic-tilelike.lua, basic-weapon.lua, svgame.h, svgame.c,
+	* render.c, netmsg.h, map.h, map.c, client.c, bindgen.lua, Makefile,
+	* blast.h, blast.c: 
+	Added blasts.
+
+2002-01-27  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-player.lua: When picking up a new weapon, don't switch to
+	it unless it is better than the current weapon, or the current
+	weapon is out of ammo.
+
 2002-01-26  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* messages.c: Reject characters < space in input, and removed ^U
+	handling (which didn't work).
+
+	* svgame.c, server.c, packet.c, netmsg.h, client.c:
+	Use shorts instead of longs to specify lengths of strings in packets.
 
 	* basic-tilelike.lua: Made crates spawn explosion and sparks when
 	destroyed.  Also made barrels shootable.

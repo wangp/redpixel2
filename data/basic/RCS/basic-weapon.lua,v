@@ -1,9 +1,14 @@
-head	1.17;
+head	1.18;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.18
+date	2002.01.27.14.06.43;	author tjaden;	state Exp;
+branches;
+next	1.17;
 
 1.17
 date	2002.01.23.14.08.26;	author tjaden;	state Exp;
@@ -95,9 +100,9 @@ desc
 @@
 
 
-1.17
+1.18
 log
-@Added auto weapon switching.
+@Added blasts.
 @
 text
 @-- basic-weapon.lua
@@ -160,6 +165,27 @@ local Standard_Projectile = function (t)
 		end
 		self:destroy ()
 	    end	
+	end
+    })
+end
+
+
+-- Declare a new projectile type.  This handles exploding projectiles.
+local Explosive_Projectile = function (t)
+    return Objtype (t, {
+	nonproxy_init = function (self)
+	    local hook = function (self, obj)
+		if t.explosion then
+		    spawn_explosion (t.explosion, self.x, self.y)
+		end
+		if t.sparks then
+		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		end
+		spawn_blast (self.x, self.y, t.radius, t.damage)
+		self:destroy ()
+	    end
+	    self.collide_hook = hook
+	    self.tile_collide_hook = hook
 	end
     })
 end
@@ -327,6 +353,23 @@ Standard_Projectile {
 --  Rocket weapons
 ----------------------------------------------------------------------
 
+Weapon_With_Firer {
+    name = "basic-rpg",
+    ammo_type = "basic-rocket",
+    projectile = "basic-rocket-projectile",
+    projectile_speed = 10,
+    fire_delay_secs = 0.6,
+    arm_anim = {
+	"/basic/weapon/rpg/2arm000",
+	"/basic/weapon/rpg/2arm001",
+	"/basic/weapon/rpg/2arm002",
+	"/basic/weapon/rpg/2arm003",
+	"/basic/weapon/rpg/2arm004",
+	"/basic/weapon/rpg/2arm005";
+	cx = 13, cy = 3, tics = 3
+    }
+}
+
 Standard_Pickup {
     name = "basic-rpg",
     icon = "/basic/weapon/rpg/pickup",
@@ -344,11 +387,16 @@ Standard_Pickup {
     respawn_secs = 10,
 }
 
-Standard_Projectile {
+Explosive_Projectile {
     name = "basic-rocket-projectile",
     alias = "~rp",
     icon = "/basic/weapon/rpg/projectile",
-    damage = 10
+    radius = 50,
+    damage = 80,
+    explosion = "basic-simple42",
+    proxy_init = function (self)
+	self:rotate_layer (0, radian_to_bangle (self.angle))
+    end
 }
 
 
@@ -491,6 +539,22 @@ weapon_auto_switch_order = {
     "basic-shotgun",
     "basic-blaster"
 }
+@
+
+
+1.17
+log
+@Added auto weapon switching.
+@
+text
+@d66 21
+d249 17
+d283 1
+a283 1
+Standard_Projectile {
+d287 6
+a292 1
+    damage = 10
 @
 
 

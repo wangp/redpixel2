@@ -445,6 +445,15 @@ generate {
 }
 
 generate {
+    cname	= "svgame_spawn_blast",
+    lname	= "spawn_blast",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+	           { Float, "radius" },
+	       	   { Int, "damage" }}
+}
+
+generate {
     cname	= "svgame_call_method_on_clients",
     lname	= "call_method_on_clients",
     check	= "us[sN-]",

@@ -60,7 +60,33 @@ Crate {
 --  Barrels
 ----------------------------------------------------------------------
 
-local Barrel = Crate	-- temporary
+local Barrel = function (t)
+    return Objtype (t, {
+	category = "objtile",
+	nonproxy_init = function (self)
+	    self.health = t.health
+	    function self:receive_damage (amount)
+		self.health = self.health - amount
+		if self.health <= 0 then
+		    spawn_explosion ("basic-simple42", self.x, self.y)
+		    spawn_sparks (self.x, self.y, 30, 3)
+		    spawn_blast (self.x, self.y, 45, 50)
+		    self:hide ()
+		    function the_hook (self)
+			if _internal_would_collide_with_objects (self) then
+			    -- try again later
+			    self:set_update_hook (700, the_hook)
+			else
+			    self:show ()
+			    self:remove_update_hook ()
+			end
+		    end
+		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
+		end
+	    end
+	end
+    })
+end
 
 Barrel {
     name = "basic-barrel-red",
