@@ -19,12 +19,35 @@
 float gamma_factor = 1.0;
 
 
+static float last_gamma = -1;
+static int table[256];
+
+
+static void build_table (float gamma)
+{
+    int i, inf;
+
+    /* Table already built. */
+    if (last_gamma == gamma)
+	return;
+
+    /* Otherwise update the table. */
+    for (i = 0; i < 256; i++) {
+	/* formula from Quake */
+	inf = 255 * pow ((i + 0.5) / 255.5, gamma) + 0.5;
+	table[i] = MID (0, inf, 255);
+    }
+
+    last_gamma = gamma;
+}
+
+
 static int gamma_func (float gamma, int i)
 {
-    /* from Quake */
-    int inf = 255 * pow ((i + 0.5) / 255.5, gamma) + 0.5;
+    build_table (gamma);
 
-    return MID (0, inf, 255);
+    i = MID (0, i, 255);
+    return table[i];
 }
 
 
@@ -32,6 +55,10 @@ void apply_gamma (BITMAP *bmp, float gamma)
 {
     int depth; 
     int x, y;
+
+    /* fast path */
+    if (gamma == 1.0)
+	return;
 
     depth = bitmap_color_depth (bmp);
 
