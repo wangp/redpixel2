@@ -14,7 +14,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
 	  -I libnet/include -I lua-5.0-alpha/include \
-	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
+	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
