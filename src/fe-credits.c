@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <allegro.h>
+#include "music.h"
 #include "store.h"
 
 
@@ -44,11 +45,9 @@ static char *credits[] = {
     change_font, "times-new-roman-14-bold", "VARIOUS PLACES",
     line_break,
     horizontal_line,
-    line_break,
-    line_break,
-    line_break,
-    line_break,
-    line_break,
+    line_break, line_break, line_break, line_break, line_break,
+    line_break, line_break, line_break, line_break, line_break,
+    line_break, line_break,
     NULL
 };
 
@@ -62,7 +61,10 @@ void do_credits (void)
     int end = 0;
     int gray = makecol (0xa0, 0xa0, 0xa0);
     int i, y;
-    int offy = SCREEN_H + 20;
+    int offy = 535;
+
+    /* Music. */
+    music_select_playlist ("data/music/music-credits.txt");
 
     set_palette (store_get_dat ("/frontend/menu/times-new-roman-pal"));
     blit (background, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
@@ -101,11 +103,12 @@ void do_credits (void)
 
 	offy--;
 
-	/* XXX */
-	rest (10);
+	rest (20);
 
 	if ((key[KEY_Q]) || (key[KEY_ESC]) || (offy + y < 0))
 	    end = 1;
     } while (!end);
+
+    music_stop_playlist ();
 }
 
