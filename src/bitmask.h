@@ -35,10 +35,10 @@ void bitmask_set_point (bitmask_t *p, int x, int y, int value);
 static inline int bitmask_point (bitmask_t *p, int x, int y)
 {
     if ((x < 0) || (y < 0) || (x >= p->w) || (y >= p->h))
-	return -1;
+	return 0;
     else {    
 	int u = x / _bitmask_u32_bits;
-	return  p->line[y][u] & (1 << ((_bitmask_u32_bits - 1) - (x - (u * _bitmask_u32_bits))));
+	return p->line[y][u] & (1 << ((_bitmask_u32_bits - 1) - (x - (u * _bitmask_u32_bits))));
     }
 }
 
