@@ -91,6 +91,12 @@ static inline void do_blast_check (blast_t *blast, list_head_t *object_list)
 		lua_pushnumber (server_lua_namespace, dmg);
 		lua_pushnumber (server_lua_namespace, blast->owner);
 		object_call (server_lua_namespace, obj, "receive_damage", 2);
+
+		if (object_is_client (obj)) {
+		    double angle = atan2 (dy, dx);
+		    /* XXX: need different bounce factors for different damage */
+		    object_add_extrinsic_xaya (obj, 2.3 * cos (angle), 18 * sin (angle));
+		}
 	    }
 
 	    add_to_vector (blast->already_hit, obj);
