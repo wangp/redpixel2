@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
+#include "error.h"
 
 
 void *alloc (size_t size)

@@ -1,7 +1,7 @@
 -- lightamp.lua
 
 function init_lightamp (self)
-    object_add_light (self, "/lights/blue-32", -16, -16)
+    object_add_light (self, "/lights/blue-32", -32, -32)
 end
 
 -- Module init.

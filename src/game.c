@@ -9,9 +9,11 @@
 #include "fps.h"
 #include "game.h"
 #include "magic4x4.h"
+#include "magicrt.h"
 #include "map.h"
 #include "mapfile.h"
 #include "render.h"
+#include "store.h"
 #include "yield.h"
 
 
@@ -100,7 +102,7 @@ static void do_input ()
 	pop (L, 1);
     }
 
-    camera_track_object_with_mouse (&cam, obj, mouse_x, mouse_y, 128);
+    camera_track_object_with_mouse (&cam, obj, mouse_x, mouse_y, 80);
 }
 
 
@@ -142,14 +144,8 @@ static void do_render ()
     clear (bmp);
     render (bmp, map, &cam);
 
-    if (1) {
-	BITMAP *t = create_magic_bitmap (320, 200);
-	clear (t);
-	pivot_magic_sprite (t, store_dat ("/player/torch"), 160, 100, 0, 36,
-			    fatan2 (mouse_y - 100, mouse_x - 160));
-	draw_trans_sprite (bmp, t, 0, 0);
-	destroy_bitmap (t);
-    }
+    pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"), 160, 100,
+			      0, 36, fatan2 (mouse_y - 100, mouse_x - 160));
 
     text_mode (-1);
     trans_textprintf (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),

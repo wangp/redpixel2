@@ -8,26 +8,40 @@
  *                                           /\____/
  *                                           \_/__/
  *
- *      Sprite rotation routines.
+ *      Transparent sprite rotation routines.
  *
- *      By Shawn Hargreaves.
+ *	By Peter Wang.
  *
- * 	Hacked by Peter Wang for "magic" sprites (i.e. make it use
- * 	the 24 bpp routines, and divide bitmap width by 3)
- * 
+ *      Modified from rotate.c by Shawn Hargreaves and Andrew Geers,
+ *	and the C version of draw_trans_sprite by Michael Bukin.
+ *
+ * 	Hacked for "magic" sprites (i.e. make it use the 24 bpp
+ * 	routines, and divide bitmap width by 3)
+ *
  *      See readme.txt for copyright information.
  */
 
 
 #include <allegro.h>
-#include "magic4x4.h"
+
+#include "magicrt.h"
 
 
+
+#define GET_PIXEL(p)		bmp_read24((unsigned long) (p))
+#define BLENDER			COLOR_MAP*
+#define MAKE_BLENDER()		color_map
+#define BLEND(b,o,n)				       	\
+((b)->data[(o) & 0xFF][(n) & 0xFF]  		      |	\
+ (b)->data[(o) >> 8 & 0xFF][(n) >> 8 & 0xFF] << 8     |	\
+ (b)->data[(o) >> 16 & 0xFF][(n) >> 16 & 0xFF] << 16)
+
+    
 
 /* helper macro for rotating sprites in different color depths */
-#define DO_ROTATE(bits, scale, getpix, checkpix)                             \
+#define DO_ROTATE(bits, scale, getpix, checkpix)			     \
 {                                                                            \
-   unsigned int sprite_w = (unsigned)sprite->w/3;			     \
+   unsigned int sprite_w = (unsigned)sprite->w/3;		       	     \
 									     \
    addr = bmp_write_line(bmp, y+hgap-dy-1) + x*scale;                        \
 									     \
@@ -39,8 +53,10 @@
 									     \
 	 if ((unsigned)sy < (unsigned)sprite->h) {                           \
 	    getpix;                                                          \
-	    if (checkpix)                                                    \
+	    if (checkpix) {                                                  \
+	       pixel = BLEND(blender, pixel, GET_PIXEL(addr));   	     \
 	       bmp_write##bits(addr, pixel);                                 \
+	    }								     \
 	 }                                                                   \
       }                                                                      \
 									     \
@@ -52,20 +68,30 @@
 
 
 
-/* pivot_magic_sprite:
+/* pivot_sprite:
  *  Rotates a sprite around the specified pivot centre point.
  */
-void pivot_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int cx, int cy, fixed angle)
+void pivot_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int cx, int cy, fixed angle)
 {
-   pivot_scaled_magic_sprite(bmp, sprite, x, y, cx, cy, angle, itofix(1));
+   pivot_scaled_trans_magic_sprite(bmp, sprite, x, y, cx, cy, angle, itofix(1));
 }
 
 
 
-/* pivot_scaled_magic_sprite:
+/* pivot_trans_sprite_v_flip:
+ *  Similar to pivot_trans_sprite, except flips the sprite vertically first.
+ */
+void pivot_trans_sprite_v_flip(BITMAP *bmp, BITMAP *sprite, int x, int y, int cx, int cy, fixed angle)
+{
+   pivot_scaled_trans_sprite_v_flip(bmp, sprite, x, y, cx, cy, angle, itofix(1));
+}
+
+
+
+/* pivot_scaled_trans_sprite:
  *  Rotates a sprite around the specified pivot centre point.
  */
-void pivot_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int cx, int cy, fixed angle, fixed scale)
+void pivot_scaled_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int cx, int cy, fixed angle, fixed scale)
 {
    x -= fixtoi(sprite->w/3*scale/2);
    y -= fixtoi(sprite->h*scale/2);
@@ -76,33 +102,58 @@ void pivot_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int cx
    x -= fixtoi(fmul(cx*fcos(angle) - cy*fsin(angle), scale));
    y -= fixtoi(fmul(cx*fsin(angle) + cy*fcos(angle), scale));
 
-   rotate_scaled_magic_sprite(bmp, sprite, x, y, angle, scale);
+   rotate_scaled_trans_magic_sprite(bmp, sprite, x, y, angle, scale);
 }
 
 
 
-/* rotate_magic_sprite:
+/* pivot_scaled_trans_sprite_v_flip:
+ *  Similar to pivot_scaled_trans_sprite, except flips the sprite vertically first.
+ */
+void pivot_scaled_trans_sprite_v_flip(BITMAP *bmp, BITMAP *sprite, int x, int y, int cx, int cy, fixed angle, fixed scale)
+{
+   x -= fixtoi(sprite->w/3*scale/2);
+   y -= fixtoi(sprite->h*scale/2);
+
+   cx -= sprite->w/3/2;
+   cy -= sprite->h/2;
+
+   x -= fixtoi(fmul(cx*fcos(angle) - cy*fsin(angle), scale));
+   y -= fixtoi(fmul(cx*fsin(angle) + cy*fcos(angle), scale));
+
+   rotate_scaled_trans_sprite_v_flip(bmp, sprite, x, y, angle, scale);
+}
+
+
+
+/* rotate_trans_sprite:
  *  Draws a sprite image onto a bitmap at the specified position, rotating 
  *  it by the specified angle. The angle is a fixed point 16.16 number in 
  *  the same format used by the fixed point trig routines, with 256 equal 
  *  to a full circle, 64 a right angle, etc. This function can draw onto
  *  both linear and mode-X bitmaps.
  */
-void rotate_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle)
+void rotate_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle)
 {
-   rotate_scaled_magic_sprite(bmp, sprite, x, y, angle, itofix(1));
+   rotate_scaled_trans_magic_sprite(bmp, sprite, x, y, angle, itofix(1));
 }
 
 
 
-/* rotate_magic_scaled_sprite:
- *  Draws a sprite image onto a bitmap at the specified position,
- *  rotating it by the specified angle. The angle is a fixed point 16.16
- *  number in the same format used by the fixed point trig routines, with
- *  256 equal to a full circle, 64 a right angle, etc. This function can
- *  ONLY draw magic bitmaps onto another magic bitmap.
+/* rotate_trans_sprite_v_flip:
+ *  Similar to rotate_trans_sprite, except flips the sprite vertically first.
  */
-void rotate_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle, fixed scale)
+void rotate_trans_sprite_v_flip(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle)
+{
+   rotate_scaled_trans_sprite_v_flip(bmp, sprite, x, y, angle, itofix(1));
+}
+
+
+
+/* rotate_scaled_trans_sprite_flip:
+ *  Rotates and scales a sprite, optionally flipping it about either axis.
+ */
+void rotate_scaled_trans_sprite_flip(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle, fixed scale, int h_flip, int v_flip)
 {
    fixed f1x, f1y, f1xd, f1yd;
    fixed f2x, f2y, f2xd, f2yd;
@@ -115,6 +166,7 @@ void rotate_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed
    int wgap = sprite->w/3;
    int hgap = sprite->h;
    int pixel;
+   BLENDER blender;
 
    /* rotate the top left pixel of the sprite */
    w = itofix(wgap/2);
@@ -190,13 +242,25 @@ void rotate_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed
       if ((wgap <= 0) || (hgap <= 0))
 	 return;
    }
+   
+   blender = MAKE_BLENDER();
 
    bmp_select(bmp);
+
+   if (h_flip)
+      f2xd = -f2xd;
+   if (v_flip)
+      f2yd = -f2yd;
 
    /* and trace a bunch of lines through the bitmaps */
    for (dy=hgap-1; dy>=0; dy--) {
       f2x = f1x;
       f2y = f1y;
+
+      if (h_flip)
+         f2x = itofix(sprite->w/3) - f2x - itofix(1);
+      if (v_flip)
+         f2y = itofix(sprite->h) - f2y - itofix(1);
 
       DO_ROTATE(24, 3,
 		bmp_select(sprite); pixel = bmp_read24((unsigned long)(sprite->line[sy]+sx*3)); bmp_select(bmp),
@@ -209,3 +273,26 @@ void rotate_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed
    bmp_unwrite_line(bmp);
 }
 
+
+
+/* rotate_scaled_trans_sprite:
+ *  Draws a sprite image onto a bitmap at the specified position, rotating 
+ *  it by the specified angle. The angle is a fixed point 16.16 number in 
+ *  the same format used by the fixed point trig routines, with 256 equal 
+ *  to a full circle, 64 a right angle, etc. This function can draw onto
+ *  both linear and mode-X bitmaps.
+ */
+void rotate_scaled_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle, fixed scale)
+{
+   rotate_scaled_trans_sprite_flip(bmp, sprite, x, y, angle, scale, 0, 0);
+}
+
+
+
+/* rotate_scaled_trans_sprite_v_flip:
+ *  Similar to rotate_scaled_trans_sprite, except flips the sprite vertically first.
+ */
+void rotate_scaled_trans_sprite_v_flip(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle, fixed scale)
+{
+   rotate_scaled_trans_sprite_flip(bmp, sprite, x, y, angle, scale, 0, 1);
+}
