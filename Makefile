@@ -116,6 +116,7 @@ MODULES_GAME :=					\
 	gamemenu				\
 	getoptc					\
 	loaddata				\
+	lobby					\
 	main					\
 	map					\
 	mapfile					\

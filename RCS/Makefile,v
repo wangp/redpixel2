@@ -1,9 +1,14 @@
-head	1.25;
+head	1.26;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.26
+date	2002.08.10.13.18.25;	author tjaden;	state Exp;
+branches;
+next	1.25;
 
 1.25
 date	2002.07.16.07.13.04;	author tjaden;	state Exp;
@@ -135,9 +140,10 @@ desc
 @@
 
 
-1.25
+1.26
 log
-@Made ChangeLog contain full file name paths.
+@Incomplete temporary lobby/frontend code using Allegro GUI
+(from ~3 weeks ago).
 @
 text
 @##
@@ -258,6 +264,7 @@ MODULES_GAME :=					\
 	gamemenu				\
 	getoptc					\
 	loaddata				\
+	lobby					\
 	main					\
 	map					\
 	mapfile					\
@@ -406,6 +413,15 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.25
+log
+@Made ChangeLog contain full file name paths.
+@
+text
+@d119 1
 @
 
 

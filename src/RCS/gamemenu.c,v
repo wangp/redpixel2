@@ -1,10 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
-locks
-	tjaden:1.5; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.08.10.13.18.35;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.07.12.05.45.30;	author tjaden;	state Exp;
@@ -36,10 +40,10 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Fixed the "problem" where text messages would get shown twice on
-client-servers (once by client, once by server).
+@Incomplete temporary lobby/frontend code using Allegro GUI
+(from ~3 weeks ago).
 @
 text
 @/* gamemenu.c - menu.c was already taken
@@ -51,6 +55,7 @@ text
 #include <allegro.h>
 #include "editor.h"
 #include "extdata.h"
+#include "lobby.h"
 #include "magic4x4.h"
 #include "menu.h"
 #include "screen.h"
@@ -143,38 +148,28 @@ static int mp_client_server (void)
 }
 
 
-static int mp_client_go (void)
-{
-    const char *name = "tjaden";
-    const char *addr = "192.168.0.1";
-    messages_init ();
-    if (client_init (name, NET_DRIVER_SOCKETS, addr) == 0) {
-	sync_init (NULL);
-	client_run (0);
-	sync_shutdown ();
-	client_shutdown ();
-    }
-    messages_shutdown ();
-
-    return 0;
-}
-
-
-static char client_connect_address[64] = "192.168.0.1";
-
-
-static menu_t mp_client_menu[] =
-{
-    { M_TEXT, client_connect_address, 0 },
-    { M_PROC, "Go!", mp_client_go },
-    { M_PROC, "Back", generic_back },
-    { M_END, 0, 0 }
-};
-
-
 static int mp_client (void)
 {
-    run_menu (mp_client_menu);
+    static char host[1024] = "localhost";
+    static char name[1024];
+    static int virgin = 1;
+
+    if (virgin) {
+	ustrzcpy (name, sizeof name, getenv ("USER"));
+	virgin = 0;
+    }
+
+    if (ask_host_and_name (host, sizeof host, name, sizeof name) == 0) {
+	messages_init ();
+	if (client_init (name, NET_DRIVER_SOCKETS, host) == 0) {
+	    sync_init (NULL);
+	    client_run (0);
+	    sync_shutdown ();
+	    client_shutdown ();
+	}
+	messages_shutdown ();
+    }
+
     return 0;
 }
 
@@ -373,6 +368,52 @@ void gamemenu_shutdown (void)
     destroy_bitmap (dbuf);
     store_unload (menu_data_file);
 }
+@
+
+
+1.5
+log
+@Fixed the "problem" where text messages would get shown twice on
+client-servers (once by client, once by server).
+@
+text
+@d10 1
+d103 1
+a103 1
+static int mp_client_go (void)
+d105 7
+a111 8
+    const char *name = "tjaden";
+    const char *addr = "192.168.0.1";
+    messages_init ();
+    if (client_init (name, NET_DRIVER_SOCKETS, addr) == 0) {
+	sync_init (NULL);
+	client_run (0);
+	sync_shutdown ();
+	client_shutdown ();
+a112 1
+    messages_shutdown ();
+d114 10
+a123 2
+    return 0;
+}
+a124 16
+
+static char client_connect_address[64] = "192.168.0.1";
+
+
+static menu_t mp_client_menu[] =
+{
+    { M_TEXT, client_connect_address, 0 },
+    { M_PROC, "Go!", mp_client_go },
+    { M_PROC, "Back", generic_back },
+    { M_END, 0, 0 }
+};
+
+
+static int mp_client (void)
+{
+    run_menu (mp_client_menu);
 @
 
 

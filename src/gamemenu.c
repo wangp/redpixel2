@@ -7,6 +7,7 @@
 #include <allegro.h>
 #include "editor.h"
 #include "extdata.h"
+#include "lobby.h"
 #include "magic4x4.h"
 #include "menu.h"
 #include "screen.h"
@@ -99,38 +100,28 @@ static int mp_client_server (void)
 }
 
 
-static int mp_client_go (void)
-{
-    const char *name = "tjaden";
-    const char *addr = "speedy";
-    messages_init ();
-    if (client_init (name, NET_DRIVER_SOCKETS, addr) == 0) {
-	sync_init (NULL);
-	client_run (0);
-	sync_shutdown ();
-	client_shutdown ();
-    }
-    messages_shutdown ();
-
-    return 0;
-}
-
-
-static char client_connect_address[64] = "192.168.0.1";
-
-
-static menu_t mp_client_menu[] =
-{
-    { M_TEXT, client_connect_address, 0 },
-    { M_PROC, "Go!", mp_client_go },
-    { M_PROC, "Back", generic_back },
-    { M_END, 0, 0 }
-};
-
-
 static int mp_client (void)
 {
-    run_menu (mp_client_menu);
+    static char host[1024] = "localhost";
+    static char name[1024];
+    static int virgin = 1;
+
+    if (virgin) {
+	ustrzcpy (name, sizeof name, getenv ("USER"));
+	virgin = 0;
+    }
+
+    if (ask_host_and_name (host, sizeof host, name, sizeof name) == 0) {
+	messages_init ();
+	if (client_init (name, NET_DRIVER_SOCKETS, host) == 0) {
+	    sync_init (NULL);
+	    client_run (0);
+	    sync_shutdown ();
+	    client_shutdown ();
+	}
+	messages_shutdown ();
+    }
+
     return 0;
 }
 

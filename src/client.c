@@ -15,6 +15,7 @@
 #include "error.h"
 #include "fps.h"
 #include "list.h"
+#include "lobby.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "mapfile.h"
@@ -350,7 +351,7 @@ static void send_gameinfo_controls (void)
     int controls = 0;
     int update = 0;
 
-    if (!messages_grabbed_keyboard ()) {
+    if (!ingame_messages_grabbed_keyboard ()) {
 	if (key[KEY_A]) controls |= CONTROL_LEFT;
 	if (key[KEY_D]) controls |= CONTROL_RIGHT;
 	if (key[KEY_W]) controls |= CONTROL_UP;
@@ -400,7 +401,7 @@ static void send_gameinfo_weapon_switch (void)
     int keyboard_grabbed;
     int already_set = 0;
 
-    keyboard_grabbed = messages_grabbed_keyboard ();
+    keyboard_grabbed = ingame_messages_grabbed_keyboard ();
 
     /* KEY_1 - KEY_9 */
     {
@@ -1044,7 +1045,7 @@ static void update_screen (int mouse_x, int mouse_y)
 
     draw_status (bmp);
 
-    messages_render (bmp);
+    ingame_messages_render (bmp);
 
     text_mode (-1);
     textprintf_trans_magic (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
@@ -1068,50 +1069,41 @@ static void update_screen (int mouse_x, int mouse_y)
  */
 
 
-static void temporary_message (char *s, ...)
-{
-    va_list ap;
-    int y = 0;
-
-    va_start (ap, s);
-
-    clear_bitmap (screen);
-
-    do {
-	textout (screen, font, s, 0, y, makecol (255, 255, 255));
-	y += text_height (font);
-    } while ((s = va_arg (ap, char *)));
-
-    va_end (ap);
-}
-
-
 void client_run (int client_server)
 {
     dbg ("connecting (state 1)");
     {
 	int status;
 
-	temporary_message ("Connecting to server...",
-			   "Press Q to cancel", NULL);
+	sync_client_lock ();
+	begin_client_connecting_dialog ();
+	force_redraw_client_connecting_dialog ();
+	sync_client_unlock ();
 
 	do {
-	    if (key[KEY_ESC])
-		return;
 	    sync_client_lock ();
+	    if (poll_client_connecting_dialog () < 0) {
+		end_client_connecting_dialog ();
+		sync_client_unlock ();
+		return;
+	    }
 	    status = net_poll_connect (conn);
 	    sync_client_unlock ();
 	} while (!status);
 
-	if (status < 1)
+	if (status < 1) {
+	    end_client_connecting_dialog ();
 	    return;
-    }
+	}
 
+	sync_client_lock ();
+	end_client_connecting_dialog ();
+	sync_client_unlock ();
+    }
+    
     dbg ("connecting (stage 2)");
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-
-	temporary_message ("Having a chat with the server...", NULL);
 
 	while (1) {
 	    sync_client_lock ();
@@ -1146,32 +1138,23 @@ void client_run (int client_server)
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 
-	/* XXX */
-	BITMAP *load_jpg(AL_CONST char *filename, RGB *pal);
-	BITMAP *lobby_bmp;
-
-	lobby_bmp = load_jpg ("data/lobby-tmp.jpg", 0);
-	if (lobby_bmp) {
-	    BITMAP *tmp = get_magic_bitmap_format (lobby_bmp, 0);
-	    destroy_bitmap (lobby_bmp);
-	    lobby_bmp = tmp;
-	    set_magic_bitmap_brightness (lobby_bmp, 0xf, 0xf, 0xf);
-	}
-	/* end XXX */
+	sync_client_lock ();
+	begin_client_lobby_dialog ();
+	force_redraw_client_lobby_dialog ();
+	show_mouse (screen);
+	sync_client_unlock ();
 
 	while (1) {
 	    sync_client_lock ();
 
-	    if (!messages_grabbed_keyboard ()) {
-		if (key[KEY_ESC]) {
-		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
-		    sync_client_unlock ();
-		    goto disconnect;
-		}
+	    if (poll_client_lobby_dialog () < 0) {
+		show_mouse (NULL); /* XXX */
+		end_client_lobby_dialog ();
+		sync_client_unlock ();
+		goto disconnect;
 	    }
-
-	    {
-		const char *s = messages_poll_input ();
+	    else {
+		const char *s = get_client_lobby_dialog_input ();
 
 		if (s) {
 		    if (client_server && (s[0] == ','))
@@ -1181,13 +1164,6 @@ void client_run (int client_server)
 		}
 	    }
 
-	    if (!lobby_bmp)
-		clear_bitmap (bmp);
-	    else
-		blit (lobby_bmp, bmp, 0, 0, 0, 0, bmp->w, bmp->h);
-	    messages_render (bmp);
-	    blit_magic_bitmap_to_screen (bmp);
-
 	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
 		sync_client_unlock ();
 		continue;
@@ -1195,7 +1171,8 @@ void client_run (int client_server)
 
 	    switch (buf[0]) {
 		case MSG_SC_GAMESTATEFEED_REQ:
-		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
+		    show_mouse (NULL); /* XXX */
+		    end_client_lobby_dialog ();
 		    sync_client_unlock ();
 		    goto receive_game_state;
 
@@ -1207,14 +1184,29 @@ void client_run (int client_server)
 		    process_sc_client_remove (buf+1);
 		    break;
 
+		case MSG_SC_TEXT: {
+		    char string[NETWORK_MAX_PACKET_SIZE];
+		    short len;
+
+		    packet_decode (buf+1, "s", &len, string);
+		    messages_add ("%s", string);
+		    force_redraw_client_lobby_dialog ();
+		    break;
+		}
+
 		case MSG_SC_DISCONNECTED:
-		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
+		    show_mouse (NULL); /* XXX */
+		    end_client_lobby_dialog ();
 		    sync_client_unlock ();
 		    goto end;
 	    }
 
 	    sync_client_unlock ();
 	}
+
+	sync_client_lock ();
+	end_client_lobby_dialog ();
+	sync_client_unlock ();
     }
 
   receive_game_state:
@@ -1416,7 +1408,7 @@ void client_run (int client_server)
 		send_gameinfo_weapon_switch ();
 
 		/* XXX dunno where to put this */
-		if (!messages_grabbed_keyboard ()) {
+		if (!ingame_messages_grabbed_keyboard ()) {
 		    int want_scores = key[KEY_TAB];
 		    scores_brightness += (want_scores ? 1 : -1);
 		    scores_brightness = MID (0, scores_brightness, 15);
@@ -1437,7 +1429,7 @@ void client_run (int client_server)
 		{
 		    const char *s;
 
-		    if ((s = messages_poll_input ())) {
+		    if ((s = ingame_messages_poll_input ())) {
 			if (client_server && (s[0] == ','))
 			    client_server_interface_add_input (s+1);
 			else

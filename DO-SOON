@@ -1,19 +1,26 @@
 -*- outline -*-
 
 * easy
-vulcan [graphics/sound]
-blood lust visuals
-food consume sound
+
+** code
 lights for sparks?
 screen shakes for explosions
 recoil from getting blasted [make amount damage dependent]
 meat chunks from explosive death
 barrel chunks inertia
 blods inertia?
+server should log kills messages
+make lightamp respawn time longer
+
+** non-code
+vulcan [graphics/sound]
+blood lust visuals
+food consume sound
 
 * harder
 
-** more interesting
+** more interesting/necessary
+do quick gui with agup or UG
 what-weapons-collected display
 radar
 map scrolly thingi

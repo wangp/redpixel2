@@ -36,13 +36,14 @@ $(OBJDIR)/gameinit.o: src/gameinit.c libnet/include/libnet.h src/bitmaskr.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/object.h src/id.h src/objtypes.h src/path.h
 $(OBJDIR)/gamemenu.o: src/gamemenu.c src/editor/editor.h src/extdata.h \
- src/magic/magic4x4.h src/editor/menu.h src/screen.h src/store/store.h \
- src/textout.h src/messages.h src/sync.h src/client.h \
- libnet/include/libnet.h src/server/clsvface.h src/server/server.h \
- src/id.h
+ src/lobby.h src/magic/magic4x4.h src/editor/menu.h src/screen.h \
+ src/store/store.h src/textout.h src/messages.h src/sync.h \
+ src/client.h libnet/include/libnet.h src/server/clsvface.h \
+ src/server/server.h src/id.h
 $(OBJDIR)/getoptc.o: src/getoptc.c
 $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
  src/loaddata.h src/store/store.h src/path.h
+$(OBJDIR)/lobby.o: src/lobby.c src/lobby.h
 $(OBJDIR)/main.o: src/main.c libnet/include/libnet.h src/client.h \
  src/server/clsvface.h src/editor/editor.h src/gameinit.h \
  src/gamemenu.h src/getoptc.h src/messages.h src/screen.h \
