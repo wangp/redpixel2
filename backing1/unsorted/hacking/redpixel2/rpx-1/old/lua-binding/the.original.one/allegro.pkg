@@ -1,0 +1,707 @@
+/*         ______   ___    ___ 
+ *        /\  _  \ /\_ \  /\_ \ 
+ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___ 
+ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
+ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
+ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
+ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
+ *                                           /\____/
+ *                                           \_/__/
+ *
+ *	Package file for toLua, 31 May 1999.
+ *      Based off XWinAllegro 3.0 header file.
+ */
+
+$#include <allegro.h>
+
+
+#define TRUE         -1
+#define FALSE        0
+
+
+typedef long fixed;
+
+
+#define MOUSE_FLAG_MOVE             1
+#define MOUSE_FLAG_LEFT_DOWN        2
+#define MOUSE_FLAG_LEFT_UP          4
+#define MOUSE_FLAG_RIGHT_DOWN       8
+#define MOUSE_FLAG_RIGHT_UP         16
+#define MOUSE_FLAG_MIDDLE_DOWN      32
+#define MOUSE_FLAG_MIDDLE_UP        64
+
+
+#define KB_SHIFT_FLAG         0x0001
+#define KB_CTRL_FLAG          0x0002
+#define KB_ALT_FLAG           0x0004
+#define KB_LWIN_FLAG          0x0008
+#define KB_RWIN_FLAG          0x0010
+#define KB_MENU_FLAG          0x0020
+#define KB_SCROLOCK_FLAG      0x0100
+#define KB_NUMLOCK_FLAG       0x0200
+#define KB_CAPSLOCK_FLAG      0x0400
+#define KB_INALTSEQ_FLAG      0x0800
+#define KB_ACCENT1_FLAG       0x1000
+#define KB_ACCENT1_S_FLAG     0x2000
+#define KB_ACCENT2_FLAG       0x4000
+#define KB_ACCENT2_S_FLAG     0x8000
+
+#define KB_NORMAL             1
+#define KB_EXTENDED           2
+
+#define KEY_ESC               1     /* keyboard scan codes  */
+#define KEY_1                 2 
+#define KEY_2                 3 
+#define KEY_3                 4
+#define KEY_4                 5
+#define KEY_5                 6
+#define KEY_6                 7
+#define KEY_7                 8
+#define KEY_8                 9
+#define KEY_9                 10
+#define KEY_0                 11
+#define KEY_MINUS             12
+#define KEY_EQUALS            13
+#define KEY_BACKSPACE         14
+#define KEY_TAB               15 
+#define KEY_Q                 16
+#define KEY_W                 17
+#define KEY_E                 18
+#define KEY_R                 19
+#define KEY_T                 20
+#define KEY_Y                 21
+#define KEY_U                 22
+#define KEY_I                 23
+#define KEY_O                 24
+#define KEY_P                 25
+#define KEY_OPENBRACE         26
+#define KEY_CLOSEBRACE        27
+#define KEY_ENTER             28
+#define KEY_CONTROL           29
+#define KEY_LCONTROL          29
+#define KEY_A                 30
+#define KEY_S                 31
+#define KEY_D                 32
+#define KEY_F                 33
+#define KEY_G                 34
+#define KEY_H                 35
+#define KEY_J                 36
+#define KEY_K                 37
+#define KEY_L                 38
+#define KEY_COLON             39
+#define KEY_QUOTE             40
+#define KEY_TILDE             41
+#define KEY_LSHIFT            42
+#define KEY_BACKSLASH         43
+#define KEY_Z                 44
+#define KEY_X                 45
+#define KEY_C                 46
+#define KEY_V                 47
+#define KEY_B                 48
+#define KEY_N                 49
+#define KEY_M                 50
+#define KEY_COMMA             51
+#define KEY_STOP              52
+#define KEY_SLASH             53
+#define KEY_RSHIFT            54
+#define KEY_ASTERISK          55
+#define KEY_ALT               56
+#define KEY_SPACE             57
+#define KEY_CAPSLOCK          58
+#define KEY_F1                59
+#define KEY_F2                60
+#define KEY_F3                61
+#define KEY_F4                62
+#define KEY_F5                63
+#define KEY_F6                64
+#define KEY_F7                65
+#define KEY_F8                66
+#define KEY_F9                67
+#define KEY_F10               68
+#define KEY_NUMLOCK           69
+#define KEY_SCRLOCK           70
+#define KEY_HOME              71
+#define KEY_UP                72
+#define KEY_PGUP              73
+#define KEY_MINUS_PAD         74
+#define KEY_LEFT              75
+#define KEY_5_PAD             76
+#define KEY_RIGHT             77
+#define KEY_PLUS_PAD          78
+#define KEY_END               79
+#define KEY_DOWN              80
+#define KEY_PGDN              81
+#define KEY_INSERT            82
+#define KEY_DEL               83
+#define KEY_PRTSCR            84
+#define KEY_F11               87
+#define KEY_F12               88
+#define KEY_LWIN              91
+#define KEY_RWIN              92
+#define KEY_MENU              93
+#define KEY_PAD               100
+#define KEY_RCONTROL          120
+#define KEY_ALTGR             121
+#define KEY_SLASH2            122
+#define KEY_PAUSE             123
+
+
+#define GFX_TEXT              -1
+#define GFX_AUTODETECT        0
+#define GFX_VGA               1
+#define GFX_MODEX             2
+
+#define GFX_VESA1             3
+#define GFX_VESA2B            4
+#define GFX_VESA2L            5
+#define GFX_VBEAF             6
+#define GFX_XTENDED           7
+#define GFX_ATI               8
+#define GFX_MACH64            9
+#define GFX_CIRRUS64          10
+#define GFX_CIRRUS54          11
+#define GFX_PARADISE          12
+#define GFX_S3                13
+#define GFX_TRIDENT           14
+#define GFX_ET3000            15
+#define GFX_ET4000            16
+#define GFX_VIDEO7            17
+
+#define GFX_XWIN              18
+
+
+typedef struct BITMAP { } BITMAP;
+
+typedef struct RGB { } RGB;
+
+
+#define PAL_SIZE     256
+
+//typedef RGB PALLETE;
+
+
+#define MASK_COLOR_8       0
+#define MASK_COLOR_15      0x7C1F
+#define MASK_COLOR_16      0xF81F
+#define MASK_COLOR_24      0xFF00FF
+#define MASK_COLOR_32      0xFF00FF
+
+
+/* in case you want to spell 'pallete' as 'palette' */
+/*
+#define PALETTE                        PALLETE
+#define black_palette                  black_pallete
+#define desktop_palette                desktop_pallete
+#define set_palette                    set_pallete
+#define get_palette                    get_pallete
+#define set_palette_range              set_pallete_range
+#define get_palette_range              get_pallete_range
+#define fli_palette                    fli_pallete
+#define palette_color                  pallete_color
+#define DAT_PALETTE                    DAT_PALLETE
+#define select_palette                 select_pallete
+#define unselect_palette               unselect_pallete
+#define generate_332_pallete           generate_332_palette
+#define generate_optimised_pallete     generate_optimised_palette
+*/
+
+
+#define DRAW_MODE_SOLID             0        /* flags for drawing_mode() */
+#define DRAW_MODE_XOR               1
+#define DRAW_MODE_COPY_PATTERN      2
+#define DRAW_MODE_SOLID_PATTERN     3
+#define DRAW_MODE_MASKED_PATTERN    4
+#define DRAW_MODE_TRANS             5
+
+
+typedef struct FONT { } FONT;
+
+
+#define FLI_OK          0              /* FLI player return values */
+#define FLI_EOF         -1
+#define FLI_ERROR       -2
+#define FLI_NOT_OPEN    -3
+
+
+#define DIGI_VOICES           32       /* Theoretical maximums: */
+#define MIDI_VOICES           32       /* actual drivers may not be */
+#define MIDI_TRACKS           32       /* able to handle this many */
+
+
+typedef struct SAMPLE { } SAMPLE;
+typedef struct MIDI { } MIDI;
+typedef struct AUDIOSTREAM { } AUDIOSTREAM;
+
+#define PLAYMODE_PLAY           0
+#define PLAYMODE_LOOP           1
+#define PLAYMODE_FORWARD        0
+#define PLAYMODE_BACKWARD       2
+#define PLAYMODE_BIDIR          4
+
+
+#define EOF    -1
+
+//#define F_READ          "r"            /* for use with pack_fopen() */
+//#define F_WRITE         "w"
+//#define F_READ_PACKED   "rp"
+//#define F_WRITE_PACKED  "wp"
+//#define F_WRITE_NOPACK  "w!"
+
+#define F_BUF_SIZE      4096           /* 4K buffer for caching data */
+#define F_PACK_MAGIC    0x736C6821L    /* magic number for packed files */
+#define F_NOPACK_MAGIC  0x736C682EL    /* magic number for autodetect */
+#define F_EXE_MAGIC     0x736C682BL    /* magic number for appended data */
+
+#define PACKFILE_FLAG_WRITE   1        /* the file is being written */
+#define PACKFILE_FLAG_PACK    2        /* data is compressed */
+#define PACKFILE_FLAG_CHUNK   4        /* file is a sub-chunk */
+#define PACKFILE_FLAG_EOF     8        /* reached the end-of-file */
+#define PACKFILE_FLAG_ERROR   16       /* an error has occurred */
+
+typedef struct PACKFILE { } PACKFILE;
+
+
+typedef struct DATAFILE {
+void *dat;                          /* pointer to the data */
+} DATAFILE;
+
+
+/*************************************/
+/************ module 'al' ************/
+/*************************************/
+
+module al
+{
+
+int allegro_init @ init();
+void allegro_exit @ exit();
+
+
+/************************************************/
+/************ Configuration routines ************/
+/************************************************/
+
+void set_config_file(char *filename);
+void set_config_data(char *data, int length);
+void override_config_file(char *filename);
+void override_config_data(char *data, int length);
+
+void push_config_state();
+void pop_config_state();
+
+char *get_config_string(char *section, char *name, char *def);
+int get_config_int(char *section, char *name, int def);
+int get_config_hex(char *section, char *name, int def);
+float get_config_float(char *section, char *name, float def);
+
+void set_config_string(char *section, char *name, char *val);
+void set_config_int(char *section, char *name, int val);
+void set_config_hex(char *section, char *name, int val);
+void set_config_float(char *section, char *name, float val);
+
+
+
+/****************************************/
+/************ Mouse routines ************/
+/****************************************/
+
+int install_mouse();
+void remove_mouse();
+
+extern int mouse_x;
+extern int mouse_y;
+extern int mouse_b;
+extern int mouse_pos;
+
+extern int freeze_mouse_flag;
+
+//void show_mouse(BITMAP *bmp);
+void position_mouse(int x, int y);
+void set_mouse_range(int x1, int y1, int x2, int y2);
+void set_mouse_speed(int xspeed, int yspeed);
+//void set_mouse_sprite(struct BITMAP *sprite);
+void set_mouse_sprite_focus(int x, int y);
+void get_mouse_mickeys(int *mickeyx, int *mickeyy);
+
+
+/****************************************/
+/************ Timer routines ************/
+/****************************************/
+
+void rest(long time);
+
+
+/*******************************************/
+/************ Keyboard routines ************/
+/*******************************************/
+
+int install_keyboard();
+void remove_keyboard();
+
+//extern char key[];
+extern int key_shifts;
+
+extern int three_finger_flag;
+extern int key_led_flag;
+
+int keypressed();
+int readkey();
+void simulate_keypress(int key);
+void clear_keybuf();
+void set_leds(int leds);
+
+
+/*******************************************/
+/************ Joystick routines ************/
+/*******************************************/
+
+extern int joy_type;
+
+/* values for joy_type */
+#define JOY_TYPE_STANDARD     0
+#define JOY_TYPE_FSPRO        1
+#define JOY_TYPE_4BUTTON      2
+#define JOY_TYPE_6BUTTON      3
+#define JOY_TYPE_2PADS        4
+#define JOY_TYPE_WINGEX       5
+
+/* values for joy_hat */
+#define JOY_HAT_CENTRE        0
+#define JOY_HAT_LEFT          1
+#define JOY_HAT_DOWN          2
+#define JOY_HAT_RIGHT         3
+#define JOY_HAT_UP            4
+
+/* aliases for FSPro buttons */
+#define joy_FSPRO_trigger     joy_b1
+#define joy_FSPRO_butleft     joy_b2
+#define joy_FSPRO_butright    joy_b3
+#define joy_FSPRO_butmiddle   joy_b4
+
+/* aliases for Wingman Extreme buttons */
+#define joy_WINGEX_trigger    joy_b1
+#define joy_WINGEX_buttop     joy_b2
+#define joy_WINGEX_butthumb   joy_b3
+#define joy_WINGEX_butmiddle  joy_b4
+
+/* some Yankified aliases ;) */
+#define JOY_HAT_CENTER        JOY_HAT_CENTRE
+
+/* joystick status variables */
+extern int joy_x;
+extern int joy_y;
+extern int joy_left;
+extern int joy_right;
+extern int joy_up;
+extern int joy_down;
+extern int joy_b1;
+extern int joy_b2;
+extern int joy_b3;
+extern int joy_b4;
+extern int joy_b5;
+extern int joy_b6;
+extern int joy_hat;
+extern int joy_throttle;
+extern int joy2_x;
+extern int joy2_y;
+extern int joy2_left;
+extern int joy2_right;
+extern int joy2_up;
+extern int joy2_down;
+extern int joy2_b1;
+extern int joy2_b2;
+
+int initialise_joystick();
+int calibrate_joystick_tl();
+int calibrate_joystick_br();
+int calibrate_joystick_throttle_min();
+int calibrate_joystick_throttle_max();
+int calibrate_joystick_hat(int direction);
+
+void poll_joystick();
+
+int save_joystick_data(char *filename);
+int load_joystick_data(char *filename);
+
+
+/************************************************/
+/************ Screen/bitmap routines ************/
+/************************************************/
+
+extern BITMAP *screen;
+
+void set_color_depth(int depth);
+void set_color_conversion(int mode);
+int set_gfx_mode(int card, int w, int h, int v_w, int v_h);
+int scroll_screen(int x, int y);
+void request_modex_scroll(int x, int y);
+int poll_modex_scroll();
+void split_modex_screen(int line);
+
+BITMAP *create_bitmap(int width, int height);
+BITMAP *create_bitmap_ex(int color_depth, int width, int height);
+BITMAP *create_sub_bitmap(BITMAP *parent, int x, int y, int width, int height);
+void destroy_bitmap(BITMAP *bitmap);
+
+
+/************************************************/
+/************ Color/Pallete routines ************/
+/************************************************/
+
+extern int _color_depth;
+
+void set_color(int index, RGB *p);
+//void set_pallete(PALLETE p);
+//void set_pallete_range(PALLETE p, int from, int to, int vsync);
+
+void get_color(int index, RGB *p);
+//void get_pallete(PALLETE p);
+//void get_pallete_range(PALLETE p, int from, int to);
+
+//void fade_interpolate(PALLETE source, PALLETE dest, PALLETE output, int pos, int from, int to);
+//void fade_from_range(PALLETE source, PALLETE dest, int speed, int from, int to);
+//void fade_in_range(PALLETE p, int speed, int from, int to);
+void fade_out_range(int speed, int from, int to);
+//void fade_from(PALLETE source, PALLETE dest, int speed);
+//void fade_in(PALLETE p, int speed);
+void fade_out(int speed);
+
+//void select_pallete(PALLETE p);
+void unselect_pallete();
+
+//void generate_332_palette(PALLETE pal);
+//int generate_optimized_palette(BITMAP *image, PALLETE pal, char rsvdcols[256]);
+
+void hsv_to_rgb(float h, float s, float v, int *r, int *g, int *b);
+void rgb_to_hsv(int r, int g, int b, float *h, float *s, float *v);
+
+//int bestfit_color(PALLETE pal, int r, int g, int b);
+
+int makecol(int r, int g, int b);
+int makecol8(int r, int g, int b);
+int makecol_depth(int color_depth, int r, int g, int b);
+
+int getr(int c);
+int getg(int c);
+int getb(int c);
+
+int getr_depth(int color_depth, int c);
+int getg_depth(int color_depth, int c);
+int getb_depth(int color_depth, int c);
+
+
+/******************************************************/
+/************ Graphics and sprite routines ************/
+/******************************************************/
+
+void set_clip(BITMAP *bitmap, int x1, int y1, int x2, int y2);
+
+void drawing_mode(int mode, BITMAP *pattern, int x_anchor, int y_anchor);
+void xor_mode(int xor);
+void solid_mode();
+
+int getpixel(BITMAP *bmp, int x, int y);
+void putpixel(BITMAP *bmp, int x, int y, int color);
+void vline(BITMAP *bmp, int x, int y1, int y2, int color);
+void hline(BITMAP *bmp, int x1, int y, int x2, int color);
+void line(BITMAP *bmp, int x1, int y1, int x2, int y2, int color);
+void rectfill(BITMAP *bmp, int x1, int y1, int x2, int y2, int color);
+void draw_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y);
+void draw_sprite_v_flip(BITMAP *bmp, BITMAP *sprite, int x, int y);
+void draw_sprite_h_flip(BITMAP *bmp, BITMAP *sprite, int x, int y);
+void draw_sprite_vh_flip(BITMAP *bmp, BITMAP *sprite, int x, int y); 
+void draw_trans_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y);
+void draw_lit_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int color);
+void draw_character(BITMAP *bmp, BITMAP *sprite, int x, int y, int color);
+void clear_to_color(BITMAP *bitmap, int color);
+
+void triangle(BITMAP *bmp, int x1, int y1, int x2, int y2, int x3, int y3, int color);
+void polygon(BITMAP *bmp, int vertices, int *points, int color);
+void rect(BITMAP *bmp, int x1, int y1, int x2, int y2, int color);
+void circle(BITMAP *bmp, int x, int y, int radius, int color);
+void circlefill(BITMAP *bmp, int x, int y, int radius, int color);
+void ellipse(BITMAP *bmp, int x, int y, int rx, int ry, int color);
+void ellipsefill(BITMAP *bmp, int cx, int cy, int rx, int ry, int color);
+void calc_spline(int points[8], int npts, int *x, int *y);
+void spline(BITMAP *bmp, int points[8], int color);
+void floodfill(BITMAP *bmp, int x, int y, int color);
+void blit(BITMAP *source, BITMAP *dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
+void masked_blit(BITMAP *source, BITMAP *dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
+void stretch_blit(BITMAP *s, BITMAP *d, int s_x, int s_y, int s_w, int s_h, int d_x, int d_y, int d_w, int d_h);
+void stretch_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int w, int h);
+void rotate_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle);
+void rotate_scaled_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle, fixed scale);
+void clear(BITMAP *bitmap);
+
+extern FONT *font;
+
+void text_mode(int mode);
+void textout(BITMAP *bmp, FONT *f, unsigned char *str, int x, int y, int color);
+void textout_centre(BITMAP *bmp, FONT *f, unsigned char *str, int x, int y, int color);
+void textout_justify(BITMAP *bmp, FONT *f, unsigned char *str, int x1, int x2, int y, int diff, int color);
+int text_length(FONT *f, unsigned char *str);
+int text_height(FONT *f);
+void destroy_font(FONT *f);
+
+
+/******************************************/
+/************ FLI/FLC routines ************/
+/******************************************/
+
+int open_fli(char *filename);
+int open_memory_fli(void *fli_data);
+void close_fli();
+int next_fli_frame(int loop);
+void reset_fli_variables();
+
+extern BITMAP *fli_bitmap;             /* current frame of the FLI */
+//extern PALLETE fli_pallete;            /* current FLI pallete */
+
+extern int fli_bmp_dirty_from;         /* what part of fli_bitmap is dirty */
+extern int fli_bmp_dirty_to;
+extern int fli_pal_dirty_from;         /* what part of fli_pallete is dirty */
+extern int fli_pal_dirty_to;
+
+extern int fli_frame;                  /* current frame number */
+
+extern int fli_timer;         /* for timing FLI playback */
+
+
+/****************************************/
+/************ Sound routines ************/
+/****************************************/
+
+void reserve_voices(int digi_voices, int midi_voices);
+int install_sound(int digi_card, int midi_card, char *cfg_path);
+void remove_sound();
+void set_volume(int digi_volume, int midi_volume);
+
+//int load_ibk(char *filename, int drums);
+
+SAMPLE *load_sample(char *filename);
+SAMPLE *load_wav(char *filename);
+SAMPLE *load_voc(char *filename);
+void destroy_sample(SAMPLE *spl);
+
+int play_sample(SAMPLE *spl, int vol, int pan, int freq, int loop);
+void stop_sample(SAMPLE *spl);
+void adjust_sample(SAMPLE *spl, int vol, int pan, int freq, int loop);
+
+int allocate_voice(SAMPLE *spl);
+void deallocate_voice(int voice);
+void reallocate_voice(int voice, SAMPLE *spl);
+void release_voice(int voice);
+void voice_start(int voice);
+void voice_stop(int voice);
+void voice_set_priority(int voice, int priority);
+SAMPLE *voice_check(int voice);
+
+void voice_set_playmode(int voice, int playmode);
+
+int voice_get_position(int voice);
+void voice_set_position(int voice, int position);
+
+int voice_get_volume(int voice);
+void voice_set_volume(int voice, int volume);
+void voice_ramp_volume(int voice, int time, int endvol);
+void voice_stop_volumeramp(int voice);
+
+int voice_get_frequency(int voice);
+void voice_set_frequency(int voice, int frequency);
+void voice_sweep_frequency(int voice, int time, int endfreq);
+void voice_stop_frequency_sweep(int voice);
+
+int voice_get_pan(int voice);
+void voice_set_pan(int voice, int pan);
+void voice_sweep_pan(int voice, int time, int endpan);
+void voice_stop_pan_sweep(int voice);
+
+void voice_set_echo(int voice, int strength, int delay);
+void voice_set_tremolo(int voice, int rate, int depth);
+void voice_set_vibrato(int voice, int rate, int depth);
+
+MIDI *load_midi(char *filename);
+void destroy_midi(MIDI *midi);
+int play_midi(MIDI *midi, int loop);
+int play_looped_midi(MIDI *midi, int loop_start, int loop_end);
+void stop_midi();
+void midi_pause();
+void midi_resume();
+int midi_seek(int target);
+void midi_out(unsigned char *data, int length);
+int load_midi_patches();
+
+AUDIOSTREAM *play_audio_stream(int len, int bits, int freq, int vol, int pan);
+void stop_audio_stream(AUDIOSTREAM *stream);
+void *get_audio_stream_buffer(AUDIOSTREAM *stream);
+void free_audio_stream_buffer(AUDIOSTREAM *stream);
+
+
+/***********************************************************/
+/************ File I/O and compression routines ************/
+/***********************************************************/
+
+char *get_filename(char *path);
+char *get_extension(char *filename);
+void put_backslash(char *filename);
+int file_exists(char *filename, int attrib, int *aret);
+int exists(char *filename);
+long file_size(char *filename);
+long file_time(char *filename);
+int delete_file(char *filename);
+
+void packfile_password(char *password);
+PACKFILE *pack_fopen(char *filename, char *mode);
+int pack_fclose(PACKFILE *f);
+int pack_fseek(PACKFILE *f, int offset);
+PACKFILE *pack_fopen_chunk(PACKFILE *f, int pack);
+PACKFILE *pack_fclose_chunk(PACKFILE *f);
+int pack_igetw(PACKFILE *f);
+long pack_igetl(PACKFILE *f);
+int pack_iputw(int w, PACKFILE *f);
+long pack_iputl(long l, PACKFILE *f);
+int pack_mgetw(PACKFILE *f);
+long pack_mgetl(PACKFILE *f);
+int pack_mputw(int w, PACKFILE *f);
+long pack_mputl(long l, PACKFILE *f);
+long pack_fread(void *p, long n, PACKFILE *f);
+long pack_fwrite(void *p, long n, PACKFILE *f);
+char *pack_fgets(char *p, int max, PACKFILE *f);
+int pack_fputs(char *p, PACKFILE *f);
+
+
+/*******************************************/
+/************ Datafile routines ************/
+/*******************************************/
+
+DATAFILE *load_datafile(char *filename);
+void unload_datafile(DATAFILE *dat);
+
+DATAFILE *load_datafile_object(char *filename, char *objectname);
+void unload_datafile_object(DATAFILE *dat);
+
+char *get_datafile_property(DATAFILE *dat, int type);
+
+void fixup_datafile(DATAFILE *data);
+
+BITMAP *load_bitmap(char *filename, RGB *pal);
+BITMAP *load_bmp(char *filename, RGB *pal);
+BITMAP *load_lbm(char *filename, RGB *pal);
+BITMAP *load_pcx(char *filename, RGB *pal);
+BITMAP *load_tga(char *filename, RGB *pal);
+
+int save_bitmap(char *filename, BITMAP *bmp, RGB *pal);
+int save_bmp(char *filename, BITMAP *bmp, RGB *pal);
+int save_pcx(char *filename, BITMAP *bmp, RGB *pal);
+int save_tga(char *filename, BITMAP *bmp, RGB *pal);
+
+
+/***************************************/
+/************ Math routines ************/
+/***************************************/
+
+fixed fsqrt(fixed x);
+fixed fatan(fixed x);
+fixed fatan2(fixed y, fixed x);
+
+}
