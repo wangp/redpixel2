@@ -1,4 +1,23 @@
+2001-07-16  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* object.c, gameclt.c: Exposed is_proxy attribute, added is_client
+	attribute (Lua only) and a hook (client_update).
+
+	* magic/magicrl.c: Added rotated lit magic sprites (still needs
+	work though).
+
+	* object.c: Use centres instead of offsets for layers.  Added
+	layer rotation.
+
+	* gamesrv.c: Some clean up.
+
+	* magic/magicrt.c: Upgrade to the new rotate.c present in Allegro
+	3.9.38 (CVS), which should be faster.
+
 2001-07-15  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c (server_handle_client_controls): Removed firing code
+	(it was only a test).
 
 	* loaddata.c: [changed]
 

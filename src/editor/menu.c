@@ -21,8 +21,8 @@ static int prompt (const char *msg, const char *true, const char *false,
     return (alert (msg, "", "", true, false, truekey, falsekey) == 1);
 }
 
-
-static int prompt_filename (const char *msg, char *path, const char *ext)
+static int prompt_filename (const char *msg, char *path, const char *ext, 
+			    int path_size)
 {
     BITMAP *bmp;
     int ret;
@@ -34,7 +34,7 @@ static int prompt_filename (const char *msg, char *path, const char *ext)
 
     gui_fg_color = makecol (0xc0, 0xd0, 0xc0);
     gui_bg_color = makecol (0, 0, 0);
-    ret = file_select (msg, path, ext);
+    ret = file_select_ex (msg, path, ext, path_size, 0, 0);
 
     scare_mouse ();
     blit (bmp, screen, 0, 0, 0, 0, bmp->w, bmp->h);
@@ -64,7 +64,7 @@ static void load ()
     map_t *m;
     int warning;
 
-    if (!prompt_filename ("Load...", filename, "pit"))
+    if (!prompt_filename ("Load...", filename, "pit", sizeof filename))
 	return;
     
     m = map_load (filename, 1, &warning);
@@ -85,7 +85,7 @@ static void save ()
 {
     char filename[1024] = "";
 
-    if (prompt_filename ("Save as...", filename, "pit"))
+    if (prompt_filename ("Save as...", filename, "pit", sizeof filename))
 	if (map_save (editor_map, filename) < 0)
 	    prompt ("Error saving map", "&Ok", 0, 'o', 0);
 }

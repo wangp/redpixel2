@@ -6,8 +6,9 @@ SRCDIRS = src src/store src/magic src/fastsqrt src/jpgalleg \
 	  src/gui src/ug src/editor
 
 CC = gcc
-CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
-CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -mpentium
+CFLAGS = -Wall $(addprefix -I,$(SRCDIRS))
+#-g
+CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
 LOADLIBES = `allegro-config --libs` -llua -llualib -lnet -lpthread -lcurses
 
 PROGRAM = program
@@ -22,7 +23,8 @@ MODULES_STORE =					\
 MODULES_MAGIC =					\
 	magic4x4				\
 	magicrot				\
-	magicrt
+	magicrl					\
+	magicrt					\
 
 MODULES_FASTSQRT =				\
 	fastsqrt

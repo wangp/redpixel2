@@ -34,7 +34,7 @@ typedef char *string_t;
 /*			          Ticker	      			*/
 /*----------------------------------------------------------------------*/
 
-/* keep in sync with gameclt.c */
+/* Keep this in sync with gameclt.c. */
 #define TICKS_PER_SECOND	(50)
 #define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
 
@@ -60,7 +60,7 @@ static int ticks_poll ()
 
     if (elapsed_msec > MSECS_PER_TICK) {
 	ticks += (elapsed_msec / MSECS_PER_TICK);
-	/* XXX this isn't completely accurate */
+	/* This isn't completely accurate but should be ok. */
 	ticks_last_update = now;
 	return 1;
     }
@@ -80,7 +80,6 @@ static void ticks_shutdown ()
 typedef struct client client_t;
 
 typedef enum {
-    CLIENT_STATE_NONE = 0,
     CLIENT_STATE_JOINING,
     CLIENT_STATE_JOINED,
     CLIENT_STATE_STALE,
@@ -90,9 +89,9 @@ struct client {
     client_t *next;
     client_t *prev;
     NET_CONN *conn;
+    client_state_t state;
     int id;
     string_t name;
-    client_state_t state;
     int flags;
     int controls;
     float aim_angle;
@@ -414,9 +413,6 @@ static void server_poll_clients ()
 
     for_each_client (c) switch (c->state) {
 
-	case CLIENT_STATE_NONE:
-	    error ("internal error: client should never be set to CLIENT_STATE_NONE\n");
-
 	case CLIENT_STATE_JOINING:
 	    server_poll_clients_state_joining (c);
 	    break;
@@ -507,12 +503,14 @@ static void poll_interface_command_list (char **last)
 		server_log ("%4d  %s (stale)", c->id, c->name);
 		break;
 	    default:
-		server_log ("%4d  %s (lag: %d)", c->id, c->name, c->lag);
+		server_log ("%4d  %s (lag: %d x %d)", c->id, c->name, 
+			    c->lag, MSECS_PER_TICK);
 		break;
 	}
     }
 }
 
+/* XXX 'kick' needs to take an optional 'reason' argument */
 static void poll_interface_command_kick (char **last)
 {
     char *word;
@@ -582,8 +580,7 @@ static void server_poll_interface ()
 	    server_log ("  RESTART                  - restart game mode (with new map)");
 	    server_log ("  QUIT                     - quit completely");
 	    server_log ("  LIST                     - list clients");
-	    server_log ("  KICK <clientid>          - forcefully disconnect a client");
-	    /* XXX 'kick' needs to take an optional 'reason' argument */
+	    server_log ("  KICK <clientid> [reason] - forcefully disconnect a client");
 	    server_log ("  MSG <message>            - broadcast text message to clients");
 	    server_log ("  CONTEXT                  - show current context");
 	}
@@ -640,17 +637,20 @@ static void server_poll_interface ()
 
 static start_t *server_pick_random_start ()
 {
+    list_head_t *list;
     start_t *start;
-    int n = random () % 32;	/* XXX temp */
+    int n = 0;
+    
+    list = map_start_list (map);
+    list_for_each (start, list) n++;
 
-    start = map_start_list (map)->next;
-    while (n--) {
-	start = list_next (start);
-	if (list_eq (start, map_start_list (map)))
-	    start = list_next (start);
+    if (n > 0) {
+	n = random () % n;	/* XXX temp */
+	list_for_each (start, list)
+	    if (!n--) return start;
     }
 
-    return start;
+    return NULL;
 }
 
 static int server_init_game_state ()
@@ -669,6 +669,7 @@ static int server_init_game_state ()
 	start = server_pick_random_start ();
 	obj = object_create_ex ("player", client_object_id (c));
 	object_set_xy (obj, map_start_x (start), map_start_y (start));
+	object_run_init_func (obj);
 	map_link_object_bottom (map, obj);
     }
 
@@ -695,42 +696,78 @@ static void server_free_game_state ()
 }
 
 
+/* Helpers to send large gameinfo packets. */
+
+static char gameinfo_packet_buf[NET_MAX_PACKET_SIZE];
+static int gameinfo_packet_size;
+static client_t *gameinfo_packet_dest;
+
+static void start_gameinfo_packet (client_t *c)
+{
+    gameinfo_packet_buf[0] = MSG_SC_GAMEINFO;
+    gameinfo_packet_size = 1;
+    gameinfo_packet_dest = c;
+}
+
+static void add_to_gameinfo_packet (const char *fmt, ...)
+{
+    va_list ap;
+    char buf[NET_MAX_PACKET_SIZE];
+    int size;
+    
+    va_start (ap, fmt);
+    size = packet_encode_v (buf, fmt, ap);
+    va_end (ap);
+    
+    if (gameinfo_packet_size + size > sizeof gameinfo_packet_buf) {
+	if (gameinfo_packet_dest)
+	    client_send_rdm (gameinfo_packet_dest, gameinfo_packet_buf,
+			     gameinfo_packet_size);
+	else
+	    clients_broadcast_rdm (gameinfo_packet_buf, gameinfo_packet_size);
+	gameinfo_packet_size = 1;
+    }
+    
+    memcpy (gameinfo_packet_buf + gameinfo_packet_size, buf, size);
+    gameinfo_packet_size += size;
+}
+
+static void done_gameinfo_packet ()
+{
+    if (gameinfo_packet_size > 1) {
+	if (gameinfo_packet_dest)
+	    client_send_rdm (gameinfo_packet_dest, gameinfo_packet_buf,
+			     gameinfo_packet_size);
+	else
+	    clients_broadcast_rdm (gameinfo_packet_buf, gameinfo_packet_size);
+    }
+}
+
+
 /* Feeding the game state to clients. */
 
 static void server_feed_game_state_to (client_t *c)
 {
-    uchar_t buf[NET_MAX_PACKET_SIZE] = { MSG_SC_GAMEINFO };
-    uchar_t *p = buf+1;
+    start_gameinfo_packet (c);
 
     /* map */
-    p += packet_encode (p, "cs", MSG_SC_GAMEINFO_MAPLOAD, current_map_file);
+    add_to_gameinfo_packet ("cs", MSG_SC_GAMEINFO_MAPLOAD, current_map_file);
 
     /* objects */
     {
 	list_head_t *list;
 	object_t *obj;
-	const char *typename;
 
 	list = map_object_list (map);
-	list_for_each (obj, list) {
-	    typename = objtype_name (object_type (obj));
-
-	    /* XXX check for packet overflow */
-	    /* XXX this is not nice */ 
-	    if ((p - buf) + 1 + 4 + strlen (typename) + 20 > sizeof buf) {
-		client_send_rdm (c, buf, p - buf);
-		p = buf+1;
-    	    }
-
-	    p += packet_encode (p, "cslffff", MSG_SC_GAMEINFO_OBJECT_CREATE,
-				typename, object_id (obj),
-				object_x (obj), object_y (obj),
-				object_xv (obj), object_yv (obj));
-	}
+	list_for_each (obj, list)
+	    add_to_gameinfo_packet ("cslffff", MSG_SC_GAMEINFO_OBJECT_CREATE,
+				    objtype_name (object_type (obj)), 
+				    object_id (obj),
+				    object_x (obj), object_y (obj),
+				    object_xv (obj), object_yv (obj));
     }
 
-    if (p - buf > 1)
-	client_send_rdm (c, buf, p - buf);
+    done_gameinfo_packet ();
 
     client_send_rdm_byte (c, MSG_SC_GAMESTATEFEED_DONE);
 
@@ -866,33 +903,6 @@ static void server_handle_client_controls ()
 	
 	/* fire */
 	if (c->controls & CONTROL_FIRE) {
-	    /* XXX testing */
-	    object_t *pl;
-	    object_t *shell;
-	    
-	    pl = map_find_object (map, client_object_id (c));
-	    if (pl) {
-		shell = object_create ("basic-arrow-projectile");
-		object_set_xy (shell, object_x (pl)+10, object_y (pl));
-		object_set_xv (shell, 25 * cos (c->aim_angle));
-		object_set_yv (shell, 25 * sin (c->aim_angle));
-		map_link_object_bottom (map, shell);
-
-		{
-		    object_t *obj = shell;
-		    char buf[NET_MAX_PACKET_SIZE];
-		    int size;
-		    size = packet_encode
-			(buf, "ccslffff", MSG_SC_GAMEINFO,
-			 MSG_SC_GAMEINFO_OBJECT_CREATE,
-			 "basic-arrow-projectile", object_id (obj),
-			 object_x (obj), object_y (obj),
-			 object_xv (obj), object_yv (obj));
-		    clients_broadcast_rdm (buf, size);
-		}
-	    }
-	    
-	    c->controls &=~ CONTROL_FIRE;
 	}
     }
 }
@@ -914,31 +924,23 @@ static void server_perform_physics ()
 
 static void server_send_object_updates ()
 {
-    uchar_t buf[NET_MAX_PACKET_SIZE] = { MSG_SC_GAMEINFO };
-    uchar_t *p = buf+1;
     list_head_t *object_list;
     object_t *obj;
+    
+    start_gameinfo_packet (NULL);
 
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
 	if (object_need_replication (obj)) {
-	    /* XXX check for packet overflow */
-	    /* XXX this is not nice */ 
-	    if ((p - buf) + 1 + 20 > sizeof buf) {
-		clients_broadcast_rdm (buf, p - buf);
-		p = buf+1;
-    	    }
-
-	    p += packet_encode (p, "clffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
-				object_id (obj), object_x (obj), object_y (obj),
-				object_xv (obj), object_client_yv (obj));
-
+	    add_to_gameinfo_packet ("clffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
+				    object_id (obj), 
+				    object_x (obj), object_y (obj),
+				    object_xv (obj), object_client_yv (obj));
 	    object_clear_need_replication (obj);
 	}
     }
 
-    if ((p - buf) > 1)
-	clients_broadcast_rdm (buf, p - buf);
+    done_gameinfo_packet ();
 }
 
 
@@ -1008,6 +1010,7 @@ static void server_handle_wantfeeds ()
 	    start = server_pick_random_start ();
 	    obj = object_create_ex ("player", client_object_id (c));
 	    object_set_xy (obj, map_start_x (start), map_start_y (start));
+	    object_run_init_func (obj);
 	    map_link_object_bottom (map, obj);
 
 	    clients_broadcast_rdm_encode
@@ -1106,6 +1109,9 @@ int game_server_init (game_server_interface_t *iface)
     if (!listen)
 	return -1;
     net_listen (listen);
+    
+    lua_pushstring (lua_state, "server");
+    lua_setglobal (lua_state, "role");
 
     interface = iface;
     interface->init ();

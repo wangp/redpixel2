@@ -92,10 +92,7 @@ void camera_track_point (camera_t *cam, int x, int y)
 
 void camera_track_object (camera_t *cam, object_t *obj)
 {
-    cam->target_x = object_x (obj) - (cam->view_width / 2);
-    cam->target_y = object_y (obj) - (cam->view_height / 2);
-
-    move_camera_closer_to_target (cam);
+    camera_track_point (cam, object_x (obj), object_y (obj));
 }
 
 

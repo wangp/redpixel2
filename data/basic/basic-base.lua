@@ -10,6 +10,7 @@ function object_init (self)
     self.add_layer = object_add_layer
     self.replace_layer = object_replace_layer
     self.move_layer = object_move_layer
+    self.rotate_layer = object_rotate_layer
     self.remove_layer = object_remove_layer
     self.remove_all_layers = object_remove_all_layers
     self.add_light = object_add_light

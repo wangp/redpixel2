@@ -117,17 +117,17 @@ void physics_move_object (physics_t *phys, object_t *obj)
 
 void physics_interpolate_object (physics_t *phys, object_t *obj, int nticks)
 {
-    float x = object_real_x (obj);
-    float y = object_real_y (obj);
+    float x = object_x (obj);
+    float y = object_y (obj);
     float xv = object_xv (obj);
     float yv = object_yv (obj);
 
-    while ((nticks--) && ((xv) || (yv))) {
-	x += xv;
-	y += yv;
-	xv = clamp (xv * phys->x_decay);
-	yv = clamp (yv * phys->y_decay);
-    }
+    x += xv;
+    y += yv;
+    xv = clamp (xv * phys->x_decay);
+    yv = clamp (yv * phys->y_decay);
 
     object_set_xy (obj, x, y);
+    object_set_xv (obj, xv);
+    object_set_yv (obj, yv);
 }

@@ -358,6 +358,7 @@ static int event_layer (int event, struct editarea_event *d)
 			else {
 			    p = object_create (selectbar_selected_name ());
 			    object_set_xy (p, x + cursor_offset_x, y + cursor_offset_y);
+			    object_run_init_func (p);
 			    map_link_object (editor_map, p);
 			    
 			    highlighted = move = p;

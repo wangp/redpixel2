@@ -23,6 +23,7 @@ void object_shutdown ();
 object_t *object_create (const char *type_name);
 object_t *object_create_ex (const char *type_name, objid_t id);
 object_t *object_create_proxy (const char *type_name, objid_t id);
+void object_run_init_func (object_t *obj);
 void object_destroy (object_t *obj);
 
 struct objtype *object_type (object_t *obj);
@@ -30,9 +31,6 @@ objid_t object_id (object_t *obj);
 float object_x (object_t *obj);
 float object_y (object_t *obj);
 void object_set_xy (object_t *obj, float x, float y);
-float object_real_x (object_t *obj);
-float object_real_y (object_t *obj);
-void object_set_real_xy (object_t *obj, float x, float y);
 float object_xv (object_t *obj);
 float object_yv (object_t *obj);
 void object_set_xv (object_t *obj, float xv);
@@ -60,6 +58,7 @@ int object_replace_layer (object_t *obj, int layer_id, const char *key,
 			  int offset_x, int offset_y);
 int object_move_layer (object_t *obj, int layer_id,
 		       int offset_x, int offset_y);
+int object_rotate_layer (object_t *obj, int layer_id, int angle);
 int object_remove_layer (object_t *obj, int layer_id);
 void object_remove_all_layers (object_t *obj);
 

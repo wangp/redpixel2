@@ -5,17 +5,23 @@
 
 Float = 'Float'
 Int = 'Int'
+Bool = 'Bool'
 
 types = {
     Float = { 
 	predicate = 'lua_isnumber',
-	get = 'lua_pushnumber',
+	get = 'lua_pushnumber(L, @VAR@);',
 	set = '@VAR@ = lua_tonumber(@LUA@);'
     },
     Int = {
 	predicate = 'lua_isnumber',
-	get = 'lua_pushnumber',
+	get = 'lua_pushnumber(L, @VAR@);',
 	set = '@VAR@ = lua_tonumber(@LUA@);'
+    },
+    Bool = {
+	predicate = nil,
+	get = 'if (@VAR@) lua_pushnumber(L, @VAR@); else lua_pushnil(L);',
+	set = '@VAR@ = !lua_isnil(@LUA@);'
     }
 }
 
@@ -27,7 +33,8 @@ cvars = {{ Float, 'x' },
 	 { Float, 'xv' },
 	 { Float, 'yv' },
 	 { Float, 'mass' },
-	 { Int, 'ramp' }}
+	 { Int, 'ramp' },
+	 { Bool, "is_proxy" }}
 
 
 -- helpers
@@ -53,7 +60,7 @@ p (1, 'const char *index = lua_tostring(L, 2);')
 for i,v in cvars do
     local vtype, vname = types[v[1]], v[2]
     p (1, ((i == 1) and '' or 'else ')..'if (0 == strcmp(index, "'..vname..'")) {')
-    p (2, vtype.get..'(L, quux->'..vname..');')
+    p (2, gsub(vtype.get, '@VAR@', 'quux->'..vname))
     p (1, '}')
 end
 p (1, 'else {')
@@ -75,7 +82,9 @@ p (1, 'const char *index = lua_tostring(L, 2);')
 for i,v in cvars do
     local vtype, vname = types[v[1]], v[2]
     p (1, ((i == 1) and '' or 'else ')..'if (0 == strcmp(index, "'..vname..'")) {')
-    p (2, 'if (!'..vtype.predicate..'(L, 3)) lua_error(L, "type mismatch in assignment");')
+    if vtype.predicate then
+	p (2, 'if (!'..vtype.predicate..'(L, 3)) lua_error(L, "type mismatch in assignment");')
+    end
     p (2, gsub(gsub(vtype.set, '@VAR@', 'quux->'..vname), '@LUA@', 'L, 3'))
     p (1, '}')
 end

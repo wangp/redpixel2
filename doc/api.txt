@@ -29,7 +29,7 @@ all type names start with a capital letter.
 
 - Type: Object
 
-	A tagged table representing a game object.
+	A game object.
 
 
 - Type: Method
@@ -85,91 +85,115 @@ all type names start with a capital letter.
 	Returns nil on error.
 
 
-- Function: object_add_layer (Object object, StoreKey image, 
-			      Int xoffset, Int yoffset)
+Objects have the following attributes, hooks and methods:
 
-	Adds an image layer to OBJECT.  The layer will appear on top
+
+- Attribute: is_proxy
+
+	True if the object is not a proxy object, but the real game
+	object residing on the game server.
+
+
+- Attribute: is_client
+
+	True if the object represents the local client's player.
+
+
+- Attribute: aim_angle
+
+	The angle at which the local player is aiming the mouse.  This
+	attribute only exists if `is_client' is true.
+
+
+- Hook: client_update (Object self)
+
+	Called every game tick for the client's local player object.
+	This hook only functions if `is_client' is true.
+
+
+- Method: add_layer (Object self, StoreKey image, Int xcentre, Int ycentre)
+
+	Adds an image layer to SELF.  The layer will appear on top
 	of the stack.
 
 	Returns a layer id (Int) on success.
 
 
-- Function: object_replace_layer (Object object, Int layerid, StoreKey image,
-				  Int xoffset, Int yoffset)
+- Method: replace_layer (Object self, Int layerid, StoreKey image,
+			 Int xcentre, Int ycentre)
 
-	Replaces the image layer of OBJECT identified by LAYERID.
+	Replaces the image layer of SELF identified by LAYERID.
 	Returns nil on error.
 
 
-- Function: object_move_layer (Object object, Int layerid, Int xoffset,
-			       Int yoffset)
+- Method: move_layer (Object self, Int layerid, Int xcentre, Int ycentre)
 
-	Moves the layer source of OBJECT identified by LAYERID to a
-	new offset.  Returns nil on error.
-
-
-- Function: object_remove_layer (Object object, Int layerid)
-
-	Removes an image layer from OBJECT.  Returns nil on error.
+	Moves the layer source of SELF identified by LAYERID to a
+	new centre.  Returns nil on error.
 
 
-- Function: object_remove_all_layers (Object object)
+- Method: rotate_layer (Object self, Int angle)
 
-	Removes all image layers from OBJECT.  Return nil on error.
+	Rotates a layer.  The angle is in the range 0-255.
+	Returns nil on error.
 
 
-- Function: object_add_light (Object object, StoreKey light, 
-			      Int xoffset, Int yoffset)
+- Method: remove_layer (Object self, Int layerid)
 
-	Adds a light source to OBJECT.  The light will appear on top
+	Removes an image layer from SELF.  Returns nil on error.
+
+
+- Method: remove_all_layers (Object self)
+
+	Removes all image layers from SELF.  Return nil on error.
+
+
+- Method: add_light (Object self, StoreKey light, Int xoffset, Int yoffset)
+
+	Adds a light source to SELF.  The light will appear on top
 	of the stack.
 	
 	Returns a light id (Int) on success.
 
 
-- Function: object_replace_light (Object object, Int lightid, StoreKey image,
-				  Int xoffset, Int yoffset)
+- Method: replace_light (Object self, Int lightid, StoreKey image,
+			 Int xoffset, Int yoffset)
 
-	Replaces the light source of OBJECT identified by LIGHTID.
+	Replaces the light source of SELF identified by LIGHTID.
 	Returns nil on error.
 
 
-- Function: object_move_light (Object object, Int lightid, Int xoffset,
-			       Int yoffset)
+- Method: move_light (Object self, Int lightid, Int xoffset, Int yoffset)
 
-	Moves the light source of OBJECT identified by LIGHTID to a
+	Moves the light source of SELF identified by LIGHTID to a
 	new offset.  Returns nil on error.
 
 
-- Function: object_remove_light (Object object, Int lightid)
+- Method: remove_light (Object self, Int lightid)
 
-	Removes an light source from OBJECT.  Returns nil on error.
+	Removes an light source from SELF.  Returns nil on error.
 
 
-- Function: object_remove_all_lights (Object object)
+- Method: remove_all_lights (Object self)
 
 	Removes all light sources from OBJECT.  Return nil on error.
 
 
-- Function: object_set_mask (Object object, Int masknumber, StoreKey mask, 
-			     Int xoffset, Int yoffset)
+- Method: set_mask (Object self, Int masknumber, StoreKey mask, 
+		    Int xoffset, Int yoffset)
 
-	Set collision mask of OBJECT to MASK.  MASKNUMBER is one of:
-
-		0 -- main
-		1 -- top
-		2 -- bottom
-		3 -- left
-		4 -- right
+	Set collision mask of SELF to MASK.  MASKNUMBER is one of:
+	mask_main, mask_top, mask_bottom, mask_left, mask_right.
 
 	Returns nil on error.
 
 
-- Function: object_remove_mask (Object object, Int masknumber)
+- Method: remove_mask (Object SELF, Int masknumber)
 
-	Remove collision mask of OBJECT.  Returns nil on error.
+	Remove collision mask of SELF.  Returns nil on error.
 
 
-- Function: object_remove_all_masks (Object object)
+- Method: remove_all_masks (Object self)
 
-	Remove all collision masks from OBJECT.
+	Remove all collision masks from SELF.
+

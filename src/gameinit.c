@@ -8,6 +8,7 @@
 #include <libnet.h>
 #include "bindings.h"
 #include "bitmaskr.h"
+#include "extdata.h"
 #include "fastsqrt.h"
 #include "gameinit.h"
 #include "jpgalleg.h"
@@ -28,6 +29,7 @@ void game_init ()
     generate_magic_conversion_tables ();
     
     register_bitmap_file_type ("jpg", load_jpg, NULL);
+    register_extended_datafile ();
 
     path_init ();
     store_init (200);

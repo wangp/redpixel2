@@ -5,6 +5,7 @@
 
 
 #include <allegro.h>
+#include "bitmask.h"
 #include "bitmaskg.h"
 #include "extdata.h"
 #include "magic4x4.h"
@@ -35,6 +36,12 @@ static void callback (DATAFILE *d)
 	    destroy_bitmap (old);
 	}
     }
+}
+
+
+void register_extended_datafile ()
+{
+    register_datafile_object (DAT_MASK, NULL, (void (*)(void *)) bitmask_destroy);
 }
 
 

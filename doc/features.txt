@@ -154,6 +154,8 @@ the centre and loop.
 
 ** frags per minute
 
+** handicaps
+
 ** spectators
 
 ** demos

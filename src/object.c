@@ -12,6 +12,7 @@
 #include "bitmaskr.h"
 #include "list.h"
 #include "magic4x4.h"
+#include "magicrl.h"
 #include "map.h"
 #include "mylua.h"
 #include "object.h"
@@ -21,8 +22,8 @@
 
 typedef struct objmask {
     bitmask_ref_t *ref;
-    int offset_x;
-    int offset_y;
+    int centre_x;
+    int centre_y;
 } objmask_t;
 
 
@@ -48,9 +49,8 @@ struct object {
     int need_replication;
 
     /* client */
-    int is_proxy;		/* if true, proxy values shadow real values */
+    int is_proxy;
     unsigned long proxy_time;	/* time when real values were last updated */
-    float proxy_x, proxy_y;
 
     /* lua table */
     lua_ref_t table;
@@ -100,6 +100,7 @@ object_t *object_create_ex (const char *type_name, objid_t id)
     lua_State *L = lua_state;
     objtype_t *type;
     object_t *obj;
+    BITMAP *icon;
 
     if (!(type = objtypes_lookup (type_name)))
 	return NULL;
@@ -115,7 +116,9 @@ object_t *object_create_ex (const char *type_name, objid_t id)
 
     /* Initialise some C variables.  */
     list_init (obj->layers);
-    object_add_layer (obj, objtype_icon (obj->type), 0, 0);
+    icon = store_dat (objtype_icon (obj->type));
+    object_add_layer (obj, objtype_icon (obj->type), 
+		      icon->w/3/2, icon->h/2);
 
     list_init (obj->lights);
 
@@ -125,13 +128,6 @@ object_t *object_create_ex (const char *type_name, objid_t id)
     lua_getglobal (L, "object_init");
     lua_pushobject (L, obj);
     lua_call (L, 1, 0);
-
-    /* Call object init function if any.  */
-    if (objtype_init_func (obj->type) != LUA_NOREF) {
-	lua_getref (L, objtype_init_func (obj->type));
-	lua_pushobject (L, obj);
-	lua_call (L, 1, 0);
-    }
     
     return obj;
 }
@@ -146,6 +142,18 @@ object_t *object_create_proxy (const char *type_name, objid_t id)
 	obj->is_proxy = 1;
 
     return obj;
+}
+
+
+void object_run_init_func (object_t *obj)
+{
+    lua_State *L = lua_state;
+
+    if (objtype_init_func (obj->type) != LUA_NOREF) {
+	lua_getref (L, objtype_init_func (obj->type));
+	lua_pushobject (L, obj);
+	lua_call (L, 1, 0);
+    }
 }
 
 
@@ -172,43 +180,20 @@ objid_t object_id (object_t *obj)
 
 inline float object_x (object_t *obj)
 {
-    return obj->is_proxy ? obj->proxy_x : obj->x;
+    return obj->x;
 }
 
 
 inline float object_y (object_t *obj)
 {
-    return obj->is_proxy ? obj->proxy_y : obj->y;
+    return obj->y;
 }
 
 
 void object_set_xy (object_t *obj, float x, float y)
 {
-    if (!obj->is_proxy)
-	object_set_real_xy (obj, x, y);
-    else {
-	obj->proxy_x = x;
-	obj->proxy_y = y;
-    }
-}
-
-
-float object_real_x (object_t *obj)
-{
-    return obj->x;
-}
-
-
-float object_real_y (object_t *obj)
-{
-    return obj->y;
-}
-
-
-void object_set_real_xy (object_t *obj, float x, float y)
-{
-    obj->proxy_x = obj->x = x;
-    obj->proxy_y = obj->y = y;
+    obj->x = x;
+    obj->y = y;
 }
 
 
@@ -324,13 +309,14 @@ struct objlayer {
     objlayer_t *prev;
     int id;
     BITMAP *bmp;
-    int offset_x;
-    int offset_y;
+    int centre_x;
+    int centre_y;
+    int angle;
 };
 
 
 static int set_layer (objlayer_t *layer, int id, const char *key,
-		      int offset_x, int offset_y)
+		      int centre_x, int centre_y)
 {
     BITMAP *bmp;
 
@@ -340,14 +326,14 @@ static int set_layer (objlayer_t *layer, int id, const char *key,
 
     layer->id = id;
     layer->bmp = bmp;
-    layer->offset_x = offset_x;
-    layer->offset_y = offset_y;
+    layer->centre_x = centre_x;
+    layer->centre_y = centre_y;
     return 0;
 }
 
 
 int object_add_layer (object_t *obj, const char *key,
-		      int offset_x, int offset_y)
+		      int centre_x, int centre_y)
 {
     objlayer_t *layer;
     int id = 0;
@@ -361,7 +347,7 @@ int object_add_layer (object_t *obj, const char *key,
 	}
 
     layer = alloc (sizeof *layer);
-    if (set_layer (layer, id, key, offset_x, offset_y) < 0) {
+    if (set_layer (layer, id, key, centre_x, centre_y) < 0) {
 	free (layer);
 	return -1;
     }
@@ -371,13 +357,13 @@ int object_add_layer (object_t *obj, const char *key,
 
 
 int object_replace_layer (object_t *obj, int layer_id, const char *key,
-			  int offset_x, int offset_y)
+			  int centre_x, int centre_y)
 {
     objlayer_t *layer;
 
     list_for_each (layer, &obj->layers)
 	if (layer_id == layer->id) {
-	    if (set_layer (layer, layer_id, key, offset_x, offset_y) == 0)
+	    if (set_layer (layer, layer_id, key, centre_x, centre_y) == 0)
 		return 0;
 	    break;
 	}
@@ -386,14 +372,28 @@ int object_replace_layer (object_t *obj, int layer_id, const char *key,
 }
 
 
-int object_move_layer (object_t *obj, int layer_id, int offset_x, int offset_y)
+int object_move_layer (object_t *obj, int layer_id, int centre_x, int centre_y)
 {
     objlayer_t *layer;
 
     list_for_each (layer, &obj->layers)
 	if (layer_id == layer->id) {
-	    layer->offset_x = offset_x;
-	    layer->offset_y = offset_y;
+	    layer->centre_x = centre_x;
+	    layer->centre_y = centre_y;
+	    return 0;
+	}
+
+    return -1;
+}
+
+
+int object_rotate_layer (object_t *obj, int layer_id, int angle)
+{
+    objlayer_t *layer;
+
+    list_for_each (layer, &obj->layers)
+	if (layer_id == layer->id) {
+	    layer->angle = angle;
 	    return 0;
 	}
 
@@ -423,9 +423,6 @@ void object_remove_all_layers (object_t *obj)
 
 
 /* Lights.  */
-
-/* Note: Currently lights are very much like layers, but I am not
- * generalising them yet.  (Remember John Harper's quote.)  */
 
 
 typedef struct objlight objlight_t;
@@ -537,13 +534,13 @@ void object_remove_all_lights (object_t *obj)
 
 
 static int set_mask (object_t *obj, int mask_num, bitmask_t *mask,
-		     int free, int offset_x, int offset_y)
+		     int free, int centre_x, int centre_y)
 {
     bitmask_ref_t *save = obj->mask[mask_num].ref;
 
     obj->mask[mask_num].ref = bitmask_ref_create (mask, free);
-    obj->mask[mask_num].offset_x = offset_x;
-    obj->mask[mask_num].offset_y = offset_y;
+    obj->mask[mask_num].centre_x = centre_x;
+    obj->mask[mask_num].centre_y = centre_y;
 
     /* Destroy here instead of at start of the function in case the
      * new one is the same as the old one.  */
@@ -554,7 +551,7 @@ static int set_mask (object_t *obj, int mask_num, bitmask_t *mask,
 
 
 int object_set_mask (object_t *obj, int mask_num, const char *key,
-		     int offset_x, int offset_y)
+		     int centre_x, int centre_y)
 {
     bitmask_t *mask;
     
@@ -562,7 +559,7 @@ int object_set_mask (object_t *obj, int mask_num, const char *key,
     if ((!mask) || (mask_num < 0) || (mask_num > 4))
 	return -1;
 
-    return set_mask (obj, mask_num, mask, 0, offset_x, offset_y);
+    return set_mask (obj, mask_num, mask, 0, centre_x, centre_y);
 }
 
 
@@ -587,14 +584,14 @@ void object_remove_all_masks (object_t *obj)
 static void set_default_masks (object_t *obj)
 {
     bitmask_t *mask;
-    int xoff, yoff, i;
+    int xcen, ycen, i;
 
     mask = objtype_icon_mask (obj->type);
-    xoff = - bitmask_width (mask) / 2;
-    yoff = - bitmask_height (mask) / 2;
+    xcen = bitmask_width (mask) / 2;
+    ycen = bitmask_height (mask) / 2;
 
     for (i = 0; i < 5; i++)
-	set_mask (obj, i, mask, 0, xoff, yoff);
+	set_mask (obj, i, mask, 0, xcen, ycen);
 }
 
 
@@ -611,8 +608,8 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 
     return bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
 				    map_tile_mask (map),
-				    x + mask[mask_num].offset_x,
-				    y + mask[mask_num].offset_y,
+				    x - mask[mask_num].centre_x,
+				    y - mask[mask_num].centre_y,
 				    0, 0);
 }
 
@@ -632,10 +629,10 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
     list_for_each (p, list) if ((obj->id != p->id) && (p->mask[0].ref))
 	if (bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
 				     bitmask_ref_bitmask (p->mask[0].ref),
-				     x + mask[mask_num].offset_x,
-				     y + mask[mask_num].offset_y,
-				     p->x + p->mask[0].offset_x, 
-				     p->y + p->mask[0].offset_y))
+				     x - mask[mask_num].centre_x,
+				     y - mask[mask_num].centre_y,
+				     p->x - p->mask[0].centre_x, 
+				     p->y - p->mask[0].centre_y))
 	    return 1;
     
     return 0;
@@ -739,13 +736,17 @@ object_t *lua_toobject (lua_State *L, int index)
 void object_call (object_t *obj, const char *method)
 {
     lua_State *L = lua_state;
+    int top = lua_gettop (L);
 
     lua_pushobject (L, obj);
     lua_pushstring (L, method);
     lua_gettable (L, -2);
-    lua_pushobject (L, obj);
-    lua_call (L, 1, 0);
-    lua_pop (L, 1);    
+    if (lua_isfunction (L, -1)) {
+	lua_pushvalue (L, -2);
+	lua_call (L, 1, 0);
+    }
+
+    lua_settop (L, top);
 }
 
 
@@ -816,10 +817,16 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
 
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
-	draw_magic_sprite
-	    (dest, bmp,
-	     object_x (obj) - offset_x + layer->offset_x - bmp->w/3/2,
-	     object_y (obj) - offset_y + layer->offset_y - bmp->h/2);
+	if (layer->angle == 0) {
+	    draw_magic_sprite (dest, bmp,
+			       obj->x - offset_x - layer->centre_x,
+			       obj->y - offset_y - layer->centre_y);
+	} else {
+	    pivot_magic_sprite (dest, bmp, 
+				obj->x - offset_x, obj->y - offset_y,
+				layer->centre_x, layer->centre_y,
+				layer->angle << 16);
+	}
     }
 }
 
@@ -832,11 +839,17 @@ void object_draw_lit_layers (BITMAP *dest, object_t *obj,
 
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
-	draw_lit_magic_sprite
-	    (dest, bmp,
-	     object_x (obj) - offset_x + layer->offset_x - bmp->w/3/2,
-	     object_y (obj) - offset_y + layer->offset_y - bmp->h/2,
-	     color);
+	if (layer->angle == 0) {
+	    draw_lit_magic_sprite (dest, bmp,
+				   obj->x - offset_x - layer->centre_x,
+				   obj->y - offset_y - layer->centre_y,
+				   color);
+	} else {
+	    pivot_lit_magic_sprite (dest, bmp, 
+				    obj->x - offset_x, obj->y - offset_y,
+				    layer->centre_x, layer->centre_y,
+				    layer->angle << 16, color);
+	}
     }
 }
 
@@ -851,8 +864,8 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
 	bmp = light->bmp;
 	draw_trans_magic_sprite
 	    (dest, bmp,
-	     object_x (obj) - offset_x + light->offset_x - bmp->w/3/2,
-	     object_y (obj) - offset_y + light->offset_y - bmp->h/2);
+	     obj->x - offset_x + light->offset_x - bmp->w/3/2,
+	     obj->y - offset_y + light->offset_y - bmp->h/2);
     }
 }
 
@@ -868,8 +881,8 @@ void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
     x1 = y1 = x2 = y2 = 0;
     
     list_for_each (layer, &obj->layers) {
-	x = layer->offset_x - layer->bmp->w/3/2;
-	y = layer->offset_y - layer->bmp->h/2;
+	x = -layer->centre_x;
+	y = -layer->centre_y;
 
 	x1 = MIN (x1, x);
 	y1 = MIN (y1, y);

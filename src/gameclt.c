@@ -25,7 +25,7 @@
 #include "yield.h"
 
 
-#if 1
+#if 0
 # define dbg(msg)	puts ("[client] " msg)
 #else
 # define dbg(msg)
@@ -36,16 +36,17 @@ typedef unsigned char uchar_t;
 typedef unsigned long ulong_t;
 
 
+/* our connection */
 static NET_CONN *conn;
 static int client_id;
 static char *client_name;
+#define local_object_id	(-client_id)
 
-static map_t *map;
-static physics_t *physics;
+/* for rendering */
 static BITMAP *bmp;
 static camera_t *cam;
 
-static BITMAP *bkgd;		/* XXX test only */
+static BITMAP *bkgd;
 static int parallax_x = 2;
 static int parallax_y = 2;
 
@@ -53,14 +54,18 @@ static BITMAP *crosshair;
 static float aim_angle;
 static float last_aim_angle;
 
-#define local_object_id	(-client_id)
+/* the game state */
+static map_t *map;
+static physics_t *physics;
+static object_t *local_object;
 
+/* network stuff */
 static int pinging;
 static ulong_t last_ping_time;
 static int lag;
-
 static int last_controls;
 
+/* misc */
 static int backgrounded;
 
 
@@ -126,11 +131,12 @@ static void perform_simple_physics ()
 {
     list_head_t *object_list;
     object_t *obj;
-    ulong_t t = ticks;
+/*      ulong_t t = ticks; */
     
     object_list = map_object_list (map);
     list_for_each (obj, object_list)
-	physics_interpolate_object (physics, obj, t - object_proxy_time (obj));
+	physics_interpolate_object (physics, obj, 1);
+/*  				    t - object_proxy_time (obj)); */
 }
 
 
@@ -142,15 +148,23 @@ static void send_gameinfo_controls ()
     uchar_t buf[NET_MAX_PACKET_SIZE];
     int size;
     int controls = 0;
+    int update = 0;
 
     if (key[KEY_A]) controls |= CONTROL_LEFT;
     if (key[KEY_D]) controls |= CONTROL_RIGHT;
     if (key[KEY_W]) controls |= CONTROL_UP;
     if (mouse_b & 1) controls |= CONTROL_FIRE;
 
-    /* XXX aim_angle and last_aim_angle should change significantly before
-     	we bother updating (e.g. 5 degrees?) */
-    if ((controls != last_controls) || (aim_angle != last_aim_angle)) {
+    if (controls != last_controls)
+	update = 1;
+
+    if (last_aim_angle != aim_angle) {
+	if (ABS (aim_angle - last_aim_angle) > (M_PI/8))
+	    update = 1;
+	object_set_number (local_object, "aim_angle", aim_angle);
+    }
+
+    if (update) {
 	size = packet_encode (buf, "cccf", MSG_CS_GAMEINFO,
 			      MSG_CS_GAMEINFO_CONTROLS, controls, aim_angle);
 	net_send_rdm (conn, buf, size);
@@ -200,9 +214,14 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		buf += packet_decode (buf, "slffff", &len, type, &id, &x, &y, &xv, &yv);
 		obj = object_create_proxy (type, id);
-		object_set_real_xy (obj, x, y);
+		object_set_xy (obj, x, y);
 		object_set_xv (obj, xv);
 		object_set_yv (obj, yv);
+		if (id == local_object_id) {
+		    local_object = obj;
+		    object_set_number (obj, "is_client", 1);
+		}
+		object_run_init_func (obj);
 		map_link_object (map, obj);
 		break;
 	    }
@@ -216,6 +235,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		if ((obj = map_find_object (map, id))) {
 		    map_unlink_object (obj);
 		    object_destroy (obj);
+		    if (id == local_object_id)
+			local_object = NULL;
 		}
 		break;
 	    }
@@ -229,10 +250,15 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		buf += packet_decode (buf, "lffff", &id, &x, &y, &xv, &yv);
 		if ((obj = map_find_object (map, id))) {
-		    object_set_real_xy (obj, x, y);
+		    object_set_xy (obj, x, y);
 		    object_set_xv (obj, xv);
 		    object_set_yv (obj, yv);
 		    object_set_proxy_time (obj, ticks - lag);
+		    {
+			int i;
+			for (i=0; i<lag; i++)
+			    physics_interpolate_object (physics, obj, 1);
+		    }
 		}
 		break;
 	    }
@@ -270,20 +296,18 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 
 static int update_camera ()
 {
-    object_t *obj;
     int oldx, oldy;
 
     if (backgrounded)
 	return 0;
 
-    obj = map_find_object (map, local_object_id);
-    if (!obj)
+    if (!local_object)
 	return 0;
     
     oldx = camera_x (cam);
     oldy = camera_y (cam);
 
-    camera_track_object_with_mouse (cam, obj, mouse_x, mouse_y, 80);
+    camera_track_object_with_mouse (cam, local_object, mouse_x, mouse_y, 96);
 
     return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
 }
@@ -291,8 +315,6 @@ static int update_camera ()
 
 static void update_screen ()
 {
-    object_t *obj;
-
     if (backgrounded)
 	return;
     
@@ -304,23 +326,23 @@ static void update_screen ()
 	int w = bkgd->w;
 	int h = bkgd->h;
 	
-	blit (bkgd, bmp, 0, 0, 3*x, y, w, h);
-	blit (bkgd, bmp, 0, 0, 3*x, y+h, w, h);
-	blit (bkgd, bmp, 0, 0, 3*(x+w), y, w, h);
-	blit (bkgd, bmp, 0, 0, 3*(x+w), y+h, w, h);
+	blit (bkgd, bmp, 0, 0, x, y, w, h);
+	blit (bkgd, bmp, 0, 0, x, y+h, w, h);
+	blit (bkgd, bmp, 0, 0, x+w, y, w, h);
+	blit (bkgd, bmp, 0, 0, x+w, y+h, w, h);
     }
 
     render (bmp, map, cam);
 
-    if ((obj = map_find_object (map, local_object_id))) {
-	int x = object_x (obj) - camera_x (cam);
-	int y = object_y (obj) - camera_y (cam);
+    if (local_object) {
+	int x = object_x (local_object) - camera_x (cam);
+	int y = object_y (local_object) - camera_y (cam);
 	
 	aim_angle = atan2 (mouse_y - y, mouse_x - x);
 
-/*  	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"), */
-/*  				  x, y, 0, 115/2, */
-/*  				  fatan2 (mouse_y - y, mouse_x - x)); */
+ 	pivot_trans_magic_sprite (bmp, store_dat ("/basic/player/torch"),
+ 				  x, y, 0, 115/2,
+ 				  fatan2 (mouse_y - y, mouse_x - x));
     }
 
     if (crosshair) {
@@ -558,6 +580,9 @@ void game_client_run ()
 		net_send_rdm_byte (conn, MSG_CS_PING);
 	    }
 
+	    if (local_object)
+		object_call (local_object, "client_update");
+
 	    if (update_camera ())
 		redraw = 1;
 
@@ -630,30 +655,25 @@ int game_client_init (const char *name, const char *addr)
 
     bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
     cam = camera_create (SCREEN_W, SCREEN_H);
-    {
+
+    /* XXX */ {
 	PALETTE pal;
 	BITMAP *tmp;
 
-	bkgd = load_bitmap ("data/bkgd/fluorescence.jpg", pal);
+	bkgd = load_bitmap ("data/basic/basic-bkgd/fluorescence.jpg", pal);
 	if (bkgd) {
 	    tmp = get_magic_bitmap_format (bkgd, pal);
 	    destroy_bitmap (bkgd);
 	    bkgd = tmp;
 	}
     }
-    {
-	PALETTE pal;
-	BITMAP *tmp;
-	
-	crosshair = load_bitmap ("data/cursor.pcx", pal);
-	if (crosshair) {
-	    tmp = get_magic_bitmap_format (crosshair, pal);
-	    destroy_bitmap (crosshair);
-	    crosshair = tmp;
-	}
-    }
+
+    crosshair = store_dat ("/basic/crosshair/000");
+
     map = NULL;
     physics = NULL;
+    local_object = NULL;
+
     fps_init ();
 
     set_display_switch_callback (SWITCH_IN, switch_in_callback);
