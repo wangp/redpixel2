@@ -947,7 +947,7 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 				 x - mask[mask_num].centre_x,
 				 y - mask[mask_num].centre_y,
 				 0, 0)) {
-	object_call (obj, "tile_collide_hook");
+	object_call (obj, "tile_collide_hook", 0);
 	return 1;
     }
 
@@ -957,19 +957,8 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 
 static void call_collide_hook (object_t *obj, object_t *touched_obj)
 {
-    lua_State *L = lua_state;
-    int top = lua_gettop (L);
-
-    lua_getref (L, obj->table);
-    lua_pushliteral (L, "collide_hook");
-    lua_gettable (L, -2);
-    if (lua_isfunction (L, -1)) {
-	lua_pushobject (L, obj);
-	lua_pushobject (L, touched_obj);
-	lua_call (L, 2, 0);
-    }
-
-    lua_settop (L, top);
+    lua_pushobject (lua_state, touched_obj);
+    object_call (obj, "collide_hook", 1);
 }
 
 
@@ -1379,20 +1368,23 @@ object_t *lua_toobject (lua_State *L, int index)
 }
 
 
-void object_call (object_t *obj, const char *method)
+void object_call (object_t *obj, const char *method, int nargs)
 {
     lua_State *L = lua_state;
     int top = lua_gettop (L);
+    int i;
 
     lua_getref (L, obj->table);
     lua_pushstring (L, method);
     lua_rawget (L, -2);
     if (lua_isfunction (L, -1)) {
 	lua_pushobject (L, obj);
-	lua_call (L, 1, 0);
+	for (i = 0; i < nargs; i++)
+	    lua_pushvalue (L, -3 - nargs);
+	lua_call (L, 1 + nargs, 0);
     }
 
-    lua_settop (L, top);
+    lua_settop (L, top - nargs);
 }
 
 
