@@ -408,9 +408,11 @@ generate {
 generate {
     cname	= "game_server_call_method_on_clients",
     lname	= "call_method_on_clients",
+    check	= "us[sN-]",
     args	= {{ Object, "obj" },
 		   { String, "method" },
-		   { String, "arg" }}	-- XXX this should be optional
+		   { String, "arg", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? \"\" : lua_tostring(L, $#));" }}
 }
 
 generate {
