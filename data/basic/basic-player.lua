@@ -225,6 +225,10 @@ for i = 0,7 do
 end
 
 local animate_player_proxy_firing = function (self)
+    -- this situation can arise due to network conditions
+    if not self.current_weapon then
+	return
+    end
     if self.animate_arm then
 	if self.arm_tics > 0 then
 	    self.arm_tics = self.arm_tics - 1
