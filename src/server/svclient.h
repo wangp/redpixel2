@@ -32,6 +32,7 @@ struct svclient {
     int old_controls;    
     float aim_angle;
     float last_sent_aim_angle;
+    char *score;
     timeout_t timeout;
     unsigned long pong_time;
     int lag;
@@ -64,6 +65,7 @@ extern struct list_head svclients;
 svclient_t *svclient_create (struct NET_CONN *conn);
 void svclient_destroy (svclient_t *c);
 void svclient_set_name (svclient_t *c, const char *name);
+void svclient_set_score (svclient_t *c, const char *score);
 void svclient_set_timeout (svclient_t *c, int secs);
 int svclient_timed_out (svclient_t *c);
 

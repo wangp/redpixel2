@@ -46,7 +46,8 @@ void svclient_destroy (svclient_t *c)
     if (c) {
 	list_remove (c);
 	net_closeconn (c->conn);
-	string_free (c);
+	string_free (c->score);
+	string_free (c->name);
 	free (c);
     }
 }
@@ -55,6 +56,12 @@ void svclient_destroy (svclient_t *c)
 void svclient_set_name (svclient_t *c, const char *name)
 {
     string_set (c->name, name);
+}
+
+
+void svclient_set_score (svclient_t *c, const char *score)
+{
+    string_set (c->score, score);
 }
 
 
