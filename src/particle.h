@@ -1,19 +1,20 @@
-#ifndef __included_blood_h
-#define __included_blood_h
+#ifndef __included_particle_h
+#define __included_particle_h
 
 
 struct map;
 struct BITMAP;
 
 
-typedef struct blood_particles blood_particles_t;
+typedef struct particles particles_t;
 
 
-blood_particles_t *blood_particles_create (void);
-void blood_particles_destroy (blood_particles_t *);
-void blood_particles_update (blood_particles_t *, struct map *);
-void blood_particles_spawn (blood_particles_t *, float x, float y, long nparticles, float spread);
-void blood_particles_draw (struct BITMAP *, blood_particles_t *, int offset_x, int offset_y);
+particles_t *particles_create (void);
+void particles_destroy (particles_t *);
+void particles_update (particles_t *, struct map *);
+void particles_spawn_blood (particles_t *, float x, float y, long nparticles, float spread);
+void particles_spawn_spark (particles_t *, float x, float y, long nparticles, float spread);
+void particles_draw (struct BITMAP *, particles_t *, int offset_x, int offset_y);
 
 
 #endif
