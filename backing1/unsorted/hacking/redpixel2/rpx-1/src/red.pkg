@@ -1,0 +1,84 @@
+/* package file for red pixel functions -*- mode: C; -*- */
+
+$#include <lua.h>
+$#include <allegro.h>
+$#include "tiles.h"
+$#include "weapon.h"
+$#include "object.h"
+$#include "scripthelp.h"
+$#include "mapeditor.h"
+$#include "rpxfiles.h"
+$#include "tiles.h"
+$#include "defs.h"
+
+
+/*
+ *	Constants
+ */
+
+/* these defs are pretty funny :) */
+#define TILE_W          TILE_W
+#define TILE_H          TILE_W
+#define RPX_MAX_WIDTH	RPX_MAX_WIDTH
+#define RPX_MAX_HEIGHT	RPX_MAX_HEIGHT
+
+#define TILE_BLANK      TILE_BLANK
+
+
+/*
+ *      module 'red'
+ */
+
+module red
+{
+
+/* tiles.h */
+    void add_tiles_pack(char *filename);
+    BITMAP *tile_bmp(int i);
+
+/* weapon.h */
+    void register_weapon_type(char *name, lua_Object table);
+
+/* object.h */
+    void register_object_type(char *name, lua_Object table, BITMAP *icon);
+
+/* rpxfiles.h */
+    void reset_rpx();
+    int load_rpx(char *filename);
+    int save_rpx(char *filename);
+
+/* script.h */
+    int __script_help__key_shifts @ key_shifts(int flag);
+
+    void *__script_help__df @ df(DATAFILE *d, int i);
+    int __script_help__df_item_num @ df_item_num(DATAFILE *dat, char *name);
+    void *__script_help__df_item @ df_item(DATAFILE *dat, char *name);
+    int __script_help__df_count @ df_count(DATAFILE *dat, int type);
+
+    unsigned char *__script_help__bmp_line @ bmp_line(BITMAP *bmp, unsigned int row);
+    int __script_help__bmp_w @ bmp_w(BITMAP *b);
+    int __script_help__bmp_h @ bmp_h(BITMAP *b);
+        
+    unsigned short __script_help__get_tile @ get_tile(int x, int y);
+    void __script_help__set_tile @ set_tile(int x, int y, int t); 
+
+    BITMAP *__script_help__BITMAP @ BITMAP(void *d);
+}
+
+
+
+/*
+ *	map editor specific 
+ */
+ 
+module map
+{
+    BITMAP *editbuf;
+    int editbuf_w;
+    int editbuf_h;
+
+    BITMAP *palbuf;
+    int palbuf_w;
+    int palbuf_h;
+    int palbuf_update;
+}
