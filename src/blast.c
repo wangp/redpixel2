@@ -36,13 +36,13 @@ struct blast {
     float max_radius;
     int max_damage;
     float r;
-    int owner;
+    client_id_t owner;
     vector_t *already_hit;
 };
 
 
 /* The client should pass OBJID_CLIENT_PROCESSED as the owner.  */
-blast_t *blast_create (float x, float y, float radius, int damage, int owner)
+blast_t *blast_create (float x, float y, float radius, int damage, client_id_t owner)
 {
     blast_t *b = alloc (sizeof *b);
 

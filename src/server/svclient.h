@@ -3,6 +3,7 @@
 
 
 #include <stdlib.h>
+#include "id.h"
 #include "timeout.h"
 
 
@@ -79,7 +80,7 @@ void svclients_broadcast_rdm_byte (char c);
 void svclients_broadcast_rdm_encode (const char *fmt, ...);
 
 int svclients_count (void);
-svclient_t *svclients_find_by_id (int id);
+svclient_t *svclients_find_by_id (client_id_t id);
 svclient_t *svclients_find_by_name (const char *name);
 void svclients_remove_stale (void);
 

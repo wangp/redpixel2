@@ -549,7 +549,7 @@ void server_enable_single_hack (void)
 }
 
 
-void server_set_client_to_quit_with (int id)
+void server_set_client_to_quit_with (client_id_t id)
 {
     client_to_quit_with = id;
 }

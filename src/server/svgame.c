@@ -883,7 +883,7 @@ void svgame_tell_ammo (object_t *obj, int ammo)
 }
 
 
-void svgame_set_score (int client_id, const char *score)
+void svgame_set_score (client_id_t client_id, const char *score)
 {
     svclient_t *c;
     char buf[NETWORK_MAX_PACKET_SIZE];
@@ -911,7 +911,7 @@ void svgame_play_sound_on_clients (object_t *obj, const char *sound)
 }
 
 
-const char *svgame_get_client_name (int client_id)
+const char *svgame_get_client_name (client_id_t client_id)
 {
     svclient_t *c = svclients_find_by_id (client_id);
     return c ? c->name : NULL;
@@ -926,7 +926,7 @@ void svgame_broadcast_text_message (const char *msg)
 }
 
 
-void svgame_send_text_message (int client_id, const char *msg)
+void svgame_send_text_message (client_id_t client_id, const char *msg)
 {
     svclient_t *c = svclients_find_by_id (client_id);
     if (c) {

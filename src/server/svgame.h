@@ -2,6 +2,8 @@
 #define __included_svgame_h
 
 
+#include "id.h"
+
 struct svclient;
 struct object;
 
@@ -26,11 +28,11 @@ int svgame_object_would_collide_with_player_if_unhidden (struct object *obj);
 int svgame_tell_health (struct object *obj, int health); /* internal */
 int svgame_tell_armour (struct object *obj, int armour); /* internal */
 int svgame_tell_ammo (struct object *obj, int ammo); /* internal */
-void svgame_set_score (int client_id, const char *score);
+void svgame_set_score (client_id_t client_id, const char *score);
 void svgame_play_sound_on_clients (struct object *obj, const char *sound);
-const char *svgame_get_client_name (int client_id);
+const char *svgame_get_client_name (client_id_t client_id);
 void svgame_broadcast_text_message (const char *msg);
-void svgame_send_text_message (int client_id, const char *msg);
+void svgame_send_text_message (client_id_t client_id, const char *msg);
 /* end Lua bindings */
 
 

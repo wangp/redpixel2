@@ -207,7 +207,7 @@ void map_destroy_stale_objects (map_t *map)
 }
 
 
-object_t *map_find_object (map_t *map, int id)
+object_t *map_find_object (map_t *map, objid_t id)
 {
     object_t *p;
 

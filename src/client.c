@@ -50,7 +50,7 @@ typedef unsigned long ulong_t;
 
 /* our connection */
 static NET_CONN *conn;
-static int client_id;
+static client_id_t client_id;
 static char *client_name;
 
 /* for rendering */
@@ -176,7 +176,7 @@ static void ticks_shutdown (void)
 typedef struct client_info {
     struct client_info *next;
     struct client_info *prev;
-    int id;
+    client_id_t id;
     char *name;
     char *score;
 } client_info_t;
@@ -191,7 +191,7 @@ static void client_info_list_init (void)
 }
 
 
-static void client_info_list_add (int id, const char *name, const char *score)
+static void client_info_list_add (client_id_t id, const char *name, const char *score)
 {
     client_info_t *c = alloc (sizeof *c);
 
@@ -202,7 +202,7 @@ static void client_info_list_add (int id, const char *name, const char *score)
 }
 
 
-static client_info_t *get_client_info (int id)
+static client_info_t *get_client_info (client_id_t id)
 {
     client_info_t *c;
 
@@ -214,7 +214,7 @@ static client_info_t *get_client_info (int id)
 }
 
 
-static void client_info_list_remove (int id)
+static void client_info_list_remove (client_id_t id)
 {
     client_info_t *c = get_client_info (id);
     if (c)
@@ -222,7 +222,7 @@ static void client_info_list_remove (int id)
 }
 
 
-static void client_info_list_set_score (int id, const char *score)
+static void client_info_list_set_score (client_id_t id, const char *score)
 {
     client_info_t *c = get_client_info (id);
     if (c) {
@@ -254,7 +254,7 @@ static void client_info_list_free (void)
 
 static void process_sc_client_add (const char *buf)
 {
-    long id;
+    client_id_t id;
     short nlen;
     char name[NETWORK_MAX_PACKET_SIZE];
     short slen;
@@ -267,7 +267,7 @@ static void process_sc_client_add (const char *buf)
 
 static void process_sc_client_remove (const char *buf)
 {
-    long id;
+    client_id_t id;
     packet_decode (buf, "l", &id);
     client_info_list_remove (id);
 }
@@ -514,7 +514,7 @@ SC_GAMEINFO_HANDLER (sc_mapload)
 
 SC_GAMEINFO_HANDLER (sc_client_aim_angle)
 {
-    long id;
+    client_id_t id;
     float angle;
     object_t *obj;
 
@@ -528,7 +528,7 @@ SC_GAMEINFO_HANDLER (sc_client_aim_angle)
 
 SC_GAMEINFO_HANDLER (sc_client_status)
 {
-    long id;
+    client_id_t id;
     char type;
     long val;
 
@@ -556,7 +556,7 @@ SC_GAMEINFO_HANDLER (sc_client_status)
 
 SC_GAMEINFO_HANDLER (sc_client_score)
 {
-    long id;
+    client_id_t id;
     char score[NETWORK_MAX_PACKET_SIZE];
     short len;
 
@@ -710,7 +710,7 @@ SC_GAMEINFO_HANDLER (sc_object_hidden)
 
 SC_GAMEINFO_HANDLER (sc_object_call)
 {
-    long id;
+    objid_t id;
     short method_len;
     char method[NETWORK_MAX_PACKET_SIZE];
     short arg_len;
