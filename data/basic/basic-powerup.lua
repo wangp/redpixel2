@@ -2,10 +2,20 @@
 
 store_load ("basic/basic-powerup.dat", "/basic/powerup/")
 
-function basic_powerup_init (self)
-    self:set_collision_flags ("p")
-    function self.collide_hook (self, player)
-	self:destroy (self)
+function make_basic_powerup_init (respawn_secs)
+    return function (self)
+	local respawn_secs = %respawn_secs
+	self:set_collision_flags ("p")
+	function self.collide_hook (self, player)
+	    self:hide ()
+	    self:set_update_hook (
+		1000 * %respawn_secs,
+		function (self)
+		    self:show ()
+		    self:remove_update_hook ()
+		end
+	    )
+	end
     end
 end
 
@@ -14,42 +24,42 @@ Objtype {
     category = "item", 
     name = "basic-armour-brown", 
     icon = "/basic/powerup/armour/brown",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-armour-purple", 
     icon = "/basic/powerup/armour/purple",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-armour-blue", 
     icon = "/basic/powerup/armour/blue",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-bloodlust", 
     icon = "/basic/powerup/bloodlust/000",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-cordial", 
     icon = "/basic/powerup/cordial",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item",
     name = "basic-lightamp", 
     icon = "/basic/powerup/lightamp/000", 
-    nonproxy_init = basic_powerup_init,
+    nonproxy_init = make_basic_powerup_init (10),
     proxy_init = function (self)
 	self:add_light ("/basic/light/blue-16", 0, 0)
     end
@@ -60,33 +70,33 @@ Objtype {
     category = "item",
     name = "basic-burger",
     icon = "/basic/powerup/burger",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-chocolate", 
     icon = "/basic/powerup/chocolate",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-joltcola", 
     icon = "/basic/powerup/joltcola",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-medikit", 
     icon = "/basic/powerup/medikit",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
 
 Objtype {
     category = "item", 
     name = "basic-pizza", 
     icon = "/basic/powerup/pizza",
-    nonproxy_init = basic_powerup_init
+    nonproxy_init = make_basic_powerup_init (10)
 }
