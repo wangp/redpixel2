@@ -25,7 +25,7 @@ static void list_init ()
     file_id = 0;
 }
 
-static int list_add (DATAFILE *dat, const char *prefix)
+static int list_add (DATAFILE *dat, AL_CONST char *prefix)
 {
     struct file *p, *f = malloc (sizeof *f);
 
@@ -122,9 +122,9 @@ static void table_shutdown ()
     table.size = 0;
 }
 
-static void table_add (DATAFILE *d, const char *prefix)
+static void table_add (DATAFILE *d, AL_CONST char *prefix)
 {
-    const char *name;
+    AL_CONST char *name;
     char path[1024];
     int i, n;
 
@@ -166,7 +166,7 @@ void store_shutdown (void)
     list_shutdown ();
 }
 
-int store_load_ex (const char *filename, const char *prefix, DATAFILE *(*loader) (const char *))
+int store_load_ex (AL_CONST char *filename, AL_CONST char *prefix, DATAFILE *(*loader) (AL_CONST char *))
 {
     DATAFILE *d;
     int id;
@@ -187,7 +187,7 @@ int store_load_ex (const char *filename, const char *prefix, DATAFILE *(*loader)
     return -1;
 }
 
-int store_load (const char *filename, const char *prefix)
+int store_load (AL_CONST char *filename, AL_CONST char *prefix)
 {
     return store_load_ex (filename, prefix, load_datafile);
 }
@@ -216,7 +216,7 @@ void store_unload (int id)
     }
 }
 
-inline int store_index (const char *key)
+inline int store_index (AL_CONST char *key)
 {
     int n = (int) hash_lookup (key, &table);
     return n;
@@ -236,13 +236,13 @@ char *store_key (int index)
     return 0;
 }
     
-inline DATAFILE *store_datafile (const char *key)
+inline DATAFILE *store_datafile (AL_CONST char *key)
 {
     int n = store_index (key);
     return (n) ? store[n] : 0;
 }
  
-void *store_dat (const char *key)
+void *store_dat (AL_CONST char *key)
 {
     DATAFILE *d = store_datafile (key);
     return (d) ? d->dat : 0;

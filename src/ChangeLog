@@ -1,3 +1,7 @@
+2001-06-01  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Minor changes to Store.
+
 2001-05-29  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* mtfm.lua: Better symbol name guessing for "short" comments.

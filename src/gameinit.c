@@ -25,7 +25,7 @@ void game_init ()
     generate_magic_conversion_tables ();
 
     path_init ();
-    store_init (211);
+    store_init (200);
     bitmask_ref_init ();
  
     mylua_open (0);

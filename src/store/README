@@ -26,21 +26,17 @@ Compiling
 
     The files you need are: hash.c hash.h store.c store.h
 
-    If you get warnings when compiling about the `const' keyword, get
-    a newer version of Allegro (3.9.33 or above).
-
 
 API
 
     Look inside `example.c' for usage.
 
     int store_init (int);
-	
+
 	Call this at the start of your program to set the size of the
-	main hash table.  A larger hash table requires more
-	memory, but reduces the chances of a key collision
-	(which will slow down retrieval times).  A prime number works
-	best, I think.  Returns zero on success.
+	main hash table.  A larger hash table requires more memory, but
+	reduces the chances of a key collision (which will slow down
+	retrieval times).  Returns zero on success.
 
     void store_shutdown ();
 
@@ -118,6 +114,8 @@ Contact
 
 
 History
+
+    1 June 2001: Use AL_CONST instead of const.
 
     28 April 2001: Some changes in the hash table implementation.
 

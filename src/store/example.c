@@ -16,7 +16,7 @@ int main ()
     
     /* Initialise Store, passing it the size of the hash table you
      * want to use.  */
-    store_init (211);
+    store_init (200);
 
     /* Load in some datafiles, inserting them in different parts of
      * the virtual directory structure.  Note that items from

@@ -15,15 +15,15 @@ extern DATAFILE **store;
 int store_init (int size);
 void store_shutdown (void);
 
-int store_load (const char *filename, const char *prefix);
-int store_load_ex (const char *filename, const char *prefix,
-		   DATAFILE *(*loader) (const char *));
+int store_load (AL_CONST char *filename, AL_CONST char *prefix);
+int store_load_ex (AL_CONST char *filename, AL_CONST char *prefix,
+		   DATAFILE *(*loader) (AL_CONST char *));
 void store_unload (int id);
 
-int store_index (const char *key);
+int store_index (AL_CONST char *key);
 char *store_key (int index);
-DATAFILE *store_datafile (const char *key);
-void *store_dat (const char *key);
+DATAFILE *store_datafile (AL_CONST char *key);
+void *store_dat (AL_CONST char *key);
 
 DATAFILE *store_file (int id);
     
