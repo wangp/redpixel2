@@ -600,7 +600,7 @@ Objtype {
 		    self.is_dead = true
 
 		    -- spawn a blast and play a sound
-		    spawn_blast (self.x, self.y, 25, 30, self.owner)
+		    spawn_blast (self.x, self.y, 25, 25, self.owner)
 		    spawn_explosion_on_clients ("basic-explo20", self.x, self.y-6)
 
 		    self:set_update_hook (
@@ -666,7 +666,7 @@ Standard_Projectile {
     name = "basic-mine-projectiles",
     alias = "~Mp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 20
+    damage = 15
 }
 
 
