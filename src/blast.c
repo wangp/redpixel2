@@ -7,7 +7,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <allegro.h>
-#include <allegro/internal/aintern.h>
 #include "alloc.h"
 #include "blast.h"
 #include "error.h"
@@ -114,8 +113,6 @@ void blast_draw (BITMAP *dest, blast_t *blast, int offset_x, int offset_y)
 {
     /* XXX this whole function is trash */
 
-    dest->vtable->hfill = _linear_hline24;
-    dest->vtable->putpixel = _linear_putpixel24;
     set_add_blender (0xf,0,0,5);
     drawing_mode (DRAW_MODE_TRANS,0,0,0);
 
