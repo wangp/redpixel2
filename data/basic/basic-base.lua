@@ -81,6 +81,7 @@ end
 -- objtype_register wrapper
 
 function Objtype (t)
+    local result =
     objtype_register (t.category, t.name, t.icon,
 	function (self)
 	    if self.is_proxy then
@@ -89,6 +90,9 @@ function Objtype (t)
 		if t.nonproxy_init then t.nonproxy_init (self) end
 	    end
 	end)
+    if not result then
+	print ("Objtype not registered properly.")
+    end
 end
 
 
