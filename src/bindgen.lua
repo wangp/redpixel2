@@ -493,6 +493,20 @@ generate {
 }
 
 generate {
+    cname	= "svgame_set_score",
+    lname	= "set_score",
+    args	= {{ Int, "clientid" },
+		   { String, "score" }}
+}
+
+generate {
+    cname	= "svgame_play_sound_on_clients",
+    lname	= "play_sound_on_clients",
+    args	= {{ Object, "obj" },
+		   { String, "sample" }}
+}
+
+generate {
     cname	= "client_play_sound",
     lname	= "play_sound",
     args	= {{ Object, "obj" },
