@@ -1325,6 +1325,9 @@ void object_do_physics (object_t *obj, map_t *map)
     int rep = 0;
     float old_yv = obj->yv;
 
+    if (obj->is_stale)
+	return;
+
     if (!obj->ladder_state) {
 	obj->intrinsic_ya += obj->mass;
 	if ((obj->intrinsic_ya > 0) && (object_supported (obj, map)))
