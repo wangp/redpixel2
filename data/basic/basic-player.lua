@@ -174,7 +174,6 @@ local death_fountain_update_hook = function (self)
 end
 
 Objtype {
-    category = "player",
     name = "basic-player-death-fountain",
     icon = "/basic/player/death-fountain/000",
 
