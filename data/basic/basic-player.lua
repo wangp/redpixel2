@@ -195,7 +195,7 @@ local player_nonproxy_init = function (self)
 
 	else
 
-	    -- not dead: blink a red light over the hurt player
+	    -- not dead: make some pretty graphics
 	    call_method_on_clients (self, "get_hurt_hook")
 
 	end
