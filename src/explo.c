@@ -117,7 +117,7 @@ explosion_t *explosion_create (const char *name, int x, int y)
     e->tics = t->tics;
 
     if (t->sound)
-	sound_play_once (t->sound, 255, e->x, e->y);
+	sound_play_once (t->sound, e->x, e->y);
     
     return e;
 }
