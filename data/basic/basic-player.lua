@@ -408,6 +408,10 @@ local player_nonproxy_init = function (self)
 		end
 	    end
 
+	    -- play a sound
+	    local i = math.random (table.getn (death_sounds))
+	    play_sound_on_clients (corpse, death_sounds[i])
+
 	    -- destroy the object
 	    self:set_stale ()
 
@@ -866,4 +870,25 @@ Objtype {
 	    self:set_stale ()
 	end
     end
+}
+
+
+
+----------------------------------------------------------------------
+--  Death sounds
+----------------------------------------------------------------------
+
+death_sounds = {
+    "/basic/player/death-sounds/000",
+    "/basic/player/death-sounds/001",
+    "/basic/player/death-sounds/002",
+    "/basic/player/death-sounds/003",
+    "/basic/player/death-sounds/004",
+    "/basic/player/death-sounds/005",
+    "/basic/player/death-sounds/006",
+    "/basic/player/death-sounds/007",
+    "/basic/player/death-sounds/008",
+    "/basic/player/death-sounds/009",
+    "/basic/player/death-sounds/010",
+    "/basic/player/death-sounds/011"
 }
