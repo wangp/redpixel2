@@ -317,6 +317,15 @@ generate {
 }
 
 generate {
+    cname	= "game_server_spawn_object",
+    lname	= "spawn_object",
+    args	= {{ String, "typename" },
+		   { Float, "x" },
+		   { Float, "y" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
     cname	= "game_server_spawn_projectile",
     lname	= "spawn_projectile",
     args	= {{ String, "typename" },
