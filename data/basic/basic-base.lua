@@ -132,6 +132,10 @@ function Objtype (t, u)
 	end)
     if not result then
 	print ("Objtype not registered properly.")
+	return
+    end
+    if t.alias then
+	add_alias (t.name, t.alias)
     end
 end
 
@@ -151,6 +155,7 @@ end
 
 Objtype {
     name = "basic-respawning-ball",
+    alias = "~rb",
     icon = "/basic/respawning-ball/000",
     nonproxy_init = function (self)
 	self:set_collision_flags ("")
