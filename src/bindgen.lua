@@ -184,6 +184,15 @@ generate {
     args	= {{ Object, "obj" }}
 }
 
+-- little hack for player walking animation code in basic-player.lua
+-- don't use it!
+generate {
+    cname	= "object_moving_horizontally",
+    lname	= "_object_moving_horizontally",
+    args	= {{ Object, "obj" }},
+    ret		= { Int, "ret", "!$" }
+}
+
 generate {
     cname	= "object_set_collision_is_player",
     args	= {{ Object, "obj" }}

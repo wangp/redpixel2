@@ -56,6 +56,7 @@ int object_ramp (object_t *);
 void object_set_ramp (object_t *, int);
 int object_jump (object_t *);
 void object_set_jump (object_t *, int);
+int object_moving_horizontally (object_t *);
 
 void object_set_collision_is_player (object_t *);
 void object_set_collision_flags (object_t *, int tiles, int players, int nonplayers);

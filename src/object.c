@@ -401,6 +401,13 @@ void object_set_jump (object_t *obj, int jump)
 }
 
 
+/* little hack for player walking animation code in basic-player.lua */
+int object_moving_horizontally (object_t *obj)
+{
+    return ABS (obj->target.xv) > 0.5;
+}
+
+
 void object_set_collision_is_player (object_t *obj)
 {
     obj->collision_flags |= CNFLAG_IS_PLAYER;
