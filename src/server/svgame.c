@@ -402,7 +402,7 @@ static void perform_mass_game_state_feed (void)
 
 	    if (svclient_timed_out (c)) {
 		svclient_set_state (c, SVCLIENT_STATE_STALE);
-		server_log ("Client %s timed out during game state feed",
+		server_log (1, "Client %s timed out during game state feed",
 			    c->name);
 		continue;
 	    }
@@ -445,7 +445,7 @@ static void perform_single_game_state_feed (svclient_t *c)
 
 	if (svclient_timed_out (c)) {
 	    svclient_set_state (c, SVCLIENT_STATE_STALE);
-	    server_log ("Client %s timed out during game state feed", c->name);
+	    server_log (1, "Client %s timed out during game state feed", c->name);
 	    sync_server_unlock ();
 	    break;
 	}
@@ -959,7 +959,7 @@ static void handle_new_svclient_feeds (void)
     svclients_broadcast_rdm_byte (MSG_SC_PAUSE);
 
     for_each_svclient (c) if (svclient_wantfeed (c)) {
-	server_log ("Feeding new client %s", c->name);
+	server_log (0, "Feeding new client %s", c->name);
 	perform_single_game_state_feed (c);
 
 	{
@@ -1043,7 +1043,7 @@ static int init_game_state (void)
     /* Load map.  */
     map = map_load (server_next_map_file, 0, 0);
     if (!map) {
-	server_log ("Couldn't load map %s", server_next_map_file);
+	server_log (1, "Couldn't load map %s", server_next_map_file);
 	return -1;
     }
     string_set (server_current_map_file, server_next_map_file);
@@ -1075,12 +1075,12 @@ static void free_game_state (void)
 
 static int svgame_init (void)
 {
-    server_log ("Entering game");
+    server_log (1, "Entering game");
 
     gameinfo_packet_queue_init ();
 
     if (init_game_state () < 0) {
-	server_log ("Error initialising game state");
+	server_log (1, "Error initialising game state");
 	server_set_next_state (SERVER_STATE_LOBBY);
 	return -1;
     }

@@ -17,7 +17,7 @@ static int svlobby_init (void)
 	Let's all go to the lobbiie,
 	Get ourselves some snacks.   */
 
-    server_log ("Entering lobby");
+    server_log (1, "Entering lobby");
     svclients_broadcast_rdm_byte (MSG_SC_LOBBY);
     return 0;
 }

@@ -100,7 +100,7 @@ int svclient_send_rdm (svclient_t *c, const void *buf, size_t size)
 	svstats_outgoing_bytes += size;
     else if (x < 0) {
 	svclient_set_state (c, SVCLIENT_STATE_BITOFF);
-	server_log ("Client %s was disconnected [send error]", c->name);
+	server_log (1, "Client %s was disconnected [send error]", c->name);
     }
     return x;
 }

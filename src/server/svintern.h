@@ -36,7 +36,7 @@ extern string_t server_current_map_file;
 extern string_t server_next_map_file;
 
 
-void server_log (const char *fmt, ...);
+void server_log (int broadcast_to_clients, const char *fmt, ...);
 
 void server_set_next_state (server_state_t state);
 void server_interface_set_status (const char *text);

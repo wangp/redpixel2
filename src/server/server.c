@@ -54,17 +54,29 @@ static int client_to_quit_with;
  */
 
 
-void server_log (const char *fmt, ...)
+void server_log (int broadcast_to_clients, const char *fmt, ...)
 {
-    char buf[1024];
+    char buf[NETWORK_MAX_PACKET_SIZE];
     va_list ap;
 
     va_start (ap, fmt);
     uvszprintf (buf, sizeof buf, fmt, ap);
-    if (interface)
-	interface->add_log (NULL, buf);
-    else
-	puts (buf); /* XXX temp */
+
+    /* If we are running as the client-server, then we will get both
+     * client messages and server messages, so we will see some
+     * messages twice.  This conditional stops the server's version of
+     * the message being logged for those cases.
+     */
+    if (!(inhibit_double_message && broadcast_to_clients)) {
+	if (interface)
+	    interface->add_log (NULL, buf);
+	else
+	    puts (buf); /* XXX temp */
+    }
+
+    if (broadcast_to_clients)
+	svgame_broadcast_text_message (buf);
+
     va_end (ap);
 }
 
@@ -95,7 +107,7 @@ static void poll_client_joining (svclient_t *c)
 	    if (version != NETWORK_PROTOCOL_VERSION) {
 		svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
 		svclient_set_state (c, SVCLIENT_STATE_STALE);
-		server_log ("Client %s joined but was disconnected for "
+		server_log (1, "Client %s joined but was disconnected for "
 			    "compatibility reasons", c->name);
 	    }
 	    else {
@@ -139,14 +151,14 @@ static void poll_client_joining (svclient_t *c)
 
 		if (curr_state == SERVER_STATE_GAME)
 		    svclient_set_wantfeed (c);
-		server_log ("Client %s joined", c->name);
+		server_log (1, "Client %s joined", c->name);
 	    }
 	    break;
 
 	case MSG_CS_DISCONNECT_ASK:
 	    svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
 	    svclient_set_state (c, SVCLIENT_STATE_STALE);
-	    server_log ("Client %s was disconnected by request", c->name);
+	    server_log (1, "Client %s was disconnected by request", c->name);
 	    break;
     }
 }
@@ -171,13 +183,9 @@ static void poll_client_joined (svclient_t *c)
 	case MSG_CS_TEXT: {
 	    short len;
 	    char text[NETWORK_MAX_PACKET_SIZE];
-	    char tmp[NETWORK_MAX_PACKET_SIZE];
 
 	    packet_decode (buf+1, "s", &len, text);
-	    uszprintf (tmp, sizeof tmp, "<%s> %s", c->name, text);
-	    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, tmp);
-	    if (!inhibit_double_message)
-		server_log (tmp);
+	    server_log (1, "<%s> %s", c->name, text);
 	    break;
 	}
 
@@ -194,7 +202,7 @@ static void poll_client_joined (svclient_t *c)
 	case MSG_CS_DISCONNECT_ASK:
 	    svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
 	    svclient_set_state (c, SVCLIENT_STATE_BITOFF);
-	    server_log ("Client %s was disconnected by request", c->name);
+	    server_log (1, "Client %s was disconnected by request", c->name);
 	    break;
     }
 }
@@ -237,19 +245,19 @@ static void command_list (char **last)
     int n = svclients_count ();
     svclient_t *c;	
 
-    server_log ("Clients: %d", n);
+    server_log (0, "Clients: %d", n);
 
     for_each_svclient (c) {
 	switch (c->state) {
 	    case SVCLIENT_STATE_BITOFF:
 	    case SVCLIENT_STATE_STALE:
-		server_log ("%4d  %s (stale)", c->id, c->name);
+		server_log (0, "%4d  %s (stale)", c->id, c->name);
 		break;
 	    default:
 		if (curr_state == SERVER_STATE_GAME)
-		    server_log ("%4d  %s (lag: %d)", c->id, c->name, c->lag);
+		    server_log (0, "%4d  %s (lag: %d)", c->id, c->name, c->lag);
 		else
-		    server_log ("%4d  %s", c->id, c->name);
+		    server_log (0, "%4d  %s", c->id, c->name);
 		break;
 	}
     }
@@ -264,7 +272,7 @@ static void command_kick (char **last)
 
     word = strtok_r (NULL, whitespace, last);
     if (!word) {
-	server_log ("KICK requires an argument");
+	server_log (0, "KICK requires an argument");
 	return;
     }
 
@@ -272,42 +280,37 @@ static void command_kick (char **last)
 	objid_t id = strtol (word, NULL, 10);
 	c = svclients_find_by_id (id);
 	if (!c) {
-	    server_log ("No client with id %d", id);
+	    server_log (0, "No client with id %d", id);
 	    return;
 	}
     }
     else {
 	c = svclients_find_by_name (word);
 	if (!c) {
-	    server_log ("No client with name %s", word);
+	    server_log (0, "No client with name %s", word);
 	    return;
 	}
     }
 
     if ((c->state == SVCLIENT_STATE_BITOFF) || (c->state == SVCLIENT_STATE_STALE)) {
-	server_log ("Client %s already disconnected", c->name);
+	server_log (0, "Client %s already disconnected", c->name);
 	return;
     }
 
     svclient_send_rdm_byte (c, MSG_SC_DISCONNECTED);
     svclient_set_state (c, SVCLIENT_STATE_BITOFF);
-    server_log ("Client %s was kicked", c->name);
+    server_log (1, "Client %s was kicked", c->name);
 }
 
 
 static void command_msg (char **last)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
-
     if (!*last) {
-	server_log ("MSG requires an argument");
+	server_log (0, "MSG requires an argument");
 	return;
     }
 
-    uszprintf (buf, sizeof buf, "[server] %s", *last);
-    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
-    if (!inhibit_double_message)
-	server_log (buf);
+    server_log (1, "[server] %s", *last);
 }
 
 
@@ -326,31 +329,30 @@ static void poll_interface (void)
 
     if (word) {
 	if (wordis ("help") || wordis ("?")) {
-	    server_log ("Commands:");
-            server_log ("  MAP <filename> - select a map (effective next START command)");
-            server_log ("  MAP            - display current map");
-            server_log ("  START          - enter game mode");
-            server_log ("  STOP           - return to the lobby");
-	    /* server_log ("  RESTART        - restart game mode (with new map)"); */
-            server_log ("  QUIT           - quit completely");
-            server_log ("  LIST           - list clients");
-            server_log ("  KICK <id|name> - forcefully disconnect a client");
-            server_log ("  MSG <message>  - broadcast text message to clients");
-            server_log ("  CONTEXT        - show current context");
+	    server_log (0, "Commands:");
+            server_log (0, "  MAP <filename> - select a map (effective next START command)");
+            server_log (0, "  MAP            - display current map");
+            server_log (0, "  START          - enter game mode");
+            server_log (0, "  STOP           - return to the lobby");
+	    /* server_log (0, "  RESTART        - restart game mode (with new map)"); */
+            server_log (0, "  QUIT           - quit completely");
+            server_log (0, "  LIST           - list clients");
+            server_log (0, "  KICK <id|name> - forcefully disconnect a client");
+            server_log (0, "  MSG <message>  - broadcast text message to clients");
+            server_log (0, "  CONTEXT        - show current context");
 	}
 
 	else if (wordis ("map")) {
 	    word = strtok_r (NULL, whitespace, &last);
 	    if (!word) {
-		server_log ("Current map: %s", server_current_map_file);
-		server_log ("Selected map: %s", server_next_map_file);
+		server_log (0, "Current map: %s", server_current_map_file);
+		server_log (0, "Selected map: %s", server_next_map_file);
 	    } else {
 		string_set (server_next_map_file, word);
-		server_log ("Setting map to %s", server_next_map_file);
+		server_log (1, "Setting map to %s", server_next_map_file);
 
-		if (!file_exists (server_next_map_file,
-				  FA_RDONLY|FA_HIDDEN|FA_SYSTEM|FA_ARCH, NULL))
-		    server_log ("Warning: %s doesn't exist", server_next_map_file);
+		if (!file_exists (server_next_map_file, ~(FA_DIREC | FA_HIDDEN), NULL))
+		    server_log (0, "Warning: %s doesn't exist", server_next_map_file);
 	    }
 	}
 	
@@ -379,17 +381,18 @@ static void poll_interface (void)
 	}
 
 	else if (wordis ("context")) {
-	    server_log ((curr_state == SERVER_STATE_LOBBY) ? "In the lobby" :
+	    server_log (0,
+			(curr_state == SERVER_STATE_LOBBY) ? "In the lobby" :
 			(curr_state == SERVER_STATE_GAME) ? "Playing a game" :
 			"Unknown context (probably in a transition)");
 	}
 
 	else if (wordis ("yom")) {
-	    server_log ("You can't use yom like that!");
+	    server_log (0, "You can't use yom like that!");
 	}
 
 	else {
-	    server_log ("Unrecognised command: %s", word);
+	    server_log (0, "Unrecognised command: %s", word);
 	}
     }
 
@@ -559,9 +562,9 @@ void server_shutdown (void)
 {
     gettimeofday_shutdown ();
 
-    server_log ("Disconnecting clients");
+    server_log (1, "Disconnecting clients");
     svclients_broadcast_rdm_byte (MSG_SC_DISCONNECTED);
-    server_log ("Quitting");
+    server_log (0, "Quitting");
 
     string_free (server_next_map_file);
     string_free (server_current_map_file);
