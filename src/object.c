@@ -999,7 +999,9 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 	    continue;
 	
 	if ((is_player (obj) && !touch_players (p)) ||
-	    (is_nonplayer (obj) && !touch_nonplayers (p)))
+	    (is_nonplayer (obj) && !touch_nonplayers (p)) ||
+	    (is_player (p) && !touch_players (obj)) ||
+	    (is_nonplayer (p) && !touch_nonplayers (obj)))
 	    continue;
 	
 	if (!(bitmask_check_collision
