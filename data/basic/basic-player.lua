@@ -145,7 +145,7 @@ end
 
 local walk_anim = {}
 for i = 0,7 do
-    tinsert (walk_anim, format ("/basic/player/walk/%03d", i))
+    walk_anim[i] = format ("/basic/player/walk/%03d", i)
 end
 
 local animate_player_proxy_firing = function (self)
@@ -176,8 +176,8 @@ local animate_player_proxy_walking = function (self)
 	self.walk_frame_tics = 2
 
 	self.walk_frame = self.walk_frame + 1
-	if self.walk_frame > getn (walk_anim) then
-	    self.walk_frame = 1
+	if self.walk_frame >= getn (walk_anim) then
+	    self.walk_frame = 0
 	end
 	self:replace_layer (0, walk_anim[self.walk_frame], cx, cy)
     end
@@ -244,7 +244,7 @@ local player_proxy_init = function (self)
     end
 
     -- animation and update hook
-    self.walk_frame = 1
+    self.walk_frame = 0
     self.walk_frame_tics = 0
     self:set_update_hook (
 	1000/50,
