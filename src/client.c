@@ -1260,7 +1260,6 @@ void client_shutdown (void)
 	map_destroy (map);
 	map = NULL;
     }
-    destroy_bitmap (crosshair);
     destroy_bitmap (bkgd);
     camera_destroy (cam);
     destroy_bitmap (bmp);
