@@ -9,6 +9,7 @@
 #include "explo.h"
 #include "list.h"
 #include "magic4x4.h"
+#include "sound.h"
 #include "store.h"
 
 
@@ -115,9 +116,8 @@ explosion_t *explosion_create (const char *name, int x, int y)
     e->frame = 0;
     e->tics = t->tics;
 
-    if (t->sound) {
-	play_sample (t->sound, 255, 128, 1000, FALSE); /* XXX */
-    }
+    if (t->sound)
+	sound_play_once (t->sound, 255, e->x, e->y);
     
     return e;
 }
