@@ -1,5 +1,8 @@
+1. All Red Pixel 2 source code and data created by Peter Wang and
+   David Wang are licenced as follows:
+----------------------------------------------------------------------
 
-  Copyright (C) 2002 Peter Wang
+  Copyright (C) 2002 Peter Wang and David Wang
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,4 +25,14 @@
 
   [For informational purposes, this is the zlib licence.]
 
+----------------------------------------------------------------------
 
+
+
+2. All other data are Copyright (C) 2002 by their respective authors.
+   You may NOT modify, redistribute or use those data in other works
+   without permission of the authors.
+
+   [For informational purposes, this includes (but is not limited to)
+   all music and 3d rendered art currently distributed with Red Pixel
+   2.  If in doubt, check with us.]
