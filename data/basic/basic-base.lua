@@ -16,13 +16,17 @@ local dummy = function () end
 
 function _object_init_hook (self)
     if not self.is_proxy then
+
+	-- nonproxy methods
 	self.destroy = object_destroy
 	self.set_collision_flags = object_set_collision_flags
+	self.add_creation_field = object_add_creation_field
 	self.set_mask = object_set_mask
 	self.remove_mask = object_remove_mask
 	self.remove_all_masks = object_remove_all_masks
 	self.receive_damage = %dummy
 
+	-- proxy methods
 	self.add_layer = %dummy
 	self.replace_layer = %dummy
 	self.move_layer = %dummy
@@ -34,13 +38,19 @@ function _object_init_hook (self)
 	self.move_light = %dummy
 	self.remove_light = %dummy
 	self.remove_all_lights = %dummy
+
     else
+
+	-- nonproxy methods
 	self.destroy = %dummy
 	self.set_collision_flags = %dummy
+	self.add_creation_field = %dummy
 	self.set_mask = %dummy
 	self.remove_mask = %dummy
 	self.remove_all_masks = %dummy
+	self.receive_damage = %dummy
 
+	-- proxy methods
 	self.add_layer = object_add_layer
 	self.replace_layer = object_replace_layer
 	self.move_layer = object_move_layer
@@ -53,6 +63,7 @@ function _object_init_hook (self)
 	self.move_light = object_move_light
 	self.remove_light = object_remove_light
 	self.remove_all_lights = object_remove_all_lights
+
     end
 end
 
@@ -77,4 +88,11 @@ weapons = {}
 
 function Weapon (t)
     weapons[t.name] = t
+end
+
+
+-- utility functions
+
+function radian_to_bangle (rads)
+    return rads * 128 / 3.1415
 end

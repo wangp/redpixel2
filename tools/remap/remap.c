@@ -1,4 +1,4 @@
-/* stub.c
+/* remap.c
  *
  * Peter Wang <tjaden@users.sourceforge.net>
  */

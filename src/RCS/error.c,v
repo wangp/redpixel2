@@ -1,0 +1,40 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* error.c
+ *
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+#include <allegro.h>
+#include "error.h"
+
+
+void error (const char *message)
+{
+    allegro_exit ();
+    allegro_message (message);
+    exit (1);
+}
+
+@

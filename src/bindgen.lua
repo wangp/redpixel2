@@ -197,6 +197,12 @@ generate {
 }
 
 generate {
+    cname	= "object_add_creation_field",
+    args	= {{ Object, "obj" },
+		   { String, "name" }}
+}
+
+generate {
     cname 	= "object_add_layer",
     args  	= {{ Object, "obj" },
                    { StoreKey, "image" },
@@ -314,6 +320,15 @@ generate {
 generate {
     cname	= "object_remove_all_masks",
     args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "game_server_spawn_object",
+    lname	= "spawn_object",
+    args	= {{ String, "typename" },
+		   { Float, "x" },
+		   { Float, "y" }},
+    ret		= { Int, "ret", "$ < 0" }
 }
 
 generate {

@@ -70,6 +70,10 @@ struct object {
     objmask_t mask[OBJECT_MASK_MAX];
     char replication_flags;
 
+    /* A list of table fields whose values we need to replicate to the
+     * client when CREATING the object. */
+    list_head_t creation_fields;
+
 
     /*
      * Proxy
@@ -162,6 +166,8 @@ object_t *object_create_ex (const char *type_name, objid_t id)
 
     obj->collision_flags = CNFLAG_DEFAULT;
 
+    list_init (obj->creation_fields);
+
     list_init (obj->layers);
     icon = store_dat (objtype_icon (obj->type));
     object_add_layer (obj, objtype_icon (obj->type), 
@@ -205,6 +211,7 @@ void object_run_init_func (object_t *obj)
 
 void object_destroy (object_t *obj)
 {
+    list_free (obj->creation_fields, free);
     object_remove_all_masks (obj);
     object_remove_all_lights (obj);
     object_remove_all_layers (obj);
@@ -423,6 +430,21 @@ void object_set_replication_flag (object_t *obj, int flag)
 void object_clear_replication_flags (object_t *obj)
 {
     obj->replication_flags = 0;
+}
+
+
+/* XXX simply use a field inside the generic Lua table?  */
+void object_add_creation_field (object_t *obj, const char *name)
+{
+    creation_field_t *f = alloc ((sizeof *f) + strlen (name) + 1);
+    strcpy (f->name, name);
+    list_add (obj->creation_fields, f);
+}
+
+
+list_head_t *object_creation_fields (object_t *obj)
+{
+    return &obj->creation_fields;
 }
 
 
@@ -1017,7 +1039,7 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
     }
 
     interval = curr_time - obj->auth.time;
-    while (interval--) {
+    while (interval-- > 0) {
 	obj->target.xv = (obj->target.xv + obj->auth.xa) * obj->xv_decay;
 	obj->target.yv = (obj->target.yv + obj->auth.ya) * obj->yv_decay;
 	obj->target.x += obj->target.xv;

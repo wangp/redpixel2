@@ -1,0 +1,53 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.15.45;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* ug.c
+ *
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+#include "ug.h"
+#include "ugtheme.h"
+
+
+static int count;
+
+
+int ug_init ()
+{
+    if (!count) {
+	if (ug_theme_init () < 0)
+	    return -1;
+    }
+
+    count++;
+    return 0;
+}
+
+
+void ug_shutdown ()
+{
+    if (--count < 1) 
+	ug_theme_shutdown ();
+}
+@

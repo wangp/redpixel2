@@ -1,0 +1,919 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	2002.01.13.07.32.15;	author tjaden;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2002.01.12.20.17.38;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@Log I forgot yesterday: basic-player.lua: Made player sprite face the
+direction that the mouse is aiming in.
+@
+text
+@2002-01-13  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Started using RCS.
+
+2002-01-12  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* basic-player.lua: Made player sprite face the direction that the
+	mouse is aiming in.
+	
+	* magic/magicrot.c, magic/magicrot.inc: Unified the magic rotation
+	function code somewhat.  Less code, but more importantly, we get
+	pivot_magic_sprite_v_flip.
+
+	* object.c, bindgen.lua: Horizontal flipping added.
+
+	* magic/magicrot.c (pivot_magic_sprite_v_flip): Added.
+
+	* magic/magichf.c: New function/file.
+
+	* packet.c: Use ntohl, htonl functions and simple casts to
+	en/decode packets instead of shifts and memcpys.
+
+	* gamesrv.c: Added a gameinfo packet queue.
+	
+	* blood.c, bindgen.lua, gameclt.c, gamesrv.c, map.c, render.c:
+	Start of a blood particle system, and changes to accomodate it.
+
+2002-01-11  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* gamesrv.c (ticks_poll): Fixed a silly assumption that was
+	causing the game server to be missing updates.
+
+	* mtfm.lua: Fixed up minor output problems caught by HTML Tidy.
+
+2001-07-30  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Cleaned up multiple ports mechanisms a bit.
+
+2001-07-29  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Initial Mingw port.
+
+2001-07-22  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* gamesrv.c, gameclt.c, netmsg.h: Text message command.
+
+2001-07-21  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* messages.c: New module.
+
+	* physics.c: Obsolete.  Stuff moved into object.c.
+
+	* New physics/network approach: we save the information we got
+	from the server, then each frame extrapolate from there to get the
+	point where we think we are supposed to be at.  We don't move the
+	object directly there, but only move x% of the way from the
+	current point to the calculated point.
+
+2001-07-20  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Did some work on the physics/network code again, but its not
+	very good, so will be taking another approach.  Backup first :)
+
+2001-07-19  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* gamesrv.c (poll_interface_command_kick): Kick by name.
+
+	* sync.c: New module to contain the thread stuff.
+
+	* object.h: Changed objid_t to unsigned long.  Yesterday I changed
+	it to signed short, but that's not enough for all the bullets,
+	etc.  Client objects are no longer negative (not enough of them to
+	justify halving the id space).
+	
+	* Reverted packet size and protocol changes as they were
+	mysteriously making client/server in the same process not work
+	properly.  Will try again some other time.
+
+2001-07-18  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* netmsg.h, gamesrv.c, gameclt.c: Changed protocol to try and
+	reduce packet sizes a little.
+
+	* packet.c: Added 'word' type.
+
+	* main.c, gamesrv.c, gameclt.c: Server and client in the same
+	process ("multithreaded", but more like coroutines).  A bit hacky.
+
+2001-07-17  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Began proper firing code.
+
+	* bindgen.lua, gamesrv.c (game_server_spawn_projectile): New
+	function, binds to spawn_projectile in Lua.
+
+	* physics.c, object.c, objgen.lua: Moved x_decay, y_decay into
+	objects as attributes (xv_decay, yv_decay).
+
+	* Many changes in Lua scripts, including introduction of
+	"constructors".
+	
+	* object.c, bindgen.lua, gamesrv.c, gameclt.c: Introduced
+	staleness.  `object_destroy' in Lua binds to `object_set_stale' in
+	C.
+	
+	* object.c, bindgen.lua: Collision flags and collision tags.
+
+	* Made internal hooks and attributes have an underscore in front.
+	
+2001-07-16  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* object.c, gameclt.c: Exposed is_proxy attribute, added is_client
+	attribute (Lua only) and a hook (client_update).
+
+	* magic/magicrl.c: Added rotated lit magic sprites (still needs
+	work though).
+
+	* object.c: Use centres instead of offsets for layers.  Added
+	layer rotation.
+
+	* gamesrv.c: Some clean up.
+
+	* magic/magicrt.c: Upgrade to the new rotate.c present in Allegro
+	3.9.38 (CVS), which should be faster.
+
+2001-07-15  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* gamesrv.c (server_handle_client_controls): Removed firing code
+	(it was only a test).
+
+	* loaddata.c: [changed]
+
+	* Implemented a new `data' directory and Store tree structure.
+
+2001-07-14  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Included JPGalleg so we can use jpegs for backgrounds.
+
+	* Wrote a `remap' utility to update old maps.
+
+2001-07-12  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Added very hacked up code to try out projectiles.
+
+	* gameclt.c: Added parallax background (just testing for now).
+
+2001-07-11  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Continued work on network stuff.  Basically the server (and
+	client, sort of) is better written now, and there's less data sent
+	through the network.  It should also handle lag better now,
+	although there's a lot more work to do in that department.
+
+2001-07-10  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* physics.c: New module to contain simple physics code, which is
+	shared between server and client.
+
+	* Yet more fiddling with the network code.
+
+2001-07-09  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Fiddling with network code.
+
+2001-07-08  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Fiddling with network code.
+	
+2001-07-07  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Fiddling with network code.
+
+2001-07-06  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* gamesrv.c (process_command): Common command processor.
+
+	* gameclt.c: Don't both rendering graphics if backgrounded.
+
+	* main.c (setup_allegro): Try to continue running in the
+	background if the user switches away from the client.
+
+	* gamesrv.c: Reworked to allow command interface.
+
+	* textface.c: New file.  The start of a text mode interface for
+	the server.
+
+	* gamesrv.c: Some clean up.  Introduced timeouts.
+
+2001-07-05  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Lots of network stuff (can't remember it all).  [diff against
+	backup later]
+	
+	* timeout.c: New module to help with timeouts.
+
+	* list.h: Made cooler.
+
+	* game.c, game.h: Removed (contained nothing).
+	
+	* commprot.h: Renamed to netmsg.h.
+
+	* commmsg.c, commmsg.h: Renamed to packet.c, packet.h.  Function
+	prefixes changed to "packet_".
+	
+	* comm.c, comm.h: Removed (obsolete).
+
+	* gamesrv.c, gameclt.c: Started work on yet newer network code.
+	Got sending game state at the start of play to work :-)
+	
+	* commprot.h: Wrote down ideas for network protocol.
+
+	* commmsg.c: Helper module to build packets.
+
+2001-07-04  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* gamesrv.c, gameclt.c: New files, split from game.c.
+
+	* game.c: Started writing new cruddy network code.
+
+2001-07-03  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* comm.c: New file for networking stuff.
+
+	* bindgen.lua: Updated.
+
+	* object.c: Support tag methods.  Pass userdata to Lua scripts
+	instead of a table.
+
+	* objgen.lua: New file to generate object tag methods.
+
+	* object.h, object.c: Encapsulated object structure.
+
+	* map.h, map.c: Encapsulated map, lights and starts structures.
+
+	* objtypes.h, objtypes.c: Encapsulated objtype structure.
+
+2001-07-02  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* objlayer.h, objlight.h: Removed (moved into object.c).
+	* objmin.h: Removed (unneeded).
+
+	* Made many headers independent of other headers (e.g. often used
+	to include another header just to get "typedef struct foo foo_t").
+
+	* list.h: Normalised API.
+
+	* data/script/base.lua: "Base class" to give objects a more OOPish
+	feel. ie. obj:method(args) instead of object_method(obj, args)
+
+	* Updated to new Allegro Unicode API.
+
+2001-06-07  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* yield.c (yield): Use select instead of sleep under Unix.
+
+2001-06-01  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Minor changes to Store.
+
+2001-05-29  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* mtfm.lua: Better symbol name guessing for "short" comments.
+
+	* Clarified some UG API aspects.
+
+	* mylua.h: Removed macros that stripped away the lua_ prefix from
+	Lua functions, since most bindings are now auto generated.  Also,
+	renamed lref_t / ltag_t to lua_ref_t / lua_tag_t.
+
+	* ug/uginter.h: Moved struct ug_dialog into ugdialog.c.
+
+2001-05-28  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* ug/ug.h, ug/uginter.h: Made ug_widget_create and
+	ug_widget_destroy internal functions.
+
+	* ug/ugdialog.c (ug_dialog_destroy): Free widgets properly..
+
+	* ug/ug.h: Removed ug_send_event_ex and ug_emit_signal_ex, and
+	made ug_send_event and ug_emit_signal take their places.
+
+	* gui/gui.h: Use enum instead of preprocessor for event numbers.
+
+	* ug/ug.h, gui/gui.h: Documented for mtfm.
+
+	* ug/ug.h: Cleaned up API: UG events are now an enum instead of
+	preprocessor #defines; signals now have a type alias; the old
+	ug_event_t is now named ug_event_data_t (with corresponding
+	changes to function names).
+
+	* mtfm.lua: Expanded.
+
+2001-05-27  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Wrote mtfm.lua to help generate docs, so I don't have to relearn
+	the various interfaces by reading code every month.
+
+	* main.c (main): Added -m option for testing different maps.
+
+2001-05-26  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* editor/mdobject.c: Added object actions box, to replace LMB/RMB,
+	and modifier key fumbling.
+
+	* gui/gui.h, gui/guiwmdef.c (gui_window_show, gui_window_hide,
+	gui_window_hidden): New functions.
+
+	* editor/editarea.c (event): Made mouse wheel scroll the selected
+	item in the selection bar.
+
+	* editor/edselect.c (ed_select_scroll_up, ed_select_scroll_down):
+	* editor/selbar.c (selectbar_scroll_up, selectbar_scroll_down):
+	New functions.
+
+	* editor/editarea.c (event): Restrict mouse position and scare
+	mouse pointer when panning.  Also changed panning behaviour (e.g.
+	no longer need to drag, reposition mouse, drag, reposition...)
+
+	* gui/gui.h, gui/guimouse.c (gui_mouse_restrict,
+	gui_mouse_unrestrict): New functions.
+
+	* gui/guiwm.c, gui/guiwmdef.c (gui_window_set_alpha): Added a
+	translucency option for all windows, as it's too useful (and
+	cool!) to just have for ghosted windows.
+
+	* editor/mdobject.c (event_layer): Added temporary code to test
+	out ghosted windows (press 'e' to pop up window).  This will
+	become the dialog to edit object properties.
+
+	* editor/editarea.c, editor/editarea.h (EDITAREA_EVENT_KEY_TYPE):
+	Added event.
+
+	* gui/gui.c, gui/gui.h: Added window "ghosting".
+
+2001-05-10  Peter Wang  <tjaden@@users.sourceforge.net>
+
+	* Changed email address in many files (sigh).
+
+2001-04-28  Peter Wang  <tjaden@@psynet.net>
+
+	* Some changes to Store (see src/store/README).
+
+2001-04-26  Peter Wang  <tjaden@@psynet.net>
+
+	* Now store_load is exported straight to Lua (path unaware).  The
+	path aware version is implemented in Lua in init.lua.
+	* This initiated some changes to bindgen.lua, and now all bindings
+	are generated (the old store_load was not).
+
+	* mylua.c (lua_dofile_path): New function.
+	(lua_dofiles): Removed function.
+
+	* data/script/init.lua: New file.  Instead of loading *.lua from
+	the script directory, we load script/init.lua, which in turn loads
+	a list of files.
+
+2001-04-15  Peter Wang  <tjaden@@psynet.net>
+
+	* Little changes (lighter green for text colours, prompt hotkeys).
+
+2001-04-09  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/menu.c: Added accelerator keys for load, save, quit.
+
+	* gui/guiaccel.c: New module for GUI accelerator keys.
+
+	* camera.c: Properly encapsulate.
+
+	* object.c (object_add_layer): Later layers go on top.
+
+2001-04-08  Peter Wang  <tjaden@@psynet.net>
+
+	* bindgen.lua: New file to generate bindings.
+
+	* object.h (struct object): Added ramp field; specifies how much
+	an object can ramp up when moving horizontally.  Added bindings.
+
+	* object.c (object_move_x_with_ramp): New function for movement in
+	the direction, with ramping upwards in the y direction.
+
+	* editor/mdobject.c (event_layer): Fixed cursor offset bugs I
+	introduced yesterday.
+
+	* object.c: Added object / object collision.
+
+	* objtypes.c, objtypes.h: Added icon_mask to objtype struct.
+	* object.c: Use objtype.icon_mask as default mask.
+
+	* bitmask.c (bitmask_width, bitmask_height): New functions.
+
+	* bitmaskg.c: New module for bitmask generation, and made
+	extdata.c use it.
+
+	* objmask.h: Removed.  Contents moved into object.h.
+	* object.c (struct object): Simplified.
+	
+	* bitmaskr.c: New module.
+	
+	* game.c (do_input): Experimental jumping physics.
+
+	* object.c (object_call): New function to call methods.
+	
+	* object.c (object_move_until_collision_with_map_tiles): Removed.
+	(object_move): New function to move object, with collisions.
+
+	* object.h: Got rid of "cvar." prefix in object struct.
+	
+	* object.c (object_collides_with_map_tiles_at): Added.
+	(object_will_collide_with_map_tiles): Removed.
+
+	* object.c, object.h, objmask.h: Five collision masks instead of
+	one.  Renamed *_collision_mask to *_mask.
+
+	* object.c, object.h: Added object mass.
+
+	* editor/mdstarts.c (event_layer): Cleaned up.
+
+2001-04-07  Peter Wang  <tjaden@@psynet.net>
+
+	* render.c (render_lights): Made public, and made
+	editor/mdlights.c use it.
+
+	* editor/mdobject.c (event_layer): Cleaned up.
+	* editor/mdlights.c (event_layer): Cleaned up.
+
+	* editor/mdstarts.c, editor/mdlights.c: Use path_share for icon.
+
+	* map.c, map.h (map_link_object_bottom): Added.
+	* editor/mdobject.c: Added raise / lower actions.
+
+	* editor/mdobject.c (do_object_pickup): Whoops, a tiny mistake
+	made this not work (it searched for icon instead of name).
+
+	* game.c: Basic testing collision detection.
+	
+	* object.c: Added collision detection functions.
+	
+	* object.c (object_destroy): Free layers, lights and mask.
+
+	* object.c, object.h: Added object_set_collision_mask,
+	object_remove_collision_mask.  Bindings in bindings.c.
+
+	* editor/mdobject.c: Highlight object if mouse moves over it.
+
+	* object.c (object_draw_lit_layers): Added.
+	* magic/magic4x4.c (draw_lit_magic_sprite): Added.
+
+	* object.c (object_bounding_box): New function.
+
+	* editor/mdobject.c (draw_layer): Use object_draw_layers and
+	object_draw_lights.
+
+	* object.c: object.cvar.x and object.cvar.y now represent the
+	centre of the object.  Lots of consequential changes.
+
+	* object.c (object_draw_layers, object_draw_lights): Moved these
+	functions from render.c.
+
+	* objmin.h: New header to minimise dependence on object.h.
+
+	* map.c: Removed unused variable map_filename.
+
+	* object.c (object_move_layer, object_move_light): Added, with
+	bindings in bindings.c
+
+	* objlayer.h, objlight.h: Moved object layer and object light
+	structs from object.h into these new files.  Renamed object_layer
+	to objlayer and object_light to objlight.
+
+2001-04-05  Peter Wang  <tjaden@@psynet.net>
+
+	* Makefile: Added optimisations.  A lot faster :-)
+
+	* magic/magicrt.c: New module, for translucent, rotated magic
+	bitmaps.
+
+2001-04-01  Peter Wang  <tjaden@@psynet.net>
+
+	* camera.c: Now handles the mouse-cursor-pushes-display idea,
+	and... soft camera!
+
+	* Merged magic4x4.h and magicrot.h.
+
+	* Remodeled the object light source API to the layers API.
+	
+	* object.h: Added object layers.
+	* object.c, bindings.c: Added relevant functions.
+
+	* error.c (error): Function to abort in case of serious errors.
+
+	* ug/ug.h, ug/ugevent.c: New ug_event_t typedef replaces void *
+	for event data.
+
+	* object.h: Added light_source cvar.
+	* object.c (object_set_light_source): Added.
+	* bindings.c (bind_object_set_light_source): Added.
+	* render.c: Added code to handle.
+
+	* object.h: Moved loose object_t C variables into cvar
+	substructure and made consequential changes to other files.
+
+	* mapfile.c (map_load): Added warning option, so maps can be
+	loaded even if some resources missing (useful for loading old
+	maps, etc.)
+
+	* magic/magic4x4.c (draw_trans_magic_sprite): New function.
+
+2001-03-31  Peter Wang  <tjaden@@psynet.net>
+
+	* camera.c: New module to handle cameras.
+
+	* object.c: Added helper functions for getting and setting table
+	values.
+
+	* magic/magicrot.c (rotate_scaled_magic_sprite): Fixed clipping.
+
+2001-03-30  Peter Wang  <tjaden@@psynet.net>
+
+	* Added create_lightmap_from_bitmap to rpxutil for pllight.lua
+	(new script).
+
+	* object.h: Added objid_t typedef.
+
+	* render.c: Enabled some simple object rendering.
+
+	* game.c (game): New module.
+
+	* editor/selbar.c: Removed bottom set of Up / Down buttons in the
+	selector bar, and resized the top set a little.
+
+	* src/editor/editor.c, data/font/font.dat: Added a new font.
+	* Removed newfont.c stuff.
+
+2001-01-24  Peter Wang  <tjaden@@psynet.net>
+
+	* Took out newfont.c for now, as it does not work with Allegro
+	versions >= 3.9.34.
+	
+2000-12-23  Peter Wang  <tjaden@@psynet.net>
+
+	* Cleaned up some list things.
+
+2000-11-26  Peter Wang  <tjaden@@psynet.net>
+
+	* Object editing in map editor works again.
+
+2000-11-25  Peter Wang  <tjaden@@psynet.net>
+
+	* objtypes.c: Renamed object_type_t to objtype_t and changed
+	tableref to init_func.
+
+	* Stripped out a lot of objects stuff.
+	
+	* mylua.c, mylua.h: New module to contain a personalised Lua API
+	(missing lua_ prefix mostly).
+
+	* Moved loadhelp.c stuff into loaddata.c.
+
+	* Made many linked lists use the list.h interface.
+
+2000-11-23  Peter Wang  <tjaden@@psynet.net>
+
+	* Siphoned off enough of the Lua using parts to make the program
+	compile and link again (only map editor functional).
+
+	* Converted some of the game engine to Lua 4.0.  Got really bored.
+	I was going to throw out most of that code anyway...
+
+	* luahelp.c: New module to include Lua related helper functions.
+	(lua_checkargs): Simpler argument checking mechanism.
+
+	* Updated rpxutil.c for Lua 4.0 and Allegro const-correctness.
+
+2000-07-06  Peter Wang  <tjaden@@psynet.net>
+
+	* hub.c: Now uses the console to initiate games and connections.
+
+2000-07-05  Peter Wang  <tjaden@@psynet.net>
+
+	* hub.c: New module, to be the central program loop.
+
+	* console.c: Started on a simple console system (using Lua).
+
+2000-07-04  Peter Wang  <tjaden@@psynet.net>
+
+	* Made client do collision detection when moving objects, since
+	they were going through walls, etc. too often.  Not sure if this
+	will turn out well, since client has impure data.
+
+	* Got object movement replication going at a decent rate.  The
+	server now only sends replication packets every render loop, not
+	every logic loop.  The client, however, polls for packets every
+	logic loop (they could arrive at any time).
+	
+	* gameloop.c: Scrapped old file, which was a quick hack to test
+	out a few ideas, and restarted.
+
+2000-07-03  Peter Wang  <tjaden@@psynet.net>
+
+	* Started playing around with replication, then making things
+	ready for real replication.
+	* gamenet.c: New module.
+
+	* Moved "magic" stuff into own directory.
+
+	* Derived network client/server framework from George Foot's code,
+	and merged into source tree (under `net' subdirectory).
+
+2000-07-02  Peter Wang  <tjaden@@psynet.net>
+
+	* Cleaned up code, including making editor and game share init.
+
+	* Thought a bit about networking, wrote up in network.txt.
+
+	* objanim.c: New object render mode: simple, looped animation.
+	* bdobject.c (object_set_visual_anim): Set render mode from Lua.
+
+	* Decoupled object class from map.  New module object.c manages
+	creation and destruction, leaving map.c to linking and unlinking
+	objects from a linked list.
+
+2000-07-01  Peter Wang  <tjaden@@psynet.net>
+
+	* gameloop.c: Hackish attempt at player and object movement
+	(collision detection with tiles, gravity, walkings, jumping).
+
+	* object.h: Made object (x, y) `fixed' type.
+
+	* bdobject.c: Objects can now associate a set of collision mask to
+	themselves (set_collion_masks)
+
+	* map.c (map_generate_tile_mask): Generates a tile mask for a map.
+
+	* magicld.c extended to load specially marked bitmaps as bitmasks,
+	and renamed to extdata.c.  Function now `load_extended_datafile'.
+
+	* bitmask.c: New module, which will be used to speed up object to
+	tile collision detection.
+
+	* editor/mdstarts.c: New module to edit map start locations.
+	* mapfile.c: Load and save chunks for them.
+
+	* `map_object_list_t' renamed to `map_image_t' a la The Gimp.
+
+	* mapfile.c (map_load): Rearranged so that it may load chunks in
+	any logical order.
+	(map_save): Rearranged so that chunks may be omitted if not
+	required.
+
+	* magicrot.c: New module to handle magic sprite rotations (hack of
+	rotate.c from Allegro).
+
+	* editor/mdobject.c (event_layer): Got rid of a really ridiculous
+	jump-through-hoops line.
+
+2000-06-30  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/mdobject.c, render.c: Made objects' (x, y) coordinates
+	mean the top-left corner, rather than the centre of the sprite.
+	
+	* Implemented ``rendering modes'' for objects, and added `layered'
+	mode.  Original mode named `bitmap' mode.
+	* objlayer.c: New module to help out with this.
+
+	* Wrote tilelayers.scm plugin for Gimp... in Scheme :-)
+	
+	* gameloop.c (game_loop): Objects get a `process' loop.  Used it
+	to test out lightamp animation driven in Lua.
+
+	* map.c (map_object_create): Objects begin with their icon as
+	their visual rep.
+
+	* render.c (render_objects): Now renders objects.
+
+	* bdobject.c (__export__set_visual): Objects may set their own
+	visual representation from Lua scripts (set_visual function).
+
+	* map.c (map_object_create): An object's init function is called
+	when it is created.
+
+	* map.h (object_t): Changed object_t structure (e.g. removed icon).
+	* editor/mdobject.c, objtypes.c, mapfiles.c: Accompanying changes.
+
+2000-06-29  Peter Wang  <tjaden@@psynet.net>
+
+	* mapfile.c: Simple object loading and saving (doesn't do anything
+	in the engine).
+
+	* objtypes.c: New module to keep track of object types.
+
+	* Made editor and game share script executing, object loading, and
+	bindings code.  New modules or renamed: bdobject.c, bdstore.c,
+	bindings.c, scripts.c.
+
+	* luastack.c: New file (function extracted from Lua sources) to
+	provide a stack traceback for Lua scripts fail.
+
+	* magicld.c: Modified so only converts datafile bitmaps if missing
+	'MAGK' datafile id.
+
+	* Removed resource.c, replaced with simpler path.c.
+
+	* loaddata.c, loadhelp.c: New module, so that the game and editor
+	share tile and light loading code.
+
+	* editor/mdobject.c: Sets mouse cursor to selected object type.
+
+	* editor/cursor.c: New module for helping to set mouse cursors.
+
+	* Prefixed editing mode filenames with `md'.
+
+	* render.c: Tile and light rendering at pixel offsets.
+
+2000-06-28  Peter Wang  <tjaden@@psynet.net>
+
+	* Beginnings of game engine.
+
+	* Rearranged directory structure a little (files that could be
+	used in engine moved out of editor).
+
+	* editor/mapfile.c: Really basic map loading and saving.
+
+	* editor/menu.c: The first menu (new, load, save, quit items).
+
+	* ug/ugbutton.c: Added `extra' helpers, for ug_menu.
+
+	* ug/ugmenu.c: New widget.
+
+	* editor/magic4x4.c (unget_magic_bitmap_format): New function
+	(makes some code in edselect.c much cleaner).
+
+	* editor/editarea.c (event): Added panning.
+
+	* editor/objects.c: Added object pick up.
+
+2000-06-27  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/objects.c: New module.  A lot of code was copied from
+	lights.c, suggesting it's possible that lights would work well as
+	an object type.
+
+	* Started embedding Lua into editor.
+
+	* editor/lights.c (lights_toggle): Toggles between showing and not
+	showing lighting effects.
+	* editor/editarea.c (event): Function bound to space bar.
+
+	* Removed usage of Stonewheel.
+
+	* editor/lights.c: Added light selecting.
+
+	* Merged lightgen.c into rpxutil.c
+
+	* Embedded Lua into gendata.c (renamed to rpxutil.c).  No more
+	silly script parsing.
+
+2000-06-26  Peter Wang  <tjaden@@psynet.net>
+
+	* Wrote lightgen.c utility to generate light maps.
+
+	* editor/lights.c (event_layer): Right click to remove light,
+	click-drag to move existing light.
+
+	* gui/gui.c (gui_main): Added event GUI_EVENT_KEY_HOLD.
+
+	* editor/magicld.c (load_magic_datafile): New function to load in
+	datafiles and automatically convert bitmaps into "magic" format.
+	* store/store.c (store_load_ex): New function to cope with custom
+	loaders, like the above.
+
+	* editor/lights.c: Hackishly put in some test lighting code.
+	Really, really slow, but looks cool!
+
+2000-06-25  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/map.c: Added lights related stuff.
+
+	* editor/lights.c: New editing mode.
+
+	* editor/editarea.c (event): Scroll map with arrow keys.
+
+	* editor/map.c (map_resize): Fixed problems with `realloc'd areas
+	not being cleared.
+
+2000-06-24  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/tiles.c (event_layer): Added tile picking.
+
+2000-06-23  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/tiles.c: Made tile inserting operational (barely).
+
+	* editor/map.c: New module (handle map structures).
+
+	* Made most files use Allegro's Unicode string functions.
+
+	* Replaced Wumpus with Store, and made tiles.c use it.
+
+2000-06-20  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/editarea.c: New module.
+
+2000-06-19  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/tiles.c: Made tile lists see the selectbar state
+	individually (i.e. each remembers how far down the list you have
+	scrolled, and which tile is selected)
+
+	* editor/selbar.c: Made selection list support multiple lists
+	(via left/right arrows on top).
+
+	* editor/modemgr.c: Added editing mode management.
+
+	* ug/uglayout.c: Added routines for dynamic building dialog layouts.
+
+	* editor/panelsel.c renamed to selbar.c (selectbar)
+
+2000-06-18  Peter Wang  <tjaden@@psynet.net>
+
+	* Wrote tools/gendata.c utility, to do a "grab from grid"
+	operation in batch mode.
+
+	* editor/selector.c: Made selector functional, then separated
+	selector.c into panelsel.c and edsel.c (widget type), so maybe can
+	reuse the widget later.
+
+	* ug/ugwidget.c: Added widget introspection routines.
+
+	* ug/ugdialog.c (ug_dialog_widget): Allowed dialog to look for its
+	widgets by an id.
+
+	* ug/ugwidget.c (ug_widget_create): Gave widgets an id ability.
+	
+	* ug/ugdialog.c: Added dialog introspection routines (x, y, w, h).
+
+	* gui/guiwmdef.c, gui.h: Removed GUI_EVENT_MOUSE_OVER and added
+	GUI_HINT_STEALFOCUS (grabs focus if mouse is over the window).
+
+	* Imported Wumpus from an old Red Pixel II code base and started
+	making tiles.c use it.
+
+	* editor/resource.c: Start of resources module.
+
+	* Improved UG's ideas of events and signals, but still not perfect
+	(e.g. too much code duplication in ug_event.c)
+
+2000-06-17  Peter Wang  <tjaden@@psynet.net>
+
+	* editor/selector.c: Started selector module.
+
+	* Reorganised directory structure.
+
+	* guidirty.c (add_rect): Added overlap checking.
+
+	* guiwmdef.c (window_shade): Added window shading.
+
+	* ugdialog.c (layout_dialog): Rewrote layout routine.  Much nicer
+	and easier to use.
+
+	* ugtheme.c: Added UG themes support, with a The Paw theme and a
+	Motif theme.
+
+	* ugdialog.c (layout_dialog): Added simple layout engine.
+
+2000-06-16  Peter Wang  <tjaden@@psynet.net>
+
+	* Started UG, the primitive widget set for GUI.
+
+2000-06-15  Peter Wang  <tjaden@@psynet.net>
+
+	* guidirty.c: Added dirty rectangles.
+
+2000-06-11  Peter Wang  <tjaden@@psynet.net>
+
+	* guiwmdef.c: Added GUI_EVENT_MOUSE_OVER.
+
+2000-06-10  Peter Wang  <tjaden@@psynet.net>
+
+	* Started GUI system (core + window manager).
+
+	* Started mucking about with Stonewheel.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d7 3
+@

@@ -1,0 +1,43 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_mylua_h
+#define __included_mylua_h
+
+
+#include <lua.h>
+
+
+typedef int lua_ref_t;
+typedef int lua_tag_t;
+
+extern lua_State *lua_state;
+
+int mylua_open (int stacksize);
+void mylua_close ();
+
+int lua_dofile_path (lua_State *L, const char *filename);
+int lua_checkargs (lua_State *L, const char *argtypes);
+
+
+#endif
+@

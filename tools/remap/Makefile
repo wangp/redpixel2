@@ -1,6 +1,7 @@
-CFLAGS = -Wall -g
-LDFLAGS = -s
-LDLIBS = `allegro-config --libs` -llua -llualib
+CC := gcc
+CFLAGS := -Wall -g
+LDFLAGS := -s
+LDLIBS := `allegro-config --libs` -llua -llualib
 
 remap: remap.o 
 

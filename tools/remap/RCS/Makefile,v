@@ -1,0 +1,41 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2002.01.12.20.05.53;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@CC := gcc
+CFLAGS := -Wall -g
+LDFLAGS := -s
+LDLIBS := `allegro-config --libs` -llua -llualib
+
+remap: remap.o 
+
+remap.o: remap.c remap.inc
+
+remap.inc: remap.lua
+	(echo -e '/* generated from remap.lua */\n'; \
+	echo 'static const char *remap_script = "'; \
+	cat remap.lua | sed 's/\\/\\\\/g' | sed 's/"/\\"/g'; \
+	echo '";') > remap.inc
+
+
+clean:
+	rm -f remap.o remap
+@

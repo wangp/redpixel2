@@ -1,5 +1,12 @@
+2002-01-13  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Started using RCS.
+
 2002-01-12  Peter Wang  <tjaden@users.sourceforge.net>
 
+	* basic-player.lua: Made player sprite face the direction that the
+	mouse is aiming in.
+	
 	* magic/magicrot.c, magic/magicrot.inc: Unified the magic rotation
 	function code somewhat.  Less code, but more importantly, we get
 	pivot_magic_sprite_v_flip.

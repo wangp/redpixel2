@@ -1,0 +1,35 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2002.01.12.20.08.08;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@ALLEGRO = $(HOME)/allegro
+CFLAGS = -Wall -g -I$(ALLEGRO)/tools
+LDFLAGS = -s
+LOADLIBES = $(ALLEGRO)/lib/unix/libaldat.a `allegro-config --libs` -llua
+
+ifdef NO_LOADPNG
+	CFLAGS += -DNO_LOADPNG
+else
+	LOADLIBES += -lldpng -lpng
+endif
+
+rpxutil: rpxutil.c
+@

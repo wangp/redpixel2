@@ -1,0 +1,40 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_timeout_h
+#define __included_timeout_h
+
+
+#include "timeval.h"
+
+
+typedef struct {
+    struct timeval timeout;
+} timeout_t;
+
+
+void timeout_set (timeout_t *, unsigned long msec);
+int timeout_test (timeout_t *);
+
+
+#endif
+@

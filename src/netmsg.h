@@ -4,6 +4,12 @@
 
 #define NETWORK_PROTOCOL_VERSION	0
 
+/* Libnet has a maximum packet size of 512 bytes, for channels.  Conns
+   take up some of those bytes (too lazy to check how many), so we
+   impose our own limit. */
+
+#define NETWORK_MAX_PACKET_SIZE		500
+
 
 /* Network messages are between clients and the server.  Messages are
    distinguished by the first byte in the packet.  The rest of the
@@ -168,6 +174,13 @@ enum {
 
        Args: long len, char type[], long object_id, float x, float y,
              float xv, float yv, byte collision_tag.
+
+       This is followed by extra fields for the proxy object.
+       Each field is of the following format:
+
+       For a float: 'f', long len, char name[], float value
+
+       The packet is terminated with a null character.
      */
 
     MSG_SC_GAMEINFO_OBJECT_CREATE = 'c',

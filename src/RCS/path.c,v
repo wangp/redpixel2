@@ -1,0 +1,54 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* path.c
+ *
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+#include "path.h"
+
+
+char *path_share[] = {
+    "data/",
+    "/usr/local/share/redpixel2/",
+    "/usr/share/redpixel2/",
+    0
+};
+
+
+void path_init ()
+{
+    /*
+      XXX:
+       - add in home directories, etc. 
+       - unicodify
+       - check search order
+    */
+}
+
+
+void path_shutdown ()
+{
+}
+@

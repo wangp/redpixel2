@@ -1,0 +1,32 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.15.08;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_modebar_h
+#define __included_modebar_h
+
+
+void modebar_install (int x, int y, int w, int h);
+void modebar_uninstall ();
+
+
+#endif
+@

@@ -1,0 +1,35 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_mapfile_h
+#define __included_mapfile_h
+
+
+struct map;
+
+
+int map_save (struct map *map, const char *filename);
+struct map *map_load (const char *filename, int is_client, int *warning);
+
+
+#endif
+@

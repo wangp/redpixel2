@@ -1,0 +1,58 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.16.35;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* bindings.c
+ *
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+#include "bindings.h"
+#include "mylua.h"
+
+
+/* Import bindings.  */
+
+#include <allegro.h>
+#include "extdata.h"
+#include "gamesrv.h"
+#include "loaddata.h"
+#include "store.h"
+#include "object.h"
+#include "objtypes.h"
+
+
+#include "bindings.inc"
+
+
+/* Module stuff.  */
+
+void bindings_init ()
+{
+    DO_REGISTRATION(lua_state);
+}
+
+
+void bindings_shutdown ()
+{
+}
+@

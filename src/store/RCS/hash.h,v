@@ -1,0 +1,48 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.15.41;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_hash_h
+#define __included_hash_h
+
+
+struct bucket {
+    char *key;
+    void *data;
+    struct bucket *next;
+};
+
+struct hash_table {    
+    int size;
+    struct bucket **table;
+};
+
+
+struct hash_table *hash_construct(struct hash_table *table, int size);
+void *hash_insert(const char *key, void *data, struct hash_table *table);
+void *hash_lookup(const char *key, struct hash_table *table);
+void *hash_del(const char *key, struct hash_table *table);
+void hash_enumerate(struct hash_table *table, void (*callback)(const char *, void *));
+void hash_free(struct hash_table *table, void (*func)(void *));
+
+
+#endif
+@

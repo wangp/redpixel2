@@ -29,6 +29,8 @@ Objtype {
 	self:set_mask (mask_left, "/basic/player/mask/left", cx, cy)
 	self:set_mask (mask_right, "/basic/player/mask/right", cx, cy)
 
+	self.health = 100
+
 	self.fire_delay = 0
 
 	-- XXX: temp
@@ -57,6 +59,11 @@ Objtype {
 	end
 
 	function self.receive_damage (self, damage)
+	    self.health = self.health - damage
+	    if self.health <= 0 then
+		spawn_object ("player-death-fountain", self.x, self.y)
+		self:destroy ()
+	    end
 	    spawn_blood (self.x + %cx, self.y + %cy, 100, 2000)
 	    -- XXX spread should be float
 	end
@@ -81,7 +88,6 @@ Objtype {
 	    self:add_light ("/basic/light/white-64", 0, 0)
 
 	    function self._client_update_hook (self)
-		function radian_to_bangle (rads) return rads * 128 / 3.1415 end
 		if self.last_aim_angle ~= self.aim_angle then
 		    local a = radian_to_bangle (self.aim_angle)
 		    local hflipped = (a < -63 or a > 63) or 0
@@ -99,5 +105,21 @@ Objtype {
 		end
 	    end
 	end
+    end
+}
+
+
+--
+-- Corpses
+--
+
+Objtype {
+    category = "player",
+    name = "player-death-fountain",
+    icon = "/basic/player/death-fountain/000",
+    nonproxy_init = function (self)
+	self:set_collision_flags ("")
+    end,
+    proxy_init = function (self)
     end
 }

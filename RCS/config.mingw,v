@@ -1,0 +1,32 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2002.01.12.20.14.00;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@# Configuration for Mingw Win32 build.
+
+PLAT_TARGET := -DTARGET_WINDOWS
+PLAT_CFLAGS := -DTHREADS_WIN32 -Iwin32/pdcurses/pdcurses
+PLAT_LDFLAGS := -mwindows
+PLAT_OBJDIR := obj/mingw
+PLAT_LIBS := -lalleg -llua -llualib -lnet -lwsock32 \
+		win32/pdcurses/pdcurses/win32/pdcurses.a
+PLAT_EXE := .exe
+@

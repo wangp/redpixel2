@@ -1,0 +1,36 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.01.12.20.15.45;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* ugblank.c
+ *
+ * Peter Wang <tjaden@@users.sourceforge.net>
+ */
+
+
+#include "ug.h"
+#include "uginter.h"
+
+
+ug_widget_class_t ug_blank = {
+    0, 0, 0
+};
+@
