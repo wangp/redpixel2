@@ -225,9 +225,10 @@ local player_nonproxy_init = function (self)
 		corpse:add_creation_field ("_internal_stalk_me")
 
 		-- drop a backpack after the corpse finishes animation
-		local ammo, id = self._ammo, self.id -- must do this
+		local x, y = self.x, self.y	     -- must do this
+		local ammo, id = self._ammo, self.id
 		corpse.drop_backpack = function ()
-		    local backpack = spawn_object ("basic-backpack", self.x, self.y)
+		    local backpack = spawn_object ("basic-backpack", x, y)
 		    backpack.ammo = ammo
 		    backpack.original_owner = id
 		end
