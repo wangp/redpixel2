@@ -3,6 +3,9 @@
 * easy
 
 ** code
+gamma
+esc shouldn't quit
+some messages don't refresh the lobby screen
 lights for sparks?
 screen shakes for explosions
 recoil from getting blasted [make amount damage dependent]
@@ -16,16 +19,17 @@ make lightamp respawn time longer
 vulcan [graphics/sound]
 blood lust visuals
 food consume sound
+flame for torch
+health icons
 
 * harder
 
 ** more interesting/necessary
-do quick gui with agup or UG
+better gui
 what-weapons-collected display
-radar
+radar/scanner
 map scrolly thingi
 lua gc jerking
-gamma
 corpses, backpacks on crates (not hard, but want to do it elegantly, not a hack)
 
 ** less interesting

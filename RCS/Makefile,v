@@ -1,9 +1,14 @@
-head	1.27;
+head	1.28;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.28
+date	2002.09.07.13.46.02;	author tjaden;	state Exp;
+branches;
+next	1.27;
 
 1.27
 date	2002.08.17.03.33.59;	author tjaden;	state Exp;
@@ -145,9 +150,9 @@ desc
 @@
 
 
-1.27
+1.28
 log
-@Updated to Lua 5.0 alpha.
+@Compile with gcc -pipe for a bit more speed
 @
 text
 @##
@@ -166,7 +171,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
 	  -I libnet/include -I lua-5.0-alpha/include \
-	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
+	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
@@ -417,6 +422,17 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.27
+log
+@Updated to Lua 5.0 alpha.
+@
+text
+@d17 1
+a17 1
+	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
 @
 
 

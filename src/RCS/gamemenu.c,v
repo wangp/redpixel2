@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.09.07.13.45.30;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.08.10.13.18.35;	author tjaden;	state Exp;
@@ -40,10 +45,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Incomplete temporary lobby/frontend code using Allegro GUI
-(from ~3 weeks ago).
+@Changes for Windows
 @
 text
 @/* gamemenu.c - menu.c was already taken
@@ -61,6 +65,14 @@ text
 #include "screen.h"
 #include "store.h"
 #include "textout.h"
+
+
+/* XXX */
+#ifdef TARGET_WINDOWS
+# define INET_DRIVER	NET_DRIVER_WSOCK_WIN
+#else
+# define INET_DRIVER	NET_DRIVER_SOCKETS
+#endif
 
 
 typedef enum {
@@ -124,8 +136,8 @@ static int mp_client_server (void)
 	
     /* XXX should make server support multiple network types
        then use NET_DRIVER_LOCAL for the client */
-    if ((server_init (client_server_interface, NET_DRIVER_SOCKETS) < 0) ||
-	(client_init (name, NET_DRIVER_SOCKETS, "127.0.0.1") < 0)) {
+    if ((server_init (client_server_interface, INET_DRIVER) < 0) ||
+	(client_init (name, INET_DRIVER, "127.0.0.1") < 0)) {
 	allegro_message (
 	    "Error initialising game server or client.  Perhaps another\n"
 	    "game server is already running on the same port?\n");
@@ -151,17 +163,19 @@ static int mp_client_server (void)
 static int mp_client (void)
 {
     static char host[1024] = "localhost";
-    static char name[1024];
+    static char name[1024] = "gutless";
     static int virgin = 1;
 
     if (virgin) {
-	ustrzcpy (name, sizeof name, getenv ("USER"));
+	char *user = getenv ("USER");
+	if (user)
+	    ustrzcpy (name, sizeof name, user);
 	virgin = 0;
     }
 
     if (ask_host_and_name (host, sizeof host, name, sizeof name) == 0) {
 	messages_init ();
-	if (client_init (name, NET_DRIVER_SOCKETS, host) == 0) {
+	if (client_init (name, INET_DRIVER, host) == 0) {
 	    sync_init (NULL);
 	    client_run (0);
 	    sync_shutdown ();
@@ -368,6 +382,29 @@ void gamemenu_shutdown (void)
     destroy_bitmap (dbuf);
     store_unload (menu_data_file);
 }
+@
+
+
+1.6
+log
+@Incomplete temporary lobby/frontend code using Allegro GUI
+(from ~3 weeks ago).
+@
+text
+@d18 8
+d87 2
+a88 2
+    if ((server_init (client_server_interface, NET_DRIVER_SOCKETS) < 0) ||
+	(client_init (name, NET_DRIVER_SOCKETS, "127.0.0.1") < 0)) {
+d114 1
+a114 1
+    static char name[1024];
+d118 3
+a120 1
+	ustrzcpy (name, sizeof name, getenv ("USER"));
+d126 1
+a126 1
+	if (client_init (name, NET_DRIVER_SOCKETS, host) == 0) {
 @
 
 

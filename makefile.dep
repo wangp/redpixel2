@@ -30,11 +30,12 @@ $(OBJDIR)/extdata.o: src/extdata.c src/bitmask.h src/bitmaskg.h src/extdata.h \
  src/magic/magic4x4.h
 $(OBJDIR)/fps.o: src/fps.c src/fps.h
 $(OBJDIR)/gameinit.o: src/gameinit.c libnet/include/libnet.h src/bitmaskr.h \
- src/blod.h src/explo.h src/extdata.h src/fastsqrt/fastsqrt.h \
- src/gameinit.h src/jpgalleg/jpgalleg.h src/loadaud/loadaud.h \
- src/loaddata.h src/store/store.h src/magic/magic4x4.h src/mylua.h \
- lua-5.0-alpha/include/lua.h lua-5.0-alpha/include/lauxlib.h \
- src/object.h src/id.h src/objtypes.h src/path.h
+ src/blod.h src/error.h src/explo.h src/extdata.h \
+ src/fastsqrt/fastsqrt.h src/gameinit.h src/jpgalleg/jpgalleg.h \
+ src/loadaud/loadaud.h src/loaddata.h src/store/store.h \
+ src/magic/magic4x4.h src/mylua.h lua-5.0-alpha/include/lua.h \
+ lua-5.0-alpha/include/lauxlib.h src/object.h src/id.h src/objtypes.h \
+ src/path.h
 $(OBJDIR)/gamemenu.o: src/gamemenu.c src/editor/editor.h src/extdata.h \
  src/lobby.h src/magic/magic4x4.h src/editor/menu.h src/screen.h \
  src/store/store.h src/textout.h src/messages.h src/sync.h \
@@ -45,7 +46,7 @@ $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
  src/loaddata.h src/store/store.h src/path.h
 $(OBJDIR)/lobby.o: src/lobby.c src/lobby.h src/messages.h
 $(OBJDIR)/main.o: src/main.c libnet/include/libnet.h src/client.h \
- src/server/clsvface.h src/editor/editor.h src/gameinit.h \
+ src/server/clsvface.h src/editor/editor.h src/error.h src/gameinit.h \
  src/gamemenu.h src/getoptc.h src/messages.h src/screen.h \
  src/server/server.h src/id.h src/sync.h src/server/textface.h \
  src/timeval.h
@@ -61,7 +62,7 @@ $(OBJDIR)/messages.o: src/messages.c src/magic/magic4x4.h src/messages.h \
 $(OBJDIR)/mylibnet.o: src/mylibnet.c libnet/include/libnet.h src/netmsg.h \
  src/packet.h
 $(OBJDIR)/mylua.o: src/mylua.c lua-5.0-alpha/include/lua.h \
- lua-5.0-alpha/include/lualib.h src/mylua.h \
+ lua-5.0-alpha/include/lualib.h src/error.h src/mylua.h \
  lua-5.0-alpha/include/lauxlib.h src/path.h src/ticks.h src/client.h \
  src/explo.h src/extdata.h src/loaddata.h src/store/store.h \
  src/server/svgame.h src/id.h src/object.h src/objtypes.h \

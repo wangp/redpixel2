@@ -15,6 +15,14 @@
 #include "textout.h"
 
 
+/* XXX */
+#ifdef TARGET_WINDOWS
+# define INET_DRIVER	NET_DRIVER_WSOCK_WIN
+#else
+# define INET_DRIVER	NET_DRIVER_SOCKETS
+#endif
+
+
 typedef enum {
     M_END,
     M_PROC,
@@ -76,8 +84,8 @@ static int mp_client_server (void)
 	
     /* XXX should make server support multiple network types
        then use NET_DRIVER_LOCAL for the client */
-    if ((server_init (client_server_interface, NET_DRIVER_SOCKETS) < 0) ||
-	(client_init (name, NET_DRIVER_SOCKETS, "127.0.0.1") < 0)) {
+    if ((server_init (client_server_interface, INET_DRIVER) < 0) ||
+	(client_init (name, INET_DRIVER, "127.0.0.1") < 0)) {
 	allegro_message (
 	    "Error initialising game server or client.  Perhaps another\n"
 	    "game server is already running on the same port?\n");
@@ -103,17 +111,19 @@ static int mp_client_server (void)
 static int mp_client (void)
 {
     static char host[1024] = "localhost";
-    static char name[1024];
+    static char name[1024] = "gutless";
     static int virgin = 1;
 
     if (virgin) {
-	ustrzcpy (name, sizeof name, getenv ("USER"));
+	char *user = getenv ("USER");
+	if (user)
+	    ustrzcpy (name, sizeof name, user);
 	virgin = 0;
     }
 
     if (ask_host_and_name (host, sizeof host, name, sizeof name) == 0) {
 	messages_init ();
-	if (client_init (name, NET_DRIVER_SOCKETS, host) == 0) {
+	if (client_init (name, INET_DRIVER, host) == 0) {
 	    sync_init (NULL);
 	    client_run (0);
 	    sync_shutdown ();

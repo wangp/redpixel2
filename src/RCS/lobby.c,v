@@ -1,6 +1,28 @@
-/* lobby.c -- trashy temporary frontend using Allegro GUI
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.09.08.01.07.05;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* lobby.c -- trashy temporary frontend using Allegro GUI
  *
- * Peter Wang <tjaden@users.sourceforge.net>
+ * Peter Wang <tjaden@@users.sourceforge.net>
  */
 
 
@@ -265,3 +287,4 @@ const char *get_client_lobby_dialog_input (void)
 {
     return new_input;
 }
+@
