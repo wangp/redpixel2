@@ -67,8 +67,8 @@ static void move_camera_closer_to_target (camera_t *cam)
     dx = cam->target_x - cam->x;
     dy = cam->target_y - cam->y;
     
-    cam->xv += dx * 0.17;	/* [0.1] */
-    cam->yv += dy * 0.17;	/* [0.1] */
+    cam->xv += dx * 0.11;	/* [0.1] */
+    cam->yv += dy * 0.11;	/* [0.1] */
 
     cam->x += cam->xv;
     cam->y += cam->yv;
@@ -76,7 +76,7 @@ static void move_camera_closer_to_target (camera_t *cam)
     cam->xv *= 0.35;		/* [0.9] */
     cam->yv *= 0.35;		/* [0.9] */
 
-    /* For a fun but effect, replace the dampening values with the
+    /* For a fun effect, replace the dampening values with the
      * ones in [brackets].  */
 }
 
