@@ -10,6 +10,7 @@
 #include "magic4x4.h"
 #include "menu.h"
 #include "store.h"
+#include "textout.h"
 
 
 typedef enum {
@@ -211,23 +212,6 @@ static menu_t root_menu[] =
  */
 
 
-static void textout_magic (BITMAP *bmp, FONT *font, const char *buf,
-			   int x, int y, int color)
-{
-    int len = text_length (font, buf);
-    int rtm = text_mode (-1);
-    BITMAP *tmp;
-
-    tmp = create_magic_bitmap (len, text_height (font));
-    clear_bitmap (tmp);
-    textout (tmp, font, buf, 0, 0, color);
-    draw_magic_sprite (bmp, tmp, x, y);
-    destroy_bitmap (tmp);
-
-    text_mode (rtm);
-}
-
-
 #define X_CENTRE	(SCREEN_W/2)
 #define Y_START		80
 #define Y_SPACING	20
@@ -257,6 +241,7 @@ static void draw_menu (menu_t *menu, int selected)
     /* the text */
     for (i = 0; menu[i].type != M_END; i++) {
 	if (menu[i].label) {
+	    text_mode (-1);
 	    textout_magic (dbuf, fnt, menu[i].label,
 			   X_CENTRE - text_length (fnt, menu[i].label)/2,
 			   Y_START + (i * Y_SPACING),
