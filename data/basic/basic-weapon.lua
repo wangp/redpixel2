@@ -182,7 +182,7 @@ Weapon {
 	"/basic/weapon/bow/2arm003",
 	"/basic/weapon/bow/2arm004",
 	"/basic/weapon/bow/2arm005";
-	cx = 4, cy = 5, tics = 3
+	cx = 4, cy = 5, tics = 2
     },
     sound = "/basic/weapon/bow/sound"
 }
