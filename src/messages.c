@@ -14,12 +14,8 @@
 #include "timeout.h"
 
 
-typedef unsigned short ucs16_t;
-
-
 #define MAX_LINES	100
 #define VISIBLE_LINES	5
-#define MAX_INPUT_LEN	30
 #define SCROLL_SPEED	5000
 
 
@@ -29,33 +25,16 @@ static int top_line;
 
 static timeout_t next_scroll;
 
-static ucs16_t input_line[MAX_INPUT_LEN]; /* UCS-2 string */
-static int input_pos;
-static int input_enabled;
-static int input_blink;
 
-static FONT *fnt;
-static int text_colour;
-static int input_colour;
-
-
-static const char *ucs16_to_utf8 (const ucs16_t *text)
-{
-    return uconvert ((const char *) text, U_UNICODE, NULL, U_UTF8, 0);
-}
+/* forward declarations */
+static int ingame_messages_init (void);
 
 
 int messages_init (void)
 {
-    if (!(fnt = store_get_dat ("/basic/font/mini")))
+    if (ingame_messages_init () < 0)
 	return -1;
-    
-    text_colour = makecol24 (0xaf, 0xdf, 0xaf);
-    input_colour = makecol24 (0xaf, 0xaf, 0xff);
-    
     top_line = 0;
-    input_enabled = 0;
-    input_line[0] = 0;
     return 0;
 }
 
@@ -66,38 +45,6 @@ void messages_shutdown (void)
     for (i = 0; i < num_lines; i++)
 	free (lines[i]);
     num_lines = 0;
-}
-
-
-#define XMARGIN	4
-#define YMARGIN	2
-
-
-void messages_render (BITMAP *bmp)
-{
-    int i, y, h;
-    
-    y = YMARGIN;
-    h = text_height (fnt);
-
-    text_mode (-1);
-
-    for (i = top_line; i < num_lines; i++, y += h)
-	textout_right_trans_magic (bmp, fnt, lines[i],
-				   bmp->w/3 - XMARGIN, y,
-				   text_colour);
-
-    if (input_enabled) {
-	textout_right_trans_magic (bmp, fnt, ucs16_to_utf8 (input_line),
-				   bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
-				   input_colour);
-
-	if (input_blink & 0x8)
-	    textout_right_trans_magic (bmp, fnt, "_",
-				       bmp->w/3 - XMARGIN, y,
-				       input_colour);
-	input_blink = (input_blink+1) & 0xf;
-    }
 }
 
 
@@ -144,7 +91,97 @@ void messages_add (const char *fmt, ...)
 }
 
 
-const char *messages_poll_input (void)
+int messages_num_lines (void)
+{
+    return num_lines;
+}
+
+
+const char *messages_get_line (int i)
+{
+    return lines[i];
+}
+
+
+
+/*
+ * In-game messages interface.
+ *
+ * This was hurriedly separated from the previous code so the line
+ * between the two sections is a bit wiggly perhaps.
+ */
+
+
+#define MAX_INPUT_LEN	30
+
+
+typedef unsigned short ucs16_t;
+
+
+static ucs16_t input_line[MAX_INPUT_LEN]; /* UCS-2 string */
+static int input_pos;
+static int input_enabled;
+static int input_blink;
+
+static FONT *fnt;
+static int text_colour;
+static int input_colour;
+
+
+static const char *ucs16_to_utf8 (const ucs16_t *text)
+{
+    return uconvert ((const char *) text, U_UNICODE, NULL, U_UTF8, 0);
+}
+
+
+static int ingame_messages_init (void)
+{
+    if (!(fnt = store_get_dat ("/basic/font/mini")))
+	return -1;
+    
+    text_colour = makecol24 (0xaf, 0xdf, 0xaf);
+    input_colour = makecol24 (0xaf, 0xaf, 0xff);
+
+    input_enabled = 0;
+    input_line[0] = 0;
+
+    return 0;
+}
+
+
+#define XMARGIN	4
+#define YMARGIN	2
+
+
+void ingame_messages_render (BITMAP *bmp)
+{
+    int i, y, h;
+    
+    y = YMARGIN;
+    h = text_height (fnt);
+
+    text_mode (-1);
+
+    for (i = top_line; i < num_lines; i++, y += h)
+	textout_right_trans_magic (bmp, fnt, lines[i],
+				   bmp->w/3 - XMARGIN, y,
+				   text_colour);
+
+    if (input_enabled) {
+	textout_right_trans_magic (bmp, fnt, ucs16_to_utf8 (input_line),
+				   bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
+				   input_colour);
+
+	if (input_blink & 0x8)
+	    textout_right_trans_magic (bmp, fnt, "_",
+				       bmp->w/3 - XMARGIN, y,
+				       input_colour);
+	input_blink = (input_blink+1) & 0xf;
+    }
+}
+
+
+const char *ingame_messages_poll_input (void)
 {
     if ((num_lines > 0) && timeout_test (&next_scroll))
 	scroll_line ();
@@ -205,7 +242,7 @@ const char *messages_poll_input (void)
 }
 
 
-int messages_grabbed_keyboard (void)
+int ingame_messages_grabbed_keyboard (void)
 {
     return input_enabled;
 }
