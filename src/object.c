@@ -1168,11 +1168,15 @@ static inline int object_move (object_t *obj, int mask_num, map_t *map, float dx
 }
 
 
+/* Returns -1 if movement stopped short, 0 if moved without problems,
+ * 1 if moved but ramping required.
+ */
 static inline int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
 					   float dx, int ramp)
 {
     float idx;
     int ir;
+    int ret = 0;
 
     while (dx) {
 	idx = (ABS (dx) < 1) ? dx : SIGN (dx);
@@ -1182,6 +1186,8 @@ static inline int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *m
 		break;
 	if (ir > ramp)
 	    return -1;
+	if (ir != 0)
+	    ret = 1;
 
 	obj->x += idx;
 	if (ir) {
@@ -1192,7 +1198,7 @@ static inline int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *m
 	dx = (ABS (dx) < 1) ? 0 : SIGN (dx) * (ABS (dx) - 1);
     }
 
-    return 0;
+    return ret;
 }
 
 
@@ -1222,12 +1228,24 @@ void object_do_physics (object_t *obj, map_t *map)
     if (obj->xv != 0) {
 	int ramp = is_player (obj) ? object_ramp (obj) : 0;
 	if (ramp) {
-	    if (object_move_x_with_ramp (obj, ((obj->xv < 0) ? OBJECT_MASK_LEFT : OBJECT_MASK_RIGHT),
-					 map, obj->xv, ramp) < 0) {
-		/* object stopped short of an entire xv */
-		obj->xa = 0;
-		obj->xv = 0;
-		rep = 1;
+	    switch (object_move_x_with_ramp (obj, ((obj->xv < 0)
+						   ? OBJECT_MASK_LEFT
+						   : OBJECT_MASK_RIGHT),
+					     map, obj->xv, ramp)) {
+
+		case -1:
+		    /* object stopped short of an entire xv */
+		    obj->xa = 0;
+		    obj->xv = 0;
+		    rep = 1;
+		    break;
+		    
+		case 1:
+		    /* object required ramping to move */
+		    obj->xa /= 2;
+		    obj->xv /= 2;
+		    rep = 1;
+		    break;
 	    }
 	}
 	else {
