@@ -153,11 +153,22 @@ Objtype {
 ----------------------------------------------------------------------
 
 local death_fountain_update_hook = function (self)
-    self:replace_layer (0, format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
+    self:replace_layer (0,format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
     self.frame = self.frame + 1
     if self.frame > 30 then
 	self.frame = 30
-	self:remove_update_hook ()
+	if not self.is_proxy then
+	    self:remove_update_hook ()
+	else
+	    -- proxy: let the light remain for half a second more
+	    self:set_update_hook (
+		1000/2,
+		function (self)
+		    self:remove_all_lights ()
+		    self:remove_update_hook ()
+		end
+	    )
+	end
     end
 end
 
@@ -176,6 +187,7 @@ Objtype {
     end,
 
     proxy_init = function (self)
+	self:add_light ("/basic/light/white-32", 0, 0)
 	self:set_update_hook (1000/10, death_fountain_update_hook)
 	death_fountain_update_hook (self) -- set the initial layer
     end
