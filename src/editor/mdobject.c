@@ -178,11 +178,13 @@ static void lower_slot (ug_widget_t *p, ug_signal_t s, void *d)
     set_cursor_for_action ();
 }
 
+#if 0
 static void edit_slot (ug_widget_t *p, ug_signal_t s, void *d)
 {
     action = ACTION_EDIT;
     set_cursor_for_action ();
 }
+#endif
 
 static void snap_slot (ug_widget_t *p, ug_signal_t s, void *d)
 {
@@ -198,15 +200,17 @@ static ug_dialog_layout_t actions_layout[] =
     { UG_DIALOG_LAYOUT_BR },
     { &ug_button, -100, 16, "lower", lower_slot, NULL },
     { UG_DIALOG_LAYOUT_BR },
+#if 0
     { &ug_button, -100, 16, "edit", edit_slot, NULL },
     { UG_DIALOG_LAYOUT_BR },
+#endif
     { &ug_button, -100, 16, "snap", snap_slot, NULL },
     { UG_DIALOG_LAYOUT_END }
 };
 
 static void create_actions_box (void)
 {
-    actions_win = gui_window_create (150, 50, 50, 80, 0);
+    actions_win = gui_window_create (150, 50, 50, 70, 0);
     gui_window_hide (actions_win);
     gui_window_set_title (actions_win, "obj");
     gui_window_set_alpha (actions_win, 0x70);
