@@ -177,6 +177,7 @@ static void send_gameinfo_controls ()
     if (key[KEY_A]) controls |= CONTROL_LEFT;
     if (key[KEY_D]) controls |= CONTROL_RIGHT;
     if (key[KEY_W]) controls |= CONTROL_UP;
+    if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
     if (mouse_b & 1) controls |= CONTROL_FIRE;
 
     if (controls != last_controls)

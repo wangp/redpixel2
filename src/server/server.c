@@ -983,8 +983,13 @@ static void server_handle_client_controls ()
 	if (c->state != CLIENT_STATE_JOINED)
 	    continue;
 
-	if (!(obj = c->client_object))
+	if (!(obj = c->client_object)) {
+	    if (c->controls & CONTROL_RESPAWN) {
+		c->client_object = server_spawn_player (c->id);
+		object_set_replication_flag (c->client_object, OBJECT_REPLICATE_CREATE);
+	    }
 	    continue;
+	}
 
 	/* left */
 	if (c->controls & CONTROL_LEFT) {
