@@ -1075,9 +1075,7 @@ static void server_handle_client_controls ()
 
 	    default:
 		object_set_jump (obj, 0);
-		/* test against old_controls to save a lua table lookup */		    
-		if (c->old_controls & CONTROL_DOWN)
-		    object_set_number (obj, "_internal_down_ladder", 0);
+		object_set_number (obj, "_internal_down_ladder", 0);
 		break;
 	}
 
