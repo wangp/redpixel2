@@ -1,9 +1,24 @@
-head	1.13;
+head	1.16;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.16
+date	2002.07.12.08.58.59;	author tjaden;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	2002.07.12.08.55.46;	author tjaden;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2002.07.12.05.20.19;	author tjaden;	state Exp;
+branches;
+next	1.13;
 
 1.13
 date	2002.07.11.07.02.51;	author tjaden;	state Exp;
@@ -75,10 +90,9 @@ desc
 @@
 
 
-1.13
+1.16
 log
-@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
-it is called in C (I confused myself).
+@tpyo
 @
 text
 @-- basic-tilelike.lua
@@ -95,22 +109,35 @@ local Crate = function (t)
 	category = "objtile",
 	nonproxy_init = function (self)
 	    self.health = t.health
+
 	    function self:receive_damage (amount)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion ("basic-explo42", self.x, self.y)
-		    spawn_sparks (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
+		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
 		    self:hide ()
-		    function the_hook (self)
-			if _internal_would_collide_with_objects (self) then
-			    -- try again later
-			    self:set_update_hook (700, the_hook)
-			else
-			    self:show ()
-			    self:remove_update_hook ()
-			end
-		    end
-		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
+		    self:hibernate (t.respawn_secs * 1000)
+		end
+	    end
+
+	    function self:hibernate (msecs)
+		function the_hook (self)
+		    local ball = spawn_object ("basic-respawning-ball",
+					       self.x, self.y)
+		    ball.item = self
+		    self:remove_update_hook()
+		end
+		self:set_update_hook (msecs, the_hook)
+	    end
+
+	    self.super_show = self.show
+	    function self:show ()
+		if _internal_would_collide_with_objects (self) then
+		    -- try again later
+		    self:hibernate (700)
+		else
+		    self:super_show ()
+		    self:remove_update_hook ()
 		end
 	    end
 	end
@@ -148,11 +175,12 @@ local Barrel = function (t)
 	category = "objtile",
 	nonproxy_init = function (self)
 	    self.health = t.health
+
 	    function self:receive_damage (amount, killer_id)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion ("basic-explo42", self.x, self.y)
-		    spawn_sparks (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
+		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
 		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then
@@ -164,16 +192,28 @@ local Barrel = function (t)
 		    end
 
 		    self:hide ()
-		    function the_hook (self)
-			if _internal_would_collide_with_objects (self) then
-			    -- try again later
-			    self:set_update_hook (700, the_hook)
-			else
-			    self:show ()
-			    self:remove_update_hook ()
-			end
-		    end
-		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
+		    self:hibernate (t.respawn_secs * 1000)
+		end
+	    end
+
+	    function self:hibernate (msecs)
+		function the_hook (self)
+		    local ball = spawn_object ("basic-respawning-ball",
+					       self.x, self.y)
+		    ball.item = self
+		    self:remove_update_hook()
+		end
+		self:set_update_hook (msecs, the_hook)
+	    end
+
+	    self.super_show = self.show
+	    function self:show ()
+		if _internal_would_collide_with_objects (self) then
+		    -- try again later
+		    self:hibernate (700)
+		else
+		    self:super_show ()
+		    self:remove_update_hook ()
 		end
 	    end
 	end
@@ -263,6 +303,69 @@ Ladder {
     mask = "/basic/tilelike/ladder-gray5-mask",
     cx = 8, cy = 40
 }
+@
+
+
+1.15
+log
+@Made barrels and crates have a respawn ball before respawning.
+@
+text
+@d98 1
+a98 1
+		    self:hiberate (t.respawn_secs * 1000)
+@
+
+
+1.14
+log
+@Made all spawn-and-forget server functions be named *_on_clients,
+e.g. spawn_blod_on_clients.
+@
+text
+@d15 1
+d22 22
+a43 10
+		    function the_hook (self)
+			if _internal_would_collide_with_objects (self) then
+			    -- try again later
+			    self:set_update_hook (700, the_hook)
+			else
+			    self:show ()
+			    self:remove_update_hook ()
+			end
+		    end
+		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
+d81 1
+d98 22
+a119 10
+		    function the_hook (self)
+			if _internal_would_collide_with_objects (self) then
+			    -- try again later
+			    self:set_update_hook (700, the_hook)
+			else
+			    self:show ()
+			    self:remove_update_hook ()
+			end
+		    end
+		    self:set_update_hook (t.respawn_secs * 1000, the_hook)
+@
+
+
+1.13
+log
+@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
+it is called in C (I confused myself).
+@
+text
+@d18 2
+a19 2
+		    spawn_explosion ("basic-explo42", self.x, self.y)
+		    spawn_sparks (self.x, self.y, 30, 3)
+d71 2
+a72 2
+		    spawn_explosion ("basic-explo42", self.x, self.y)
+		    spawn_sparks (self.x, self.y, 30, 3)
 @
 
 

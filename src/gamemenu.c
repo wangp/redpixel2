@@ -81,6 +81,7 @@ static int mp_client_server (void)
 	    "Error initialising game server or client.  Perhaps another\n"
 	    "game server is already running on the same port?\n");
     } else {
+	server_inhibit_double_message ();
 	sync_init (server_thread);
 	client_run (1);
 	sync_server_stop_requested ();
@@ -101,7 +102,7 @@ static int mp_client_server (void)
 static int mp_client_go (void)
 {
     const char *name = "tjaden";
-    const char *addr = "localhost";
+    const char *addr = "192.168.0.1";
     messages_init ();
     if (client_init (name, NET_DRIVER_SOCKETS, addr) == 0) {
 	sync_init (NULL);

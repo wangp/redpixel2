@@ -1,9 +1,14 @@
-head	1.36;
+head	1.37;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.37
+date	2002.07.12.05.45.36;	author tjaden;	state Exp;
+branches;
+next	1.36;
 
 1.36
 date	2002.07.10.10.28.13;	author tjaden;	state Exp;
@@ -190,9 +195,10 @@ desc
 @@
 
 
-1.36
+1.37
 log
-@Tell clients about connecting and disconnecting clients.
+@Fixed the "problem" where text messages would get shown twice on
+client-servers (once by client, once by server).
 @
 text
 @/* server.c
@@ -224,6 +230,10 @@ static server_state_t next_state;
 
 string_t server_current_map_file;
 string_t server_next_map_file;
+
+/* If we are running as a client-server, we don't want two copies of
+ * every text message (one for client, one for server).  */
+static int inhibit_double_message;
 
 /* Single hack: waits for one client, then starts, and quits when that
  * client leaves.  For testing the client-server.  */
@@ -343,7 +353,8 @@ static void poll_client_joined (svclient_t *c)
 	    packet_decode (buf+1, "s", &len, text);
 	    uszprintf (tmp, sizeof tmp, "<%s> %s", c->name, text);
 	    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, tmp);
-	    server_log (tmp);
+	    if (!inhibit_double_message)
+		server_log (tmp);
 	    break;
 	}
 
@@ -472,7 +483,8 @@ static void command_msg (char **last)
 
     uszprintf (buf, sizeof buf, "[server] %s", *last);
     svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
-    server_log (buf);
+    if (!inhibit_double_message)
+	server_log (buf);
 }
 
 
@@ -703,12 +715,20 @@ int server_init (server_interface_t *iface, int net_driver)
     string_set (server_current_map_file, "test.pit");
     string_set (server_next_map_file,  "test.pit");
 
+    inhibit_double_message = 0;
+
     single_hack = 0;
     client_to_quit_with = 0;
 
     gettimeofday_init ();
 
     return 0;    
+}
+
+
+void server_inhibit_double_message (void)
+{
+    inhibit_double_message = 1;
 }
 
 
@@ -763,6 +783,23 @@ void server_interface_set_status (const char *text)
     if (interface)
 	interface->set_status (text);
 }
+@
+
+
+1.36
+log
+@Tell clients about connecting and disconnecting clients.
+@
+text
+@d31 4
+d153 2
+a154 1
+	    server_log (tmp);
+d283 2
+a284 1
+    server_log (buf);
+d515 2
+d523 6
 @
 
 

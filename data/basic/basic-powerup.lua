@@ -62,7 +62,11 @@ Item {
 local Health_Item = function (t)
     return Item (t, {
 	collide_hook = function (self, player)
+	    local h = player.health
 	    player:receive_health (t.give_health)
+	    if player.health == h then
+		return false
+	    end
 	end
     })
 end

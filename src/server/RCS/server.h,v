@@ -1,9 +1,14 @@
-head	1.13;
+head	1.14;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.14
+date	2002.07.12.05.45.42;	author tjaden;	state Exp;
+branches;
+next	1.13;
 
 1.13
 date	2002.01.31.12.20.11;	author tjaden;	state Exp;
@@ -75,9 +80,10 @@ desc
 @@
 
 
-1.13
+1.14
 log
-@Changes for client-server mode.
+@Fixed the "problem" where text messages would get shown twice on
+client-servers (once by client, once by server).
 @
 text
 @#ifndef __included_server_h
@@ -88,6 +94,7 @@ struct server_interface;
 
 
 int server_init (struct server_interface *, int net_driver);
+void server_inhibit_double_message (void);
 void server_enable_single_hack (void);
 void server_set_client_to_quit_with (int id);
 void server_run (void);
@@ -95,6 +102,15 @@ void server_shutdown (void);
 
 
 #endif
+@
+
+
+1.13
+log
+@Changes for client-server mode.
+@
+text
+@d9 1
 @
 
 

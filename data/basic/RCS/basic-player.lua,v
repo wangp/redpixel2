@@ -1,10 +1,14 @@
-head	1.39;
+head	1.40;
 access;
 symbols;
-locks
-	tjaden:1.39; strict;
+locks; strict;
 comment	@# @;
 
+
+1.40
+date	2002.07.12.05.20.11;	author tjaden;	state Exp;
+branches;
+next	1.39;
 
 1.39
 date	2002.07.11.07.02.44;	author tjaden;	state Exp;
@@ -206,10 +210,10 @@ desc
 @@
 
 
-1.39
+1.40
 log
-@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
-it is called in C (I confused myself).
+@Made all spawn-and-forget server functions be named *_on_clients,
+e.g. spawn_blod_on_clients.
 @
 text
 @-- basic-player.lua
@@ -372,9 +376,9 @@ local player_nonproxy_init = function (self)
     _internal_tell_health (self, self.health)
 
     function self:receive_damage (damage, attacker)
-	spawn_blood (self.x + cx, self.y + cy, 100, 2)
+	spawn_blood_on_clients (self.x + cx, self.y + cy, 100, 2)
 	if damage/5 >= 1 then
-	    spawn_blod (self.x, self.y, damage/5)
+	    spawn_blod_on_clients (self.x, self.y, damage/5)
 	end
 
 	self.health = self.health - damage
@@ -435,7 +439,7 @@ local player_nonproxy_init = function (self)
 		    self.trail_tics = self.trail_tics - 1
 		else
 		    self.trail_tics = 50
-		    spawn_blood (self.x + cx, self.y + cx, 40, 2)
+		    spawn_blood_on_clients (self.x + cx, self.y + cx, 40, 2)
 		end
 	    end
 	end
@@ -757,6 +761,24 @@ Objtype {
 	end
     end
 }
+@
+
+
+1.39
+log
+@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
+it is called in C (I confused myself).
+@
+text
+@d161 1
+a161 1
+	spawn_blood (self.x + cx, self.y + cy, 100, 2)
+d163 1
+a163 1
+	    spawn_blod (self.x, self.y, damage/5)
+d224 1
+a224 1
+		    spawn_blood (self.x + cx, self.y + cx, 40, 2)
 @
 
 

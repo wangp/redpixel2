@@ -1,9 +1,15 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.6; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.07.12.04.10.18;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.07.09.10.01.40;	author tjaden;	state Exp;
@@ -35,9 +41,10 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Render object names if they have one
+@Drawing blasts before explosions seems to create less bad artifacts
+(previously explosions were drawn before blasts).
 @
 text
 @/* render.c
@@ -136,12 +143,23 @@ void render (BITMAP *bmp, map_t *map, camera_t *cam)
     render_tiles (bmp, map, x, y, w, h);
     render_object_layers_and_names (bmp, map, x, y);
     render_particles (bmp, map, x, y);
-    map_explosions_draw (map, bmp, x, y);
     map_blasts_draw (map, bmp, x, y);
+    map_explosions_draw (map, bmp, x, y);
     render_lights (bmp, map, x, y);
     render_object_lights (bmp, map, x, y);
     map_explosions_draw_lights (map, bmp, x, y);
 }
+@
+
+
+1.5
+log
+@Render object names if they have one
+@
+text
+@d97 1
+a98 1
+    map_blasts_draw (map, bmp, x, y);
 @
 
 

@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.07.12.04.09.18;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.07.11.12.23.48;	author tjaden;	state Exp;
@@ -45,11 +50,13 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Separated bindings that were part of the "init" list into two lists
+(one for functions used at init-time, and another for functions which
+are available to both server and client at game-time).  Functions used
+only at init-time are now removed before the state is split into the
+namespaces.
 @
 text
 @/* mylua.c
@@ -118,7 +125,12 @@ int mylua_open (void)
     lua_pushnumber (the_lua_state, time (0));
     lua_call (the_lua_state, 1, 0);
 
-    DO_REGISTRATION_BOTH (the_lua_state);
+    /* register bindings */
+    DO_REGISTRATION_INIT (the_lua_state);
+
+    /* for debugging */
+    lua_pushstring (the_lua_state, "initial");
+    lua_setglobal (the_lua_state, "_internal_namespace");
 
     return 0;
 }
@@ -155,16 +167,20 @@ static lua_State *fork_namespace (lua_State *orig_state)
 
 void mylua_open_server_and_client_namespaces (void)
 {
+    /* Unregister functions from the initial namespace, which are only
+     * needed during initialisation.  This won't stop people copying
+     * the bindings into other variables.  */
+    DO_UNREGISTRATION_INIT (the_lua_state);
+
     server_lua_namespace = fork_namespace (the_lua_state);
+    DO_REGISTRATION_BOTH (server_lua_namespace);
     DO_REGISTRATION_SERVER (server_lua_namespace);
 
     client_lua_namespace = fork_namespace (the_lua_state);
+    DO_REGISTRATION_BOTH (client_lua_namespace);
     DO_REGISTRATION_CLIENT (client_lua_namespace);
 
     /* for debugging */
-    lua_pushstring (the_lua_state, "initial");
-    lua_setglobal (the_lua_state, "_internal_namespace");
-
     lua_pushstring (server_lua_namespace, "server");
     lua_setglobal (server_lua_namespace, "_internal_namespace");
 
@@ -262,6 +278,26 @@ int lua_checkargs (lua_State *L, const char *argtypes)
 
     return 1;
 }
+@
+
+
+1.7
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d67 6
+a72 1
+    DO_REGISTRATION_BOTH (the_lua_state);
+d109 5
+d115 1
+d119 1
+a122 3
+    lua_pushstring (the_lua_state, "initial");
+    lua_setglobal (the_lua_state, "_internal_namespace");
+
 @
 
 

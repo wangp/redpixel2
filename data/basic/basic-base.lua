@@ -141,7 +141,7 @@ Objtype {
     alias = "~rb",
     icon = "/basic/respawning-ball/000",
     nonproxy_init = function (self)
-	spawn_respawn_particles (self.x, self.y, 30, 1.5)
+	spawn_respawn_particles_on_clients (self.x, self.y, 30, 1.5)
 	self:set_collision_flags ("")
 	self:set_update_hook (
 	    1000,
@@ -184,8 +184,8 @@ function Respawning_Item (t, u)
 	nonproxy_init = function (self)
 	    self:set_collision_flags ("p")
 	    function self:collide_hook (player)
-		if t.collide_hook then
-		    t.collide_hook (self, player)
+		if t.collide_hook and t.collide_hook (self, player) == false then
+		    return false
 		end
 		self:hide ()
 		self:set_update_hook (

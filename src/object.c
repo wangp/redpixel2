@@ -963,18 +963,18 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 				 y - mask[mask_num].centre_y,
 				 0, 0))
     {
-	lua_State *S = lua_namespace_for (obj);
+	lua_State *S = server_lua_namespace;
 	int top = lua_gettop (S);
 	int collide = 1;
 
-	/* if tile_collide_hook returns non-nil then no collision */
+	/* if tile_collide_hook returns false then no collision */
 	lua_getref (S, obj->table);
 	lua_pushstring (S, "tile_collide_hook");
 	lua_rawget (S, -2);
 	if (lua_isfunction (S, -1)) {
 	    lua_pushobject (S, obj);
 	    lua_call (S, 1, 1);
-	    if (!lua_isnil (S, -1))
+	    if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
 		collide = 0;
 	}
 
@@ -986,10 +986,26 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 }
 
 
-static void call_collide_hook (object_t *obj, object_t *touched_obj)
+static int call_collide_hook (object_t *obj, object_t *touched_obj)
 {
-    lua_pushobject (server_lua_namespace, touched_obj);
-    object_call (server_lua_namespace, obj, "collide_hook", 1);
+    lua_State *S = server_lua_namespace;
+    int top = lua_gettop (S);
+    int collide = 1;
+
+    /* if collide_hook returns false then no collision */
+    lua_getref (S, obj->table);
+    lua_pushstring (S, "collide_hook");
+    lua_rawget (S, -2);
+    if (lua_isfunction (S, -1)) {
+	lua_pushobject (S, obj);
+	lua_pushobject (server_lua_namespace, touched_obj);
+	lua_call (S, 2, 1);
+	if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
+	    collide = 0;
+    }
+
+    lua_settop (S, top);
+    return collide;
 }
 
 
@@ -1034,13 +1050,13 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 	    continue;
 
 	/* we have a collision! */
-	call_collide_hook (p, obj);
+	if (!call_collide_hook (p, obj)) continue;
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
 	if (object_hidden (p)) continue;
 	if (object_hidden (obj)) return 0;
 
-	call_collide_hook (obj, p);
+	if (!call_collide_hook (obj, p)) continue;
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
 	if (object_hidden (p)) continue;

@@ -1,9 +1,14 @@
-head	1.8;
+head	1.9;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.9
+date	2002.07.12.06.27.38;	author tjaden;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2002.07.11.12.25.38;	author tjaden;	state Exp;
@@ -50,11 +55,9 @@ desc
 @@
 
 
-1.8
+1.9
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Made blasts slightly brighter.
 @
 text
 @/* blast.c
@@ -179,11 +182,11 @@ void blast_draw (BITMAP *dest, blast_t *blast, int offset_x, int offset_y)
 {
     /* XXX this whole function is trash */
 
-    set_add_blender (0xf,0,0,5);
+    set_add_blender (0, 0, 0, 5);
     drawing_mode (DRAW_MODE_TRANS,0,0,0);
 
     {
-	int br = (int) (15 * (1. - blast->r/blast->max_radius)) << 4;
+	int br = (int) (7 + 8 * (1. - blast->r/blast->max_radius)) << 4;
 	br |= 0xf;
 
 	dest->cl /= 3;
@@ -260,6 +263,22 @@ static int in_vector_p (vector_t *vec, void *p)
 
     return 0;
 }
+@
+
+
+1.8
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d123 1
+a123 1
+    set_add_blender (0xf,0,0,5);
+d127 1
+a127 1
+	int br = (int) (15 * (1. - blast->r/blast->max_radius)) << 4;
 @
 
 

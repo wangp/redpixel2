@@ -78,8 +78,8 @@ static int last_controls;
 static float aim_angle;
 static float last_aim_angle;
 
-/* whether the scores should be displayed */
-static int want_scores;
+/* how bright the scoresheet is (0-15).  0 = disabled */
+static int scores_brightness;
 
 
 
@@ -823,12 +823,17 @@ void client_send_text_message (const char *text)
 
 /*
  *----------------------------------------------------------------------
- *	Sound stuff
+ *	Lua bindings
  *----------------------------------------------------------------------
  */
 
 
-/* (lua binding) */
+void client_spawn_explosion (const char *name, float x, float y)
+{
+    map_explosion_create (map, name, x, y);
+}
+
+
 void client_play_sound (object_t *obj, const char *sample)
 {
     SAMPLE *spl = store_get_dat (sample);
@@ -838,19 +843,18 @@ void client_play_sound (object_t *obj, const char *sample)
 }
 
 
+void client_set_camera (int pushable, int max_dist)
+{
+    camera_set (cam, pushable, max_dist);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
  *	Camera stuff
  *----------------------------------------------------------------------
  */
-
-
-/* (lua binding) */
-void client_set_camera (int pushable, int max_dist)
-{
-    camera_set (cam, pushable, max_dist);
-}
 
 
 static int update_camera (void)
@@ -897,22 +901,25 @@ static void draw_status (BITMAP *bmp)
 
 static void draw_scores (BITMAP *bmp)
 {
-    FONT *f = store_get_dat ("/basic/font/ugly");
-    int col = makecol24 (0xfb, 0xf8, 0xf8);
-    int cx = bmp->w/3/2;
+    if (scores_brightness > 0) {
+	FONT *f = store_get_dat ("/basic/font/ugly");
+	int br = scores_brightness << 4;
+	int col = makecol24 (br|0xb, br|0x8, br|0x8);
+	int cx = bmp->w/3/2;
 
-    textout_centre_trans_magic (bmp, f, "SCORES", cx, 20, col);
+	textout_centre_trans_magic (bmp, f, "SCORES", cx, 20, col);
 
-    {
-	client_info_t *c;
-	int th = text_height (f);
-	int y = (20 + th + 10);
+	{
+	    client_info_t *c;
+	    int th = text_height (f);
+	    int y = (20 + th + 10);
 
-	list_for_each (c, &client_info_list) {
-	    textprintf_right_trans_magic (bmp, f, cx, y, col, "%s:", c->name);
-	    if (c->score)
-		textout_trans_magic (bmp, f, c->score, cx + 8, y, col);
-	    y += (text_height (f) + 5);
+	    list_for_each (c, &client_info_list) {
+		textprintf_right_trans_magic (bmp, f, cx, y, col, "%s:", c->name);
+		if (c->score)
+		    textout_trans_magic (bmp, f, c->score, cx + 8, y, col);
+		y += (text_height (f) + 5);
+	    }
 	}
     }
 }
@@ -963,8 +970,7 @@ static void update_screen (void)
     textprintf_trans_magic (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
 			    "%d FPS", fps);
 
-    if (want_scores)
-	draw_scores (bmp);
+    draw_scores (bmp);
 
     scare_mouse ();
     blit_magic_bitmap_to_screen (bmp);
@@ -1330,8 +1336,11 @@ void client_run (int client_server)
 		send_gameinfo_weapon_switch ();
 
 		/* XXX dunno where to put this */
-		if (!messages_grabbed_keyboard ())
-		    want_scores = key[KEY_TAB];
+		if (!messages_grabbed_keyboard ()) {
+		    int want_scores = key[KEY_TAB];
+		    scores_brightness += (want_scores ? 1 : -1);
+		    scores_brightness = MID (0, scores_brightness, 15);
+		}
 
 		dbg ("do physics");
 		perform_simple_physics (t, t - last_ticks);

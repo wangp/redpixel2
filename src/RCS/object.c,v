@@ -1,9 +1,19 @@
-head	1.25;
+head	1.27;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.27
+date	2002.07.11.15.25.54;	author tjaden;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	2002.07.11.15.20.34;	author tjaden;	state Exp;
+branches;
+next	1.25;
 
 1.25
 date	2002.07.11.12.24.08;	author tjaden;	state Exp;
@@ -135,11 +145,10 @@ desc
 @@
 
 
-1.25
+1.27
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Return false instead of non-nil from collide hooks to indicate that a
+collision did not occur (more intuitive).
 @
 text
 @/* object.c
@@ -1107,18 +1116,18 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 				 y - mask[mask_num].centre_y,
 				 0, 0))
     {
-	lua_State *S = lua_namespace_for (obj);
+	lua_State *S = server_lua_namespace;
 	int top = lua_gettop (S);
 	int collide = 1;
 
-	/* if tile_collide_hook returns non-nil then no collision */
+	/* if tile_collide_hook returns false then no collision */
 	lua_getref (S, obj->table);
 	lua_pushstring (S, "tile_collide_hook");
 	lua_rawget (S, -2);
 	if (lua_isfunction (S, -1)) {
 	    lua_pushobject (S, obj);
 	    lua_call (S, 1, 1);
-	    if (!lua_isnil (S, -1))
+	    if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
 		collide = 0;
 	}
 
@@ -1130,10 +1139,26 @@ static int check_collision_with_tiles (object_t *obj, int mask_num, map_t *map, 
 }
 
 
-static void call_collide_hook (object_t *obj, object_t *touched_obj)
+static int call_collide_hook (object_t *obj, object_t *touched_obj)
 {
-    lua_pushobject (server_lua_namespace, touched_obj);
-    object_call (server_lua_namespace, obj, "collide_hook", 1);
+    lua_State *S = server_lua_namespace;
+    int top = lua_gettop (S);
+    int collide = 1;
+
+    /* if collide_hook returns false then no collision */
+    lua_getref (S, obj->table);
+    lua_pushstring (S, "collide_hook");
+    lua_rawget (S, -2);
+    if (lua_isfunction (S, -1)) {
+	lua_pushobject (S, obj);
+	lua_pushobject (server_lua_namespace, touched_obj);
+	lua_call (S, 2, 1);
+	if (lua_isboolean (S, -1) && (lua_toboolean (S, -1) == 0))
+	    collide = 0;
+    }
+
+    lua_settop (S, top);
+    return collide;
 }
 
 
@@ -1178,13 +1203,13 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 	    continue;
 
 	/* we have a collision! */
-	call_collide_hook (p, obj);
+	if (!call_collide_hook (p, obj)) continue;
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
 	if (object_hidden (p)) continue;
 	if (object_hidden (obj)) return 0;
 
-	call_collide_hook (obj, p);
+	if (!call_collide_hook (obj, p)) continue;
 	if (object_stale (p)) continue;
 	if (object_stale (obj)) return 0;
 	if (object_hidden (p)) continue;
@@ -1787,6 +1812,52 @@ void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
     *rx2 = x2;
     *ry2 = y2;
 }
+@
+
+
+1.26
+log
+@Made health items not disappear unless used.
+@
+text
+@d970 1
+a970 1
+	/* if tile_collide_hook returns non-nil then no collision */
+d977 1
+a977 1
+	    if (!lua_isnil (S, -1))
+d995 1
+a995 1
+    /* if collide_hook returns non-nil then no collision */
+d1003 1
+a1003 1
+	if (!lua_isnil (S, -1))
+@
+
+
+1.25
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d966 1
+a966 1
+	lua_State *S = lua_namespace_for (obj);
+d989 1
+a989 1
+static void call_collide_hook (object_t *obj, object_t *touched_obj)
+d991 18
+a1008 2
+    lua_pushobject (server_lua_namespace, touched_obj);
+    object_call (server_lua_namespace, obj, "collide_hook", 1);
+d1053 1
+a1053 1
+	call_collide_hook (p, obj);
+d1059 1
+a1059 1
+	call_collide_hook (obj, p);
 @
 
 

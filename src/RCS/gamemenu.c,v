@@ -1,10 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
-locks
-	tjaden:1.4; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.07.12.05.45.30;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.07.10.15.39.11;	author tjaden;	state Exp;
@@ -31,9 +35,10 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Added screen stretching (double size) and 2xSaI support.
+@Fixed the "problem" where text messages would get shown twice on
+client-servers (once by client, once by server).
 @
 text
 @/* gamemenu.c - menu.c was already taken
@@ -119,6 +124,7 @@ static int mp_client_server (void)
 	    "Error initialising game server or client.  Perhaps another\n"
 	    "game server is already running on the same port?\n");
     } else {
+	server_inhibit_double_message ();
 	sync_init (server_thread);
 	client_run (1);
 	sync_server_stop_requested ();
@@ -366,6 +372,15 @@ void gamemenu_shutdown (void)
     destroy_bitmap (dbuf);
     store_unload (menu_data_file);
 }
+@
+
+
+1.4
+log
+@Added screen stretching (double size) and 2xSaI support.
+@
+text
+@d84 1
 @
 
 

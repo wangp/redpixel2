@@ -1,6 +1,95 @@
 	This ChangeLog is automatically produced from RCS logs.
 	See the Makefile for details.
 
+2002-07-12 18:58  tjaden
+
+	* basic-tilelike.lua: tpyo
+
+2002-07-12 18:55  tjaden
+
+	* basic-tilelike.lua: Made barrels and crates have a respawn ball
+	before respawning.
+
+2002-07-12 18:08  tjaden
+
+	* basic-weapon.lua: Smoke shouldn't produce light.
+
+2002-07-12 16:52  tjaden
+
+	* client.c: Made the scores sheet fade in/out gradually.
+
+2002-07-12 16:27  tjaden
+
+	* blast.c: Made blasts slightly brighter.
+
+2002-07-12 15:45  tjaden
+
+	* gamemenu.c, server.c, server.h: Fixed the "problem" where text
+	messages would get shown twice on client-servers (once by client,
+	once by server).
+
+2002-07-12 15:37  tjaden
+
+	* basic-weapon.lua: Reduced the number of smoke puffs from a rocket
+	projectile.
+
+2002-07-12 15:32  tjaden
+
+	* basic-weapon.lua: Made all spawn-and-forget server functions be
+	named *_on_clients, e.g. spawn_blod_on_clients.  Added smoke trails
+	for rockets.
+
+2002-07-12 15:21  tjaden
+
+	* client.c, client.h: Added a different spawn_explosion binding, so
+	clients can create their own explosions.
+
+2002-07-12 15:20  tjaden
+
+	* basic-base.lua, basic-player.lua, basic-tilelike.lua: Made all
+	spawn-and-forget server functions be named *_on_clients, e.g.
+	spawn_blod_on_clients.
+
+2002-07-12 15:19  tjaden
+
+	* bindgen.lua: Made all spawn-and-forget server functions be named
+	*_on_clients, e.g. spawn_blod_on_clients.  Added a different
+	spawn_explosion binding, so clients can create their own
+	explosions.
+
+2002-07-12 14:55  tjaden
+
+	* bindgen.lua: Print an warning message if a binding is called with
+	bad arguments.
+
+2002-07-12 14:10  tjaden
+
+	* render.c: Drawing blasts before explosions seems to create less
+	bad artifacts (previously explosions were drawn before blasts).
+
+2002-07-12 14:09  tjaden
+
+	* bindgen.lua, mylua.c: Separated bindings that were part of the
+	"init" list into two lists (one for functions used at init-time,
+	and another for functions which are available to both server and
+	client at game-time).  Functions used only at init-time are now
+	removed before the state is split into the namespaces.
+
+2002-07-12 01:25  tjaden
+
+	* basic-base.lua, basic-powerup.lua, basic-weapon.lua, object.c:
+	Return false instead of non-nil from collide hooks to indicate that
+	a collision did not occur (more intuitive).
+
+2002-07-12 01:20  tjaden
+
+	* basic-base.lua, basic-powerup.lua, object.c: Made health items
+	not disappear unless used.
+
+2002-07-11 23:08  tjaden
+
+	* Makefile: Switched to using cvs2cl.pl to generate the ChangeLog.
+
 2002-07-11 22:31  tjaden
 
 	* basic-base.lua: Removed stub functions as they seem to

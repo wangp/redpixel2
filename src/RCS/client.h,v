@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.07.12.05.21.09;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.07.11.05.51.15;	author tjaden;	state Exp;
@@ -45,9 +50,10 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Marked in comments which functions were bound to Lua.
+@Added a different spawn_explosion binding, so clients can create their
+own explosions.
 @
 text
 @#ifndef __included_client_h
@@ -63,11 +69,26 @@ void client_shutdown (void);
 
 void client_send_text_message (const char *text);
 
-void client_play_sound (struct object *, const char *sample); /* Lua binding */
-void client_set_camera (int pushable, int max_dist); /* Lua binding (internal) */
+/* begin Lua bindings */
+void client_spawn_explosion (const char *name, float x, float y);
+void client_play_sound (struct object *, const char *sample);
+void client_set_camera (int pushable, int max_dist); /* internal */
+/* end Lua bindings */
 
 
 #endif
+@
+
+
+1.7
+log
+@Marked in comments which functions were bound to Lua.
+@
+text
+@d14 5
+a18 2
+void client_play_sound (struct object *, const char *sample); /* Lua binding */
+void client_set_camera (int pushable, int max_dist); /* Lua binding (internal) */
 @
 
 

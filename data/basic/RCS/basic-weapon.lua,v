@@ -1,9 +1,29 @@
-head	1.29;
+head	1.33;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.33
+date	2002.07.12.08.08.05;	author tjaden;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	2002.07.12.05.37.16;	author tjaden;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	2002.07.12.05.32.05;	author tjaden;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	2002.07.11.15.25.47;	author tjaden;	state Exp;
+branches;
+next	1.29;
 
 1.29
 date	2002.07.11.07.02.56;	author tjaden;	state Exp;
@@ -155,10 +175,9 @@ desc
 @@
 
 
-1.29
+1.33
 log
-@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
-it is called in C (I confused myself).
+@Smoke shouldn't produce light.
 @
 text
 @-- basic-weapon.lua
@@ -216,7 +235,7 @@ local Standard_Projectile = function (t)
 	    end
 	    function self:tile_collide_hook ()
 		if t.sparks then
-		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		    spawn_sparks_on_clients (self.x, self.y, t.sparks, 2)
 		end
 		self:set_stale ()
 	    end	
@@ -232,17 +251,32 @@ local Explosive_Projectile = function (t)
 	    object_set_collision_is_projectile (self)
 	    local hook = function (self, obj)
 		if t.explosion then
-		    spawn_explosion (t.explosion, self.x, self.y)
+		    spawn_explosion_on_clients (t.explosion, self.x, self.y)
 		end
 		if t.sparks then
-		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		    spawn_sparks_on_clients (self.x, self.y, t.sparks, 2)
 		end
 		spawn_blast (self.x, self.y, t.radius, t.damage, self.owner)
 		self:set_stale ()
 	    end
 	    self.collide_hook = hook
 	    self.tile_collide_hook = hook
-	end
+	end,
+
+	proxy_init = function (self)
+            if t.proxy_init then
+		t.proxy_init (self)
+	    end
+
+	    if t.smoke_trails then
+		self:set_update_hook (
+		    80,
+		    function (self)
+			spawn_explosion (t.smoke_trails, self.x, self.y)
+		    end
+		)
+	    end
+	end,
     })
 end
 
@@ -474,11 +508,18 @@ Explosive_Projectile {
     radius = 75,
     damage = 80,
     explosion = "basic-explo42",
+    smoke_trails = "basic-rocket-smoke",
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
 
+explosion_type_register (
+    "basic-rocket-smoke",
+    "/basic/weapon/rpg/smoke/000", 16, 50/16,
+    nil, -- no light
+    nil  -- no sound
+)
 
 ----------------------------------------------------------------------
 --  Shotgun
@@ -576,10 +617,10 @@ Objtype {
 	function self:tile_collide_hook (obj)
 	    -- sniper rifle slugs don't collide with tiles, but for fun
 	    -- we make them spawn sparks the first time they hit one 
-	    spawn_sparks (self.x, self.y, 30, 2)
+	    spawn_sparks_on_clients (self.x, self.y, 30, 2)
 	    self:set_collision_flags ("pn")
 	    self.tile_collide_hook = nil
-	    return true
+	    return false
 	end
     end
 }
@@ -619,6 +660,67 @@ weapon_auto_switch_order = {
     "basic-shotgun",
     "basic-blaster"
 }
+@
+
+
+1.32
+log
+@Reduced the number of smoke puffs from a rocket projectile.
+@
+text
+@d338 1
+a338 1
+    "/basic/light/white-16",
+@
+
+
+1.31
+log
+@Made all spawn-and-forget server functions be named *_on_clients,
+e.g. spawn_blod_on_clients.  Added smoke trails for rockets.
+@
+text
+@d91 1
+a91 1
+		    60,
+@
+
+
+1.30
+log
+@Return false instead of non-nil from collide hooks to indicate that a
+collision did not occur (more intuitive).
+@
+text
+@d56 1
+a56 1
+		    spawn_sparks (self.x, self.y, t.sparks, 2)
+d72 1
+a72 1
+		    spawn_explosion (t.explosion, self.x, self.y)
+d75 1
+a75 1
+		    spawn_sparks (self.x, self.y, t.sparks, 2)
+d82 16
+a97 1
+	end
+d329 1
+d335 6
+d438 1
+a438 1
+	    spawn_sparks (self.x, self.y, 30, 2)
+@
+
+
+1.29
+log
+@Renamed Lua's "object_destroy" to "object_set_stale", as that's what
+it is called in C (I confused myself).
+@
+text
+@d419 1
+a419 1
+	    return true
 @
 
 

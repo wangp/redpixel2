@@ -1,9 +1,19 @@
-head	1.41;
+head	1.43;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.43
+date	2002.07.12.06.52.13;	author tjaden;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	2002.07.12.05.21.01;	author tjaden;	state Exp;
+branches;
+next	1.41;
 
 1.41
 date	2002.07.11.12.25.18;	author tjaden;	state Exp;
@@ -215,11 +225,9 @@ desc
 @@
 
 
-1.41
+1.43
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Made the scores sheet fade in/out gradually.
 @
 text
 @/* client.c
@@ -302,8 +310,8 @@ static int last_controls;
 static float aim_angle;
 static float last_aim_angle;
 
-/* whether the scores should be displayed */
-static int want_scores;
+/* how bright the scoresheet is (0-15).  0 = disabled */
+static int scores_brightness;
 
 
 
@@ -1047,12 +1055,17 @@ void client_send_text_message (const char *text)
 
 /*
  *----------------------------------------------------------------------
- *	Sound stuff
+ *	Lua bindings
  *----------------------------------------------------------------------
  */
 
 
-/* (lua binding) */
+void client_spawn_explosion (const char *name, float x, float y)
+{
+    map_explosion_create (map, name, x, y);
+}
+
+
 void client_play_sound (object_t *obj, const char *sample)
 {
     SAMPLE *spl = store_get_dat (sample);
@@ -1062,19 +1075,18 @@ void client_play_sound (object_t *obj, const char *sample)
 }
 
 
+void client_set_camera (int pushable, int max_dist)
+{
+    camera_set (cam, pushable, max_dist);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
  *	Camera stuff
  *----------------------------------------------------------------------
  */
-
-
-/* (lua binding) */
-void client_set_camera (int pushable, int max_dist)
-{
-    camera_set (cam, pushable, max_dist);
-}
 
 
 static int update_camera (void)
@@ -1121,22 +1133,25 @@ static void draw_status (BITMAP *bmp)
 
 static void draw_scores (BITMAP *bmp)
 {
-    FONT *f = store_get_dat ("/basic/font/ugly");
-    int col = makecol24 (0xfb, 0xf8, 0xf8);
-    int cx = bmp->w/3/2;
+    if (scores_brightness > 0) {
+	FONT *f = store_get_dat ("/basic/font/ugly");
+	int br = scores_brightness << 4;
+	int col = makecol24 (br|0xb, br|0x8, br|0x8);
+	int cx = bmp->w/3/2;
 
-    textout_centre_trans_magic (bmp, f, "SCORES", cx, 20, col);
+	textout_centre_trans_magic (bmp, f, "SCORES", cx, 20, col);
 
-    {
-	client_info_t *c;
-	int th = text_height (f);
-	int y = (20 + th + 10);
+	{
+	    client_info_t *c;
+	    int th = text_height (f);
+	    int y = (20 + th + 10);
 
-	list_for_each (c, &client_info_list) {
-	    textprintf_right_trans_magic (bmp, f, cx, y, col, "%s:", c->name);
-	    if (c->score)
-		textout_trans_magic (bmp, f, c->score, cx + 8, y, col);
-	    y += (text_height (f) + 5);
+	    list_for_each (c, &client_info_list) {
+		textprintf_right_trans_magic (bmp, f, cx, y, col, "%s:", c->name);
+		if (c->score)
+		    textout_trans_magic (bmp, f, c->score, cx + 8, y, col);
+		y += (text_height (f) + 5);
+	    }
 	}
     }
 }
@@ -1187,8 +1202,7 @@ static void update_screen (void)
     textprintf_trans_magic (bmp, font, 0, 0, makecol24 (0x88, 0x88, 0xf8),
 			    "%d FPS", fps);
 
-    if (want_scores)
-	draw_scores (bmp);
+    draw_scores (bmp);
 
     scare_mouse ();
     blit_magic_bitmap_to_screen (bmp);
@@ -1554,8 +1568,11 @@ void client_run (int client_server)
 		send_gameinfo_weapon_switch ();
 
 		/* XXX dunno where to put this */
-		if (!messages_grabbed_keyboard ())
-		    want_scores = key[KEY_TAB];
+		if (!messages_grabbed_keyboard ()) {
+		    int want_scores = key[KEY_TAB];
+		    scores_brightness += (want_scores ? 1 : -1);
+		    scores_brightness = MID (0, scores_brightness, 15);
+		}
 
 		dbg ("do physics");
 		perform_simple_physics (t, t - last_ticks);
@@ -1704,6 +1721,70 @@ void client_shutdown (void)
     destroy_bitmap (bmp);
     free (client_name);
     net_closeconn (conn);
+}
+@
+
+
+1.42
+log
+@Added a different spawn_explosion binding, so clients can create their
+own explosions.
+@
+text
+@d81 2
+a82 2
+/* whether the scores should be displayed */
+static int want_scores;
+d904 19
+a922 16
+    FONT *f = store_get_dat ("/basic/font/ugly");
+    int col = makecol24 (0xfb, 0xf8, 0xf8);
+    int cx = bmp->w/3/2;
+
+    textout_centre_trans_magic (bmp, f, "SCORES", cx, 20, col);
+
+    {
+	client_info_t *c;
+	int th = text_height (f);
+	int y = (20 + th + 10);
+
+	list_for_each (c, &client_info_list) {
+	    textprintf_right_trans_magic (bmp, f, cx, y, col, "%s:", c->name);
+	    if (c->score)
+		textout_trans_magic (bmp, f, c->score, cx + 8, y, col);
+	    y += (text_height (f) + 5);
+d973 1
+a973 2
+    if (want_scores)
+	draw_scores (bmp);
+d1339 5
+a1343 2
+		if (!messages_grabbed_keyboard ())
+		    want_scores = key[KEY_TAB];
+@
+
+
+1.41
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d826 1
+a826 1
+ *	Sound stuff
+d831 6
+a836 1
+/* (lua binding) */
+d846 6
+a857 7
+
+
+/* (lua binding) */
+void client_set_camera (int pushable, int max_dist)
+{
+    camera_set (cam, pushable, max_dist);
 }
 @
 

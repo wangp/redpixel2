@@ -1,0 +1,31 @@
+Ideals, or Milestones (if I was aiming for them)
+------------------------------------------------
+
+* Ideal 1: Roughly the same playability as Red Pixel 1.
+  - single multiplayer mode (deathmatch) over a LAN
+  - the basic weapons
+  - maybe demo mode
+
+* Ideal 2: Enhanced multiplayer mode.
+  - highly scriptable levels
+  - many game modes
+  - bots
+  - internet support
+
+* Ideal 3: Single player missions.
+  - requires a lot of art and level design
+  - even more scriptable levels
+  - "intelligent" enemies
+  - storyline
+  - music
+
+
+Ideal 1 is fairly close.
+
+Ideal 2 probably won't be reached.  Not enough people would play to
+offset the work.
+
+Ideal 3 requires an artist to go it alone.  Not going to happen.
+
+
+Date 2002-07-12

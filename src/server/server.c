@@ -28,6 +28,10 @@ static server_state_t next_state;
 string_t server_current_map_file;
 string_t server_next_map_file;
 
+/* If we are running as a client-server, we don't want two copies of
+ * every text message (one for client, one for server).  */
+static int inhibit_double_message;
+
 /* Single hack: waits for one client, then starts, and quits when that
  * client leaves.  For testing the client-server.  */
 static int single_hack;
@@ -146,7 +150,8 @@ static void poll_client_joined (svclient_t *c)
 	    packet_decode (buf+1, "s", &len, text);
 	    uszprintf (tmp, sizeof tmp, "<%s> %s", c->name, text);
 	    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, tmp);
-	    server_log (tmp);
+	    if (!inhibit_double_message)
+		server_log (tmp);
 	    break;
 	}
 
@@ -275,7 +280,8 @@ static void command_msg (char **last)
 
     uszprintf (buf, sizeof buf, "[server] %s", *last);
     svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
-    server_log (buf);
+    if (!inhibit_double_message)
+	server_log (buf);
 }
 
 
@@ -506,12 +512,20 @@ int server_init (server_interface_t *iface, int net_driver)
     string_set (server_current_map_file, "test.pit");
     string_set (server_next_map_file,  "test.pit");
 
+    inhibit_double_message = 0;
+
     single_hack = 0;
     client_to_quit_with = 0;
 
     gettimeofday_init ();
 
     return 0;    
+}
+
+
+void server_inhibit_double_message (void)
+{
+    inhibit_double_message = 1;
 }
 
 

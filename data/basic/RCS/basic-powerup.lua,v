@@ -1,9 +1,19 @@
-head	1.8;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.10
+date	2002.07.11.15.25.39;	author tjaden;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2002.07.11.15.20.24;	author tjaden;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2002.01.22.15.45.45;	author tjaden;	state Exp;
@@ -50,10 +60,10 @@ desc
 @@
 
 
-1.8
+1.10
 log
-@Added respawning ball to respawing items and made a wrapper around
-Objtype for respawning items.
+@Return false instead of non-nil from collide hooks to indicate that a
+collision did not occur (more intuitive).
 @
 text
 @-- basic-powerup.lua
@@ -120,7 +130,11 @@ Item {
 local Health_Item = function (t)
     return Item (t, {
 	collide_hook = function (self, player)
+	    local h = player.health
 	    player:receive_health (t.give_health)
+	    if player.health == h then
+		return false
+	    end
 	end
     })
 end
@@ -159,6 +173,28 @@ Health_Item {
     respawn_secs = 10,
     give_health = 30
 }
+@
+
+
+1.9
+log
+@Made health items not disappear unless used.
+@
+text
+@d67 3
+a69 1
+	    return player.health == h
+@
+
+
+1.8
+log
+@Added respawning ball to respawing items and made a wrapper around
+Objtype for respawning items.
+@
+text
+@d65 1
+d67 1
 @
 
 

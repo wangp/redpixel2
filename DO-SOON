@@ -1,11 +1,12 @@
+blast circles should provide a bit of light (dunno how)
+
+objects should flash a bit white when shot
+
 doc-generation from bindgen.lua
-better OOP system in the lua code
-dummys in basic-base.lua prolly needed for editor
 
 what-weapons-collected display
 Q/E weapon switching
 don't forget to credit kaupo erme
-too easy to escape blast radius
 rocket jump [recoil from getting blasted]
 falling off edge of world
 jumping from ladder
