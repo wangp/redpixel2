@@ -190,19 +190,46 @@ static void try_jump (object_t *p)
 
 static void try_move_horiz (object_t *p, bitmask_t *mask, float xv)
 {
-    int i, ramp;
-    
+    int i, j, ramp;
+    int sign, nogood;
+
     if (bitmask_check_collision (map->tile_mask, store_dat ("/player/mask-bottom"), 0, 0, p->x, p->y +  1))
 	ramp = 6;
     else
 	ramp = 3;
+
+    sign = (xv < 0) ? -1 : +1;
     
-    for (i = 0; i <= ramp; i++)
-	if (!bitmask_check_collision (map->tile_mask, mask, 0, 0, p->x + ((xv < 0) ? -1 : +1), p->y - i)) {
+    for (i = 0; i <= ramp; i++) {
+	nogood = 0;
+
+	for (j = 0; j < ABS ((int) xv); j++)
+	    if (bitmask_check_collision (map->tile_mask, mask, 0, 0, p->x + (sign * j), p->y - i)) {
+		nogood = 1;
+		break;
+	    }
+
+	if (!nogood) {
 	    p->y -= i;
 	    p->xv += xv;
-	    return;
+	    if ((i == 0) && (ramp == 6))
+		goto down;
+	    break;
 	}
+    }
+
+    return;
+
+  down:
+
+    for (i = 1; i <= 7; i++) 
+	if (bitmask_check_collision (map->tile_mask, mask, 0, 0, p->x, p->y + i)) {
+	    i--;
+	    break;
+	}
+
+    if (i < 8)
+	p->y += i;
 }
     
 static void try_left (object_t *p)
@@ -226,11 +253,7 @@ static void animate_objects ()
 
     for (p = map->objects.next; p; p = p->next)
 	if (p->render == OBJECT_RENDER_MODE_ANIM) 
-	    if (++p->anim->ticker >= p->anim->tic[p->anim->current]) {
-		p->anim->ticker = 0;
-		if (++p->anim->current >= p->anim->num)
-		    p->anim->current = 0;
-	    }
+	    object_anim_advance (p->anim);
 }
 
 
@@ -285,13 +308,14 @@ void game_loop ()
 		if (key[KEY_LEFT])  try_left (player);
 		if (key[KEY_RIGHT]) try_right (player);
 		
-		camera.y = player->y - 100;
-		camera.x = player->x - 160;
-		light->x = player->x - 16;
-		light->y = player->y - 16;
 
 		move_objects ();
 		move_player (player);
+
+		camera.y = player->y - 100;
+		camera.x = player->x - 160;
+		light->x = player->x - 10;
+		light->y = player->y - 10;
 
 		{
 		    object_t *q;

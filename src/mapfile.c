@@ -26,7 +26,6 @@ static int pack_fputs_nl (const char *s, PACKFILE *f)
 
 #define ID(a,b,c,d)	(a | (b << 8) | (c << 16) | (d << 24))
 
-
 #define HEADER_MAGIC	ID ('p', 'i', 't', 'r')
 #define HEADER_VERSION	0x0100
 #define HEADER_SILLY	"God... root... what is difference?"
@@ -35,6 +34,9 @@ static int pack_fputs_nl (const char *s, PACKFILE *f)
 #define MARK_LIGHTS	ID ('l', 'i', 't', 'e')
 #define MARK_OBJECTS	ID ('o', 'b', 'j', 'c')
 #define MARK_STARTS 	ID ('s', 't', 'r', 't')
+
+
+/*----------------------------------------------------------------------*/
 
 
 int map_save (map_t *map, const char *filename)
@@ -154,7 +156,7 @@ int map_save (map_t *map, const char *filename)
 
 /*----------------------------------------------------------------------*/
 
-
+  
 int read_tiles (map_t *map, PACKFILE *f)
 {
     int x, y, t;
@@ -213,7 +215,6 @@ static int read_lights (map_t *map, PACKFILE *f)
 
     return -1;
 }
-
 
 
 static int read_objects (map_t *map, PACKFILE *f)

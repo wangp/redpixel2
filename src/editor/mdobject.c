@@ -9,7 +9,6 @@
 #include "cursor.h"
 #include "depths.h"
 #include "editarea.h"
-#include "editor.h"
 #include "edselect.h"
 #include "map.h"
 #include "modemgr.h"
@@ -66,12 +65,31 @@ static struct type *find_type (const char *name)
     return 0;
 }
 
-static void add_to_type (struct type *p, const char *name, BITMAP *bmp)
+static void callback (object_type_t *objtype)
 {
-    ed_select_list_add_item (p->list, name, bmp);
+    BITMAP *bmp;
+    struct type *p;
+
+    bmp = store_dat (objtype->icon);
+    if (!bmp) return;
+    
+    p = find_type (objtype->type);
+    if (!p) {
+	p = create_type (objtype->type);
+	if (!p) return;
+    }
+
+    ed_select_list_add_item (p->list, objtype->name, bmp);
 }
 
-static void destroy_all_types ()
+static int make_type_list ()
+{
+    type_list.next = 0;
+    object_types_enumerate (callback);
+    return (type_list.next) ? 0 : -1;
+}
+
+static void free_type_list ()
 {
     struct type *p, *next;
 
@@ -85,29 +103,10 @@ static void destroy_all_types ()
 }
 
 
-void mode_objects_object_type_register_hook (const char *name, lua_Object table,
-					     const char *type, const char *icon)
-{
-    BITMAP *bmp;
-    struct type *p;
-
-    bmp = store_dat (icon);
-    if (!bmp) return;
-    
-    p = find_type (type);
-    if (!p) {
-	p = create_type (type);
-	if (!p) return;
-    }
-
-    add_to_type (p, name, bmp);
-}
-
-
 
 static void cursor_set_selected ()
 {
-    BITMAP *bmp = store_dat (object_type (selectbar_selected_name ())->icon);
+    BITMAP *bmp = store_dat (object_types_lookup (selectbar_selected_name ())->icon);
     if (bmp) cursor_set_magic_bitmap (bmp, 0, 0);
 }
 
@@ -310,7 +309,7 @@ static int event_layer (int event, struct editarea_event *d)
 
 int mode_objects_init ()
 {
-    if (!type_list.next)
+    if (make_type_list () < 0)
 	return -1;
     current = type_list.next;
 
@@ -322,5 +321,5 @@ int mode_objects_init ()
 
 void mode_objects_shutdown ()
 {
-    destroy_all_types ();
+    free_type_list ();
 }

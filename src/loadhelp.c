@@ -10,10 +10,10 @@
 #include "loadhelp.h"
 #include "path.h"
 #include "store.h"
-#include "vtree.h"
 
 
 struct file {
+    char *filename;
     int id;
     struct file *next;
 };
@@ -22,7 +22,6 @@ struct file {
 /* Not reentrant, as you can see.  */
 static struct file *file_list;
 static const char *vtree;
-static void (*loader_hook) (const char *filename, int id);
 
 
 static void loader (const char *filename, int attrib, int param)
@@ -39,17 +38,15 @@ static void loader (const char *filename, int attrib, int param)
 	return;
     }
 
+    f->filename = ustrdup (filename);
     f->id = id;
+    
     f->next = file_list->next;
     file_list->next = f;
-
-    if (loader_hook)
-	loader_hook (filename, id);
 }
    
 
-void *loadhelp_load (void *filenames, const char *_vtree,
-		     void (*hook) (const char *filename, int id))
+void *loadhelp_load (void *filenames, const char *_vtree)
 {
     char **p, tmp[1024];
 
@@ -57,8 +54,7 @@ void *loadhelp_load (void *filenames, const char *_vtree,
     if (!file_list) return 0;
     
     vtree = _vtree;
-    loader_hook = hook;
-
+    
     for (p = path_share; *p; p++) {
 	ustrncpy (tmp, *p, sizeof tmp);
 	ustrncat (tmp, filenames, sizeof tmp);
@@ -76,9 +72,19 @@ void loadhelp_unload (void *ref)
 
     for (f = file_list->next; f; f = next) {
 	next = f->next;
+	free (f->filename);
 	store_unload (f->id);
 	free (f);
     }
 
     free (file_list);
+}
+
+
+void loadhelp_enumerate (void *ref, void (*proc) (const char *filename, int id))
+{
+    struct file *list = ref, *f;
+
+    for (f = list->next; f; f = f->next)
+	proc (f->filename, f->id);
 }

@@ -15,8 +15,6 @@ typedef struct light {
 
 typedef struct start {
     int x, y;
-    /* add multiplayer support,
-       team support, etc. */
     struct start *next;
 } start_t;
 

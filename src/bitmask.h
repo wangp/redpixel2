@@ -2,9 +2,6 @@
 #define __included_bitmask_h
 
 
-#include <allegro.h>
-
-
 typedef struct bitmask bitmask_t;
 
 

@@ -1,4 +1,13 @@
+2000-07-03  Peter Wang  <tjaden@psynet.net>
+
+	* Derived network client/server framework from George Foot's code,
+	and merged into source tree (under `net' subdirectory).
+
 2000-07-02  Peter Wang  <tjaden@psynet.net>
+
+	* Cleaned up code, including making editor and game share init.
+
+	* Thought a bit about networking, wrote up in network.txt.
 
 	* objanim.c: New object render mode: simple, looped animation.
 	* bdobject.c (object_set_visual_anim): Set render mode from Lua.

@@ -20,7 +20,7 @@ object_t *object_create (const char *type_name)
     object_t *p;
     object_type_t *type;
     
-    type = object_type (type_name);
+    type = object_types_lookup (type_name);
     if (!type) return 0;
 
     p = alloc (sizeof (object_t));
@@ -33,12 +33,10 @@ object_t *object_create (const char *type_name)
 	lua_pushobject (lua_createtable ());
 	p->self = lua_ref (1);
 
-	{
-	    lua_pushobject (lua_getref (p->self));
-	    lua_pushstring ("_parent");
-	    lua_pushuserdata (p);
-	    lua_rawsettable ();
-	}
+	lua_pushobject (lua_getref (p->self));
+	lua_pushstring ("_parent");
+	lua_pushuserdata (p);
+	lua_rawsettable ();
 
 	p->render = OBJECT_RENDER_MODE_BITMAP;
 	p->bitmap = store_dat (p->type->icon);

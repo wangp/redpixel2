@@ -41,3 +41,13 @@ int object_anim_add_frame (object_anim_t *anim, BITMAP *bmp, int tics)
 
     return 0;
 }
+
+
+void object_anim_advance (object_anim_t *p)
+{
+    if (++p->ticker >= p->tic[p->current]) {
+	p->ticker = 0;
+	if (++p->current >= p->num)
+	    p->current = 0;
+    }
+}

@@ -1,10 +1,9 @@
 /*
  * This was extracted from `liolib.c' in the Lua distribution.
- * Modified slightly to use Allegro's Unicode routines.
+ * Modified slightly to use Allegro's Unicode routines (may or may not help).
  */
 
 
-#include <stdio.h>
 #include <allegro.h>
 
 #define LUA_REENTRANT

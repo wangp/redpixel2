@@ -13,7 +13,7 @@
 
 
 static void __export__store_load (void)
-    /* (filename, prefix) : (zero on success) */
+    /* (filename, prefix) : (nil on error) */
 {
     const char *filename, *prefix;
     char **p, tmp[1024];
@@ -30,14 +30,14 @@ static void __export__store_load (void)
 	ustrncat (tmp, filename, sizeof tmp);
 
 	if (store_load_ex (tmp, prefix, load_extended_datafile) >= 0) {
-	    lua_pushnumber (0);
+	    lua_pushnumber (1);
 	    return;
 	}
     }
 
   error:
     
-    lua_pushnumber (-1);
+    lua_pushnil ();
 }
 
 
@@ -47,8 +47,8 @@ static void __export__store_dat (void)
 {
     if (!lua_isstring (lua_getparam (1)))
 	lua_pushnil ();
-
-    lua_pushuserdata (store_dat (lua_getstring (lua_getparam (1))));
+    else
+	lua_pushuserdata (store_dat (lua_getstring (lua_getparam (1))));
 }
 
 

@@ -13,6 +13,10 @@ local monitorfront = {
 	}
 
 	object_set_visual_anim (self, anim, 0.25)
+    end ,
+
+    player_touched = function (self)
+	object_set_visual_bitmap (self, "/office-objects/monitor-blown")
     end
 }
 
@@ -26,6 +30,21 @@ local tv = {
 	}
 
 	object_set_visual_anim (self, tvframes, 0.10)
+    end ,
+
+    player_touched = function (self)
+	object_set_visual_bitmap (self, "/office-objects/tv-blown")
+    end
+}
+
+
+local shared = {
+    init = function (self, type)
+	self.bmp = "/office-objects/" .. type
+    end,
+
+    player_touched = function (self)
+	object_set_visual_bitmap (self, self.bmp .. "-blown")
     end
 }
 
@@ -35,9 +54,9 @@ function __module__init ()
 
     store_load ("object/off-objs.dat", "/office-objects/")
     register ("monitor-front", %monitorfront, "objtile", "/office-objects/monitor-anim1")
-    register ("monitor-left",  nil,  	      "objtile", "/office-objects/monitor-left")
-    register ("monitor-right", nil,  	      "objtile", "/office-objects/monitor-right")
-    register ("brain",	       nil,	      "objtile", "/office-objects/brain")
-    register ("printer",       nil,	      "objtile", "/office-objects/printer")
+    register ("monitor-left",  %shared,	      "objtile", "/office-objects/monitor-left")
+    register ("monitor-right", %shared,	      "objtile", "/office-objects/monitor-right")
+    register ("brain",	       %shared,	      "objtile", "/office-objects/brain")
+    register ("printer",       %shared,	      "objtile", "/office-objects/printer")
     register ("tv",	       %tv, 	      "objtile", "/office-objects/tv-anim1")
 end

@@ -19,62 +19,47 @@
 #define SHUTDOWN	"__module__shutdown"
 
 
-struct file {
-    int shutdown;
-    struct file *next;
+struct list {
+    int func;
+    struct list *next;
 };
 
-static struct file file_list;
+static struct list list;
 
 
-static void do_file (const char *filename, int attrib, int param)
+static void list_start ()
 {
-    lua_Object func;
-    struct file *f;
-
-    lua_beginblock ();
-
-    lua_pushnil ();
-    lua_setglobal (INIT);
-
-    if (lua_dofile ((char *) filename) != 0)
-	goto end;
-
-    func = lua_getglobal (INIT);
-    if (lua_isfunction (func))
-	lua_callfunction (func);
-    
-    func = lua_getglobal (SHUTDOWN);
-    if (!lua_isfunction (func))
-	goto end;
-
-    f = alloc (sizeof *f);
-    if (f) {
-	lua_pushobject (func);
-	f->shutdown = lua_ref (1);
-	f->next = file_list.next;
-	file_list.next = f;
-    }
-
-  end:
-
-    lua_endblock ();
+    list.next = 0;
 }
 
 
-static void undo_files ()
+static void list_add_func (lua_Object func)
 {
-    struct file *f, *next;
+    struct list *p = alloc (sizeof *p);
+    
+    if (p) {
+	lua_pushobject (func);
+	p->func = lua_ref (1);
 
-    for (f = file_list.next; f; f = next) {
-	next = f->next;
+	p->next = list.next;
+	list.next = p;
+    }
+}
 
-	lua_beginblock ();
-	lua_callfunction (lua_getref (f->shutdown));
-	lua_unref (f->shutdown);
+
+static void list_run_and_end ()
+{
+    struct list *p, *next;
+
+    for (p = list.next; p; p = next) {
+	next = p->next;
+
+	lua_beginblock (); 
+	lua_callfunction (lua_getref (p->func));
+	lua_unref (p->func);
 	lua_endblock ();
 
-	free (f);
+	free (p);
     }
 }
 
@@ -87,15 +72,41 @@ void scripts_init ()
 
     bindings_init ();
 
-    file_list.next = 0;
+    list_start ();
 }
 
 
 void scripts_shutdown ()
 {
-    undo_files ();
+    list_run_and_end ();
     bindings_shutdown ();
     lua_close ();
+}
+
+
+static void do_file (const char *filename, int attrib, int param)
+{
+    lua_Object func;
+
+    lua_beginblock ();
+
+    do {
+	lua_pushnil ();
+	lua_setglobal (INIT);
+
+	if (lua_dofile ((char *) filename) != 0)
+	    break;
+
+	func = lua_getglobal (INIT);
+	if (lua_isfunction (func))
+	    lua_callfunction (func);
+    
+	func = lua_getglobal (SHUTDOWN);
+	if (lua_isfunction (func))
+	    list_add_func (func);
+    } while (0);
+
+    lua_endblock ();
 }
 
 

@@ -2,10 +2,10 @@
 ## Makefile for Red Pixel II
 ##
 
-SRCDIRS = src src/store src/gui src/ug src/editor
+SRCDIRS = src src/net src/store src/gui src/ug src/editor 
 
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
-LOADLIBES = `allegro-config --libs` -llua
+LOADLIBES = `allegro-config --libs` -llua -lnet
 
 PROGRAM = program
 OBJDIR = obj/linux
@@ -51,6 +51,11 @@ MODULES_EDITOR =				\
 	newfont					\
 	selbar
 
+MODULES_NET =					\
+	netclnt					\
+	netmain					\
+	netserv
+
 MODULES_GAME =					\
 	alloc					\
 	bdobject				\
@@ -60,6 +65,7 @@ MODULES_GAME =					\
 	extdata					\
 	fps					\
 	game					\
+	gameinit				\
 	gameloop				\
 	loaddata				\
 	loadhelp				\
@@ -82,6 +88,7 @@ MODULES = 					\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\
+	$(MODULES_NET)				\
 	$(MODULES_GAME)
 
 OBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))

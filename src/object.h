@@ -47,7 +47,7 @@ void object_free_render_data (object_t *p);
 
 
 /*
- * Layered render mode (image)
+ *  Layered render mode (image)
  */
 
 #define OBJECT_LAYER_NO_ANGLE	0xffffffff
@@ -72,7 +72,7 @@ object_layer_t *object_image_add_layer (object_image_t *image, BITMAP *bmp,
 
 
 /*
- * Animation render mode
+ *  Animation render mode
  */
 
 struct object_anim {
@@ -80,7 +80,6 @@ struct object_anim {
     BITMAP **bitmap;
     int *tic;
 
-    /* run-time usage */
     int current, ticker;
 };
 
@@ -88,6 +87,7 @@ struct object_anim {
 object_anim_t *object_anim_create ();
 void object_anim_destroy (object_anim_t *p);
 int object_anim_add_frame (object_anim_t *anim, BITMAP *bmp, int tics);
+void object_anim_advance (object_anim_t *p);
 
 
 #endif

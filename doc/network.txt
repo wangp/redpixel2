@@ -1,0 +1,93 @@
+
+ [  This stuff is design only and has not been implemented yet.  ]
+ [  It is mostly based on the Unreal networking architecture.    ]
+
+The game server is authoritive, game clients contain only proxies of
+game objects.  The game client performs simple physics so that state
+information does not have to be sent across the network so often, but
+does not do other game logic.
+
+Game logic is done by the server, who then sends relevant actions to
+the relevant clients.  Relevant information includes mostly object
+information that is stored in C (i.e. nothing from the Lua state).
+
+Lua script variables are to be considered as "internal" data.  Most of
+the time, the client only needs to know where an object is and what it
+looks like (and these things are stored in C structs), so replication
+of Lua variables is not necessary.  If necessary, some variables may
+be replicated to clients through some function calls.  eg.
+
+	  self.something = newvalue
+	  replicate (self, "something")
+
+Lua scripts are run mostly on the game server, and all actions that
+need to be send to clients are done through C function calls.  For
+example, say the player has touched a lightamp object (on the server):
+
+    The lightamp's `touched' call is started on the server:
+
+	touched = function (self, player)
+	    object_destroy (self)
+	    -- give player stuff, but we will ignore that for now
+	end
+
+    The `object_destroy' function is a C function, which knows that it
+    must tell the client to replicate the event across the network.
+
+Some scripts may run on the client, but they must explicitly do so.
+	[ figure out how to do this ]
+
+Things requiring replication:
+
+       object creation, destruction
+       object variable changes
+       special function calls (eg. play_sound on client)
+
+Unfortunately it is not that simple, as the client has to tell the
+server the players' actions, and therefore the player expects a
+response by the client instantly.  In a pure client-server model, if a
+player pressed `jump', a key press would be sent to the server, who
+would confirm whether the action is valid, then send back variables
+that need modifying (e.g. velocity-y).  On the Internet this is much
+too slow, and movement would be laggy.
+
+Therefore the client proceeds with the user's requested action, but
+also sends the action to the server for confirmation.  If the server
+wants to deny the action and say `no, that's wrong', it sends back an
+adjustment packet and the client adjusts values accordingly.  The
+client stored all movements in a linked list, with a timestamp, so
+that if an adjustment packet is received, it can discard all movements
+up to and including that timestamp, then proceed with the rest of the
+movements (which still need authorisation from the server).
+
+Bullet firing involves:
+
+       1. player presses fire
+       2. client places the action in action linked list
+       3. client sends FIRE request to server
+       4. client spawns a bullet object
+       5. server receives FIRE request
+       6. server checks the move is valid
+	 6.1. if valid, create object on server
+	 6.2. if invalid, tell the client to destroy the
+	       object (through a DESTROY OBJECT packet)
+
+
+--------------------
+
+Here are terms used by the UT networking architecture, which may be
+useful when implementing.  It's good sometimes to be able recognise
+things and label them when you see them.  It means you're probably
+doing something right, or at least not in uncharted territory.
+
+      DUMB PROXY - the object just IS.  No physics on this object
+	       performed by client.  All movement comes through from
+	       the server.
+
+      SIMULATED PROXY - the object does simple physics on the client,
+            but that is all.
+
+      AUTONOMOUS PROXY - object is the local player.  PREDICTION, as
+            opposed to simulation, is done.  
+
+      AUTHORITY - I am on the game server.

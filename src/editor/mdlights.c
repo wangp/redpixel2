@@ -8,7 +8,6 @@
 #include "alloc.h"
 #include "depths.h"
 #include "editarea.h"
-#include "editor.h"
 #include "edselect.h"
 #include "loaddata.h"
 #include "magic4x4.h"
@@ -31,8 +30,6 @@ static BITMAP *icon;
  */
 
 struct file {
-    char *filename;
-    int id;
     ed_select_list_t *list;
     int top, selected;
     struct file *prev, *next;
@@ -71,20 +68,15 @@ static void add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix
 }
 
 
-static void loader_hook (const char *filename, int id)
+static void callback (const char *filename, int id)
 {
     struct file *f;
-    ed_select_list_t *list;
 
     f = alloc (sizeof *f);
     if (!f) return;
 
-    list = ed_select_list_create ();
-    add_to_list (list, store_file (id), VTREE_LIGHTS);
-    
-    f->filename = ustrdup (filename);
-    f->id = id;
-    f->list = list;
+    f->list = ed_select_list_create ();
+    add_to_list (f->list, store_file (id), VTREE_LIGHTS);
 
     f->next = file_list.next;
     if (f->next)
@@ -94,15 +86,22 @@ static void loader_hook (const char *filename, int id)
 }
 
 
+static int make_file_list ()
+{
+    file_list.next = 0;
+    lights_enumerate (callback);
+    return (file_list.next) ? 0 : -1;
+}
+
+
 static void free_file_list ()
 {
     struct file *f, *next;
 
     for (f = file_list.next; f; f = next) {
 	next = f->next;
-	
+
 	ed_select_list_destroy (f->list);
-	free (f->filename);
 	free (f);
     }
 }
@@ -278,11 +277,10 @@ static int event_layer (int event, struct editarea_event *d)
 
 int mode_lights_init ()
 {
-    lights_load (loader_hook);
-    if (!file_list.next)
+    if (make_file_list () < 0)
 	return -1;
     current = file_list.next;
-
+    
     modemgr_register (&light_mode);
     editarea_layer_register ("lights", draw_layer, event_layer, DEPTH_LIGHTS);
 

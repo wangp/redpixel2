@@ -24,9 +24,10 @@ static void destroy_cursor ()
 }
 
 
-void cursor_init ()
+int cursor_init ()
 {
     cursor_set_default ();
+    return 0;
 }
 
 

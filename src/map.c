@@ -82,9 +82,6 @@ int map_resize (map_t *map, int width, int height)
 }
 
 
-/*---------------------------------------------------------------------*/
-
-
 void map_generate_tile_mask (map_t *map)
 {
     BITMAP *b;
@@ -109,24 +106,16 @@ void map_generate_tile_mask (map_t *map)
 }
 
 
-
-/*---------------------------------------------------------------------*/
-
-
 void map_link_object (map_t *map, object_t *p)
 {
     object_t *q;
 
-    q = &map->objects;
-    while (q->next)
-	q = q->next;
-	
-    p->next = q->next;
-    if (p->next)
-	p->next->prev = p;
+    for (q = &map->objects; q->next; q = q->next)
+	;
+
+    p->next = 0;
+    p->prev = (q != &map->objects) ? q :  0;
     q->next = p;
-    if (q != &map->objects)
-	p->prev = q;
 }
 
 
@@ -141,9 +130,6 @@ void map_unlink_object (map_t *map, object_t *p)
 }
 
 
-/*---------------------------------------------------------------------*/
-
-
 light_t *map_light_create (map_t *map, int x, int y, int lightmap)
 {
     light_t *p, *q;
@@ -155,11 +141,10 @@ light_t *map_light_create (map_t *map, int x, int y, int lightmap)
 	p->y = y;
 	p->lightmap = lightmap;
 	
-	q = &map->lights;
-	while (q->next)
-	    q = q->next;
+	for (q = &map->lights; q->next; q = q->next)
+	    ;
 	
-	p->next = q->next;
+	p->next = 0;
 	q->next = p;
     }
 
@@ -176,10 +161,9 @@ void map_light_destroy (map_t *map, light_t *light)
 	    p->next = light->next;
 	    break;
 	}
+
+    free (light);
 }
-
-
-/*---------------------------------------------------------------------*/
 
 
 start_t *map_start_create (map_t *map, int x, int y)
@@ -192,11 +176,10 @@ start_t *map_start_create (map_t *map, int x, int y)
 	p->x = x;
 	p->y = y;
 	
-	q = &map->starts;
-	while (q->next)
-	    q = q->next;
+	for (q = &map->starts; q->next; q = q->next)
+	    ;
 	
-	p->next = q->next;
+	p->next = 0;
 	q->next = p;
     }
 
@@ -213,4 +196,6 @@ void map_start_destroy (map_t *map, start_t *start)
 	    p->next = start->next;
 	    break;
 	}
+
+    free (start);
 }

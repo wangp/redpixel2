@@ -15,8 +15,4 @@ void modemgr_register (struct editmode *mode);
 void modemgr_select (char *name);
 
 
-void modebar_install (int x, int y, int w, int h);
-void modebar_uninstall ();
-
-
 #endif

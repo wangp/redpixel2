@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <allegro.h>
 #include "editor.h"
+#include "gameinit.h"
 #include "game.h"
 
 
@@ -16,7 +17,7 @@ static int setup_video (int w, int h, int d)
     
     set_color_conversion (COLORCONV_NONE);
    
-    if (d != -1) {
+    if (d > 0) {
 	set_color_depth (d);
 	if (set_gfx_mode (GFX_AUTODETECT, w, h, 0, 0) == 0)
 	    return 0;
@@ -39,9 +40,11 @@ static void setup_allegro (int w, int h, int d)
     install_timer ();
     install_keyboard ();
 
-    if (install_mouse () < 0)
+    if (install_mouse () < 0) {
+        allegro_message ("Error initialising mouse.\n");
 	exit (1);
-    
+    }
+        
     if (setup_video (w, h, d) < 0) {
         allegro_message ("Error setting video mode.\n");
 	exit (1);
@@ -53,6 +56,7 @@ int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1, c;
     int edit = 0;
+    int ret;
     
     opterr = 0;
     
@@ -87,10 +91,16 @@ int main (int argc, char *argv[])
 
     setup_allegro (w, h, d);
 
+    game_init ();
+    
     if (edit)
-	return editor (argc, argv);
+	ret = editor (argc, argv);
     else
-	return game (argc, argv);
+	ret = game (argc, argv);
+
+    game_shutdown ();
+
+    return ret;
 }
 
 END_OF_MAIN();

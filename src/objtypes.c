@@ -17,7 +17,7 @@ static int num;
 static type_t **types;
 
 
-static type_t *create (const char *name, int table, const char *icon)
+static type_t *create (const char *name, int table, const char *type, const char *icon)
 {
     type_t *p, **tmp;
 
@@ -32,6 +32,7 @@ static type_t *create (const char *name, int table, const char *icon)
     
     p->name  = ustrdup (name);
     p->table = table;
+    p->type  = ustrdup (type);
     p->icon  = ustrdup (icon);
     
     types = tmp;
@@ -48,23 +49,12 @@ static void destroy_all ()
     for (i = 0; i < num; i++) {
 	free (types[i]->name);
 	lua_unref (types[i]->table);
+	free (types[i]->type);
 	free (types[i]->icon);
 	free (types[i]);
     }
 
     free (types);
-}
-
-
-void object_types_register (const char *name, lua_Object table,
-			    const char *type, const char *icon)
-{
-    int ref;
-
-    lua_pushobject (table);
-    ref = lua_ref (1);
-
-    create (name, ref, icon);
 }
 
 
@@ -81,7 +71,19 @@ void object_types_shutdown ()
 }
 
 
-object_type_t *object_type (const char *name)
+void object_types_register (const char *name, lua_Object table,
+			    const char *type, const char *icon)
+{
+    int ref;
+
+    lua_pushobject (table);
+    ref = lua_ref (1);
+
+    create (name, ref, type, icon);
+}
+
+
+object_type_t *object_types_lookup (const char *name)
 {
     int i;
 
@@ -90,4 +92,13 @@ object_type_t *object_type (const char *name)
 	    return types[i];
 
     return 0;
+}
+
+
+void object_types_enumerate (void (*proc) (object_type_t *type))
+{
+    int i;
+
+    for (i = 0; i < num; i++)
+	proc (types[i]);
 }

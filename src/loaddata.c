@@ -12,14 +12,19 @@
 
 static void *tiles;
 
-void tiles_load (void (*hook) (const char *filename, int id))
+void tiles_load ()
 {
-    tiles = loadhelp_load ("tile/*.dat", VTREE_TILES, hook);
+    tiles = loadhelp_load ("tile/*.dat", VTREE_TILES);
 }
 
 void tiles_unload ()
 {
     loadhelp_unload (tiles);
+}
+
+void tiles_enumerate (void (*proc) (const char *filename, int id))
+{
+    loadhelp_enumerate (tiles, proc);
 }
 
 
@@ -28,9 +33,9 @@ void tiles_unload ()
 
 static void *lights;
 
-void lights_load (void (*hook) (const char *filename, int id))
+void lights_load ()
 {
-    lights = loadhelp_load ("light/*.dat", VTREE_LIGHTS, hook);
+    lights = loadhelp_load ("light/*.dat", VTREE_LIGHTS);
 }
 
 void lights_unload ()
@@ -38,3 +43,7 @@ void lights_unload ()
     loadhelp_unload (lights);
 }
 
+void lights_enumerate (void (*proc) (const char *filename, int id))
+{
+    loadhelp_enumerate (lights, proc);
+}
