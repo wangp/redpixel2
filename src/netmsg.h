@@ -151,6 +151,14 @@ enum {
 	CONTROL_RESPAWN = 0x20,
 
 
+    /* Notify server of wish to change weapon.
+
+       Args: long len, byte weapon_name[].
+     */
+
+    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w',
+
+
     /* Tell server to broadcast text message to all clients.
 
        Args: long len, char text[].

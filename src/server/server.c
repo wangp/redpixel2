@@ -374,6 +374,18 @@ static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, 
 		buf += packet_decode (buf, "cf", &c->controls, &c->aim_angle);
 		break;
 
+	    case MSG_CS_GAMEINFO_WEAPON_SWITCH: {
+		long len;
+		char name[NETWORK_MAX_PACKET_SIZE];
+		
+		buf += packet_decode (buf, "s", &len, name);
+		if (c->client_object) {
+		    lua_pushstring (lua_state, name);
+		    object_call (c->client_object, "switch_weapon", 1);
+		}
+		break;
+	    }
+
 	    default:
 		error ("error: unknown code in gameinfo packet (server)\n");
 	}

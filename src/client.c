@@ -223,6 +223,35 @@ static void send_gameinfo_controls ()
 }
 
 
+static void send_gameinfo_weapon_switch () /* XXX stuff in the same packet as _CONTROLS? */
+{
+    static int last_key[10] = {0,0,0,0,0,0,0,0,0,0};
+    lua_State *L = lua_state;
+    int i;
+
+    for (i = 0; i < 10; i++) {
+	int K = KEY_1 + i;
+	int is_down = key[K];
+
+	if (is_down && !last_key[K]) {
+	    last_key[K] = 1;
+	    lua_getglobal (L, "weapon_order");
+	    lua_pushnumber (L, i+1);
+	    lua_rawget (L, -2);
+	    if (lua_isstring (L, -1)) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     lua_tostring (L, -1));
+	    }
+	    lua_pop (L, 1);
+	    return;
+	}
+
+	last_key[K] = is_down;
+    }
+}
+
+
 /*----------------------------------------------------------------------*/
 
 
@@ -777,6 +806,7 @@ void game_client_run ()
 	    if (last_ticks != t) {
 		dbg ("send gameinfo");
 		send_gameinfo_controls ();
+		send_gameinfo_weapon_switch ();
 
 		dbg ("do physics");
 		perform_simple_physics (t, t - last_ticks);

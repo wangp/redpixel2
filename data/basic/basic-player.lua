@@ -45,7 +45,7 @@ local player_nonproxy_init = function (self)
     end
 
     function self:switch_weapon (weapon_name)
-	if weapons[weapon_name] then
+	if weapons[weapon_name] and self.have_weapon[weapon_name] then
 	    self.current_weapon = weapons[weapon_name]
 	    call_method_on_clients (self, "switch_weapon", weapon_name)
 	end

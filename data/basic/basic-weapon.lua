@@ -340,3 +340,18 @@ Standard_Pickup {
     icon = "/basic/weapon/mine/pickup",
     respawn_secs = 10
 }
+
+
+----------------------------------------------------------------------
+--  Weapon switch order
+----------------------------------------------------------------------
+
+weapon_order = {
+    "basic-blaster",
+    "basic-shotgun",
+    "basic-ak",
+    "basic-minigun",
+    "basic-bow",
+    "basic-rpg",
+    "basic-rifle"
+}
