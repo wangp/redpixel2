@@ -15,6 +15,7 @@
 static float old_music_desired_volume;
 static int old_desired_brightness;
 static int stretch_method_in_use;
+static int old_desired_game_screen_w, old_desired_game_screen_h;
 
 static DIALOG options_menu[];
 #define DEFAULT_FOCUS			-1
@@ -205,32 +206,35 @@ static int options_menu_modify_changes_pressed (void)
 	gamma_factor = gamma_slider_d2_to_gamma_factor (GAMMA_SLIDER.d2);
     }
 
-    /* Test the desired video mode. */
-    if (setup_video (w, h, 0) == 0) {
-	desired_game_screen_w = w;
-	desired_game_screen_h = h;
-	stretch_method_in_use = method;
+    /* Test the desired video mode if it has been changed. */
+    if ((desired_game_screen_w != old_desired_game_screen_w) ||
+	(desired_game_screen_h != old_desired_game_screen_h)) {
+	if (setup_video (w, h, 0) == 0) {
+	    desired_game_screen_w = w;
+	    desired_game_screen_h = h;
+	    stretch_method_in_use = method;
 
-	if (video_mode_is_big (w, h)) {
-	    desired_menu_screen_w = w;
-	    desired_menu_screen_h = h;
+	    if (video_mode_is_big (w, h)) {
+		desired_menu_screen_w = w;
+		desired_menu_screen_h = h;
 
-	    lobby_shutdown ();
-	    lobby_init (NULL);
-	    fancy_gui_shutdown ();
-	    fancy_gui_init ();
+		lobby_shutdown ();
+		lobby_init (NULL);
+		fancy_gui_shutdown ();
+		fancy_gui_init ();
+	    }
+	    else
+		set_menu_gfx_mode ();
+
+	    screen_blitter_shutdown ();
+	    screen_blitter_init (method, bitmap_color_depth (screen));
 	}
-	else
+	else {
 	    set_menu_gfx_mode ();
-
-	screen_blitter_shutdown ();
-	screen_blitter_init (method, bitmap_color_depth (screen));
-    }
-    else {
-	set_menu_gfx_mode ();
-	show_mouse (screen);
-	alert ("Couldn't set the desired video mode.", NULL, NULL, "Ok", NULL, 0, 0);
-	return D_REDRAW;
+	    show_mouse (screen);
+	    alert ("Couldn't set the desired video mode.", NULL, NULL, "Ok", NULL, 0, 0);
+	    return D_REDRAW;
+	}
     }
 
     return D_EXIT;
@@ -291,6 +295,8 @@ void options_menu_run (void)
 	disable_stretching ();
     }
     stretch_method_to_radiobuttons (stretch_method_in_use);
+    old_desired_game_screen_w = desired_game_screen_w;
+    old_desired_game_screen_h = desired_game_screen_h;
 
     /* Sound & music. */
     SFX_SLIDER.d2 = sound_volume_factor * 255;
