@@ -14,13 +14,13 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
 	  -I libnet/include -I lua/include -I dumb/include \
-	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
+	  $(addprefix -I,$(SRCDIRS)) -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
 ifndef DEBUG
-CFLAGS += -O3 -g -fomit-frame-pointer -funroll-loops -ffast-math -march=i686
+CFLAGS += -O3 -fomit-frame-pointer -funroll-loops -ffast-math -march=i686
 else
 CFLAGS += -O3 -g
 endif
@@ -201,13 +201,18 @@ endif
 ifeq "$(PLATFORM)" "MINGW"
 
 $(PLAT_LIBNET):
-	copy libnet\makfiles\mingw.mak libnet\port.mak
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
 	$(MAKE) -C lua/src
 	$(MAKE) -C lua/src/lib
 	$(MAKE) -C lua/src/lua
+
+$(PLAT_LIBDUMB):
+	$(MAKE) -C dumb core
+
+$(PLAT_LIBALDUMB):
+	$(MAKE) -C dumb lib/mingw/libaldmb.a
 
 endif
 
@@ -218,8 +223,13 @@ SOURCES := $(addsuffix /*.c,$(SRCDIRS))
 TAGS: $(SOURCES)
 	etags $^
 
+# TAGS == tags on Windows :-P
+ifneq "$(PLATFORM)" "MINGW"
+
 tags: $(SOURCES)
 	ctags $^
+
+endif
 
 #----------------------------------------------------------------------
 

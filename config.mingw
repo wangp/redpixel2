@@ -9,7 +9,11 @@ PLAT_OBJDIR := obj/mingw
 PLAT_LIBNET := libnet/lib/libnet.a
 PLAT_LUABIN := lua/bin/lua
 PLAT_LIBLUA := lua/lib/liblua.a lua/lib/liblualib.a
-PLAT_LIBS := -lalleg $(PLAT_LIBNET) -lwsock32 $(PLAT_LIBLUA) \
-		win32/pdcurses/pdcurses/win32/pdcurses.a \
-		-lwinmm
+PLAT_LIBDUMB := dumb/lib/mingw/libdumb.a
+PLAT_LIBALDUMB := dumb/lib/mingw/libaldmb.a
+PLAT_LIBS := $(PLAT_LIBALDUMB) -lalleg                	\
+	     $(PLAT_LIBNET) -lwsock32			\
+	     $(PLAT_LIBLUA)				\
+	     $(PLAT_LIBDUMB)				\
+	     win32/pdcurses/pdcurses/win32/pdcurses.a -lwinmm
 PLAT_EXE := .exe
