@@ -90,7 +90,7 @@ void blod_init ()
 {
     int i;
     for (i = 0; blod_type_list[i].name; i++)
-	objtypes_register ("player", blod_type_list[i].name,
+	objtypes_register (NULL, blod_type_list[i].name,
 			   blod_type_list[i].icon, LUA_NOREF);
     num_blod_types = i;
 }
