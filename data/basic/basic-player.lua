@@ -94,6 +94,12 @@ local player_nonproxy_init = function (self)
 		-- this makes the client track the corpse
 		corpse._internal_stalk_me = self.id
 		corpse:add_creation_field ("_internal_stalk_me")
+
+		-- drop a backpack after the corpse finishes animation
+		local x, y = self.x, self.y
+		corpse.drop_backpack = function ()
+		    spawn_object ("basic-backpack", x, y)
+		end
 	    end
 	    self:destroy ()
 	end
@@ -129,6 +135,11 @@ end
 -- Proxy
 --
 
+local walk_anim = {}
+for i = 0,7 do
+    tinsert (walk_anim, format ("/basic/player/walk/%03d", i))
+end
+
 local animate_player_proxy = function (self)
     -- firing
     if self.animate_arm then
@@ -151,15 +162,16 @@ local animate_player_proxy = function (self)
 	return
     end
     
-    self.walk_frame_tics = self.walk_frame_tics - 1
-    if self.walk_frame_tics <= 0 then
+    if self.walk_frame_tics > 0 then
+	self.walk_frame_tics = self.walk_frame_tics - 1
+    else
 	self.walk_frame_tics = 2
 
 	self.walk_frame = self.walk_frame + 1
-	if self.walk_frame > 7 then
-	    self.walk_frame = 0
+	if self.walk_frame > getn (walk_anim) then
+	    self.walk_frame = 1
 	end
-	self:replace_layer (0, format ("/basic/player/walk/%03d", self.walk_frame), cx, cy)
+	self:replace_layer (0, walk_anim[self.walk_frame], cx, cy)
     end
 end
 
@@ -202,7 +214,7 @@ local player_proxy_init = function (self)
     end
 
     -- animation and update hook
-    self.walk_frame = 0
+    self.walk_frame = 1
     self.walk_frame_tics = 0
     self:set_update_hook (
 	1000/50,
@@ -246,6 +258,9 @@ local death_fountain_update_hook = function (self)
 	self.frame = 30
 	if not self.is_proxy then
 	    self:remove_update_hook ()
+	    if self.drop_backpack then
+		self.drop_backpack ()
+	    end
 	else
 	    -- proxy: let the light remain for half a second more
 	    self:set_update_hook (
@@ -276,5 +291,26 @@ Objtype {
 	self:add_light ("/basic/light/white-32", 0, 0)
 	self:set_update_hook (1000/10, death_fountain_update_hook)
 	death_fountain_update_hook (self) -- set the initial layer
+    end
+}
+
+
+----------------------------------------------------------------------
+--  Backpack
+----------------------------------------------------------------------
+
+Objtype {
+    name = "basic-backpack",
+    icon = "/basic/player/backpack",
+    nonproxy_init = function (self)
+	self.mass = 0.01
+	self:set_collision_flags ("pt")
+	function self:collide_hook (player)
+	    -- give goodies
+	    self:destroy ()
+	end
+    end,
+    proxy_init = function (self)
+	self:add_light ("/basic/light/white-16", 0, 0)
     end
 }
