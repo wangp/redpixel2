@@ -2,6 +2,7 @@
 #define __included_svclient_h
 
 
+#include <stdlib.h>
 #include "timeout.h"
 
 

@@ -24,6 +24,11 @@
 #include "svticker.h"
 
 
+#ifndef M_PI
+# define M_PI   3.14159265358979323846
+#endif
+
+
 /* Keep this in sync with the client. */
 #define TICKS_PER_SECOND	(50)
 #define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
@@ -897,10 +902,10 @@ static void svgame_poll (void)
 
     if (svstats_poll ()) {
 	char buf[1024];
-	snprintf (buf, sizeof buf,
-		  "Incoming %.1f, outgoing %.1f  (avg bytes per sec)",
-		  svstats_average_incoming_bytes,
-		  svstats_average_outgoing_bytes);
+	uszprintf (buf, sizeof buf,
+		   "Incoming %.1f, outgoing %.1f  (avg bytes per sec)",
+		   svstats_average_incoming_bytes,
+		   svstats_average_outgoing_bytes);
 	server_interface_set_status (buf);
     }
 }

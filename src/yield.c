@@ -22,8 +22,18 @@ void yield (void)
     select(0, 0, 0, 0, &tv);
 
 #else
+#ifdef ALLEGRO_WINDOWS
     
+    /* This seems to give better results under Windows that Sleep(0)
+     * (which is what yield_timeslice() uses).  */
+
+    void __stdcall Sleep (int);
+    Sleep (5);
+
+#else
+
     yield_timeslice ();
 
+#endif
 #endif
 }

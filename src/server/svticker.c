@@ -12,7 +12,7 @@
 struct svticker {
     int msecs_per_tick;
     unsigned long ticks;
-    struct timeval last_update;
+    struct pwtimeval last_update;
 };
 
 
@@ -30,7 +30,7 @@ svticker_t *svticker_create (int ticks_per_sec)
 
 int svticker_poll (svticker_t *t)
 {
-    struct timeval now;
+    struct pwtimeval now;
     unsigned long elapsed_msec;
 
     gettimeofday (&now, NULL);

@@ -12,7 +12,7 @@
 
 void timeout_set (timeout_t *timeout, unsigned long msec)
 {
-    struct timeval now;
+    struct pwtimeval now;
 
     gettimeofday (&now, NULL);
     timeout->timeout.tv_sec = now.tv_sec + (msec / 1000);
@@ -22,7 +22,7 @@ void timeout_set (timeout_t *timeout, unsigned long msec)
 
 int timeout_test (timeout_t *timeout)
 {
-    struct timeval now;
+    struct pwtimeval now;
 
     gettimeofday (&now, NULL);
 

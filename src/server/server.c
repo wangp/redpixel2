@@ -50,8 +50,7 @@ void server_log (const char *fmt, ...)
     va_list ap;
 
     va_start (ap, fmt);
-    vsnprintf (buf, sizeof buf, fmt, ap);
-    buf[sizeof buf - 1] = 0;
+    uvszprintf (buf, sizeof buf, fmt, ap);
     if (interface)
 	interface->add_log (NULL, buf);
     else
@@ -281,7 +280,7 @@ static void poll_interface (void)
             server_log ("  MAP            - display current map");
             server_log ("  START          - enter game mode");
             server_log ("  STOP           - return to the lobby");
-            server_log ("  RESTART        - restart game mode (with new map)");
+	    /* server_log ("  RESTART        - restart game mode (with new map)"); */
             server_log ("  QUIT           - quit completely");
             server_log ("  LIST           - list clients");
             server_log ("  KICK <id|name> - forcefully disconnect a client");

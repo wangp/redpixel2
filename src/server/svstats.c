@@ -7,7 +7,7 @@
 #include "timeval.h"
 
 
-static struct timeval count_start_time;
+static struct pwtimeval count_start_time;
 
 int svstats_incoming_bytes;
 int svstats_outgoing_bytes;
@@ -27,7 +27,7 @@ void svstats_init (void)
 
 int svstats_poll (void)
 {
-    struct timeval now;
+    struct pwtimeval now;
     unsigned long elapsed_msec;
 
     gettimeofday (&now, 0);

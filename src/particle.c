@@ -18,6 +18,11 @@
 #include "particle.h"
 
 
+#ifndef M_PI
+# define M_PI   3.14159265358979323846
+#endif
+
+
 #define INITIAL_PARTICLES	1024
 #define MAX_PARTICLES		8192
 
