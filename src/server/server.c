@@ -321,6 +321,10 @@ static void poll_interface (void)
 	    } else {
 		string_set (server_next_map_file, word);
 		server_log ("Setting map to %s", server_next_map_file);
+
+		if (!file_exists (server_next_map_file,
+				  FA_RDONLY|FA_HIDDEN|FA_SYSTEM|FA_ARCH, NULL))
+		    server_log ("Warning: %s doesn't exist", server_next_map_file);
 	    }
 	}
 	
