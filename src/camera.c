@@ -83,8 +83,8 @@ static void move_camera_closer_to_target (camera_t *cam)
 
 void camera_track_object (camera_t *cam, object_t *obj)
 {
-    cam->target_x = obj->x - (cam->view_width / 2);
-    cam->target_y = obj->y - (cam->view_height / 2);
+    cam->target_x = object_x (obj) - (cam->view_width / 2);
+    cam->target_y = object_y (obj) - (cam->view_height / 2);
 
     move_camera_closer_to_target (cam);
 }
@@ -108,8 +108,8 @@ void camera_track_object_with_mouse (camera_t *cam, object_t *obj,
 	dy = max_dist * sin (angle);
     }
 
-    cam->target_x = (obj->x + cam->x - cx + dx) / 2;
-    cam->target_y = (obj->y + cam->y - cy + dy) / 2;
+    cam->target_x = (object_x (obj) + cam->x - cx + dx) / 2;
+    cam->target_y = (object_y (obj) + cam->y - cy + dy) / 2;
 
     move_camera_closer_to_target (cam);
 }

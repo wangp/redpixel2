@@ -10,6 +10,7 @@
 #include "alloc.h"
 #include "cursor.h"
 #include "depths.h"
+#include "editor.h"
 #include "editarea.h"
 #include "edselect.h"
 #include "list.h"
@@ -52,7 +53,7 @@ static struct type *find_type (const char *name)
 {
     struct type *p;
 
-    list_for_each (p, type_list)
+    list_for_each (p, &type_list)
 	if (!ustrcmp (name, p->name)) 
 	    return p;
 
@@ -64,16 +65,16 @@ static void callback (objtype_t *objtype)
     BITMAP *bmp;
     struct type *p;
 
-    bmp = store_dat (objtype->icon);
+    bmp = store_dat (objtype_icon (objtype));
     if (!bmp) return;
     
-    p = find_type (objtype->type);
+    p = find_type (objtype_type (objtype));
     if (!p) {
-	p = create_type (objtype->type);
+	p = create_type (objtype_type (objtype));
 	if (!p) return;
     }
 
-    ed_select_list_add_item (p->list, objtype->name, bmp);
+    ed_select_list_add_item (p->list, objtype_name (objtype), bmp);
 }
 
 static int make_type_list ()
@@ -105,7 +106,7 @@ static void cursor_set_selected ()
 {
     BITMAP *bmp;
 
-    bmp = store_dat (objtypes_lookup (selectbar_selected_name ())->icon);
+    bmp = store_dat (objtype_icon (objtypes_lookup (selectbar_selected_name ())));
     if (bmp) {
 	cursor_set_magic_bitmap (bmp, 0, 0);
 	cursor_offset_x = bmp->w/3/2;
@@ -272,29 +273,34 @@ static object_t *highlighted;
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
+    struct list_head *list;
     object_t *p;
 
     offx *= 16;
     offy *= 16;
 
-    list_for_each (p, map->objects)
+    list = map_object_list (editor_map);
+
+    list_for_each (p, list)
 	if (p == highlighted)
 	    object_draw_lit_layers (bmp, p, offx, offy, 0x88);
 	else
 	    object_draw_layers (bmp, p, offx, offy);
 
-    list_for_each (p, map->objects)
+    list_for_each (p, list)
 	object_draw_lights (bmp, p, offx, offy);
 }
 
 static object_t *find_object (int x, int y)
 {
+    struct list_head *list;
     object_t *p, *last = NULL;
     int x1, y1, x2, y2;
-    
-    list_for_each (p, map->objects) {
+
+    list = map_object_list (editor_map);
+    list_for_each (p, list) {
 	object_bounding_box (p, &x1, &y1, &x2, &y2);
-	if (in_rect (x, y, p->x + x1, p->y + y1, x2-x1+1, y2-y1+1))
+	if (in_rect (x, y, object_x (p) + x1, object_y (p) + y1, x2-x1+1, y2-y1+1))
 	    last = p;
     }
 
@@ -306,9 +312,9 @@ static void do_object_pickup (object_t *p)
     const char *key;
     struct type *type;
 
-    key = p->type->name;
+    key = objtype_name (object_type (p));
 
-    list_for_each (type, type_list) {
+    list_for_each (type, &type_list) {
 	int i = ed_select_list_item_index (type->list, key);
 	if (i >= 0) {
 	    change_set (type);
@@ -346,18 +352,17 @@ static int event_layer (int event, struct editarea_event *d)
 			}
 			else if (p) {
 			    move = p;
-			    move_offx = x - p->x;
-			    move_offy = y - p->y;
+			    move_offx = x - object_x (p);
+			    move_offy = y - object_y (p);
 			}
 			else {
 			    p = object_create (selectbar_selected_name ());
-			    p->x = x + cursor_offset_x;
-			    p->y = y + cursor_offset_y;
-			    map_link_object (map, p);
+			    object_set_xy (p, x + cursor_offset_x, y + cursor_offset_y);
+			    map_link_object (editor_map, p);
 			    
 			    highlighted = move = p;
-			    move_offx = x - p->x;
-			    move_offy = y - p->y;
+			    move_offx = x - object_x (p);
+			    move_offy = y - object_y (p);
 			    cursor_set_dot ();
 			    return 1;
 			}
@@ -374,7 +379,7 @@ static int event_layer (int event, struct editarea_event *d)
 		    case ACTION_RAISE:
 			if (p) {
 			    map_unlink_object (p);
-			    map_link_object (map, p);
+			    map_link_object (editor_map, p);
 			    return 1;
 			}
 			break;
@@ -382,7 +387,7 @@ static int event_layer (int event, struct editarea_event *d)
 		    case ACTION_LOWER:
 			if (p) {
 			    map_unlink_object (p);
-			    map_link_object_bottom (map, p);
+			    map_link_object_bottom (editor_map, p);
 			    return 1;
 			}
 			break;
@@ -407,8 +412,7 @@ static int event_layer (int event, struct editarea_event *d)
 	    y = map_y (d->mouse.y);
 
 	    if (move) {
-		move->x = x - move_offx;
-		move->y = y - move_offy;
+		object_set_xy (move, x - move_offx, y - move_offy);
 		cursor_set_dot ();
 		return 1;
 	    }

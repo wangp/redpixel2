@@ -1,8 +1,8 @@
 -- enhance.lua
 
 function init_lightamp (self)
-    object_add_light (self, "/lights/blue-32", 0, 0)
-    object_set_mass (self, 0)
+    self:add_light ("/lights/blue-32", 0, 0)
+    self.mass = 0
 end
 
 

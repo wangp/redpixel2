@@ -7,8 +7,10 @@
 #include <allegro.h>
 #include "alloc.h"
 #include "depths.h"
+#include "editor.h"
 #include "editarea.h"
 #include "edselect.h"
+#include "list.h"
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "map.h"
@@ -171,30 +173,34 @@ static struct editmode light_mode = {
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
+    struct list_head *list;
     light_t *p;
 
     offx *= 16;
     offy *= 16;
 
-    list_for_each (p, map->lights)
+    list = map_light_list (editor_map);
+    list_for_each (p, list)
 	draw_trans_magic_sprite (bmp, icon, 
-				 (p->x - offx) - (icon->w / 3 / 2),
-				 (p->y - offy) - (icon->h / 2));
+				 (map_light_x (p) - offx) - (icon->w / 3 / 2),
+				 (map_light_y (p) - offy) - (icon->h / 2));
 
     if (full_brightness)
 	set_magic_bitmap_brightness (bmp, 0xf, 0xf, 0xf);
     else
-	render_lights (bmp, map, offx, offy);
+	render_lights (bmp, editor_map, offx, offy);
 }
 
 static light_t *find_light (int x, int y)
 {
+    struct list_head *list;
     light_t *p, *last = 0;
-    
-    list_for_each (p, map->lights)
+
+    list = map_light_list (editor_map);
+    list_for_each (p, list)
 	if (in_rect (x, y,
-		     p->x - icon->w / 3 / 2,
-		     p->y - icon->h / 2,
+		     map_light_x (p) - icon->w / 3 / 2,
+		     map_light_y (p) - icon->h / 2,
 		     icon->w / 3, icon->h))
 	    last = p;
 
@@ -221,7 +227,7 @@ static int event_layer (int event, struct editarea_event *d)
 		if (p)
 		    old = p;
 		else {
-		    old = map_light_create (map, x, y, store_index (selectbar_selected_name ()) - 1);
+		    old = map_light_create (editor_map, x, y, store_index (selectbar_selected_name ()) - 1);
 		    return 1;
 		}
 	    }
@@ -233,8 +239,7 @@ static int event_layer (int event, struct editarea_event *d)
 	    
 	case EDITAREA_EVENT_MOUSE_MOVE:
 	    if (old) {
-		old->x = map_x (d->mouse.x);
-		old->y = map_y (d->mouse.y);
+		map_light_move (old, map_x (d->mouse.x), map_y (d->mouse.y));
 		return 1;
 	    }
 	    break;

@@ -25,44 +25,50 @@ static void render_tiles (BITMAP *bmp, map_t *map, int offx, int offy,
 
     x1 = (offx / 16);
     y1 = (offy / 16);
-    x2 = MIN (x1 + w + 1, map->width);
-    y2 = MIN (y1 + h + 2, map->height);
+    x2 = MIN (x1 + w + 1, map_width (map));
+    y2 = MIN (y1 + h + 2, map_height (map));
 
     for (y = y1, yy = -(offy % 16); y < y2; y++, yy += 16)
     for (x = x1, xx = -(offx % 16); x < x2; x++, xx += 16)
-	if ((y >= 0) && (x >= 0) && (tile = map->tile[y][x]))
+	if ((y >= 0) && (x >= 0) && (tile = map_tile (map, x, y)))
 	    draw_magic_sprite(bmp, store[tile]->dat, xx, yy);
 }
 
 
 void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
-    BITMAP *b;
+    struct list_head *list;
     light_t *l;
+    BITMAP *b;
     
-    list_for_each (l, map->lights) {
-	b = store[l->lightmap]->dat;
+    list = map_light_list (map);
+    list_for_each (l, list) {
+	b = store[map_light_lightmap (l)]->dat;
 	draw_trans_magic_sprite (bmp, b,
-				 (l->x - offx) - (b->w / 3 / 2),
-				 (l->y - offy) - (b->h / 2));
+				 (map_light_x (l) - offx) - (b->w / 3 / 2),
+				 (map_light_y (l) - offy) - (b->h / 2));
     }
 }
 
 
 static void render_object_layers (BITMAP *bmp, map_t *map, int offx, int offy)
 {
+    struct list_head *list;
     object_t *obj;
 
-    list_for_each (obj, map->objects)
+    list = map_object_list (map);
+    list_for_each (obj, list)
 	object_draw_layers (bmp, obj, offx, offy);
 }
 
 
 static void render_object_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 {
+    struct list_head *list;
     object_t *obj;
 
-    list_for_each (obj, map->objects)
+    list = map_object_list (map);
+    list_for_each (obj, list)
 	object_draw_lights (bmp, obj, offx, offy);
 }
 

@@ -1,7 +1,7 @@
 -- food.lua
 
 function init_burger (self)
-    object_set_mass (self, 1)
+    self.mass = 1
 end
 
 

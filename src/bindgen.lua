@@ -15,7 +15,7 @@ ctypes = {
     String	= { "s", "const char *", "lua_tostring" },
     -- custom and readability types
     Method   	= { "f", "lua_ref_t", "lua_ref" },
-    Object	= { "t", "object_t *", "table_object", "!$" },
+    Object	= { "u", "object_t *", "lua_toobject", "!$" },
     StoreKey	= { "s", "const char *", "lua_tostring" }
 }
 
@@ -155,18 +155,6 @@ generate {
 		   { String, "icon" },
 		   { Method, "func", nil, 
 		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }}
-}
-
-generate {
-    cname	= "object_set_mass",
-    args	= {{ Object, "obj" },
-		   { Float, "mass" }}
-}
-
-generate {
-    cname 	= "object_set_ramp",
-    args 	= {{ Object, "obj" },
-		   { Float, "rampamount" }}
 }
 
 generate {

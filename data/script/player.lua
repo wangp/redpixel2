@@ -1,8 +1,8 @@
 -- player.lua
 
 function init_player (self)
-    object_set_mass (self, 2.2)
-    object_set_ramp (self, 6)
+    self.mass = 2.2
+    self.ramp = 6
     self:add_light ("/lights/white-64", 0, 0)
     self:set_mask (0, "/player/mask-whole", -3, -8)
     self:set_mask (1, "/player/mask-top", -3, -8)
@@ -23,15 +23,13 @@ function init_player (self)
 	then self.walk_frame = self.walk_frame + 1
 	else self.walk_frame = 0 
 	end
-	self:replace_layer (self.leg_layer, 
-		"/player/legs-walk-" .. self.walk_frame, 0, 4)
+	self:replace_layer (self.leg_layer, "/player/legs-walk-"..self.walk_frame, 0, 4)
 
 	if self.arm_frame < 4
 	then self.arm_frame = self.arm_frame + 1
 	else self.arm_frame = 0 
 	end
-	self:replace_layer (self.arm_layer,
-		"/weapon/shotgun/2arm-00" .. self.arm_frame, 7, -4)
+	self:replace_layer (self.arm_layer, "/weapon/shotgun/2arm-00"..self.arm_frame, 7, -4)
     end
 
 end

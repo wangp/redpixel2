@@ -1,3 +1,18 @@
+2001-07-03  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* bindgen.lua: Updated.
+
+	* object.c: Support tag methods.  Pass userdata to Lua scripts
+	instead of a table.
+
+	* objgen.lua: New file to generates object tag methods.
+
+	* object.h, object.c: Encapsulated object structure.
+
+	* map.h, map.c: Encapsulated map, lights and starts structures.
+
+	* objtypes.h, objtypes.c: Encapsulated objtype structure.
+
 2001-07-02  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* objlayer.h, objlight.h: Removed (moved into object.c).

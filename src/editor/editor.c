@@ -23,6 +23,9 @@
 #include "map.h"
 
 
+map_t *editor_map;
+
+
 static int load_font ()
 {
     char **p, filename[1024];
@@ -64,12 +67,12 @@ int editor ()
 		return 1;
 	    modemgr_select ("tiles");
 
-		map = map_create ();
-		map_resize (map, 64, 64);
+		editor_map = map_create ();
+		map_resize (editor_map, 64, 64);
 
 		gui_main ();
 
-		map_destroy (map);
+		map_destroy (editor_map);
 	    
 	    mode_starts_shutdown ();
 	    mode_objects_shutdown ();

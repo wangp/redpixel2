@@ -6,8 +6,10 @@
 
 #include <allegro.h>
 #include "depths.h"
+#include "editor.h"
 #include "editarea.h"
 #include "edselect.h"
+#include "list.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "modes.h"
@@ -65,23 +67,28 @@ static struct editmode start_mode = {
 
 static void draw_layer (BITMAP *bmp, int offx, int offy)
 {
+    struct list_head *list;
     start_t *p;
 
     offx *= 16;
     offy *= 16;
-    
-    list_for_each (p, map->starts)
+
+    list = map_start_list (editor_map);
+    list_for_each (p, list)
 	draw_trans_magic_sprite (bmp, icon, 
-				 (p->x - offx) - (icon->w / 3 / 2),
-				 (p->y - offy) - (icon->h / 2));
+				 (map_start_x (p) - offx) - (icon->w / 3 / 2),
+				 (map_start_y (p) - offy) - (icon->h / 2));
 }
 
 static start_t *find_start (int x, int y)
 {
+    struct list_head *list;
     start_t *p, *last = NULL;
-    
-    list_for_each (p, map->starts)
-	if (in_rect (x, y, p->x - icon->w/3/2, p->y - icon->h/2, 
+
+    list = map_start_list (editor_map);
+    list_for_each (p, list)
+	if (in_rect (x, y, map_start_x (p) - icon->w/3/2, 
+		     map_start_y (p) - icon->h/2,
 		     icon->w/3, icon->h))
 	    last = p;
 
@@ -108,7 +115,7 @@ static int event_layer (int event, struct editarea_event *d)
 		if (p)
 		    old = p;
 		else {
-		    old = map_start_create (map, x, y);
+		    old = map_start_create (editor_map, x, y);
 		    return 1;
 		}
 	    }
@@ -120,8 +127,7 @@ static int event_layer (int event, struct editarea_event *d)
 	    
 	case EDITAREA_EVENT_MOUSE_MOVE:
 	    if (old) {
-		old->x = map_x (d->mouse.x);
-		old->y = map_y (d->mouse.y);
+		map_start_move (old, map_x (d->mouse.x), map_y (d->mouse.y));
 		return 1;
 	    }
 	    break;

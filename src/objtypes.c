@@ -13,6 +13,15 @@
 #include "store.h"
 
 
+struct objtype {
+    char *type;
+    char *name;
+    char *icon;
+    lua_ref_t init_func;
+    bitmask_t *icon_mask;
+};
+
+
 static int num;
 static objtype_t **types;
 
@@ -100,4 +109,34 @@ void objtypes_enumerate (void (*proc) (objtype_t *type))
 
     for (i = 0; i < num; i++)
 	proc (types[i]);
+}
+
+
+const char *objtype_type (objtype_t *type)
+{
+    return type->type;
+}
+
+
+const char *objtype_name (objtype_t *type)
+{
+    return type->name;
+}
+
+
+const char *objtype_icon (objtype_t *type)
+{
+    return type->icon;
+}
+
+
+lua_ref_t objtype_init_func (objtype_t *type)
+{
+    return type->init_func;
+}
+
+
+bitmask_t *objtype_icon_mask (objtype_t *type)
+{
+    return type->icon_mask;
 }

@@ -12,6 +12,7 @@
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "mylua.h"
+#include "object.h"
 #include "objtypes.h"
 #include "path.h"
 #include "store.h"
@@ -34,6 +35,7 @@ void game_init ()
     tiles_load ();
     lights_load ();
     objtypes_init ();
+    object_init ();
 
     lua_dofile_path (lua_state, "script/init.lua");
 }
@@ -41,6 +43,7 @@ void game_init ()
 
 void game_shutdown ()
 {
+    object_shutdown ();
     objtypes_shutdown ();
     lights_unload ();
     tiles_unload ();

@@ -2,63 +2,35 @@
 #define __included_object_h
 
 
-#include "list.h"
 #include "mylua.h"
 
 struct BITMAP;
-struct bitmask_ref;
 struct map;
-struct objtype;
 
 
 typedef int objid_t;
-
-
-typedef struct objmask {
-    struct bitmask_ref *ref;
-    int offset_x;
-    int offset_y;
-} objmask_t;
-
-
 typedef struct object object_t;
 
-struct object {
-    struct object *next;
-    struct object *prev;
-    struct objtype *type;
-    objid_t id;
 
-    /* Lua table ref.  */
-    lua_ref_t table;
+int object_init ();
+void object_shutdown ();
 
-    /* C variables.  */
-    float x, y;
-    float xv, yv;
-    float mass;
-    float ramp;
-    struct list_head layers;
-    struct list_head lights;
-    objmask_t mask[5];
-
-    /* XXX - player specific.  */
-    int jump;
-};
-
-
-/* Creation.  */
 
 object_t *object_create (const char *type_name);
 void object_destroy (object_t *obj);
 
-
-/* Mass.  */
-
+struct objtype *object_type (object_t *obj);
+objid_t object_id (object_t *obj);
+float object_x (object_t *obj);
+float object_y (object_t *obj);
+void object_set_xy (object_t *obj, float x, float y);
+float object_xv (object_t *obj);
+float object_yv (object_t *obj);
+void object_set_xv (object_t *obj, float xv);
+void object_set_yv (object_t *obj, float yv);
+float object_mass (object_t *obj);
 void object_set_mass (object_t *obj, float mass);
-
-
-/* Ramp.  */
-
+float object_ramp (object_t *obj);
 void object_set_ramp (object_t *obj, float ramp);
 
 
@@ -108,13 +80,13 @@ int object_move_x_with_ramp (object_t *obj, int mask_num, struct map *map,
 
 /* Lua table operations.  */
 
+void lua_pushobject (lua_State *L, object_t *obj);
+object_t *lua_toobject (lua_State *L, int index);
 void object_call (object_t *obj, const char *method);
 float object_get_number (object_t *obj, const char *var);
 void object_set_number (object_t *obj, const char *var, float value);
 const char *object_get_string (object_t *obj, const char *var);
 void object_set_string (object_t *obj, const char *var, const char *value);
-
-object_t *table_object (lua_State *L, int index);
 
 
 /* Drawing.  */

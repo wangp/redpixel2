@@ -5,6 +5,7 @@
 
 
 #include <allegro.h>
+#include "list.h"
 #include "map.h"
 #include "mapfile.h"
 #include "object.h"
@@ -54,8 +55,8 @@ int map_save (map_t *map, const char *filename)
 	goto error;
 
     /* Map dimensions.  */
-    if ((pack_iputw (map->width, f) == EOF)
-	|| (pack_iputw (map->height, f) == EOF))
+    if ((pack_iputw (map_width (map), f) == EOF)
+	|| (pack_iputw (map_height (map), f) == EOF))
 	goto error;
     
     /* Tiles.  */
@@ -65,9 +66,9 @@ int map_save (map_t *map, const char *filename)
     {
 	int x, y, t;
 	
-	for (y = 0; y < map->height; y++)
-	    for (x = 0; x < map->width; x++) {
-		t = map->tile[y][x];
+	for (y = 0; y < map_height (map); y++)
+	    for (x = 0; x < map_width (map); x++) {
+		t = map_tile (map, x, y);
 
 		if (t) {
 		    if (pack_fputs_nl (store_key (t), f) == EOF)
@@ -85,18 +86,18 @@ int map_save (map_t *map, const char *filename)
 	light_t *p;
 	int num;
 	
-	num = 0;
-    	list_for_each (p, map->lights) num++;
+	num = 0; 
+	list_for_each (p, map_light_list (map)) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_LIGHTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
-	
-	    list_for_each (p, map->lights)
-		if ((pack_iputl (p->x, f) == EOF)
-		    || (pack_iputl (p->y, f) == EOF)
-		    || (pack_fputs_nl (store_key (p->lightmap), f) == EOF))
+
+	    list_for_each (p, map_light_list (map))
+		if ((pack_iputl (map_light_x (p), f) == EOF)
+		    || (pack_iputl (map_light_y (p), f) == EOF)
+		    || (pack_fputs_nl (store_key (map_light_lightmap (p)), f) == EOF))
 		    goto error;
 	}
     }
@@ -107,19 +108,19 @@ int map_save (map_t *map, const char *filename)
 	int num;
 
 	num = 0;
-	list_for_each (p, map->objects) num++;
+	list_for_each (p, map_object_list (map)) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_OBJECTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
 	
-	    list_for_each (p, map->objects) {
-		const char *name = p->type->name;
+	    list_for_each (p, map_object_list (map)) {
+		const char *name = objtype_name (object_type (p));
 		
 		if ((pack_fputs_nl (name, f) == EOF)
-		    || (pack_iputl (p->x, f) == EOF)
-		    || (pack_iputl (p->y, f) == EOF))
+		    || (pack_iputl (object_x (p), f) == EOF)
+		    || (pack_iputl (object_y (p), f) == EOF))
 		    goto error;
 	    }
 	}
@@ -131,16 +132,16 @@ int map_save (map_t *map, const char *filename)
 	int num;
 
 	num = 0;
-	list_for_each (p, map->starts) num++;
+	list_for_each (p, map_start_list (map)) num++;
 
 	if (num > 0) {
 	    if ((pack_iputl (MARK_STARTS, f) == EOF)
 		|| (pack_iputl (num, f) == EOF))
 		goto error;
-	
-	    list_for_each (p, map->starts)
-		if ((pack_iputl (p->x, f) == EOF)
-		    || (pack_iputl (p->y, f) == EOF))
+
+	    list_for_each (p, map_start_list (map))
+		if ((pack_iputl (map_start_x (p), f) == EOF)
+		    || (pack_iputl (map_start_y (p), f) == EOF))
 		    goto error;
 	}
     }
@@ -164,8 +165,8 @@ static int read_tiles (map_t *map, PACKFILE *f)
     char tmp[1024];
     int warning = 0;
 
-    for (y = 0; y < map->height; y++)
-	for (x = 0; x < map->width; x++) {
+    for (y = 0; y < map_height (map); y++)
+	for (x = 0; x < map_width (map); x++) {
 	    if (!pack_fgets (tmp, sizeof tmp, f))
 		goto error;
 	    
@@ -176,7 +177,7 @@ static int read_tiles (map_t *map, PACKFILE *f)
 		if (!t) warning = 1;
 	    }
 	    
-	    map->tile[y][x] = t;
+	    map_set_tile (map, x, y, t);
 	}
 
     return warning;
@@ -246,8 +247,7 @@ static int read_objects (map_t *map, PACKFILE *f, int loadobjects)
 	    if (!p)
 		goto error;
 	    else {
-		p->x = x;
-		p->y = y;
+		object_set_xy (p, x, y);
 		map_link_object (map, p);
 	    }
 	}

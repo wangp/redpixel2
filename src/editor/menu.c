@@ -48,10 +48,10 @@ static int prompt_filename (const char *msg, char *path, const char *ext)
 static void new ()
 {
     if (prompt ("Erase current map?", "&Yes", "&No", 'y', 'n')) {
-	map_destroy (map);
+	map_destroy (editor_map);
 
-	map = map_create ();
-	map_resize (map, 64, 64);
+	editor_map = map_create ();
+	map_resize (editor_map, 64, 64);
 
 	editarea_reset_offset ();
     }
@@ -74,8 +74,8 @@ static void load ()
 	if (warning)
 	    prompt ("Warnings loading map", "&Ok", 0, 'o', 0);
 
-	map_destroy (map);
-	map = m;
+	map_destroy (editor_map);
+	editor_map = m;
 	editarea_reset_offset ();
     }
 }
@@ -86,7 +86,7 @@ static void save ()
     char filename[1024] = "";
 
     if (prompt_filename ("Save as...", filename, "pit"))
-	if (map_save (map, filename) < 0)
+	if (map_save (editor_map, filename) < 0)
 	    prompt ("Error saving map", "&Ok", 0, 'o', 0);
 }
 

@@ -52,7 +52,7 @@ static void dot_grid (BITMAP *bmp, int offx, int offy, int gx, int gy, int col)
 static void draw_layers (BITMAP *bmp)
 {
     struct layer *p;
-    list_for_each (p, layers) 
+    list_for_each (p, &layers) 
 	if ((p->draw) && (p->show))
 	    p->draw (bmp, offsetx, offsety);
 }
@@ -236,7 +236,7 @@ static void link_layer (struct layer *layer)
 {
     struct layer *p;
 
-    list_for_each (p, layers)
+    list_for_each (p, &layers)
         if ((p->next == (struct layer *) &layers) ||
 	    (p->next->depth > layer->depth)) break;
 
@@ -264,7 +264,7 @@ void editarea_layer_register (const char *name, void (*draw) (BITMAP *, int offx
 void editarea_layer_show (const char *name, int show)
 {
     struct layer *p;
-    list_for_each (p, layers) 
+    list_for_each (p, &layers)
 	if (!ustrcmp (p->name, name)) {
 	    p->show = show;
 	    break;
@@ -275,7 +275,7 @@ void editarea_layer_show (const char *name, int show)
 void editarea_layer_activate (const char *name)
 {
     struct layer *p;
-    list_for_each (p, layers)
+    list_for_each (p, &layers)
 	if (!ustrcmp (name, p->name)) {
 	    active = p;
 	    break;

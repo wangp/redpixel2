@@ -6,16 +6,23 @@
 
 #include <stdlib.h>
 #include "alloc.h"
+#include "bitmask.h"
+#include "list.h"
 #include "map.h"
 #include "object.h"
 #include "store.h"
 
 
-/* This is only here because both the game and the editor use it, and
- * I didn't know where to put it.  */
-map_t *map;
+struct map {
+    int width, height;
+    int **tile;
+    bitmask_t *tile_mask;
+    struct list_head lights;
+    struct list_head objects;
+    struct list_head starts;
+};
 
-    
+
 map_t *map_create (void)
 {
     map_t *map;
@@ -45,6 +52,18 @@ void map_destroy (map_t *map)
     list_free (map->objects, object_destroy);
     list_free (map->starts, map_start_destroy);
     free (map);
+}
+
+
+int map_width (map_t *map)
+{
+    return map->width;
+}
+
+
+int map_height (map_t *map)
+{
+    return map->height;
 }
 
 
@@ -80,6 +99,21 @@ int map_resize (map_t *map, int width, int height)
 }
 
 
+/* Tiles.  */
+
+
+int map_tile (map_t *map, int x, int y)
+{
+    return map->tile[y][x];
+}
+
+
+void map_set_tile (map_t *map, int x, int y, int tile)
+{
+    map->tile[y][x] = tile;
+}
+
+
 void map_generate_tile_mask (map_t *map)
 {
     BITMAP *b;
@@ -103,6 +137,15 @@ void map_generate_tile_mask (map_t *map)
 }
 
 
+bitmask_t *map_tile_mask (map_t *map)
+{
+    return map->tile_mask;
+}
+
+
+/* Objects.  */
+
+
 void map_link_object (map_t *map, object_t *p)
 {
     list_append (map->objects, p);
@@ -118,7 +161,6 @@ void map_link_object_bottom (map_t *map, object_t *p)
 void map_unlink_object (object_t *p)
 {
     list_remove (p);
-    p->next = p->prev = NULL;
 }
 
 
@@ -126,12 +168,28 @@ object_t *map_find_object (map_t *map, int id)
 {
     object_t *p;
 
-    list_for_each (p, map->objects)
-	if (p->id == id)
+    list_for_each (p, &map->objects)
+	if (object_id (p) == id)
 	    return p;
 
     return NULL;
 }
+
+
+struct list_head *map_object_list (map_t *map)
+{
+    return &map->objects;
+}
+
+
+/* Lights.  */
+
+
+struct light {
+    struct light *next;
+    struct light *prev;
+    int x, y, lightmap;
+};
 
 
 light_t *map_light_create (map_t *map, int x, int y, int lightmap)
@@ -156,6 +214,47 @@ void map_light_destroy (light_t *light)
 }
 
 
+int map_light_x (light_t *light)
+{
+    return light->x;
+}
+
+
+int map_light_y (light_t *light)
+{
+    return light->y;
+}
+
+
+int map_light_lightmap (light_t *light)
+{
+    return light->lightmap;
+}
+
+
+void map_light_move (light_t *light, int x, int y)
+{
+    light->x = x;
+    light->y = y;
+}
+
+
+struct list_head *map_light_list (map_t *map)
+{
+    return &map->lights;
+}
+
+
+/* Starts.  */
+
+
+struct start {
+    struct start *next;
+    struct start *prev;
+    int x, y;
+};
+
+
 start_t *map_start_create (map_t *map, int x, int y)
 {
     start_t *p;
@@ -174,4 +273,29 @@ void map_start_destroy (start_t *start)
 {
     list_remove (start);
     free (start);
+}
+
+
+int map_start_x (start_t *start)
+{
+    return start->x;
+}
+
+
+int map_start_y (start_t *start)
+{
+    return start->y;
+}
+
+
+void map_start_move (start_t *start, int x, int y)
+{
+    start->x = x;
+    start->y = y;
+}
+
+
+struct list_head *map_start_list (map_t *map)
+{
+    return &map->starts;
 }

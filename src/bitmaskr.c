@@ -72,7 +72,7 @@ static bitmask_ref_t *find_bitmask (bitmask_t *mask)
 {
     bitmask_ref_t *ref;
 
-    list_for_each (ref, ref_list)
+    list_for_each (ref, &ref_list)
 	if (mask == ref->mask)
 	    return ref;
 

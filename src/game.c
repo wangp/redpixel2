@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "fps.h"
 #include "game.h"
+#include "list.h"
 #include "magic4x4.h"
 #include "magicrt.h"
 #include "map.h"
@@ -24,7 +25,7 @@ static camera_t *cam;
 
 static objid_t local_player;
 
-
+    
 static int do_init (const char *filename)
 {
     fps_init ();
@@ -43,15 +44,16 @@ static int do_init (const char *filename)
 	return -1;
 
     {
+	struct list_head *list;
 	start_t *start;
 	object_t *obj;
 
-	list_for_each (start, map->starts) {
+	list = map_start_list (map);
+	list_for_each (start, list) {
 	    obj = object_create ("player");
-	    obj->x = start->x;
-	    obj->y = start->y;
-	    list_add (map->objects, obj);
-	    local_player = obj->id;
+	    object_set_xy (obj, map_start_x (start), map_start_y (start));
+	    map_link_object_bottom (map, obj);
+	    local_player = object_id (obj);
 	    break;
 	}
     }
@@ -77,31 +79,31 @@ static void do_input ()
 {
     object_t *obj;
 
-    list_for_each (obj, map->objects)
-	if (obj->id == local_player)
-	    break;
+    obj = map_find_object (map, local_player);
 
     if (key[KEY_RIGHT])
-	obj->xv += 1.4;
+	object_set_xv (obj, object_xv (obj) + 1.4);
     if (key[KEY_LEFT])
-	obj->xv -= 1.4;
+	object_set_xv (obj, object_xv (obj) - 1.4);
 /*      if (key[KEY_DOWN]) */
 /*  	obj->yv += 1.4; */
 
     if (key[KEY_UP]) {
-	if (obj->jump > 0) {
-	    obj->yv -= MIN (8, 20 / obj->jump);
-	    if (++obj->jump > 10)
-		obj->jump = 0;
+	if (object_get_number (obj, "jump") > 0) {
+	    object_set_yv (obj, object_yv (obj) - MIN (8, 20 / object_get_number (obj, "jump")));
+	    if (object_get_number (obj, "jump") < 10)
+		object_set_number (obj, "jump", object_get_number (obj, "jump") + 1);
+	    else	    
+		object_set_number (obj, "jump", 0);
 	}
-	else if ((obj->jump == 0) && (obj->yv == 0) &&
-		 object_supported_at (obj, map, obj->x, obj->y)) {
-	    obj->yv -= 4;
-	    obj->jump = 1;
+	else if ((object_get_number (obj, "jump") == 0) && (object_yv (obj) == 0) &&
+		 (object_supported_at (obj, map, object_x (obj), object_y (obj)))) {
+	    object_set_yv (obj, object_yv (obj) - 4);
+	    object_set_number (obj, "jump", 1);
 	}
     }
     else {
-	obj->jump = 0;
+	object_set_number (obj, "jump", 0);
     }
 
     object_call (obj, "walk_hook");
@@ -112,36 +114,38 @@ static void do_input ()
 
 static void move_object_x (object_t *obj)
 {
-    if (object_move_x_with_ramp (obj, ((obj->xv < 0) ? 3 : 4), map,
-				 obj->xv, obj->ramp) < 0)
-	obj->xv = 0;
+    if (object_move_x_with_ramp (obj, ((object_xv (obj) < 0) ? 3 : 4), map,
+				 object_xv (obj), object_ramp (obj)) < 0)
+	object_set_xv (obj, 0);
 
-    obj->xv *= 0.75;
-    if (ABS (obj->xv) < 0.25)
-	obj->xv = 0;
+    object_set_xv (obj, object_xv (obj) * 0.75);
+    if (ABS (object_xv (obj)) < 0.25)
+	object_set_xv (obj, 0);
 }
 
 
 static void move_object_y (object_t *obj)
 {
-    obj->yv += obj->mass;
+    object_set_yv (obj, object_yv (obj) + object_mass (obj));
 
-    if (object_move (obj, ((obj->yv < 0) ? 1 : 2), map, 0, obj->yv) < 0) {
-	obj->yv = 0;
-	obj->jump = 0;
+    if (object_move (obj, ((object_yv (obj) < 0) ? 1 : 2), map, 0, object_yv (obj)) < 0) {
+	object_set_yv (obj, 0);
+	object_set_number (obj, "jump", 0);
     }
 
-    obj->yv *= 0.75;
-    if (ABS (obj->xv) < 0.25)
-	obj->xv = 0;
+    object_set_yv (obj, object_yv (obj) * 0.75);
+    if (ABS (object_xv (obj)) < 0.25)
+	object_set_xv (obj, 0);
 }
 
 
 static void do_physics ()
 {
+    struct list_head *list;
     object_t *obj;
 
-    list_for_each (obj, map->objects) {
+    list = map_object_list (map);
+    list_for_each (obj, list) {
 	move_object_x (obj);
 	move_object_y (obj);
     }
@@ -173,14 +177,10 @@ static void do_render ()
     render (bmp, map, cam);
 
     {
-	object_t *obj;
-
-	list_for_each (obj, map->objects)
-	    if (obj->id == local_player) break;
-
+	object_t *obj = map_find_object (map, local_player);
 	pivot_trans_magic_sprite (bmp, store_dat ("/player/torch"),
-				  obj->x - camera_x (cam),
-				  obj->y - camera_y (cam), 0, 36,
+				  object_x (obj) - camera_x (cam),
+				  object_y (obj) - camera_y (cam), 0, 36,
 				  fatan2 (mouse_y - 100, mouse_x - 160));
     }
 

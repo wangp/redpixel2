@@ -4,16 +4,8 @@
 
 #include "mylua.h"
 
-struct bitmask;
 
-
-typedef struct objtype {
-    char *type;
-    char *name;
-    char *icon;
-    lua_ref_t init_func;
-    struct bitmask *icon_mask;
-} objtype_t;
+typedef struct objtype objtype_t;
 
 
 void objtypes_init ();
@@ -22,6 +14,12 @@ void objtypes_register (const char *type, const char *name,
 			const char *icon, lua_ref_t init_func);
 objtype_t *objtypes_lookup (const char *name);
 void objtypes_enumerate (void (*proc) (objtype_t *type));
+
+const char *objtype_type (objtype_t *);
+const char *objtype_name (objtype_t *);
+const char *objtype_icon (objtype_t *);
+lua_ref_t objtype_init_func (objtype_t *);
+struct bitmask *objtype_icon_mask (objtype_t *);
 
 
 #endif

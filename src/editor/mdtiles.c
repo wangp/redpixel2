@@ -7,8 +7,10 @@
 #include <allegro.h>
 #include "alloc.h"
 #include "depths.h"
+#include "editor.h"
 #include "editarea.h"
 #include "edselect.h"
+#include "list.h"
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "map.h"
@@ -167,23 +169,23 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     w = (bmp->w / 16) + 1;
     h = (bmp->h / 16) + 1;
 
-    for (y = 0; (y < h) && (y + offy < map->height); y++)
-	for (x = 0; (x < w) && (x + offx < map->width); x++) {
-	    t = map->tile[y + offy][x + offx];
-	    if (t) 
+    for (y = 0; (y < h) && (y + offy < map_height (editor_map)); y++)
+	for (x = 0; (x < w) && (x + offx < map_width (editor_map)); x++) {
+	    t = map_tile (editor_map, x + offx, y + offy);
+	    if (t)
 		draw_magic_sprite (bmp, store[t]->dat, x * 16, y * 16);
 	}
 }
 
 static int do_tile_set (int x, int y, int tile)
 {
-    if ((x >= map->width) || (y >= map->height))
+    if ((x >= map_width (editor_map)) || (y >= map_height (editor_map)))
 	return 0;
 
-    if (map->tile[y][x] == tile)
+    if (map_tile (editor_map, x, y) == tile)
 	return 0;
     
-    map->tile[y][x] = tile;
+    map_set_tile (editor_map, x, y, tile);
     return 1;
 }
 
@@ -192,10 +194,10 @@ static void do_tile_pickup (int x, int y)
     char *key;
     struct file *f;
 
-    key = store_key (map->tile[y][x]);
+    key = store_key (map_tile (editor_map, x, y));
     if (!key) return;
     
-    list_for_each (f, file_list) {
+    list_for_each (f, &file_list) {
 	int t = ed_select_list_item_index (f->list, key);
 	if (t >= 0) {
 	    change_set (f);

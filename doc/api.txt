@@ -66,17 +66,6 @@ all type names start with a capital letter.
 	Returns nil on error.
 
 
-- Function: object_set_mass (Object object, Float mass)
-
-	Set the mass of OBJECT to MASS (default is zero).
-	Returns nil on error.
-
-
-- Function: object_set_ramp (Object object, Float rampamount)
-
-	Set the ramp amount of an object.  Returns nil on error.
-
-
 - Function: object_add_layer (Object object, StoreKey image, 
 			      Int xoffset, Int yoffset)
 

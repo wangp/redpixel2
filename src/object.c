@@ -19,12 +19,55 @@
 #include "store.h"
 
 
+typedef struct objmask {
+    bitmask_ref_t *ref;
+    int offset_x;
+    int offset_y;
+} objmask_t;
+
+
+struct object {
+    object_t *next;
+    object_t *prev;
+    objtype_t *type;
+    objid_t id;
+
+    /* C variables.  */
+    float x, y;
+    float xv, yv;
+    float mass;
+    float ramp;
+    struct list_head layers;
+    struct list_head lights;
+    objmask_t mask[5];
+
+    /* Lua table ref.  */
+    lua_ref_t table;
+};
+
+
+#include "objecttm.inc"
+
+
 static void set_default_masks (object_t *obj);
 
 
-static lua_tag_t object_tag = LUA_NOTAG;
-
+static lua_tag_t object_tag;
 static objid_t next_id;
+
+
+int object_init ()
+{
+    object_tag = lua_newtag (lua_state);
+    REGISTER_OBJECT_TAG_METHODS(lua_state, object_tag);
+    next_id = 0;
+    return 0;
+}
+
+
+void object_shutdown ()
+{
+}
 
 
 object_t *object_create (const char *type_name)
@@ -32,9 +75,6 @@ object_t *object_create (const char *type_name)
     lua_State *L = lua_state;
     objtype_t *type;
     object_t *obj;
-
-    if (object_tag == LUA_NOTAG)
-	object_tag = lua_newtag (L);
 
     if (!(type = objtypes_lookup (type_name)))
 	return NULL;
@@ -48,16 +88,9 @@ object_t *object_create (const char *type_name)
     lua_newtable (L);
     obj->table = lua_ref (L, 1);
 
-    /* Lua table references C object.  */
-    lua_getref (L, obj->table);
-    lua_pushstring (L, "_object");
-    lua_pushusertag (L, obj, object_tag);
-    lua_settable (L, -3);
-    lua_pop (L, 1);
-
     /* Initialise some C variables.  */
     list_init (obj->layers);
-    object_add_layer (obj, obj->type->icon, 0, 0);
+    object_add_layer (obj, objtype_icon (obj->type), 0, 0);
 
     list_init (obj->lights);
 
@@ -65,13 +98,13 @@ object_t *object_create (const char *type_name)
 
     /* Call base object init function.  */
     lua_getglobal (L, "object_init");
-    lua_getref (L, obj->table);
+    lua_pushobject (L, obj);
     lua_call (L, 1, 0);
 
     /* Call object init function if any.  */
-    if (obj->type->init_func != LUA_NOREF) {
-	lua_getref (L, obj->type->init_func);
-	lua_getref (L, obj->table);
+    if (objtype_init_func (obj->type) != LUA_NOREF) {
+	lua_getref (L, objtype_init_func (obj->type));
+	lua_pushobject (L, obj);
 	lua_call (L, 1, 0);
     }
     
@@ -89,7 +122,65 @@ void object_destroy (object_t *obj)
 }
 
 
-/* Mass.  */
+objtype_t *object_type (object_t *obj)
+{
+    return obj->type;
+}
+
+
+objid_t object_id (object_t *obj)
+{
+    return obj->id;
+}
+
+
+float object_x (object_t *obj)
+{
+    return obj->x;
+}
+
+
+float object_y (object_t *obj)
+{
+    return obj->y;
+}
+
+
+void object_set_xy (object_t *obj, float x, float y)
+{
+    obj->x = x;
+    obj->y = y;
+}
+
+
+float object_xv (object_t *obj)
+{
+    return obj->xv;
+}
+
+
+float object_yv (object_t *obj)
+{
+    return obj->yv;
+}
+
+
+void object_set_xv (object_t *obj, float xv)
+{
+    obj->xv = xv;
+}
+
+
+void object_set_yv (object_t *obj, float yv)
+{
+    obj->yv = yv;
+}
+
+
+float object_mass (object_t *obj)
+{
+    return obj->mass;
+}
 
 
 void object_set_mass (object_t *obj, float mass)
@@ -98,7 +189,10 @@ void object_set_mass (object_t *obj, float mass)
 }
 
 
-/* Ramp.  */
+float object_ramp (object_t *obj)
+{
+    return obj->ramp;
+}
 
 
 void object_set_ramp (object_t *obj, float ramp)
@@ -110,14 +204,16 @@ void object_set_ramp (object_t *obj, float ramp)
 /* Layers.  */
 
 
-typedef struct objlayer {
-    struct objlayer *next;
-    struct objlayer *prev;
+typedef struct objlayer objlayer_t;
+
+struct objlayer {
+    objlayer_t *next;
+    objlayer_t *prev;
     int id;
     BITMAP *bmp;
     int offset_x;
     int offset_y;
-} objlayer_t;
+};
 
 
 static int set_layer (objlayer_t *layer, int id, const char *key,
@@ -145,7 +241,7 @@ int object_add_layer (object_t *obj, const char *key,
 
   retry:
     
-    list_for_each (layer, obj->layers)
+    list_for_each (layer, &obj->layers)
 	if (id == layer->id) {
 	    id = layer->id + 1;
 	    goto retry;
@@ -166,7 +262,7 @@ int object_replace_layer (object_t *obj, int layer_id, const char *key,
 {
     objlayer_t *layer;
 
-    list_for_each (layer, obj->layers)
+    list_for_each (layer, &obj->layers)
 	if (layer_id == layer->id) {
 	    if (set_layer (layer, layer_id, key, offset_x, offset_y) == 0)
 		return 0;
@@ -181,7 +277,7 @@ int object_move_layer (object_t *obj, int layer_id, int offset_x, int offset_y)
 {
     objlayer_t *layer;
 
-    list_for_each (layer, obj->layers)
+    list_for_each (layer, &obj->layers)
 	if (layer_id == layer->id) {
 	    layer->offset_x = offset_x;
 	    layer->offset_y = offset_y;
@@ -196,7 +292,7 @@ int object_remove_layer (object_t *obj, int layer_id)
 {
     objlayer_t *layer;
 
-    list_for_each (layer, obj->layers)
+    list_for_each (layer, &obj->layers)
 	if (layer_id == layer->id) {
 	    list_remove (layer);
 	    free (layer);
@@ -219,14 +315,16 @@ void object_remove_all_layers (object_t *obj)
  * generalising them yet.  (Remember John Harper's quote.)  */
 
 
-typedef struct objlight {
-    struct objlight *next;
-    struct objlight *prev;
+typedef struct objlight objlight_t;
+
+struct objlight {
+    objlight_t *next;
+    objlight_t *prev;
     int id;
     BITMAP *bmp;
     int offset_x;
     int offset_y;    
-} objlight_t;
+};
 
 
 static int set_light (objlight_t *light, int id, const char *key,
@@ -254,7 +352,7 @@ int object_add_light (object_t *obj, const char *key,
 
   retry:
     
-    list_for_each (light, obj->lights)
+    list_for_each (light, &obj->lights)
 	if (id == light->id) {
 	    id = light->id + 1;
 	    goto retry;
@@ -275,7 +373,7 @@ int object_replace_light (object_t *obj, int light_id, const char *key,
 {
     objlight_t *light;
 
-    list_for_each (light, obj->lights)
+    list_for_each (light, &obj->lights)
 	if (light_id == light->id) {
 	    if (set_light (light, light_id, key, offset_x, offset_y) == 0)
 		return 0;
@@ -290,7 +388,7 @@ int object_move_light (object_t *obj, int light_id, int offset_x, int offset_y)
 {
     objlight_t *light;
 
-    list_for_each (light, obj->lights)
+    list_for_each (light, &obj->lights)
 	if (light_id == light->id) {
 	    light->offset_x = offset_x;
 	    light->offset_y = offset_y;
@@ -305,7 +403,7 @@ int object_remove_light (object_t *obj, int light_id)
 {
     objlight_t *light;
 
-    list_for_each (light, obj->lights)
+    list_for_each (light, &obj->lights)
 	if (light_id == light->id) {
 	    list_remove (light);
 	    free (light);
@@ -378,7 +476,7 @@ static void set_default_masks (object_t *obj)
     bitmask_t *mask;
     int xoff, yoff, i;
 
-    mask = obj->type->icon_mask;
+    mask = objtype_icon_mask (obj->type);
     xoff = - bitmask_width (mask) / 2;
     yoff = - bitmask_height (mask) / 2;
 
@@ -400,7 +498,7 @@ static int check_collision_with_tiles (object_t *obj, int mask_num,
 	return 0;
 
     return bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
-				    map->tile_mask,
+				    map_tile_mask (map),
 				    x + mask[mask_num].offset_x,
 				    y + mask[mask_num].offset_y,
 				    0, 0);
@@ -410,6 +508,7 @@ static int check_collision_with_tiles (object_t *obj, int mask_num,
 static int check_collision_with_objects (object_t *obj, int mask_num,
 					 map_t *map, int x, int y)
 {
+    struct list_head *list;
     objmask_t *mask;
     object_t *p;
 
@@ -417,7 +516,8 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
     if (!mask[mask_num].ref)
 	return 0;
 
-    list_for_each (p, map->objects) if ((obj->id != p->id) && (p->mask[0].ref))
+    list = map_object_list (map);
+    list_for_each (p, list) if ((obj->id != p->id) && (p->mask[0].ref))
 	if (bitmask_check_collision (bitmask_ref_bitmask (mask[mask_num].ref),
 				     bitmask_ref_bitmask (p->mask[0].ref),
 				     x + mask[mask_num].offset_x,
@@ -499,14 +599,29 @@ int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
 /* Lua table operations.  */
 
 
+void lua_pushobject (lua_State *L, object_t *obj)
+{
+    lua_pushusertag(L, obj, object_tag);
+}
+
+
+object_t *lua_toobject (lua_State *L, int index)
+{
+    if (!lua_isuserdata(L, index) || (lua_tag(L, index) != object_tag))
+	return NULL;
+
+    return lua_touserdata(L, index);
+}
+
+
 void object_call (object_t *obj, const char *method)
 {
     lua_State *L = lua_state;
 
-    lua_getref (L, obj->table);
+    lua_pushobject (L, obj);
     lua_pushstring (L, method);
     lua_gettable (L, -2);
-    lua_getref (L, obj->table);
+    lua_pushobject (L, obj);
     lua_call (L, 1, 0);
     lua_pop (L, 1);    
 }
@@ -517,7 +632,7 @@ float object_get_number (object_t *obj, const char *var)
     lua_State *L = lua_state;
     float val = 0.0;
 
-    lua_getref (L, obj->table);
+    lua_pushobject (L, obj);
     lua_pushstring (L, var);
     lua_gettable (L, -2);
     if (lua_isnumber (L, -1))
@@ -532,7 +647,7 @@ void object_set_number (object_t *obj, const char *var, float value)
 {
     lua_State *L = lua_state;
 
-    lua_getref (L, obj->table);
+    lua_pushobject (L, obj);
     lua_pushstring (L, var);
     lua_pushnumber (L, value);
     lua_settable (L, -3);
@@ -545,7 +660,7 @@ const char *object_get_string (object_t *obj, const char *var)
     lua_State *L = lua_state;
     const char *str = NULL;
 
-    lua_getref (L, obj->table);
+    lua_pushobject (L, obj);
     lua_pushstring (L, var);
     lua_gettable (L, -2);
     if (lua_isstring (L, -1))
@@ -560,25 +675,11 @@ void object_set_string (object_t *obj, const char *var, const char *value)
 {
     lua_State *L = lua_state;
 
-    lua_getref (L, obj->table);
+    lua_pushobject (L, obj);
     lua_pushstring (L, var);
     lua_pushstring (L, value);
     lua_settable (L, -3);
     lua_pop (L, 1);
-}
-
-
-object_t *table_object (lua_State *L, int index)
-{
-    object_t *obj = NULL;
-
-    lua_pushstring (L, "_object");
-    lua_gettable (L, index);
-    if (lua_tag (L, -1) == object_tag)
-	obj = lua_touserdata (L, -1);
-    lua_pop (L, 1);
-
-    return obj;
 }
 
 
@@ -591,7 +692,7 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
-    list_for_each (layer, obj->layers) {
+    list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
 	draw_magic_sprite
 	    (dest, bmp,
@@ -607,7 +708,7 @@ void object_draw_lit_layers (BITMAP *dest, object_t *obj,
     objlayer_t *layer;
     BITMAP *bmp;
 
-    list_for_each (layer, obj->layers) {
+    list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
 	draw_lit_magic_sprite
 	    (dest, bmp,
@@ -624,7 +725,7 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
     objlight_t *light;
     BITMAP *bmp;
 
-    list_for_each (light, obj->lights) {
+    list_for_each (light, &obj->lights) {
 	bmp = light->bmp;
 	draw_trans_magic_sprite
 	    (dest, bmp,
@@ -644,7 +745,7 @@ void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
 
     x1 = y1 = x2 = y2 = 0;
     
-    list_for_each (layer, obj->layers) {
+    list_for_each (layer, &obj->layers) {
 	x = layer->offset_x - layer->bmp->w/3/2;
 	y = layer->offset_y - layer->bmp->h/2;
 

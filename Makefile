@@ -114,6 +114,9 @@ $(OBJDIR)/%.o: %.c
 src/bindings.inc: src/bindgen.lua
 	lua $< > $@
 
+src/objecttm.inc: src/objgen.lua
+	lua $< > $@
+
 $(PROGRAM): $(OBJS)
 	$(CC) -o $@ $^ $(LOADLIBES)
 
