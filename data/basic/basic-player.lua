@@ -171,8 +171,8 @@ local player_nonproxy_init = function (self)
 	    -- We're dead
 
 	    -- give the attacker points, or whatever
-	    if attacker and _internal_game_type.player_died then
-		_internal_game_type.player_died (self.id, attacker)
+	    if attacker then
+		_internal_player_died_hook (self.id, attacker)
 	    end
 
 	    -- spawn a corpse
