@@ -681,7 +681,8 @@ object_t *svgame_spawn_projectile (const char *typename, object_t *owner,
     svclient_t *c;
     object_t *obj;
     float angle;
-    float xv, yv;
+    float cos_angle;
+    float sin_angle;
 
     if (!(c = svclients_find_by_id (object_id (owner))))
 	return NULL;
@@ -690,12 +691,15 @@ object_t *svgame_spawn_projectile (const char *typename, object_t *owner,
 	return NULL;
 
     angle = c->aim_angle + delta_angle;
-    
-    xv = speed * cos (angle);
-    yv = speed * sin (angle);
+    cos_angle = cos (angle);
+    sin_angle = sin (angle);
 
-    object_set_xy (obj, object_x (owner), object_y (owner));
-    object_set_xvyv (obj, xv, yv);
+    object_set_xy (obj,
+		   /* This is a bit cheap and may need to be
+		    * adjustable on a per-weapon basis.  */
+		   object_x (owner) + 5 * cos_angle, 
+		   object_y (owner) + 5 * sin_angle);
+    object_set_xvyv (obj, speed * cos_angle, speed * sin_angle);
     object_set_collision_tag (obj, object_collision_tag (owner));
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_set_number (obj, "angle", angle);
