@@ -36,10 +36,10 @@ void game_init (void)
     register_aud_file_type ();
 
     path_init ();
-    store_init (200);
+    store_init (1023);  /* (2^n)-1 or primes are supposed to be good */
     bitmask_ref_init ();
  
-    mylua_open (0);
+    mylua_open ();
     bindings_init ();
 
     tiles_init ();

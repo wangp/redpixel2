@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.02.11.04.28.42;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.24.07.15.16;	author tjaden;	state Exp;
@@ -25,9 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Changed all "()" declarations to "(void)".
+@Made editor more friendly to being run more than once in a process.
 @
 text
 @/* editor.c
@@ -40,7 +45,7 @@ text
 #include "gui.h"
 #include "ug.h"
 #include "cursor.h"
-#include "mylua.h"
+#include "extdata.h"
 #include "store.h"
 #include "path.h"
 
@@ -55,22 +60,34 @@ text
 #include "map.h"
 
 
+static int store_id;
 map_t *editor_map;
 
 
-int editor (void)
+int editor_init (void)
 {
-    FONT *f;
+    store_id = store_load_ex ("data/editor/editor-support.dat", "/editor/",
+			      load_extended_datafile);
+    return (store_id < 0) ? -1 : 0;
+}
 
-    lua_dofile_path (lua_state, "editor/editor-init.lua");
 
-    if ((f = store_dat ("/editor/font")))
-	font = f;
+void editor_shutdown (void)
+{
+    store_unload (store_id);
+}
+
+
+int editor_run (void)
+{
+    FONT *old_font = font;
+
+    font = store_dat ("/editor/font");
 
     if ((gui_init () < 0)
 	|| (ug_init () < 0)
 	|| (cursor_init () < 0))
-	return 1;
+	goto error;
 
 	editarea_install  (0, 0, SCREEN_W - 32, SCREEN_H - 16);
 	selectbar_install (SCREEN_W - 32, 0, 32, SCREEN_H);
@@ -82,7 +99,7 @@ int editor (void)
 		|| (mode_lights_init () < 0)
 		|| (mode_objects_init () < 0)
 		|| (mode_starts_init () < 0))
-		return 1;
+		goto error;
 	    modemgr_select ("tiles");
 
 		editor_map = map_create (0);
@@ -107,8 +124,46 @@ int editor (void)
     ug_shutdown ();
     gui_shutdown ();
 
+    font = old_font;
     return 0;
+
+  error:
+
+    font = old_font;
+    return 1;
 }
+@
+
+
+1.3
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d11 1
+a11 1
+#include "mylua.h"
+d26 1
+d30 1
+a30 1
+int editor (void)
+d32 4
+a35 1
+    FONT *f;
+a36 1
+    lua_dofile_path (lua_state, "editor/editor-init.lua");
+d38 11
+a48 2
+    if ((f = store_dat ("/editor/font")))
+	font = f;
+d53 1
+a53 1
+	return 1;
+d65 1
+a65 1
+		return 1;
+d90 1
+d92 5
 @
 
 

@@ -96,7 +96,17 @@ static void data_shutdown (void)
 
 static int data_append (DATAFILE *item)
 {
-    void *p = realloc (store, (idx + 1) * sizeof (DATAFILE *));
+    int i;
+    void *p;
+    
+    /* if we are refreshing after a store_unload() call, item may
+     * already exist */
+    for (i = 1; i < idx; i++)
+	if (store[i] == item)
+	    return i;
+
+    /* otherwise it's a new item */
+    p = realloc (store, (idx + 1) * sizeof (DATAFILE *));
 
     if (p) {
 	int n = idx++;
@@ -106,6 +116,24 @@ static int data_append (DATAFILE *item)
     }
     
     return 0;
+}
+
+/* clear any addresses in `store' which are in `d' and its children */
+static void data_clear (DATAFILE *d)
+{
+    int i, j;
+
+    for (i = 0; d[i].type != DAT_END; i++) {
+	for (j = 1; j < idx; j++) {
+	    if (store[j] == &d[i]) {
+		store[j] = NULL;
+		break;
+	    }
+	}
+
+	if (d[i].type == DAT_FILE)
+	    data_clear (d[i].dat);
+    }
 }
 
 /*----------------------------------------------------------------------*/
@@ -163,8 +191,12 @@ int store_init (int size)
 
 void store_shutdown (void)
 {
+    struct file *p;
+    
     table_shutdown ();
     data_shutdown ();
+    for (p = file_list.next; p; p = p->next)
+    	unload_datafile (p->dat);
     list_shutdown ();
 }
 
@@ -212,6 +244,7 @@ void store_unload (int id)
     struct file *p = list_find (id, 0);
     
     if (p) {
+    	data_clear (p->dat);
 	unload_datafile (p->dat);
 	list_remove (id);
 	refresh ();

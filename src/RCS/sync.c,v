@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.02.11.03.51.23;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.02.01.14.56.13;	author tjaden;	state Exp;
@@ -25,13 +30,10 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Changed the Windows port to use critical sections instead of
-semaphores for synchronisation between client and server.  Also made
-the client not yield() in non-multithreaded, as it's really not
-necessary and worsens performance under Windows (see also recent
-change to yield.c).
+@Made sync code more PC (pthreadly correct).  `pthread_cond_wait' is
+actually allowed to wake up for reasons other than being signalled.
 @
 text
 @/* sync.c - client and server thread synchronisation
@@ -55,12 +57,14 @@ static int threaded;
 static pthread_t thread;
 static pthread_mutex_t mutex;
 static pthread_cond_t cond;
+static int server_awaken;
 
 
 void sync_init (void *(*server_thread)(void *))
 {
     if (server_thread) {
 	threaded = 1;
+	server_awaken = 0;
 	pthread_mutex_init (&mutex, NULL);
 	pthread_cond_init (&cond, NULL);
 	pthread_create (&thread, NULL, server_thread, NULL);
@@ -84,7 +88,9 @@ void sync_server_lock (void)
 {
     if (threaded) {
 	pthread_mutex_lock (&mutex);
-	pthread_cond_wait (&cond, &mutex);
+	server_awaken = 0;
+	while (!server_awaken)
+	    pthread_cond_wait (&cond, &mutex);
 	allegro_errno = &errno;	/* errno is thread-specific */
     }
 }
@@ -117,6 +123,7 @@ void sync_client_lock (void)
 void sync_client_unlock (void)
 {
     if (threaded) {
+	server_awaken = 1;
 	pthread_cond_signal (&cond);
 	pthread_mutex_unlock (&mutex);
     }
@@ -460,6 +467,24 @@ void sync_client_unlock (void)
 
 
 #endif
+@
+
+
+1.3
+log
+@Changed the Windows port to use critical sections instead of
+semaphores for synchronisation between client and server.  Also made
+the client not yield() in non-multithreaded, as it's really not
+necessary and worsens performance under Windows (see also recent
+change to yield.c).
+@
+text
+@d22 1
+d29 1
+d53 3
+a55 1
+	pthread_cond_wait (&cond, &mutex);
+d88 1
 @
 
 

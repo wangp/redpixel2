@@ -15,9 +15,9 @@
 lua_State *lua_state;
 
 
-int mylua_open (int stacksize)
+int mylua_open (void)
 {
-    if (!(lua_state = lua_open (stacksize)))
+    if (!(lua_state = lua_open ()))
 	return -1;
 
     lua_baselibopen (lua_state);

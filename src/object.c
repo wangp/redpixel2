@@ -125,15 +125,15 @@ struct object {
 static void set_default_masks (object_t *obj);
 
 static objid_t next_id;
-static lua_ref_t object_eventtable;
+static lua_ref_t object_metatable;
 
 
 
 /*
- * Eventtable methods.
+ * Metatable methods.
  */
 
-#include "objectet.inc"
+#include "objectmt.inc"
 
 
 
@@ -146,12 +146,12 @@ int object_init (void)
 {
     next_id = OBJID_PLAYER_MAX;
 
-    /* Eventtable for objects.  */
+    /* Metatable for objects.  */
     lua_newtable (lua_state);
-    object_eventtable = lua_ref (lua_state, 1);
-    lua_getref (lua_state, object_eventtable);
-    REGISTER_OBJECT_EVENTTABLE_METHODS (lua_state);
-    lua_pop (lua_state, 1); /* pop the eventtable */
+    object_metatable = lua_ref (lua_state, 1);
+    lua_getref (lua_state, object_metatable);
+    REGISTER_OBJECT_METATABLE_METHODS (lua_state);
+    lua_pop (lua_state, 1); /* pop the metatable */
 
     return 0;
 }
@@ -159,7 +159,7 @@ int object_init (void)
 
 void object_shutdown (void)
 {
-    lua_unref (lua_state, object_eventtable);
+    lua_unref (lua_state, object_metatable);
 }
 
 
@@ -1385,8 +1385,8 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
 void lua_pushobject (lua_State *L, object_t *obj)
 {
     lua_newuserdatabox (L, obj);
-    lua_getref (L, object_eventtable);
-    lua_seteventtable (L, -2);
+    lua_getref (L, object_metatable);
+    lua_setmetatable (L, -2);
 }
 
 
@@ -1394,8 +1394,8 @@ object_t *lua_toobject (lua_State *L, int index)
 {
     int is_object;
 
-    lua_geteventtable (L, index);
-    lua_getref (L, object_eventtable);
+    lua_getmetatable (L, index);
+    lua_getref (L, object_metatable);
     is_object = lua_equal (L, -1, -2);
     lua_pop (L, 2);
 

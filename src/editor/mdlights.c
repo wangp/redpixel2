@@ -273,7 +273,6 @@ int mode_lights_init (void)
 void mode_lights_shutdown (void)
 {
     free_file_list ();
-    destroy_bitmap (icon);
 }
 
 void mode_lights_toggle (void)

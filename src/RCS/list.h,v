@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.02.12.15.12.12;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added an interesting tidbit in the comments.
 @
 text
 @#ifndef __included_list_h
@@ -26,6 +31,13 @@ text
 
 /* Welcome to void pointer country.  We trust you will not be stupid.
    Please leave all ZealotSoft(R) Type Safety Nag-o-Meters(tm) outside.  */
+
+/* Initially, I got this interface from Links.  Later I changed the
+   naming, mostly by prefixing (e.g. list_add() was add_to_list()).
+   Now I found that this interface was from Linux.  A couple of the
+   names here match the names in Linux, and the general naming method
+   is about the same.  So by chance this interface has almost come
+   full-circle.  Kinda interesting.  */
 
 
 typedef struct list_head list_head_t;
@@ -88,4 +100,13 @@ do {						\
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 7
 @

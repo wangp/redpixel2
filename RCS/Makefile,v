@@ -1,9 +1,24 @@
-head	1.14;
+head	1.17;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.17
+date	2002.02.16.14.15.08;	author tjaden;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	2002.02.16.13.50.29;	author tjaden;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	2002.02.11.04.29.45;	author tjaden;	state Exp;
+branches;
+next	1.14;
 
 1.14
 date	2002.02.05.04.09.11;	author tjaden;	state Exp;
@@ -80,10 +95,9 @@ desc
 @@
 
 
-1.14
+1.17
 log
-@Added sound panning/volume based on position of the source relative to
-the player (although it doesn't update when the player moves yet).
+@Updated to Lua 4.1-work4.
 @
 text
 @##
@@ -101,7 +115,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include -I lua-4.1-work3/include \
+	  -I libnet/include -I lua-4.1-work4/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -196,6 +210,7 @@ MODULES_GAME :=					\
 	extdata					\
 	fps					\
 	gameinit				\
+	gamemenu				\
 	getoptc					\
 	loaddata				\
 	main					\
@@ -242,7 +257,7 @@ $(OBJDIR)/%.o: %.c
 src/bindings.inc: src/bindgen.lua
 	$(PLAT_LUABIN) $< > $@@
 
-src/objectet.inc: src/objgen.lua
+src/objectmt.inc: src/objgen.lua
 	$(PLAT_LUABIN) $< > $@@
 
 $(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA)
@@ -257,7 +272,7 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work3
+	$(MAKE) -C lua-4.1-work4
 
 endif
 
@@ -268,9 +283,9 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work3/src
-	$(MAKE) -C lua-4.1-work3/src/lib
-	$(MAKE) -C lua-4.1-work3/src/lua
+	$(MAKE) -C lua-4.1-work4/src
+	$(MAKE) -C lua-4.1-work4/src/lib
+	$(MAKE) -C lua-4.1-work4/src/lua
 endif
 
 #----------------------------------------------------------------------
@@ -295,10 +310,12 @@ mtfmdocs: doc/gui_api.html doc/ug_api.html
 
 #----------------------------------------------------------------------
 
-depend:
+makefile.dep: $(SOURCES)
 	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$$(OBJDIR)/\1,' > makefile.dep
 
--include makefile.dep
+depend: makefile.dep
+
+include makefile.dep
 
 #----------------------------------------------------------------------
 
@@ -308,7 +325,7 @@ clean:
 cleaner: clean
 	rm -f $(PROGRAM) 
 	rm -f TAGS tags
-	rm -f depend
+	rm -f makefile.dep
 
 #----------------------------------------------------------------------
 
@@ -326,7 +343,7 @@ prepare-dist: cleaner
 	$(MAKE) depend
 	$(MAKE) -C libnet cleaner
 	rm libnet/port.mak
-	$(MAKE) -C lua-4.1-work3 clean
+	$(MAKE) -C lua-4.1-work4 clean
 
 .PHONY: clean cleaner backup suidroot prepare-dist
 
@@ -334,6 +351,58 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.16
+log
+@Better dependency generation rules.
+@
+text
+@d16 1
+a16 1
+	  -I libnet/include -I lua-4.1-work3/include \
+d158 1
+a158 1
+src/objectet.inc: src/objgen.lua
+d173 1
+a173 1
+	$(MAKE) -C lua-4.1-work3
+d184 3
+a186 3
+	$(MAKE) -C lua-4.1-work3/src
+	$(MAKE) -C lua-4.1-work3/src/lib
+	$(MAKE) -C lua-4.1-work3/src/lua
+d244 1
+a244 1
+	$(MAKE) -C lua-4.1-work3 clean
+@
+
+
+1.15
+log
+@Initial menu system.
+@
+text
+@d211 1
+a211 1
+depend:
+d214 3
+a216 1
+-include makefile.dep
+d226 1
+a226 1
+	rm -f depend
+@
+
+
+1.14
+log
+@Added sound panning/volume based on position of the source relative to
+the player (although it doesn't update when the player moves yet).
+@
+text
+@d111 1
 @
 
 

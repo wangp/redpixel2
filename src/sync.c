@@ -19,12 +19,14 @@ static int threaded;
 static pthread_t thread;
 static pthread_mutex_t mutex;
 static pthread_cond_t cond;
+static int server_awaken;
 
 
 void sync_init (void *(*server_thread)(void *))
 {
     if (server_thread) {
 	threaded = 1;
+	server_awaken = 0;
 	pthread_mutex_init (&mutex, NULL);
 	pthread_cond_init (&cond, NULL);
 	pthread_create (&thread, NULL, server_thread, NULL);
@@ -48,7 +50,9 @@ void sync_server_lock (void)
 {
     if (threaded) {
 	pthread_mutex_lock (&mutex);
-	pthread_cond_wait (&cond, &mutex);
+	server_awaken = 0;
+	while (!server_awaken)
+	    pthread_cond_wait (&cond, &mutex);
 	allegro_errno = &errno;	/* errno is thread-specific */
     }
 }
@@ -81,6 +85,7 @@ void sync_client_lock (void)
 void sync_client_unlock (void)
 {
     if (threaded) {
+	server_awaken = 1;
 	pthread_cond_signal (&cond);
 	pthread_mutex_unlock (&mutex);
     }

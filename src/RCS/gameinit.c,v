@@ -1,9 +1,19 @@
-head	1.5;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.02.16.14.15.20;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.02.11.03.55.52;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.29.14.52.40;	author tjaden;	state Exp;
@@ -35,9 +45,9 @@ desc
 @@
 
 
-1.5
+1.7
 log
-@Added loadaud support.
+@Updated to Lua 4.1-work4.
 @
 text
 @/* gameinit.c - main init and shutdown
@@ -78,10 +88,10 @@ void game_init (void)
     register_aud_file_type ();
 
     path_init ();
-    store_init (200);
+    store_init (1023);  /* (2^n)-1 or primes are supposed to be good */
     bitmask_ref_init ();
  
-    mylua_open (0);
+    mylua_open ();
     bindings_init ();
 
     tiles_init ();
@@ -124,6 +134,28 @@ void game_shutdown (void)
 
     free_magic_color_map ();
 }
+@
+
+
+1.6
+log
+@Bump up the size of store hash table.
+@
+text
+@d42 1
+a42 1
+    mylua_open (0);
+@
+
+
+1.5
+log
+@Added loadaud support.
+@
+text
+@d39 1
+a39 1
+    store_init (200);
 @
 
 

@@ -1,9 +1,14 @@
-head	1.9;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.10
+date	2002.02.11.04.26.36;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.02.01.14.52.33;	author tjaden;	state Exp;
@@ -55,9 +60,9 @@ desc
 @@
 
 
-1.9
+1.10
 log
-@Updated mingw port.
+@No need to set the vtable in this file anymore.
 @
 text
 @/* particle.c
@@ -73,7 +78,6 @@ text
 
 #include <math.h>
 #include <allegro.h>
-#include <allegro/internal/aintern.h>
 #include "alloc.h"
 #include "bitmask.h"
 #include "map.h"
@@ -316,12 +320,25 @@ void particles_draw (BITMAP *bmp, particles_t *part, int offset_x, int offset_y)
     {
 	particle_t *p;
 	for (p = part->live_particles; p; p = p->next)
-	    _linear_putpixel24 (bmp, p->x - offset_x, p->y - offset_y, p->color);
+	    putpixel (bmp, p->x - offset_x, p->y - offset_y, p->color);
     }
 
     bmp->cl = old_cl;
     bmp->cr = old_cr;
 }
+@
+
+
+1.9
+log
+@Updated mingw port.
+@
+text
+@a13 1
+#include <allegro/internal/aintern.h>
+d256 1
+a256 1
+	    _linear_putpixel24 (bmp, p->x - offset_x, p->y - offset_y, p->color);
 @
 
 

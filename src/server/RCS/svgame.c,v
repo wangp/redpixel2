@@ -1,9 +1,14 @@
-head	1.8;
+head	1.9;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.9
+date	2002.02.11.04.31.53;	author tjaden;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2002.02.01.14.53.28;	author tjaden;	state Exp;
@@ -50,9 +55,11 @@ desc
 @@
 
 
-1.8
+1.9
 log
-@Updated mingw port.
+@Some Lua bindings can't be run while we are in the editor or it will
+crash.  This used to be enforced by replacing such functions with
+stubs, but we can't do that now, so we do the enforcing in here.
 @
 text
 @/* svgame.c
@@ -756,7 +763,10 @@ static void queue_particle_packet (char type, float x, float y,
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
-    
+
+    if (!map)	/* may be called while in editor */
+	return;
+
     size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
 			  type, x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
@@ -821,6 +831,9 @@ void svgame_call_method_on_clients (object_t *obj, const char *method,
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
+
+    if (!map)	/* may be called while in editor */
+	return;
 
     size = packet_encode (buf, "clss", MSG_SC_GAMEINFO_OBJECT_CALL,
 			  object_id (obj), method, arg);
@@ -1048,6 +1061,18 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.8
+log
+@Updated mingw port.
+@
+text
+@d702 4
+a705 1
+    
+d770 3
 @
 
 

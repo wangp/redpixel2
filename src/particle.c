@@ -11,7 +11,6 @@
 
 #include <math.h>
 #include <allegro.h>
-#include <allegro/internal/aintern.h>
 #include "alloc.h"
 #include "bitmask.h"
 #include "map.h"
@@ -254,7 +253,7 @@ void particles_draw (BITMAP *bmp, particles_t *part, int offset_x, int offset_y)
     {
 	particle_t *p;
 	for (p = part->live_particles; p; p = p->next)
-	    _linear_putpixel24 (bmp, p->x - offset_x, p->y - offset_y, p->color);
+	    putpixel (bmp, p->x - offset_x, p->y - offset_y, p->color);
     }
 
     bmp->cl = old_cl;

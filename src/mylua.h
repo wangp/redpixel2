@@ -10,7 +10,7 @@ typedef int lua_ref_t;
 
 extern lua_State *lua_state;
 
-int mylua_open (int stacksize);
+int mylua_open (void);
 void mylua_close (void);
 
 int lua_dofile_path (lua_State *L, const char *filename);

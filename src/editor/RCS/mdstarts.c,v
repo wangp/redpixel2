@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.02.07.07.25.52;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.24.07.15.16;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Changed all "()" declarations to "(void)".
+@Don't destroy bitmaps inside store.
 @
 text
 @/* mdstarts.c
@@ -188,8 +193,17 @@ int mode_starts_init (void)
 void mode_starts_shutdown (void)
 {
     ed_select_list_destroy (list);
-    destroy_bitmap (icon);
 }
+@
+
+
+1.2
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@a163 1
+    destroy_bitmap (icon);
 @
 
 

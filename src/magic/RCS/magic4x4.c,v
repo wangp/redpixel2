@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.02.11.04.25.52;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.24.07.07.12;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Changed all "()" declarations to "(void)".
+@Set a few vtable entries for magic bitmaps.
 @
 text
 @/*  Modified version of exlights.c, by Shawn Hargreaves.
@@ -56,8 +61,11 @@ BITMAP *get_magic_bitmap_format(BITMAP *orig, PALETTE pal)
    /* Create an 8 bpp image, three times as wide as the original.  */
    bmp = create_bitmap_ex(8, orig->w * 3, orig->h);
 
-   /* Text functions can treat this as a 24 bpp bitmap (with some caveats).  */
+   /* Set a few vtable functions.  These often require some work before they will
+    * work (e.g. change bmp->w, bmp->cl, bmp->cr)  */
    bmp->vtable->draw_glyph = _linear_draw_glyph24;
+   bmp->vtable->hfill = _linear_hline24;
+   bmp->vtable->putpixel = _linear_putpixel24;
 
    /* Store info about the original bitmap format.  */
    bpp = bitmap_color_depth(orig);
@@ -330,6 +338,18 @@ void draw_lit_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, int color)
 {
     draw_lit_sprite(bmp, sprite, x * 3, y, color);
 }
+@
+
+
+1.2
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d32 2
+a33 1
+   /* Text functions can treat this as a 24 bpp bitmap (with some caveats).  */
+d35 2
 @
 
 

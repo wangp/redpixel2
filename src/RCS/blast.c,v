@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.02.11.04.27.23;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.28.13.41.22;	author tjaden;	state Exp;
@@ -25,10 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Made it so that objects can only be hit by a single blast once, even
-if it moves while the blast is expanding.
+@No need to set the vtable in this file anymore.
 @
 text
 @/* blast.c
@@ -40,7 +44,6 @@ text
 #include <math.h>
 #include <stdlib.h>
 #include <allegro.h>
-#include <allegro/internal/aintern.h>
 #include "alloc.h"
 #include "blast.h"
 #include "error.h"
@@ -147,8 +150,6 @@ void blast_draw (BITMAP *dest, blast_t *blast, int offset_x, int offset_y)
 {
     /* XXX this whole function is trash */
 
-    dest->vtable->hfill = _linear_hline24;
-    dest->vtable->putpixel = _linear_putpixel24;
     set_add_blender (0xf,0,0,5);
     drawing_mode (DRAW_MODE_TRANS,0,0,0);
 
@@ -230,6 +231,20 @@ static int in_vector_p (vector_t *vec, void *p)
 
     return 0;
 }
+@
+
+
+1.3
+log
+@Made it so that objects can only be hit by a single blast once, even
+if it moves while the blast is expanding.
+@
+text
+@a9 1
+#include <allegro/internal/aintern.h>
+a115 2
+    dest->vtable->hfill = _linear_hline24;
+    dest->vtable->putpixel = _linear_putpixel24;
 @
 
 

@@ -1,9 +1,14 @@
-head	1.9;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.10
+date	2002.02.11.04.27.47;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.02.06.12.08.29;	author tjaden;	state Exp;
@@ -55,9 +60,9 @@ desc
 @@
 
 
-1.9
+1.10
 log
-@Added barrel chunks (but they still need inertia).
+@Centre of barrel chunks is closer to 2,2 than 0,0.
 @
 text
 @-- basic-tilelike.lua
@@ -168,7 +173,7 @@ local BarrelChunks = function (t)
 	    self:set_update_hook (1000 + random (3000), object_destroy)
 	end,
 	proxy_init = function (self)
-	    self:replace_layer (0, t.images[random (getn (t.images))], 0, 0)
+	    self:replace_layer (0, t.images[random (getn (t.images))], 2, 2)
 	end
     })
 end
@@ -242,6 +247,17 @@ Ladder {
     mask = "/basic/tilelike/ladder-gray5-mask",
     cx = 8, cy = 40
 }
+@
+
+
+1.9
+log
+@Added barrel chunks (but they still need inertia).
+@
+text
+@d109 1
+a109 1
+	    self:replace_layer (0, t.images[random (getn (t.images))], 0, 0)
 @
 
 

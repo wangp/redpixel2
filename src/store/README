@@ -58,7 +58,9 @@ API
 
     void store_unload (int id);
 
-	 Unload the datafile using the file id.
+	Unload the datafile using the file id.  Entries in the `store'
+	array which pointed to items in the datafile being unloaded
+	get cleared to NULL; all other items remain unchanged.
 
     DATAFILE **store;
 

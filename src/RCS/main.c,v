@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.02.11.04.29.49;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.02.05.12.18.28;	author tjaden;	state Exp;
@@ -35,9 +40,9 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Use higher-precision timer under Windows (it was really bad before).
+@Initial menu system.
 @
 text
 @/* main.c
@@ -53,6 +58,7 @@ text
 #include "clsvface.h"
 #include "editor.h"
 #include "gameinit.h"
+#include "gamemenu.h"
 #include "getoptc.h"
 #include "messages.h"
 #include "server.h"
@@ -282,10 +288,27 @@ int main (int argc, char *argv[])
 
     game_init ();
 
+    /* XXX testing menu */ if (1) {
+	if (gamemenu_init () == 0) {
+	    gamemenu_run ();
+	    gamemenu_shutdown ();
+	    game_shutdown ();
+	    return 0;
+	}
+	else {
+	    allegro_message ("Cannot load data files.  Did you download them?\n");
+	    return 1;
+	}
+    }
+
     gettimeofday_init ();
 
-    if (run_editor)
-	editor ();
+    if (run_editor) {
+	if (editor_init () == 0) {
+	    editor_run ();
+	    editor_shutdown ();
+	}
+    }
     else if (run_parallel)
 	do_run_parallel (name);
     else if (run_client_server)
@@ -303,6 +326,20 @@ int main (int argc, char *argv[])
 }
 
 END_OF_MAIN();
+@
+
+
+1.5
+log
+@Use higher-precision timer under Windows (it was really bad before).
+@
+text
+@d14 1
+d244 13
+d259 6
+a264 2
+    if (run_editor)
+	editor ();
 @
 
 

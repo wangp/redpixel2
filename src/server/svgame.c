@@ -699,7 +699,10 @@ static void queue_particle_packet (char type, float x, float y,
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
-    
+
+    if (!map)	/* may be called while in editor */
+	return;
+
     size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
 			  type, x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
@@ -764,6 +767,9 @@ void svgame_call_method_on_clients (object_t *obj, const char *method,
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
+
+    if (!map)	/* may be called while in editor */
+	return;
 
     size = packet_encode (buf, "clss", MSG_SC_GAMEINFO_OBJECT_CALL,
 			  object_id (obj), method, arg);

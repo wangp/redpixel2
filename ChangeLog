@@ -1,3 +1,69 @@
+2002-02-17  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* objgen.lua, object.c, mylua.h, mylua.c, gameinit.c:
+	Updated to Lua 4.1-work4.
+
+2002-02-13  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* list.h: Added an interesting tidbit in the comments.
+
+2002-02-11  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* svgame.c:
+	Some Lua bindings can't be run while we are in the editor or it will
+	crash.  This used to be enforced by replacing such functions with
+	stubs, but we can't do that now, so we do the enforcing in here.
+
+	* editor.h, editor.c: Made editor more friendly to being run more
+	than once in a process.
+	
+	* main.c, gamemenu.h, gamemenu.c: Initial menu system.
+
+	* basic-tilelike.lua: Centre of barrel chunks is closer to 2,2
+	than 0,0.
+
+	* client.c: Crosshair is a store bitmap, don't destroy_bitmap it.
+	
+	* magic4x4.c: Set a few vtable entries for magic bitmaps.
+	* blast.c, particle.c: No need to set the vtable here anymore.
+	
+	* gameinit.c: Bump up the size of store hash table.
+
+	* sync.c:
+	Made sync code more PC (pthreadly correct).  `pthread_cond_wait' is
+	actually allowed to wake up for reasons other than being signalled.
+
+2002-02-07  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* mdstarts.c, mdlights.c:
+	Don't destroy bitmaps inside store.
+
+	* CHANGES:
+	Fixed a major memory leak.  Also, fixed the semantics of store_unload
+	(entries in the `store' array which pointed to items in the datafile
+	being unloaded get cleared to NULL; all other items keep their
+	indices).
+
+	* README: Updated for new store_unload() semantics.
+
+	* store.c:
+	Fixed a major memory leak.  Also, fixed the semantics of store_unload
+	(entries in the `store' array which pointed to items in the datafile
+	being unloaded get cleared to NULL; all other items keep their
+	indices).
+
+2002-02-06  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-tilelike.lua:
+	Added barrel chunks (but they still need inertia).
+
+	* explo.c: (oops, some old code)
+
+2002-02-06  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-tilelike.lua: Added barrel chunks (but they still need
+	inertia).
+
 2002-02-05  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* main.c, timeval.h, timeval.c:
@@ -125,7 +191,7 @@
 
 	* Changed all "()" declarations to "(void)".
 
-	* src/server/server.c:
+	* server.c:
 	Changed the test for a very small yv (again) from 0 <= yv < 0.0001
 	to 0 <= yv < 0.005.
 
@@ -135,7 +201,7 @@
 	* object.h, object.c, bindgen.lua, gamesrv.h, gamesrv.c:
 	Added _internal_would_collide_with_objects().
 
-	* data/basic/basic-player.lua: (minor syntax change)
+	* basic-player.lua: (minor syntax change)
 
 	* basic-base.lua, gamesrv.c, bindgen.lua, gameclt.c, gamesrv.h,
 	* netmsg.h, particle.h, particle.c: 

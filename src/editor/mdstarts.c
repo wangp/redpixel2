@@ -161,5 +161,4 @@ int mode_starts_init (void)
 void mode_starts_shutdown (void)
 {
     ed_select_list_destroy (list);
-    destroy_bitmap (icon);
 }

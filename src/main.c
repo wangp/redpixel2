@@ -11,6 +11,7 @@
 #include "clsvface.h"
 #include "editor.h"
 #include "gameinit.h"
+#include "gamemenu.h"
 #include "getoptc.h"
 #include "messages.h"
 #include "server.h"
@@ -240,10 +241,27 @@ int main (int argc, char *argv[])
 
     game_init ();
 
+    /* XXX testing menu */ if (1) {
+	if (gamemenu_init () == 0) {
+	    gamemenu_run ();
+	    gamemenu_shutdown ();
+	    game_shutdown ();
+	    return 0;
+	}
+	else {
+	    allegro_message ("Cannot load data files.  Did you download them?\n");
+	    return 1;
+	}
+    }
+
     gettimeofday_init ();
 
-    if (run_editor)
-	editor ();
+    if (run_editor) {
+	if (editor_init () == 0) {
+	    editor_run ();
+	    editor_shutdown ();
+	}
+    }
     else if (run_parallel)
 	do_run_parallel (name);
     else if (run_client_server)

@@ -106,7 +106,7 @@ local BarrelChunks = function (t)
 	    self:set_update_hook (1000 + random (3000), object_destroy)
 	end,
 	proxy_init = function (self)
-	    self:replace_layer (0, t.images[random (getn (t.images))], 0, 0)
+	    self:replace_layer (0, t.images[random (getn (t.images))], 2, 2)
 	end
     })
 end

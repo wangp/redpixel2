@@ -1,0 +1,33 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.02.11.03.55.10;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_gamemenu_h
+#define __included_gamemenu_h
+
+
+int gamemenu_init (void);
+void gamemenu_shutdown (void);
+void gamemenu_run (void);
+
+
+#endif
+@

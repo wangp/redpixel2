@@ -1,9 +1,14 @@
-head	1.32;
+head	1.33;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.33
+date	2002.02.11.04.27.13;	author tjaden;	state Exp;
+branches;
+next	1.32;
 
 1.32
 date	2002.02.05.04.09.04;	author tjaden;	state Exp;
@@ -170,10 +175,9 @@ desc
 @@
 
 
-1.32
+1.33
 log
-@Added sound panning/volume based on position of the source relative to
-the player (although it doesn't update when the player moves yet).
+@Crosshair is a store bitmap, don't destroy_bitmap it.
 @
 text
 @/* client.c
@@ -1438,13 +1442,23 @@ void client_shutdown (void)
 	map_destroy (map);
 	map = NULL;
     }
-    destroy_bitmap (crosshair);
     destroy_bitmap (bkgd);
     camera_destroy (cam);
     destroy_bitmap (bmp);
     free (client_name);
     net_closeconn (conn);
 }
+@
+
+
+1.32
+log
+@Added sound panning/volume based on position of the source relative to
+the player (although it doesn't update when the player moves yet).
+@
+text
+@a1262 1
+    destroy_bitmap (crosshair);
 @
 
 

@@ -7,8 +7,8 @@ PLAT_CFLAGS := -DTHREADS_WIN32 -Iwin32/pdcurses/pdcurses
 PLAT_LDFLAGS := -mwindows
 PLAT_OBJDIR := obj/mingw
 PLAT_LIBNET := libnet/lib/libnet.a
-PLAT_LUABIN := lua-4.1-work3/bin/lua
-PLAT_LIBLUA := lua-4.1-work3/lib/liblua.a lua-4.1-work3/lib/liblualib.a
+PLAT_LUABIN := lua-4.1-work4/bin/lua
+PLAT_LIBLUA := lua-4.1-work4/lib/liblua.a lua-4.1-work4/lib/liblualib.a
 PLAT_LIBS := -lalleg $(PLAT_LIBNET) -lwsock32 $(PLAT_LIBLUA) \
 		win32/pdcurses/pdcurses/win32/pdcurses.a \
 		-lwinmm
