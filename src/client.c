@@ -442,6 +442,9 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 		    case 's':
 			particles_spawn_spark (map_particles (map), x, y, nparticles, spread);
 			break;
+		    case 'r':
+			particles_spawn_respawn_particles (map_particles (map), x, y, nparticles, spread);
+			break;
 		    default:
 			error ("error: unknown particle type in gameinfo packet (client)\n");
 		}

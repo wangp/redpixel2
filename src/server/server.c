@@ -746,29 +746,31 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
 }
 
 
-/* Spawn some blood (Lua binding). */
+/* Spawn some particles (Lua bindings). */
 
-void game_server_spawn_blood (float x, float y, long nparticles, float spread)
+static void queue_particle_packet (char type, float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
     size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
-			  'b', x, y, nparticles, spread);
+			  type, x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
 }
 
-
-/* Spawn some sparks (Lua binding). */
+void game_server_spawn_blood (float x, float y, long nparticles, float spread)
+{
+    queue_particle_packet ('b', x, y, nparticles, spread);
+}
 
 void game_server_spawn_sparks (float x, float y, long nparticles, float spread)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
-    size_t size;
-    
-    size = packet_encode (buf, "ccfflf", MSG_SC_GAMEINFO_PARTICLES_CREATE,
-			  's', x, y, nparticles, spread);
-    add_to_gameinfo_packet_queue (buf, size);
+    queue_particle_packet ('s', x, y, nparticles, spread);
+}
+
+void game_server_spawn_respawn_particles (float x, float y, long nparticles, float spread)
+{
+    queue_particle_packet ('r', x, y, nparticles, spread);
 }
 
 

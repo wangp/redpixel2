@@ -27,7 +27,8 @@ typedef struct particle {
     float x, y;
     float xv, yv;
     int color;
-    int life;
+    short life;
+    short weightless;
 } particle_t;
 
 
@@ -95,8 +96,10 @@ void particles_update (particles_t *part, map_t *map)
     while (p) {
 	p->x += p->xv;
 	p->y += p->yv;
-	p->xv *= 0.99;
-	p->yv += 0.05;
+	if (!p->weightless) {
+	    p->xv *= 0.995;
+	    p->yv += 0.05;
+	}
 	
 	if (bitmask_point (mask, p->x, p->y))
 	    p->life = 0;
@@ -122,18 +125,27 @@ void particles_update (particles_t *part, map_t *map)
 }
 
 
-static inline int rnd (int n)
+static inline int rnd (int lower, int upper)
 {
-    return rand() % n;
+    return (rand() % (upper-lower+1)) + lower;
 }
  
 
-void particles_spawn_blood (particles_t *part, float x, float y, long nparticles, float spread)
+enum {
+    TYPE_BLOOD,
+    TYPE_SPARK,
+    TYPE_RESPAWNING
+};
+ 
+
+static void particles_spawn (particles_t *part, int type,
+			     float x, float y, long nparticles, float spread)
 {
     particle_t *p;
     double theta;
     int r, g, b;
-	
+    float h, s, v;
+
     while (nparticles > 0) {
 	/* if out of free particles allocate some more or abort */
 	if ((!part->free_particles) &&
@@ -145,19 +157,60 @@ void particles_spawn_blood (particles_t *part, float x, float y, long nparticles
 	part->free_particles = p->next;
 
 	/* initialise it */
-	theta = rnd (M_PI * 2. * 1000.) / 1000.;
-	p->x = x + rnd (7) - 6;
-	p->y = y + rnd (7) - 6;
-	p->xv = rnd (spread * 1000) * cos (theta) / 1000.;
-	p->yv = rnd (spread * 1000) * sin (theta) / 1000.;
-	p->life = 100;
+	switch (type) {
 
-	r = 4 + rnd (5);
-	g = 0 + rnd (2);
-	b = 1 + rnd (2);
-	if (!rnd (32))
-	    r += rnd (3), g += rnd (3), b += rnd (3);
-	p->color = makecol24 (r, g, b);
+	    case TYPE_BLOOD:
+		theta = rnd (0, M_PI * 2 * 1000) / 1000.;
+		p->x = x + rnd (-3, 3);
+		p->y = y + rnd (-3, 3);
+		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
+		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
+		p->life = 100;
+		p->weightless = 0;
+		
+		r = rnd (4, 9);
+		g = rnd (0, 2);
+		b = rnd (1, 3);
+		if (!rnd (0, 32)) {
+		    r += rnd (0, 3);
+		    g += rnd (0, 3);
+		    b += rnd (0, 3);
+		}
+		p->color = makecol24 (r, g, b);
+		break;
+
+	    case TYPE_SPARK:
+		theta = rnd (0, M_PI * 2 * 1000) / 1000.;
+		p->x = x + rnd (-3, 3);
+		p->y = y + rnd (-3, 3);
+		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
+		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
+		p->life = 100;
+		p->weightless = 0;
+		
+		h = rnd (30, 60);
+		s = rnd (80, 100) / 100.;
+		v = 0.8;
+		hsv_to_rgb (h, s, v, &r, &g, &b);
+		p->color = makecol24 (r/16, g/16, b/16);
+		break;
+
+	    case TYPE_RESPAWNING:
+		theta = rnd (0, M_PI * 2 * 1000) / 1000.;
+		p->x = x + rnd (-16, 16);
+		p->y = y + rnd (-16, 16);
+		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
+		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
+		p->life = rnd (10, 40);
+		p->weightless = 1;
+		
+		h = rnd (180, 240);
+		s = rnd (80, 100) / 100.;
+		v = 0.8;
+		hsv_to_rgb (h, s, v, &r, &g, &b);
+		p->color = makecol24 (r/16, g/16, b/16);
+		break;
+	}
 
 	/* put it into live particles list */
 	p->next = part->live_particles;
@@ -168,54 +221,21 @@ void particles_spawn_blood (particles_t *part, float x, float y, long nparticles
 }
 
 
-void particles_spawn_spark (particles_t *spark, float x, float y, long nparticles, float spread)
+void particles_spawn_blood (particles_t *part, float x, float y, long nparticles, float spread)
 {
-    particle_t *p;
-    double theta;
-    int r, g, b;
-	
-    while (nparticles > 0) {
-	/* if out of free particles allocate some more or abort */
-	if ((!spark->free_particles) &&
-	    (alloc_free_particles (spark, nparticles) < 0))
-	    break;
+    particles_spawn (part, TYPE_BLOOD, x, y, nparticles, spread);
+}
 
-	/* get free particle */
-	p = spark->free_particles;
-	spark->free_particles = p->next;
 
-	/* initialise it */
-	theta = rnd (M_PI * 2. * 1000.) / 1000.;
-	p->x = x + rnd (7) - 4;
-	p->y = y + rnd (7) - 4;
-	p->xv = rnd (spread * 1000) * cos (theta) / 1000.;
-	p->yv = rnd (spread * 1000) * sin (theta) / 1000.;
-	p->life = 100;
+void particles_spawn_spark (particles_t *part, float x, float y, long nparticles, float spread)
+{
+    particles_spawn (part, TYPE_SPARK, x, y, nparticles, spread);
+}
 
-	{
-	    float h = 30 + rnd (30);
-	    float s = (80 + rnd (20)) / 100.;
-	    float v = 0.8;
 
-	    hsv_to_rgb (h, s, v, &r, &g, &b);
-	    r /= 16;
-	    g /= 16;
-	    b /= 16;
-	}
-
-/*  	r = 4 + rnd (5); */
-/*  	g = 0 + rnd (2); */
-/*  	b = 1 + rnd (2); */
-/*  	if (!rnd (32)) */
-/*  	    r += rnd (3), g += rnd (3), b += rnd (3); */
-	p->color = makecol24 (r, g, b);
-
-	/* put it into live particles list */
-	p->next = spark->live_particles;
-	spark->live_particles = p;
-
-	nparticles--;
-    }
+void particles_spawn_respawn_particles (particles_t *part, float x, float y, long nparticles, float spread)
+{
+    particles_spawn (part, TYPE_RESPAWNING, x, y, nparticles, spread);
 }
 
 

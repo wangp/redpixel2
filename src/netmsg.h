@@ -241,7 +241,7 @@ enum {
     /* Tell clients to create some particles.
 
        Args: char type, float x, float y, long nparticles, float spread.
-       where type is 'b' for blood, 's' for sparks
+       where type is 'b' for blood, 's' for sparks, 'r' for respawn particles
      */
 
     MSG_SC_GAMEINFO_PARTICLES_CREATE = 'p',
