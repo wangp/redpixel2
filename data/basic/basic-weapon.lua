@@ -409,7 +409,7 @@ Weapon_With_Firer {
 	cx = -2, cy = 4
     },
     client_switch_to_hook = function ()
-	_internal_set_camera (1, 300)
+	_internal_set_camera (true, 300)
     end,
     sound = "/basic/weapon/rifle/sound"
 }
