@@ -99,8 +99,6 @@ typedef struct DECODER_DATA
  */
 static unsigned long next_bit(DECODER_DATA *dec)
 {
-   long seg_len;
-   
    dec->bits--;
    if (dec->bits < 0) {
       dec->bits = 7;
@@ -550,7 +548,6 @@ static int read_app0(DECODER_DATA *dec)
  */
 static int decode_block(DECODER_DATA *dec, int *dat, int dc, int ac, int qt, int *old_dc)
 {
-   int temp[64];
    int data, num_zeros, num_bits;
    int i, val, coef;
    HUFFMAN_NODE *dc_node, *ac_node;
