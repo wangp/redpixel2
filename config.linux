@@ -5,7 +5,7 @@ PLAT_TARGET := -DTARGET_LINUX
 PLAT_CFLAGS := -DHAVE_GETOPT -DTHREADS_PTHREAD
 PLAT_OBJDIR := obj/linux
 PLAT_LIBNET := libnet/lib/libnet.a
-PLAT_LUABIN := lua-5.0-alpha/bin/lua
-PLAT_LIBLUA := lua-5.0-alpha/lib/liblua.a lua-5.0-alpha/lib/liblualib.a
+PLAT_LUABIN := lua-5.0-beta/bin/lua
+PLAT_LIBLUA := lua-5.0-beta/lib/liblua.a lua-5.0-beta/lib/liblualib.a
 PLAT_LIBS := `allegro-config --libs` $(PLAT_LIBNET) $(PLAT_LIBLUA) \
 	     -lpthread -lcurses

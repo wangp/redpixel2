@@ -62,10 +62,10 @@ static void type_mismatch_in_assign(lua_State *L)
 ]])
 
 
--- gettable metatable method
+-- index metatable method
 
 p (0, 'static int')
-p (0, 'object_metatable_gettable(lua_State *L)')
+p (0, 'object_metatable_index(lua_State *L)')
 p (0, '{')
 p (1, 'struct object *quux = lua_unboxpointer(L, 1);')
 p (1, 'const char *index = lua_tostring(L, 2);')
@@ -84,10 +84,10 @@ p (1, 'return 1;')
 p (0, '}\n')
 
 
--- settable metatable method
+-- newindex metatable method
 
 p (0, 'static int')
-p (0, 'object_metatable_settable(lua_State *L)')
+p (0, 'object_metatable_newindex(lua_State *L)')
 p (0, '{')
 p (1, 'struct object *quux = lua_unboxpointer(L, 1);')
 p (1, 'const char *index = lua_tostring(L, 2);')
@@ -113,11 +113,11 @@ p (0, '}')
 -- tag method registration
 print ([[
 #define REGISTER_OBJECT_METATABLE_METHODS(L)			\
-	lua_pushliteral(L, "__gettable");			\
-	lua_pushcfunction(L, object_metatable_gettable);	\
+	lua_pushliteral(L, "__index");				\
+	lua_pushcfunction(L, object_metatable_index);		\
 	lua_settable(L, -3);					\
-	lua_pushliteral(L, "__settable");			\
-	lua_pushcfunction(L, object_metatable_settable);	\
+	lua_pushliteral(L, "__newindex");			\
+	lua_pushcfunction(L, object_metatable_newindex);	\
 	lua_settable(L, -3);
 ]])
 
