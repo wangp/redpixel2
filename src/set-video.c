@@ -5,7 +5,7 @@ int setup_video (int w, int h, int d)
 {
     int depths[] = { 16, 15, 0 }, *i;
     
-    if ((w == SCREEN_W) && (h == SCREEN_H))
+    if (screen && (w == SCREEN_W) && (h == SCREEN_H))
 	return 0;
 
     set_color_conversion (COLORCONV_NONE);
