@@ -118,7 +118,7 @@ static int net_send_rdm_byte (NET_CONN *conn, uchar_t c)
 static int net_send_rdm_encode (NET_CONN *conn, const char *fmt, ...)
 {
     va_list ap;
-    uchar_t buf[NET_MAX_PACKET_SIZE];
+    uchar_t buf[NETWORK_MAX_PACKET_SIZE];
     int size;
 
     va_start (ap, fmt);
@@ -197,7 +197,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 	    case MSG_SC_GAMEINFO_MAPLOAD:
 	    {
-		char filename[NET_MAX_PACKET_SIZE];
+		char filename[NETWORK_MAX_PACKET_SIZE];
 		long len;
 		
 		buf += packet_decode (buf, "s", &len, filename);
@@ -209,7 +209,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 	    case MSG_SC_GAMEINFO_OBJECT_CREATE:
 	    {
-		char type[NET_MAX_PACKET_SIZE];
+		char type[NETWORK_MAX_PACKET_SIZE];
 		long len;
 		objid_t id;
 		float x, y;
@@ -219,6 +219,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		buf += packet_decode (buf, "slffffc", &len, type, &id, &x, &y, &xv, &yv, &ctag);
 		obj = object_create_proxy (type, id);
+		if (!obj)
+		    error ("error: unable to create a proxy object (unknown type?)");
 		object_set_auth_info (obj, ticks - lag, x, y, xv, yv, 0, 0);
 		object_set_xy (obj, x, y);
 		object_set_collision_tag (obj, ctag);
@@ -226,6 +228,26 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		    local_object = obj;
 		    object_set_number (obj, "is_local", 1);
 		}
+
+		/* decode optional extra fields */
+		{
+		    char type;
+		    char name[NETWORK_MAX_PACKET_SIZE];
+		    long len;
+		    float f;
+		    
+		    do {
+			buf += packet_decode (buf, "c", &type);
+			if (type == 'f') {
+			    buf += packet_decode (buf, "sf", &len, name, &f);
+			    object_set_number (obj, name, f);
+			}
+			else if (type) {
+			    error ("error: unknown field type in object creation packet (client)\n");
+			}
+		    } while (type);
+		}
+
 		object_run_init_func (obj);
 		map_link_object (map, obj);
 		break;
@@ -412,7 +434,7 @@ void game_client_run ()
 
     dbg ("connecting (stage 2)");
     {
-	uchar_t buf[NET_MAX_PACKET_SIZE];
+	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 
 	while (1) {
 	    sync_client_lock ();
@@ -443,7 +465,7 @@ void game_client_run ()
     
     dbg ("lobby");
     {
-	uchar_t buf[NET_MAX_PACKET_SIZE];
+	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 
 	while (1) {
 	    sync_client_lock ();
@@ -476,7 +498,7 @@ void game_client_run ()
 
     dbg ("receive game state");
     {
-	uchar_t buf[NET_MAX_PACKET_SIZE];
+	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 	int size;
 
 	sync_client_lock ();
@@ -520,7 +542,7 @@ void game_client_run ()
         
     dbg ("pause");
     {
-	uchar_t buf[NET_MAX_PACKET_SIZE];
+	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 	int size;
 
 	while (1) {
@@ -578,7 +600,7 @@ void game_client_run ()
 
 	    dbg ("process network input");
 	    {
-		uchar_t buf[NET_MAX_PACKET_SIZE];
+		uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 		int size;
 		int receive_game_state_later = 0;
 		int pause_later = 0;
@@ -608,7 +630,7 @@ void game_client_run ()
 			    break;
 
 			case MSG_SC_TEXT: {
-			    char string[NET_MAX_PACKET_SIZE];
+			    char string[NETWORK_MAX_PACKET_SIZE];
 			    long len;
 			    
 			    packet_decode (buf+1, "s", &len, string);
