@@ -64,7 +64,12 @@ int mylua_open (void)
     lua_pushnumber (the_lua_state, time (0));
     lua_call (the_lua_state, 1, 0);
 
-    DO_REGISTRATION_BOTH (the_lua_state);
+    /* register bindings */
+    DO_REGISTRATION_INIT (the_lua_state);
+
+    /* for debugging */
+    lua_pushstring (the_lua_state, "initial");
+    lua_setglobal (the_lua_state, "_internal_namespace");
 
     return 0;
 }
@@ -101,16 +106,20 @@ static lua_State *fork_namespace (lua_State *orig_state)
 
 void mylua_open_server_and_client_namespaces (void)
 {
+    /* Unregister functions from the initial namespace, which are only
+     * needed during initialisation.  This won't stop people copying
+     * the bindings into other variables.  */
+    DO_UNREGISTRATION_INIT (the_lua_state);
+
     server_lua_namespace = fork_namespace (the_lua_state);
+    DO_REGISTRATION_BOTH (server_lua_namespace);
     DO_REGISTRATION_SERVER (server_lua_namespace);
 
     client_lua_namespace = fork_namespace (the_lua_state);
+    DO_REGISTRATION_BOTH (client_lua_namespace);
     DO_REGISTRATION_CLIENT (client_lua_namespace);
 
     /* for debugging */
-    lua_pushstring (the_lua_state, "initial");
-    lua_setglobal (the_lua_state, "_internal_namespace");
-
     lua_pushstring (server_lua_namespace, "server");
     lua_setglobal (server_lua_namespace, "_internal_namespace");
 
