@@ -375,13 +375,19 @@ SC_GAMEINFO_HANDLER (sc_object_create)
 	char type;
 	char name[NETWORK_MAX_PACKET_SIZE];
 	short len;
-	float f;
 		    
 	do {
 	    buf += packet_decode (buf, "c", &type);
 	    if (type == 'f') {
+		float f;
 		buf += packet_decode (buf, "sf", &len, name, &f);
 		object_set_number (obj, name, f);
+	    }
+	    else if (type == 's') {
+		char s[NETWORK_MAX_PACKET_SIZE];
+		short slen;
+		buf += packet_decode (buf, "ss", &len, name, &slen, &s);
+		object_set_string (obj, name, s);
 	    }
 	    else if (type) {
 		error ("error: unknown field type in object "
@@ -1044,6 +1050,9 @@ void client_run (int client_server)
     dbg ("game");
     {
 	ulong_t last_ticks, t;
+
+	/* good time to force gc */
+	lua_setgcthreshold (lua_state, 0);
 
 	ticks_init ();
 	last_ticks = ticks;
