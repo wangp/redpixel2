@@ -12,6 +12,7 @@ ctypes = {
     Float	= { "n", "float", "lua_tonumber" },
     Function 	= { "f", "lua_ref_t", "lua_ref" },
     Int	 	= { "n", "int", "lua_tonumber" },
+    Bool	= { "b", "int", "lua_toboolean" },
     String	= { "s", "const char *", "lua_tostring" },
     -- custom and readability types
     Method   	= { "f", "lua_ref_t", "lua_ref" },
@@ -23,6 +24,7 @@ ctypes = {
 Float = "Float"
 Function = "Function"
 Int = "Int"
+Bool = "Bool"
 String = "String"
 Method = "Method"
 Object = "Object"
@@ -261,6 +263,12 @@ generate_server {
 }
 
 generate_client {
+    cname	= "object_set_highlighted",
+    args	= {{ Object, "obj" },
+		   { Bool, "yes_or_no" }}
+}
+
+generate_client {
     cname	= "object_moving_horizontally",
     lname	= "_internal_object_moving_horizontally",
     args	= {{ Object, "obj" }},
@@ -340,7 +348,7 @@ generate_client {
     cname	= "object_hflip_layer",
     args	= {{ Object, "obj" },
 		   { Int, "layerid" },
-		   { Int, "hflip" }},	-- XXX should be Bool
+		   { Bool, "hflip" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -583,7 +591,7 @@ generate_client {
 generate_client {
     cname	= "client_set_camera",
     lname	= "_internal_set_camera",
-    args	= {{ Int, "pushable" },	-- XXX should be Bool
+    args	= {{ Bool, "pushable" },
 		   { Int, "max_dist" }}
 }
 
