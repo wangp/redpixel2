@@ -29,7 +29,6 @@ end
 -- Declare a new weapon or ammo pickup, which respawns a while after being
 -- picked up.
 local Standard_Pickup = function (t)
-    if t.alias then add_alias (t.name, t.alias) end
     return Respawning_Item (t, {
 	category = "weapon",
 	collide_hook = function (self, player)
@@ -47,7 +46,6 @@ end
 -- Declare a new projectile type.  This only handles standard-style
 -- projectiles, like bullets.
 local Standard_Projectile = function (t)
-    if t.alias then add_alias (t.name, t.alias) end
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    function self:collide_hook (obj)
@@ -55,6 +53,9 @@ local Standard_Projectile = function (t)
 		self:destroy ()
 	    end
 	    function self:tile_collide_hook ()
+		if t.sparks then
+		    spawn_sparks (self.x, self.y, t.sparks, 2)
+		end
 		self:destroy ()
 	    end	
 	end
@@ -94,6 +95,7 @@ Standard_Projectile {
     alias = "~bp",
     icon = "/basic/weapon/blaster/projectile",
     damage = 10,
+    sparks = 30,
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
@@ -172,7 +174,8 @@ Standard_Projectile {
     name = "basic-ak-projectile",
     alias = "~Ap",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 10
+    damage = 10,
+    sparks = 40
 }
 
 Weapon {
@@ -212,7 +215,8 @@ Standard_Projectile {
     name = "basic-minigun-projectile",
     alias = "~mp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
-    damage = 10
+    damage = 10,
+    sparks = 50
 }
 
 
@@ -294,7 +298,8 @@ Standard_Projectile {
     name = "basic-shotgun-projectile",
     alias = "~sp",
     icon = "/basic/weapon/shotgun/projectile",
-    damage = 10
+    damage = 10,
+    sparks = 20
 }
 
 
@@ -330,17 +335,23 @@ Standard_Pickup {
 
 Objtype {
     name = "basic-rifle-projectile",
+    alias = "~Rp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     nonproxy_init = function (self)
-        self:set_collision_flags ("pn")
 	function self:collide_hook (obj)
 	    obj:receive_damage (50)
 	    self:destroy ()
 	end
+	function self:tile_collide_hook (obj)
+	    -- sniper rifle slugs don't collide with tiles, but for fun
+	    -- we make them spawn sparks the first time they hit one 
+	    spawn_sparks (self.x, self.y, 30, 2)
+	    self:set_collision_flags ("pn")
+	    self.tile_collide_hook = nil
+	    return 1
+	end
     end
 }
-
-add_alias ("basic-rifle-projectile", "~Rp")
 
 
 ----------------------------------------------------------------------
