@@ -1,22 +1,23 @@
-doc-generation from bindgen.lua
+be tighter with types in bindgen.lua
 
 what-weapons-collected display
-don't forget to credit kaupo erme
 rocket jump [recoil from getting blasted]
 
-backpack
-armour
+make mines not stack on each other
+small explosion for mines
+
 vulcan
+blood lust visuals
 food consume sound
 
 radar
 
-corpses continue moving in direction of player
+map scrolly thingi
 
+corpses continue moving in direction of player
+music
+doc-generation from bindgen.lua
 blast circles should provide a bit of light (dunno how)
 
-music
-
-
 bell tower map
-rocket rena plosives
+rocket arena explosives

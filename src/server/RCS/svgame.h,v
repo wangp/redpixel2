@@ -1,9 +1,29 @@
-head	1.8;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2002.07.15.09.27.55;	author tjaden;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2002.07.15.08.47.51;	author tjaden;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2002.07.14.04.25.26;	author tjaden;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2002.07.14.01.32.51;	author tjaden;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2002.07.13.06.21.31;	author tjaden;	state Exp;
@@ -50,10 +70,10 @@ desc
 @@
 
 
-1.8
+1.12
 log
-@Added svgame_get_client_name and svgame_broadcast_text_message
-exports.
+@Made it so only player objects can obstruct other objects from
+spawning.
 @
 text
 @#ifndef __included_svgame_h
@@ -72,6 +92,7 @@ void svgame_process_cs_boing (struct svclient *c);
 /* begin Lua bindings */
 struct object *svgame_spawn_object (const char *typename, float x, float y);
 struct object *svgame_spawn_projectile (const char *typename, struct object *owner, float speed, float delta_angle);
+struct object *svgame_spawn_projectile_raw (const char *typename, int owner, float x, float y, float angle, float speed);
 void svgame_spawn_blood (float x, float y, long nparticles, float spread);
 void svgame_spawn_sparks (float x, float y, long nparticles, float spread);
 void svgame_spawn_respawn_particles (float x, float y, long nparticles, float spread);
@@ -79,13 +100,15 @@ void svgame_spawn_blod (float x, float y, long nparticles);
 void svgame_spawn_explosion (const char *name, float x, float y);
 void svgame_spawn_blast (float x, float y, float radius, int damage, int owner);
 void svgame_call_method_on_clients (struct object *obj, const char *method, const char *arg);
-int svgame_object_would_collide_with_objects (struct object *obj);
+int svgame_object_would_collide_with_player_if_unhidden (struct object *obj);
 int svgame_tell_health (struct object *obj, int health); /* internal */
+int svgame_tell_armour (struct object *obj, int armour); /* internal */
 int svgame_tell_ammo (struct object *obj, int ammo); /* internal */
 void svgame_set_score (int client_id, const char *score);
 void svgame_play_sound_on_clients (struct object *obj, const char *sound);
 const char *svgame_get_client_name (int client_id);
 void svgame_broadcast_text_message (const char *msg);
+void svgame_send_text_message (int client_id, const char *msg);
 /* end Lua bindings */
 
 
@@ -93,6 +116,45 @@ extern struct server_state_procs *svgame_procs;
 
 
 #endif
+@
+
+
+1.11
+log
+@Made mines work.
+@
+text
+@d25 1
+a25 1
+int svgame_object_would_collide_with_objects (struct object *obj);
+@
+
+
+1.10
+log
+@Added function to send a message to only one client.
+@
+text
+@d17 1
+@
+
+
+1.9
+log
+@Initial armour support.
+@
+text
+@d32 1
+@
+
+
+1.8
+log
+@Added svgame_get_client_name and svgame_broadcast_text_message
+exports.
+@
+text
+@d26 1
 @
 
 

@@ -1,9 +1,24 @@
-head	1.12;
+head	1.15;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.15
+date	2002.07.15.08.45.18;	author tjaden;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2002.07.15.05.54.19;	author tjaden;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2002.07.14.01.32.25;	author tjaden;	state Exp;
+branches;
+next	1.12;
 
 1.12
 date	2002.07.13.03.52.31;	author tjaden;	state Exp;
@@ -70,9 +85,9 @@ desc
 @@
 
 
-1.12
+1.15
 log
-@*** empty log message ***
+@Fixed bloodlust image placement.
 @
 text
 @-- basic-powerup.lua
@@ -87,29 +102,66 @@ local Item = Respawning_Item
 -- Enhancements
 ----------------------------------------------------------------------
 
+local Armour_Item = function (t)
+    return Item (t, {
+	collide_hook = function (self, player)
+	    return player:receive_armour (t.give_armour)
+	end
+    })
+end
 
-Item {
+Armour_Item {
     name = "basic-armour-brown", 
     icon = "/basic/powerup/armour/brown",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 10
 }
 
-Item {
+Armour_Item {
     name = "basic-armour-purple", 
     icon = "/basic/powerup/armour/purple",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 20
 }
 
-Item {
+Armour_Item {
     name = "basic-armour-blue", 
     icon = "/basic/powerup/armour/blue",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 30
+}
+
+local bloodlust_anim = {
+    "/basic/powerup/bloodlust/000",
+    "/basic/powerup/bloodlust/001",
+    "/basic/powerup/bloodlust/002",
+    "/basic/powerup/bloodlust/003",
+    "/basic/powerup/bloodlust/004",
+    "/basic/powerup/bloodlust/005",
+    "/basic/powerup/bloodlust/006",
+    "/basic/powerup/bloodlust/007"
 }
 
 Item {
     name = "basic-bloodlust", 
     icon = "/basic/powerup/bloodlust/000",
-    respawn_secs = 10
+    respawn_secs = 60,
+    collide_hook = function (self, player)
+	player:get_bloodlust_hook ()
+    end,
+    proxy_init = function (self)
+	self.frame = 1
+	self:set_update_hook (
+	    150 + random (50),
+	    function (self)
+		self.frame = self.frame + 1
+		if self.frame > getn (bloodlust_anim) then
+		    self.frame = 1
+		end
+		self:replace_layer (0, bloodlust_anim[self.frame], 7, 8)
+	    end
+	)
+    end
 }
 
 Item {
@@ -160,11 +212,7 @@ Item {
 local Health_Item = function (t)
     return Item (t, {
 	collide_hook = function (self, player)
-	    local h = player.health
-	    player:receive_health (t.give_health)
-	    if player.health == h then
-		return false
-	    end
+	    return player:receive_health (t.give_health)
 	end
     })
 end
@@ -203,6 +251,64 @@ Health_Item {
     respawn_secs = 10,
     give_health = 30
 }
+@
+
+
+1.14
+log
+@Added bloodlust/damage_factor support.  Introduced multiple hook
+system and cleaned up code.  Also changed blaster and AK damages.
+@
+text
+@d69 1
+a69 1
+		self:replace_layer (0, bloodlust_anim[self.frame], 7, 3)
+@
+
+
+1.13
+log
+@Initial armour support.
+@
+text
+@d42 11
+d56 17
+a72 1
+    respawn_secs = 10
+@
+
+
+1.12
+log
+@*** empty log message ***
+@
+text
+@d13 7
+d21 1
+a21 1
+Item {
+d24 2
+a25 1
+    respawn_secs = 10
+d28 1
+a28 1
+Item {
+d31 2
+a32 1
+    respawn_secs = 10
+d35 1
+a35 1
+Item {
+d38 2
+a39 1
+    respawn_secs = 10
+d96 1
+a96 5
+	    local h = player.health
+	    player:receive_health (t.give_health)
+	    if player.health == h then
+		return false
+	    end
 @
 
 

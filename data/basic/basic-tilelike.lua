@@ -38,7 +38,7 @@ local Crate = function (t)
 
 	    self.super_show = self.show
 	    function self:show ()
-		if _internal_would_collide_with_objects (self) then
+		if _internal_would_collide_with_player_if_unhidden (self) then
 		    -- try again later
 		    self:hibernate (700)
 		else
@@ -130,7 +130,7 @@ local Barrel = function (t)
 
 	    self.super_show = self.show
 	    function self:show ()
-		if _internal_would_collide_with_objects (self) then
+		if _internal_would_collide_with_player_if_unhidden (self) then
 		    -- try again later
 		    self:hibernate (700)
 		else

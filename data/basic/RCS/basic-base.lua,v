@@ -1,9 +1,14 @@
-head	1.23;
+head	1.24;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.24
+date	2002.07.15.03.01.44;	author tjaden;	state Exp;
+branches;
+next	1.23;
 
 1.23
 date	2002.07.12.17.29.34;	author tjaden;	state Exp;
@@ -125,9 +130,9 @@ desc
 @@
 
 
-1.23
+1.24
 log
-@Added object_set_highlighted binding.
+@Moved index_of function from basic-player.lua to here.
 @
 text
 @-- basic-base.lua
@@ -156,12 +161,17 @@ function merge (t1, t2)
     return t
 end
 
--- Return true if t contains v as a value.
-function contains (t, v)
-    for _,x in t do
-	if x == v then return true end
+-- Return the index of value v in t.
+function index_of (t, v)
+    for i, x in t do
+	if x == v then return i end
     end
     return false
+end
+
+-- Return true if t contains v as a value.
+function contains (t, v)
+    return index_of (t, v) ~= false
 end
 
 
@@ -345,6 +355,21 @@ weapons = {}
 function Weapon (t, u)
     weapons[t.name] = merge (t, u)
 end
+@
+
+
+1.23
+log
+@Added object_set_highlighted binding.
+@
+text
+@d27 8
+d37 1
+a37 4
+    for _,x in t do
+	if x == v then return true end
+    end
+    return false
 @
 
 

@@ -285,6 +285,27 @@ void set_magic_bitmap_brightness(BITMAP *bmp, int r, int g, int b)
 }
 
 
+/* Set uniform lighting over a magic bitmap.  Values range 0 - 15.
+ * But skip black pixels.  */
+void set_magic_bitmap_brightness_skipping_black(BITMAP *bmp, int r, int g, int b)
+{
+    int x, y;
+    unsigned char *c;
+
+    r <<= 4, g <<= 4, b <<= 4;
+
+    for (y = 0; y < bmp->h; y++) {
+	c = bmp->line[y];
+	for (x = 0; x < bmp->w / 3; x++) {
+	    if (*c || *(c+1) || *(c+2))
+		*c++ |= r, *c++ |= g, *c++ |= b;
+	    else
+		c += 3;
+	}
+    }
+}
+
+
 /* Convenience routines (so the code doesn't look to weird).  */
 
 BITMAP *create_magic_bitmap(int w, int h)

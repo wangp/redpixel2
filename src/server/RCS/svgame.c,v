@@ -1,9 +1,34 @@
-head	1.19;
+head	1.24;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.24
+date	2002.07.15.11.05.31;	author tjaden;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	2002.07.15.09.27.51;	author tjaden;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	2002.07.15.08.47.44;	author tjaden;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	2002.07.14.04.25.32;	author tjaden;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	2002.07.14.01.32.46;	author tjaden;	state Exp;
+branches;
+next	1.19;
 
 1.19
 date	2002.07.13.13.21.58;	author tjaden;	state Exp;
@@ -105,9 +130,9 @@ desc
 @@
 
 
-1.19
+1.24
 log
-@(Tentatively) made players capable of jumping off ladders a la RP1.
+@Changed the type of object collision tags.
 @
 text
 @/* svgame.c
@@ -186,7 +211,7 @@ static object_t *spawn_player (objid_t id)
     start = pick_random_start ();
     obj = object_create_ex ("player", id);
     object_set_xy (obj, map_start_x (start), map_start_y (start));
-    object_set_collision_tag (obj, id); /* XXX temp */
+    object_set_collision_tag (obj, id);
     map_link_object (map, obj);
     object_run_init_func (obj);
 
@@ -412,7 +437,7 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 	type = lua_tostring (Lsrv, -1);
     
     /* create the packet */
-    p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+    p = buf + packet_encode (buf, "cslcffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
 			     type,
 			     object_id (obj), object_hidden (obj),
 			     object_x (obj), object_y (obj),
@@ -730,10 +755,12 @@ static void handle_svclient_controls (void)
 	}
 
 	/*
-	 * Fire.
+	 * Fire / drop mine.
 	 */
 	if (c->controls & CONTROL_FIRE)
 	    object_call (Lsrv, obj, "_internal_fire_hook", 0);
+	if (c->controls & CONTROL_DROP_MINE)
+	    object_call (Lsrv, obj, "_internal_drop_mine_hook", 0);
     }
 }
 
@@ -828,6 +855,36 @@ object_t *svgame_spawn_projectile (const char *typename, object_t *owner,
 }
 
 
+object_t *svgame_spawn_projectile_raw (const char *typename, int owner,
+				       float x, float y, float angle,
+				       float speed)
+{
+    svclient_t *c;
+    object_t *obj;
+    float cos_angle;
+    float sin_angle;
+
+    if (!(c = svclients_find_by_id (owner)))
+	return NULL;
+
+    if (!(obj = object_create (typename)))
+	return NULL;
+
+    cos_angle = cos (angle);
+    sin_angle = sin (angle);
+
+    object_set_xy (obj, x, y);
+    object_set_xvyv (obj, speed * cos_angle, speed * sin_angle);
+    object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
+    object_set_number (obj, "angle", angle);
+    object_add_creation_field (obj, "angle");
+    object_set_number (obj, "owner", owner);
+    map_link_object (map, obj);
+    object_run_init_func (obj);
+    return obj;
+}
+
+
 static void queue_particle_packet (char type, float x, float y,
 				   long nparticles, float spread)
 {
@@ -911,13 +968,13 @@ void svgame_call_method_on_clients (object_t *obj, const char *method,
 }
 
 
-/* Check if an object would collide with other objects, if it were to
- * be unhidden.  */
-int svgame_object_would_collide_with_objects (object_t *obj)
+/* Check if an object would collide with a player object, if it were
+ * to be unhidden.  */
+int svgame_object_would_collide_with_player_if_unhidden (object_t *obj)
 {
     return (!object_stale (obj) &&
-	    object_collide_with_objects_raw (obj, OBJECT_MASK_MAIN, map,
-					     object_x (obj), object_y (obj)));
+	    object_would_collide_with_player_if_unhidden (
+		obj, map, object_x (obj), object_y (obj)));
 }
 
 
@@ -931,6 +988,20 @@ void svgame_tell_health (object_t *obj, int health)
 
     size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
 			  object_id (obj), 'h', health);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+void svgame_tell_armour (object_t *obj, int armour)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!object_is_client (obj))
+	return;
+
+    size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
+			  object_id (obj), 'A', armour);
     add_to_gameinfo_packet_queue (buf, size);
 }
 
@@ -989,6 +1060,17 @@ void svgame_broadcast_text_message (const char *msg)
     char buf[64];
     ustrzcpy (buf, sizeof buf, msg);
     svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
+}
+
+
+void svgame_send_text_message (int client_id, const char *msg)
+{
+    svclient_t *c = svclients_find_by_id (client_id);
+    if (c) {
+	char buf[64];
+	ustrzcpy (buf, sizeof buf, msg);
+	svclient_send_rdm_encode (c, "cs", MSG_SC_TEXT, buf);
+    }
 }
 
 
@@ -1173,6 +1255,69 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.23
+log
+@Made it so only player objects can obstruct other objects from
+spawning.
+@
+text
+@d77 1
+a77 1
+    object_set_collision_tag (obj, id); /* XXX temp */
+d303 1
+a303 1
+    p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+@
+
+
+1.22
+log
+@Made mines work.
+@
+text
+@d834 3
+a836 3
+/* Check if an object would collide with other objects, if it were to
+ * be unhidden.  */
+int svgame_object_would_collide_with_objects (object_t *obj)
+d839 2
+a840 2
+	    object_collide_with_objects_raw (obj, OBJECT_MASK_MAIN, map,
+					     object_x (obj), object_y (obj)));
+@
+
+
+1.21
+log
+@Added function to send a message to only one client.
+@
+text
+@d621 1
+a621 1
+	 * Fire.
+d625 2
+d715 30
+@
+
+
+1.20
+log
+@Initial armour support.
+@
+text
+@d897 11
+@
+
+
+1.19
+log
+@(Tentatively) made players capable of jumping off ladders a la RP1.
+@
+text
+@d826 14
 @
 
 

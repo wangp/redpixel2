@@ -1,9 +1,34 @@
-head	1.40;
+head	1.45;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.45
+date	2002.07.15.11.07.12;	author tjaden;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	2002.07.15.09.27.35;	author tjaden;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	2002.07.15.08.47.27;	author tjaden;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	2002.07.14.04.25.41;	author tjaden;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	2002.07.14.01.32.31;	author tjaden;	state Exp;
+branches;
+next	1.40;
 
 1.40
 date	2002.07.13.06.21.53;	author tjaden;	state Exp;
@@ -210,11 +235,9 @@ desc
 @@
 
 
-1.40
+1.45
 log
-@Added svgame_get_client_name and svgame_broadcast_text_message
-exports.  Also made bindings return true and false by default instead
-of 1 and nil.
+@Exported function to create new collision tags and to set tags.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -465,6 +488,13 @@ generate_init {
 -- object.h --
 --------------
 
+generate_init {
+    cname	= "new_object_collision_tag",
+    args	= {},
+    ret		= { Int, "ret" },
+    success	= "lua_pushnumber(L, ret); return 1;"
+}
+
 generate_server {
     cname	= "object_set_stale",
     lname	= "object_set_stale",
@@ -514,6 +544,12 @@ generate_server {
     lname	= "object_set_collision_flags",
     args	= {{ Object, "obj" },
 		   { String, "flags" }}
+}
+
+generate_server {
+    cname	= "object_set_collision_tag",
+    args	= {{ Object, "obj" },
+		   { Int, "tag" }}
 }
 
 generate_server {
@@ -690,6 +726,19 @@ generate_server {
 }
 
 generate_server {
+    cname	= "svgame_spawn_projectile_raw",
+    lname	= "spawn_projectile_raw",
+    args	= {{ String, "typename" },
+		   { Int, "owner" },
+		   { Float, "x" },
+		   { Float, "y" },
+		   { Float, "angle" },
+		   { Float, "speed" }},
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
+}
+
+generate_server {
     cname	= "svgame_spawn_blood",
     lname	= "spawn_blood_on_clients",
     args	= {{ Float, "x" },
@@ -753,8 +802,8 @@ generate_server {
 }
 
 generate_server {
-    cname	= "svgame_object_would_collide_with_objects",
-    lname	= "_internal_would_collide_with_objects",
+    cname	= "svgame_object_would_collide_with_player_if_unhidden",
+    lname	= "_internal_would_collide_with_player_if_unhidden",
     args	= {{ Object, "obj" }},
     ret		= { Int, "ret", "!$" }
 }
@@ -764,6 +813,13 @@ generate_server {
     lname	= "_internal_tell_health",
     args	= {{ Object, "obj" },
 		   { Int, "health" }}
+}
+
+generate_server {
+    cname	= "svgame_tell_armour",
+    lname	= "_internal_tell_armour",
+    args	= {{ Object, "obj" },
+		   { Int, "armour" }}
 }
 
 generate_server {
@@ -799,6 +855,13 @@ generate_server {
     cname	= "svgame_broadcast_text_message",
     lname	= "broadcast_text_message",
     args	= {{ String, "message" }}
+}
+
+generate_server {
+    cname	= "svgame_send_text_message",
+    lname	= "send_text_message",
+    args	= {{ Int, "clientid" },
+		   { String, "message" }}
 }
 
 
@@ -839,6 +902,58 @@ print (reg_client)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.44
+log
+@Made it so only player objects can obstruct other objects from
+spawning.
+@
+text
+@d249 7
+d305 6
+@
+
+
+1.43
+log
+@Made mines work.
+@
+text
+@d550 2
+a551 2
+    cname	= "svgame_object_would_collide_with_objects",
+    lname	= "_internal_would_collide_with_objects",
+@
+
+
+1.42
+log
+@Added function to send a message to only one client.
+@
+text
+@d474 13
+@
+
+
+1.41
+log
+@Initial armour support.
+@
+text
+@d592 7
+@
+
+
+1.40
+log
+@Added svgame_get_client_name and svgame_broadcast_text_message
+exports.  Also made bindings return true and false by default instead
+of 1 and nil.
+@
+text
+@d551 7
 @
 
 

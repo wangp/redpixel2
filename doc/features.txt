@@ -62,7 +62,7 @@ the centre and loop.
 
 * Eye candy
 
-** blood-trails when low health (around 50%), spew more when almost dead
+** [DONE] blood-trails when low health (around 50%), spew more when almost dead
 
 ** [DONE] environmental lights
 
@@ -94,13 +94,15 @@ tiles was hard enough...
 
 ** [DONE] light-amp tints the screen (0x182b65 at 50%)
 
-** [?] bloodlusted-bullets glows red
+** [NO] bloodlusted-bullets glows red
+can't tell
 
-** [?] player hit by a bloodlusted-bullet glow red
+** [NO] player hit by a bloodlusted-bullet glow red
+players already glow red
 
 ** [?] lights have settable strength
 
-** [?] smoke behind rockets
+** [DONE] smoke behind rockets
 
 ** [?] water
 - with swimming
@@ -150,11 +152,13 @@ idea from James Lewis?
 
 * Weapons
 
-** guns can have frames that don't rotate (eg. 1 arm shotty)
+** [NO] guns can have frames that don't rotate (eg. 1 arm shotty)
+not necessary at this stage
 
-** guns can choose a random frame when shooting (eg. uzi, minigun)
+** [NO] guns can choose a random frame when shooting (eg. uzi, minigun)
+not worth it, can't see in battle
 
-** recoil
+** [NO] recoil
 
 * Other
 
@@ -188,6 +192,7 @@ Requires much artwork.  Encourage some artist to do it once
 multiplayer version properly released.
 
 ** [?] up to 8 players in deathmatches
+already works?
 
 ** [NO] microphone chat
 Not worth the effort.

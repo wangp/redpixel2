@@ -15,6 +15,7 @@ void free_magic_color_map(void);
 void generate_magic_conversion_tables(void);
 void blit_magic_format(BITMAP *bmp, BITMAP *dest, int w, int h);
 void set_magic_bitmap_brightness(BITMAP *bmp, int r, int g, int b);
+void set_magic_bitmap_brightness_skipping_black(BITMAP *bmp, int r, int g, int b);
 
 BITMAP *create_magic_bitmap(int w, int h);
 void draw_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y);

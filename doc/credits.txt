@@ -1,0 +1,16 @@
+PW
+DW
+Kaupo Erme for graphics
+stealed sounds
+
+LIBRARIES
+Allegro
+Lua
+Libnet
+Jpgalleg
+2xsai
+magic stuff
+
+store
+loadaud
+

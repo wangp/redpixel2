@@ -1,9 +1,14 @@
-head	1.17;
+head	1.18;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.18
+date	2002.07.15.09.27.30;	author tjaden;	state Exp;
+branches;
+next	1.17;
 
 1.17
 date	2002.07.12.17.30.36;	author tjaden;	state Exp;
@@ -95,10 +100,10 @@ desc
 @@
 
 
-1.17
+1.18
 log
-@Players, crates, barrels now highlight for a short time after getting
-hurt.
+@Made it so only player objects can obstruct other objects from
+spawning.
 @
 text
 @-- basic-tilelike.lua
@@ -141,7 +146,7 @@ local Crate = function (t)
 
 	    self.super_show = self.show
 	    function self:show ()
-		if _internal_would_collide_with_objects (self) then
+		if _internal_would_collide_with_player_if_unhidden (self) then
 		    -- try again later
 		    self:hibernate (700)
 		else
@@ -233,7 +238,7 @@ local Barrel = function (t)
 
 	    self.super_show = self.show
 	    function self:show ()
-		if _internal_would_collide_with_objects (self) then
+		if _internal_would_collide_with_player_if_unhidden (self) then
 		    -- try again later
 		    self:hibernate (700)
 		else
@@ -341,6 +346,21 @@ Ladder {
     mask = "/basic/tilelike/ladder-gray5-mask",
     cx = 8, cy = 40
 }
+@
+
+
+1.17
+log
+@Players, crates, barrels now highlight for a short time after getting
+hurt.
+@
+text
+@d41 1
+a41 1
+		if _internal_would_collide_with_objects (self) then
+d133 1
+a133 1
+		if _internal_would_collide_with_objects (self) then
 @
 
 

@@ -1,9 +1,24 @@
-head	1.21;
+head	1.24;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.24
+date	2002.07.15.11.05.56;	author tjaden;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	2002.07.15.08.47.39;	author tjaden;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	2002.07.14.01.32.42;	author tjaden;	state Exp;
+branches;
+next	1.21;
 
 1.21
 date	2002.07.11.05.24.03;	author tjaden;	state Exp;
@@ -115,9 +130,9 @@ desc
 @@
 
 
-1.21
+1.24
 log
-@Added blast accreditation.
+@Changed the type of object collision tags.
 @
 text
 @#ifndef __included_netmsg_h
@@ -297,12 +312,13 @@ enum {
 
     MSG_CS_GAMEINFO_CONTROLS = 'c',
 	
-	CONTROL_LEFT    = 0x01,
-	CONTROL_RIGHT   = 0x02,
-	CONTROL_UP      = 0x04,
-	CONTROL_DOWN    = 0x08,
-	CONTROL_FIRE    = 0x10,
-	CONTROL_RESPAWN = 0x20,
+	CONTROL_LEFT      = 0x01,
+	CONTROL_RIGHT     = 0x02,
+	CONTROL_UP        = 0x04,
+	CONTROL_DOWN      = 0x08,
+	CONTROL_FIRE      = 0x10,
+	CONTROL_DROP_MINE = 0x20,
+	CONTROL_RESPAWN   = 0x40,
 
 
     /* Notify server of wish to change weapon.
@@ -338,7 +354,10 @@ enum {
     /* Tell clients about their status.
 
        Args: long client_id, byte prop, long value.
-       where prop is 'h' for health, 'a' for ammo
+       where prop is
+		'h' for health,
+		'a' for ammo,
+		'A' for armour
      */
 
     MSG_SC_GAMEINFO_CLIENT_STATUS = 's',
@@ -358,7 +377,7 @@ enum {
     /* Tell clients to create a new object.
 
        Args: string type, long object_id, byte hidden_or_not,
-	     float x, float y, float xv, float yv, byte collision_tag.
+	     float x, float y, float xv, float yv, long collision_tag.
 
        This is followed by extra fields for the proxy object.
        Each field is of the following format:
@@ -448,6 +467,44 @@ enum {
 
 
 #endif
+@
+
+
+1.23
+log
+@Made mines work.
+@
+text
+@d243 1
+a243 1
+	     float x, float y, float xv, float yv, byte collision_tag.
+@
+
+
+1.22
+log
+@Initial armour support.
+@
+text
+@d178 7
+a184 6
+	CONTROL_LEFT    = 0x01,
+	CONTROL_RIGHT   = 0x02,
+	CONTROL_UP      = 0x04,
+	CONTROL_DOWN    = 0x08,
+	CONTROL_FIRE    = 0x10,
+	CONTROL_RESPAWN = 0x20,
+@
+
+
+1.21
+log
+@Added blast accreditation.
+@
+text
+@d219 4
+a222 1
+       where prop is 'h' for health, 'a' for ammo
 @
 
 

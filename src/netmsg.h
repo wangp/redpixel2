@@ -175,12 +175,13 @@ enum {
 
     MSG_CS_GAMEINFO_CONTROLS = 'c',
 	
-	CONTROL_LEFT    = 0x01,
-	CONTROL_RIGHT   = 0x02,
-	CONTROL_UP      = 0x04,
-	CONTROL_DOWN    = 0x08,
-	CONTROL_FIRE    = 0x10,
-	CONTROL_RESPAWN = 0x20,
+	CONTROL_LEFT      = 0x01,
+	CONTROL_RIGHT     = 0x02,
+	CONTROL_UP        = 0x04,
+	CONTROL_DOWN      = 0x08,
+	CONTROL_FIRE      = 0x10,
+	CONTROL_DROP_MINE = 0x20,
+	CONTROL_RESPAWN   = 0x40,
 
 
     /* Notify server of wish to change weapon.
@@ -216,7 +217,10 @@ enum {
     /* Tell clients about their status.
 
        Args: long client_id, byte prop, long value.
-       where prop is 'h' for health, 'a' for ammo
+       where prop is
+		'h' for health,
+		'a' for ammo,
+		'A' for armour
      */
 
     MSG_SC_GAMEINFO_CLIENT_STATUS = 's',
@@ -236,7 +240,7 @@ enum {
     /* Tell clients to create a new object.
 
        Args: string type, long object_id, byte hidden_or_not,
-	     float x, float y, float xv, float yv, byte collision_tag.
+	     float x, float y, float xv, float yv, long collision_tag.
 
        This is followed by extra fields for the proxy object.
        Each field is of the following format:

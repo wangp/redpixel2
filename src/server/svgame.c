@@ -74,7 +74,7 @@ static object_t *spawn_player (objid_t id)
     start = pick_random_start ();
     obj = object_create_ex ("player", id);
     object_set_xy (obj, map_start_x (start), map_start_y (start));
-    object_set_collision_tag (obj, id); /* XXX temp */
+    object_set_collision_tag (obj, id);
     map_link_object (map, obj);
     object_run_init_func (obj);
 
@@ -300,7 +300,7 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 	type = lua_tostring (Lsrv, -1);
     
     /* create the packet */
-    p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
+    p = buf + packet_encode (buf, "cslcffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
 			     type,
 			     object_id (obj), object_hidden (obj),
 			     object_x (obj), object_y (obj),
@@ -618,10 +618,12 @@ static void handle_svclient_controls (void)
 	}
 
 	/*
-	 * Fire.
+	 * Fire / drop mine.
 	 */
 	if (c->controls & CONTROL_FIRE)
 	    object_call (Lsrv, obj, "_internal_fire_hook", 0);
+	if (c->controls & CONTROL_DROP_MINE)
+	    object_call (Lsrv, obj, "_internal_drop_mine_hook", 0);
     }
 }
 
@@ -716,6 +718,36 @@ object_t *svgame_spawn_projectile (const char *typename, object_t *owner,
 }
 
 
+object_t *svgame_spawn_projectile_raw (const char *typename, int owner,
+				       float x, float y, float angle,
+				       float speed)
+{
+    svclient_t *c;
+    object_t *obj;
+    float cos_angle;
+    float sin_angle;
+
+    if (!(c = svclients_find_by_id (owner)))
+	return NULL;
+
+    if (!(obj = object_create (typename)))
+	return NULL;
+
+    cos_angle = cos (angle);
+    sin_angle = sin (angle);
+
+    object_set_xy (obj, x, y);
+    object_set_xvyv (obj, speed * cos_angle, speed * sin_angle);
+    object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
+    object_set_number (obj, "angle", angle);
+    object_add_creation_field (obj, "angle");
+    object_set_number (obj, "owner", owner);
+    map_link_object (map, obj);
+    object_run_init_func (obj);
+    return obj;
+}
+
+
 static void queue_particle_packet (char type, float x, float y,
 				   long nparticles, float spread)
 {
@@ -799,13 +831,13 @@ void svgame_call_method_on_clients (object_t *obj, const char *method,
 }
 
 
-/* Check if an object would collide with other objects, if it were to
- * be unhidden.  */
-int svgame_object_would_collide_with_objects (object_t *obj)
+/* Check if an object would collide with a player object, if it were
+ * to be unhidden.  */
+int svgame_object_would_collide_with_player_if_unhidden (object_t *obj)
 {
     return (!object_stale (obj) &&
-	    object_collide_with_objects_raw (obj, OBJECT_MASK_MAIN, map,
-					     object_x (obj), object_y (obj)));
+	    object_would_collide_with_player_if_unhidden (
+		obj, map, object_x (obj), object_y (obj)));
 }
 
 
@@ -819,6 +851,20 @@ void svgame_tell_health (object_t *obj, int health)
 
     size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
 			  object_id (obj), 'h', health);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+void svgame_tell_armour (object_t *obj, int armour)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!object_is_client (obj))
+	return;
+
+    size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
+			  object_id (obj), 'A', armour);
     add_to_gameinfo_packet_queue (buf, size);
 }
 
@@ -877,6 +923,17 @@ void svgame_broadcast_text_message (const char *msg)
     char buf[64];
     ustrzcpy (buf, sizeof buf, msg);
     svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
+}
+
+
+void svgame_send_text_message (int client_id, const char *msg)
+{
+    svclient_t *c = svclients_find_by_id (client_id);
+    if (c) {
+	char buf[64];
+	ustrzcpy (buf, sizeof buf, msg);
+	svclient_send_rdm_encode (c, "cs", MSG_SC_TEXT, buf);
+    }
 }
 
 

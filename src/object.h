@@ -25,9 +25,24 @@ typedef unsigned long objid_t;
  * controlled by clients.  */
 #define OBJID_PLAYER_MAX	1024
 
+/* A collision tag number.  Objects with the same collision tag do not
+ * collide with each other.  Tags often overlap with object id numbers
+ * (and thus with client id numbers).  */
+typedef unsigned long objtag_t;
+
+/* Zero as a collision tag means the object can collide with
+ * anything.  */
+#define OBJTAG_NONE		0
+
+/* Numbers less than OBJTAG_PLAYER_MAX are reserved for clients and
+ * their bullets.  Tags for teams (if and when they become existant)
+ * and other things are greater or equal to OBJTAG_PLAYER_MAX.  */
+#define OBJTAG_PLAYER_MAX	OBJID_PLAYER_MAX
+
 
 int object_init (void);
 void object_shutdown (void);
+objtag_t new_object_collision_tag (void);
 
 
 object_t *object_create (const char *type_name);
@@ -75,8 +90,8 @@ void object_set_collision_is_projectile (object_t *); /* Lua binding */
 void object_set_collision_is_ladder (object_t *); /* Lua binding */
 void object_set_collision_flags (object_t *, int tiles, int players, int nonplayers);
 void object_set_collision_flags_string (object_t *, const char *flags);	/* Lua binding */
-int object_collision_tag (object_t *);
-void object_set_collision_tag (object_t *, int);
+objtag_t object_collision_tag (object_t *);
+void object_set_collision_tag (object_t *, objtag_t); /* Lua binding */
 
 #define OBJECT_REPLICATE_CREATE		0x01
 #define OBJECT_REPLICATE_UPDATE		0x02
@@ -149,7 +164,7 @@ void object_remove_all_masks (object_t *);
 /* Collisions.  */
 
 int object_supported (object_t *, struct map *);
-int object_collide_with_objects_raw (object_t *, int mask_num, struct map *, float x, float y);
+int object_would_collide_with_player_if_unhidden (struct object *, struct map *, float x, float y);
 
 
 /* Ladder.  */

@@ -1,6 +1,104 @@
 	This ChangeLog is automatically produced from RCS logs.
 	See the Makefile for details.
 
+2002-07-15 21:07  tjaden
+
+	* basic-weapon.lua: Give mines the same collision tag so they don't
+	stack up on top of each other.
+
+2002-07-15 21:07  tjaden
+
+	* bindgen.lua: Exported function to create new collision tags and
+	to set tags.
+
+2002-07-15 21:06  tjaden
+
+	* object.c: Changed the type of object collision tags, and exported
+	a function to create new tags.
+
+2002-07-15 21:05  tjaden
+
+	* object.h, svgame.c, netmsg.h, client.c: Changed the type of
+	object collision tags.
+
+2002-07-15 19:34  tjaden
+
+	* basic-weapon.lua: Slowed down minigun slightly.
+
+2002-07-15 19:27  tjaden
+
+	* basic-tilelike.lua, bindgen.lua, object.c, object.h, svgame.c,
+	svgame.h: Made it so only player objects can obstruct other objects
+	from spawning.
+
+2002-07-15 18:47  tjaden
+
+	* basic-player.lua, basic-weapon.lua, bindgen.lua, client.c,
+	netmsg.h, svgame.c, svgame.h: Made mines work.
+
+2002-07-15 18:45  tjaden
+
+	* basic-powerup.lua: Fixed bloodlust image placement.
+
+2002-07-15 15:58  tjaden
+
+	* basic-weapon.lua: Fixed rifle damage for damage factor support. 
+	Reduced number of rockets given per box.
+
+2002-07-15 15:54  tjaden
+
+	* basic-player.lua, basic-powerup.lua, basic-weapon.lua: Added
+	bloodlust/damage_factor support.  Introduced multiple hook system
+	and cleaned up code.  Also changed blaster and AK damages.
+
+2002-07-15 13:01  tjaden
+
+	* basic-base.lua: Moved index_of function from basic-player.lua to
+	here.
+
+2002-07-14 18:37  tjaden
+
+	* basic-player.lua: (oops)
+
+2002-07-14 14:38  tjaden
+
+	* basic-player.lua: Try to prevent a bug that we only saw once.
+
+2002-07-14 14:26  tjaden
+
+	* basic-player.lua: Made backpacks give half ammo of its original
+	owner.
+
+2002-07-14 14:25  tjaden
+
+	* svgame.h, svgame.c, bindgen.lua: Added function to send a message
+	to only one client.
+
+2002-07-14 13:09  tjaden
+
+	* client.c: Draw transparent icons along with the health, armour,
+	ammo numbers.
+
+2002-07-14 13:08  tjaden
+
+	* magic4x4.h, magic4x4.c: Added
+	set_magic_bitmap_brightness_skipping_black.
+
+2002-07-14 11:48  tjaden
+
+	* basic-player.lua, blod.c, particle.c: Increased the
+	amount/duration of blood and blods.
+
+2002-07-14 11:32  tjaden
+
+	* basic-player.lua, basic-powerup.lua, bindgen.lua, client.c,
+	netmsg.h, svgame.c, svgame.h: Initial armour support.
+
+2002-07-13 23:21  tjaden
+
+	* svgame.c: (Tentatively) made players capable of jumping off
+	ladders a la RP1.
+
 2002-07-13 23:03  tjaden
 
 	* client.c, basic-player.lua: Added up/down weapon switching (aka.

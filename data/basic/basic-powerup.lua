@@ -10,29 +10,66 @@ local Item = Respawning_Item
 -- Enhancements
 ----------------------------------------------------------------------
 
+local Armour_Item = function (t)
+    return Item (t, {
+	collide_hook = function (self, player)
+	    return player:receive_armour (t.give_armour)
+	end
+    })
+end
 
-Item {
+Armour_Item {
     name = "basic-armour-brown", 
     icon = "/basic/powerup/armour/brown",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 10
 }
 
-Item {
+Armour_Item {
     name = "basic-armour-purple", 
     icon = "/basic/powerup/armour/purple",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 20
 }
 
-Item {
+Armour_Item {
     name = "basic-armour-blue", 
     icon = "/basic/powerup/armour/blue",
-    respawn_secs = 10
+    respawn_secs = 10,
+    give_armour = 30
+}
+
+local bloodlust_anim = {
+    "/basic/powerup/bloodlust/000",
+    "/basic/powerup/bloodlust/001",
+    "/basic/powerup/bloodlust/002",
+    "/basic/powerup/bloodlust/003",
+    "/basic/powerup/bloodlust/004",
+    "/basic/powerup/bloodlust/005",
+    "/basic/powerup/bloodlust/006",
+    "/basic/powerup/bloodlust/007"
 }
 
 Item {
     name = "basic-bloodlust", 
     icon = "/basic/powerup/bloodlust/000",
-    respawn_secs = 10
+    respawn_secs = 60,
+    collide_hook = function (self, player)
+	player:get_bloodlust_hook ()
+    end,
+    proxy_init = function (self)
+	self.frame = 1
+	self:set_update_hook (
+	    150 + random (50),
+	    function (self)
+		self.frame = self.frame + 1
+		if self.frame > getn (bloodlust_anim) then
+		    self.frame = 1
+		end
+		self:replace_layer (0, bloodlust_anim[self.frame], 7, 8)
+	    end
+	)
+    end
 }
 
 Item {
@@ -83,11 +120,7 @@ Item {
 local Health_Item = function (t)
     return Item (t, {
 	collide_hook = function (self, player)
-	    local h = player.health
-	    player:receive_health (t.give_health)
-	    if player.health == h then
-		return false
-	    end
+	    return player:receive_health (t.give_health)
 	end
     })
 end

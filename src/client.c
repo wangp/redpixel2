@@ -62,13 +62,19 @@ static int parallax_x = 2;
 static int parallax_y = 2;
 
 static BITMAP *crosshair;
+static BITMAP *health_icon;
+static BITMAP *armour_icon;
+static BITMAP *ammo_icon;
 
 /* the game state */
 static map_t *map;
 static object_t *local_object;
 static object_t *tracked_object;
-static int health;		/* for displaying only */
-static int ammo;		/* the real values are on server */
+static struct {	/* for displaying only; the real values are on server */
+    int health;
+    int armour;
+    int ammo;
+} display_values;
 
 /* network stuff */
 static int pinging;
@@ -356,7 +362,18 @@ static void send_gameinfo_controls (void)
 	if (key[KEY_SPACE]) controls |= CONTROL_RESPAWN;
     }
 
-    if (mouse_b & 1) controls |= CONTROL_FIRE;
+    {
+	static int last_b;
+	int b = mouse_b;
+
+	if (b & 1)
+	    controls |= CONTROL_FIRE;
+
+	if ((b & 2) && !(last_b & 2))
+	    controls |= CONTROL_DROP_MINE;
+
+	last_b = b;
+    }
 
     if (controls != last_controls)
 	update = 1;
@@ -519,10 +536,13 @@ SC_GAMEINFO_HANDLER (sc_client_status)
     if (id == client_id) {	/* XXX a waste to broadcast this */
 	switch (type) {
 	    case 'h':
-		health = val;
+		display_values.health = val;
+		break;
+	    case 'A':
+		display_values.armour = val;
 		break;
 	    case 'a':
-		ammo = val;
+		display_values.ammo = val;
 		break;
 	    default:
 		error ("unknown type in gameinfo client status packet (client)\n");
@@ -556,12 +576,12 @@ SC_GAMEINFO_HANDLER (sc_object_create)
     char hidden;
     float x, y;
     float xv, yv;
-    int ctag;
+    objtag_t ctag;
     object_t *obj;
     const char *realtype;
 
     /* decode the start of the packet */
-    buf += packet_decode (buf, "slcffffc", &len, type, &id, &hidden,
+    buf += packet_decode (buf, "slcffffl", &len, type, &id, &hidden,
 			  &x, &y, &xv, &yv, &ctag);
 
     /* look up the object type alias */
@@ -947,13 +967,19 @@ static void draw_status (BITMAP *bmp)
     FONT *f = store_get_dat ("/basic/font/ugly");
     int col = makecol24 (0xfb, 0xf8, 0xf8);
 
+    int w = bmp->w/3;
+    int y = bmp->h - text_height (f);
+    
     text_mode (-1);
-    textprintf_right_trans_magic (
-	bmp, f, bmp->w/3 - 40, bmp->h - text_height (f) - 2, col,
-	"%d", health);
-    textprintf_right_trans_magic (
-	bmp, f, bmp->w/3 - 2, bmp->h - text_height (f) - 2, col,
-	"%d", ammo);
+
+    draw_trans_magic_sprite (bmp, health_icon, w-95, y);
+    textprintf_right_trans_magic (bmp, f, w-90, y, col, "%d", display_values.health);
+
+    draw_trans_magic_sprite (bmp, armour_icon, w-65, y);
+    textprintf_right_trans_magic (bmp, f, w-60, y, col, "%d", display_values.armour);
+
+    draw_trans_magic_sprite (bmp, armour_icon, w-20, y);
+    textprintf_right_trans_magic (bmp, f, w-15, y, col, "%d", display_values.ammo);
 }
 
 
@@ -1520,6 +1546,13 @@ int client_init (const char *name, int net_driver, const char *addr)
     }
 
     crosshair = store_get_dat ("/basic/crosshair/000");
+
+    health_icon = store_get_dat ("/basic/player/status/health");
+    armour_icon = store_get_dat ("/basic/player/status/armour");
+    ammo_icon = store_get_dat ("/basic/player/status/ammo");
+    set_magic_bitmap_brightness_skipping_black (health_icon, 15, 15, 15);
+    set_magic_bitmap_brightness_skipping_black (armour_icon, 15, 15, 15);
+    set_magic_bitmap_brightness_skipping_black (ammo_icon, 15, 15, 15);
 
     map = NULL;
     local_object = NULL;

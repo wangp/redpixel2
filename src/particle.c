@@ -165,7 +165,7 @@ static void particles_spawn (particles_t *part, int type,
 		p->y = y + rnd (-3, 3);
 		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
 		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
-		p->life = 100;
+		p->life = 5000;
 		p->weightless = 0;
 		
 		r = rnd (4, 9);

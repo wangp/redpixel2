@@ -1,9 +1,14 @@
-head	1.11;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2002.07.14.01.48.27;	author tjaden;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2002.07.09.14.36.52;	author tjaden;	state Exp;
@@ -65,9 +70,9 @@ desc
 @@
 
 
-1.11
+1.12
 log
-@Use shared #definition of M_PI.
+@Increased the amount/duration of blood and blods.
 @
 text
 @/* particle.c
@@ -237,7 +242,7 @@ static void particles_spawn (particles_t *part, int type,
 		p->y = y + rnd (-3, 3);
 		p->xv = rnd (0, spread * 1000) * cos (theta) / 1000.;
 		p->yv = rnd (0, spread * 1000) * sin (theta) / 1000.;
-		p->life = 100;
+		p->life = 5000;
 		p->weightless = 0;
 		
 		r = rnd (4, 9);
@@ -327,6 +332,17 @@ void particles_draw (BITMAP *bmp, particles_t *part, int offset_x, int offset_y)
     bmp->cl = old_cl;
     bmp->cr = old_cr;
 }
+@
+
+
+1.11
+log
+@Use shared #definition of M_PI.
+@
+text
+@d168 1
+a168 1
+		p->life = 100;
 @
 
 

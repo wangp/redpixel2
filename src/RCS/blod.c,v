@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.07.14.01.48.21;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.07.11.12.25.23;	author tjaden;	state Exp;
@@ -35,11 +40,9 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Increased the amount/duration of blood and blods.
 @
 text
 @/* blod.c
@@ -123,7 +126,7 @@ void blod_spawn (map_t *map, float x, float y, long nparticles)
 
 	lua_pushcfunction (client_lua_namespace, blod_update_hook);
 	hook = lua_ref (client_lua_namespace, 1);
-	object_set_update_hook (obj, rnd (10 * 1000, 15 * 1000), hook);
+	object_set_update_hook (obj, rnd (15 * 1000, 30 * 1000), hook);
 
 	map_link_object (map, obj);
     }
@@ -143,6 +146,19 @@ void blod_init (void)
 void blod_shutdown (void)
 {
 }
+@
+
+
+1.5
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d82 1
+a82 1
+	object_set_update_hook (obj, rnd (10 * 1000, 15 * 1000), hook);
 @
 
 

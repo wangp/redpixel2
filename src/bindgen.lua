@@ -246,6 +246,13 @@ generate_init {
 -- object.h --
 --------------
 
+generate_init {
+    cname	= "new_object_collision_tag",
+    args	= {},
+    ret		= { Int, "ret" },
+    success	= "lua_pushnumber(L, ret); return 1;"
+}
+
 generate_server {
     cname	= "object_set_stale",
     lname	= "object_set_stale",
@@ -295,6 +302,12 @@ generate_server {
     lname	= "object_set_collision_flags",
     args	= {{ Object, "obj" },
 		   { String, "flags" }}
+}
+
+generate_server {
+    cname	= "object_set_collision_tag",
+    args	= {{ Object, "obj" },
+		   { Int, "tag" }}
 }
 
 generate_server {
@@ -471,6 +484,19 @@ generate_server {
 }
 
 generate_server {
+    cname	= "svgame_spawn_projectile_raw",
+    lname	= "spawn_projectile_raw",
+    args	= {{ String, "typename" },
+		   { Int, "owner" },
+		   { Float, "x" },
+		   { Float, "y" },
+		   { Float, "angle" },
+		   { Float, "speed" }},
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
+}
+
+generate_server {
     cname	= "svgame_spawn_blood",
     lname	= "spawn_blood_on_clients",
     args	= {{ Float, "x" },
@@ -534,8 +560,8 @@ generate_server {
 }
 
 generate_server {
-    cname	= "svgame_object_would_collide_with_objects",
-    lname	= "_internal_would_collide_with_objects",
+    cname	= "svgame_object_would_collide_with_player_if_unhidden",
+    lname	= "_internal_would_collide_with_player_if_unhidden",
     args	= {{ Object, "obj" }},
     ret		= { Int, "ret", "!$" }
 }
@@ -545,6 +571,13 @@ generate_server {
     lname	= "_internal_tell_health",
     args	= {{ Object, "obj" },
 		   { Int, "health" }}
+}
+
+generate_server {
+    cname	= "svgame_tell_armour",
+    lname	= "_internal_tell_armour",
+    args	= {{ Object, "obj" },
+		   { Int, "armour" }}
 }
 
 generate_server {
@@ -580,6 +613,13 @@ generate_server {
     cname	= "svgame_broadcast_text_message",
     lname	= "broadcast_text_message",
     args	= {{ String, "message" }}
+}
+
+generate_server {
+    cname	= "svgame_send_text_message",
+    lname	= "send_text_message",
+    args	= {{ Int, "clientid" },
+		   { String, "message" }}
 }
 
 

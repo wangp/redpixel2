@@ -1,9 +1,19 @@
-head	1.30;
+head	1.32;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.32
+date	2002.07.15.11.06.28;	author tjaden;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	2002.07.15.09.27.42;	author tjaden;	state Exp;
+branches;
+next	1.30;
 
 1.30
 date	2002.07.13.07.58.18;	author tjaden;	state Exp;
@@ -160,10 +170,10 @@ desc
 @@
 
 
-1.30
+1.32
 log
-@Made player going too far off map count as suicide (e.g. fall off
-bottom).
+@Changed the type of object collision tags, and exported a function to
+create new tags.
 @
 text
 @/* object.c
@@ -245,7 +255,7 @@ struct object {
     float old_xa, old_ya;
 
     char collision_flags;
-    char collision_tag;
+    objtag_t collision_tag;
     objmask_t mask[OBJECT_MASK_MAX];
     char replication_flags;
 
@@ -296,6 +306,7 @@ struct object {
 static void set_default_masks (object_t *obj);
 
 static objid_t next_id;
+static objtag_t next_tag;
 static lua_ref_t object_metatable;
 
 
@@ -316,6 +327,7 @@ static lua_ref_t object_metatable;
 int object_init (void)
 {
     next_id = OBJID_PLAYER_MAX;
+    next_tag = OBJTAG_PLAYER_MAX;
 
     /* Metatable for objects.  */
     lua_newtable (the_lua_state);
@@ -331,6 +343,12 @@ int object_init (void)
 void object_shutdown (void)
 {
     lua_unref (the_lua_state, object_metatable);
+}
+
+
+objtag_t new_object_collision_tag (void)
+{
+    return next_tag++;
 }
 
 
@@ -697,13 +715,13 @@ void object_set_collision_flags_string (object_t *obj, const char *flags)
 }
 
 
-int object_collision_tag (object_t *obj)
+objtag_t object_collision_tag (object_t *obj)
 {
     return obj->collision_tag;
 }
 
 
-void object_set_collision_tag (object_t *obj, int tag)
+void object_set_collision_tag (object_t *obj, objtag_t tag)
 {
     obj->collision_tag = tag;
 }
@@ -1271,15 +1289,20 @@ int object_supported (object_t *obj, map_t *map)
 }
 
 
-int object_collide_with_objects_raw (object_t *obj, int mask_num, map_t *map,
-				     float x, float y)
+int object_would_collide_with_player_if_unhidden (object_t *obj, map_t *map,
+						  float x, float y)
 {
-    int save = obj->is_hidden;
+    int save_hidden = obj->is_hidden;
+    int save_flags = obj->collision_flags;
     int ret;
-    
+
     obj->is_hidden = 0;
+    obj->collision_flags = CNFLAG_TOUCH_PLAYERS;
+
     ret = check_collision_with_objects (obj, OBJECT_MASK_MAIN, map, obj->x, obj->y);
-    obj->is_hidden = save;
+
+    obj->collision_flags = save_flags;
+    obj->is_hidden = save_hidden;
 
     return ret;
 }
@@ -1864,6 +1887,50 @@ void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
     *rx2 = x2;
     *ry2 = y2;
 }
+@
+
+
+1.31
+log
+@Made it so only player objects can obstruct other objects from
+spawning.
+@
+text
+@d80 1
+a80 1
+    char collision_tag;
+d131 1
+d152 1
+d171 6
+d540 1
+a540 1
+int object_collision_tag (object_t *obj)
+d546 1
+a546 1
+void object_set_collision_tag (object_t *obj, int tag)
+@
+
+
+1.30
+log
+@Made player going too far off map count as suicide (e.g. fall off
+bottom).
+@
+text
+@d1106 2
+a1107 2
+int object_collide_with_objects_raw (object_t *obj, int mask_num, map_t *map,
+				     float x, float y)
+d1109 2
+a1110 1
+    int save = obj->is_hidden;
+d1112 1
+a1112 1
+    
+d1114 2
+d1117 3
+a1119 1
+    obj->is_hidden = save;
 @
 
 
