@@ -70,7 +70,7 @@ local Barrel = function (t)
 		if self.health <= 0 then
 		    spawn_explosion ("basic-explo42", self.x, self.y)
 		    spawn_sparks (self.x, self.y, 30, 3)
-		    spawn_blast (self.x, self.y, 45, 50, killer_id)
+		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then
 			for i = 1, random (10) do

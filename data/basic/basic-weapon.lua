@@ -170,7 +170,7 @@ Explosive_Projectile {
     name = "basic-arrow-projectile",
     alias = "~ap",
     icon = "/basic/weapon/bow/projectile",
-    radius = 35,
+    radius = 55,
     damage = 40,
     explosion = "basic-explo42",
     proxy_init = function (self)
@@ -308,7 +308,7 @@ Explosive_Projectile {
     name = "basic-rocket-projectile",
     alias = "~rp",
     icon = "/basic/weapon/rpg/projectile",
-    radius = 50,
+    radius = 75,
     damage = 80,
     explosion = "basic-explo42",
     proxy_init = function (self)
