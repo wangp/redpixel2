@@ -514,7 +514,7 @@ static void send_object_updates (void)
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
 				    object_xv (obj), object_yv (obj),
-				    object_xa (obj), object_ya (obj));
+				    object_total_xa (obj), object_total_ya (obj));
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_HIDDEN))
 	    add_to_gameinfo_packet ("clc", MSG_SC_GAMEINFO_OBJECT_HIDDEN,
@@ -558,13 +558,13 @@ static void handle_svclient_controls (void)
 	 */
 	switch (c->controls & (CONTROL_LEFT | CONTROL_RIGHT)) {
 	    case CONTROL_LEFT:
-		object_set_xa (obj, -2);
+		object_set_intrinsic_xa (obj, -2);
 		break;
 	    case CONTROL_RIGHT:
-		object_set_xa (obj, +2);
+		object_set_intrinsic_xa (obj, +2);
 		break;
 	    default:
-		object_set_xa (obj, 0);
+		object_set_intrinsic_xa (obj, 0);
 	}
 	    
 	/*
@@ -574,20 +574,19 @@ static void handle_svclient_controls (void)
 
 	    case CONTROL_UP:
 		if (object_head_above_ladder (obj)) {
-		    object_set_ya (obj, -8);
+		    object_set_intrinsic_ya (obj, -8);
 		    object_set_jump (obj, 4);
 		}
 		else if (object_standing_on_ladder (obj) ||
 			 object_in_ladder (obj)) {
-		    object_set_ya (obj, -4);
+		    object_set_intrinsic_ya (obj, -4);
 		    object_set_jump (obj, 2);
 		}
 		else {
 		    int jump = object_jump (obj);
-		    if (jump > 0) {
-			object_set_ya (obj, (object_ya (obj)
-					     - object_mass (obj)
-					     - 4/object_jump(obj)));
+		    if ((jump > 0) && (!object_extrinsic_ya (obj))) {
+			object_add_intrinsic_ya (obj, (- object_mass (obj)
+						       - 4/object_jump(obj)));
 			object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
 		    }
 		    else if ((jump == 0) && (object_supported (obj, map))) {
@@ -603,7 +602,7 @@ static void handle_svclient_controls (void)
 		    object_head_above_ladder (obj) ||
 		    object_in_ladder (obj)) {
 		    object_set_number (obj, "_internal_down_ladder", 1);
-		    object_set_ya (obj, 4);
+		    object_set_intrinsic_ya (obj, 4);
 		}
 		break;
 

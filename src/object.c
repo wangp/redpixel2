@@ -73,8 +73,9 @@ struct object {
      */
 
     float xv, yv;
-    float xa, ya;
-    float old_xa, old_ya;
+    float intrinsic_xa, intrinsic_ya; /* force from within, i.e. player wants to move */
+    float extrinsic_xa, extrinsic_ya; /* force from without, e.g. blast */
+    float old_total_xa, old_total_ya;
 
     char collision_flags;
     objtag_t collision_tag;
@@ -256,12 +257,17 @@ void object_run_init_func (object_t *obj)
 
     /* Call base object init hook.  */
     lua_getglobal (S, "_internal_object_init_hook");
+    if (!lua_isfunction (S, -1))
+	error ("Missing _internal_object_init_hook\n");
     lua_pushobject (S, obj);
     lua_call (S, 1, 0);
     
     /* Call type specific init function, if any.  */
     if (objtype_init_func (obj->type) != LUA_NOREF) {
 	lua_getref (S, objtype_init_func (obj->type));
+	if (!lua_isfunction (S, -1))
+	    errorv ("init function for %s object type is not function\n",
+		    objtype_name (obj->type));
 	lua_pushobject (S, obj);
 	lua_call (S, 1, 0);
     }
@@ -412,30 +418,6 @@ void object_set_xvyv (object_t *obj, float xv, float yv)
 }
 
 
-float object_xa (object_t *obj)
-{
-    return obj->xa;
-}
-
-
-float object_ya (object_t *obj)
-{
-    return obj->ya;
-}
-
-
-void object_set_xa (object_t *obj, float xa)
-{
-    obj->xa = xa;
-}
-
-
-void object_set_ya (object_t *obj, float ya)
-{
-    obj->ya = ya;
-}
-
-
 float object_xv_decay (object_t *obj)
 {
     return obj->xv_decay;
@@ -445,6 +427,49 @@ float object_xv_decay (object_t *obj)
 float object_yv_decay (object_t *obj)
 {
     return obj->yv_decay;
+}
+
+
+float object_extrinsic_ya (object_t *obj)
+{
+    return obj->extrinsic_ya;
+}
+
+
+inline float object_total_xa (object_t *obj)
+{
+    return obj->intrinsic_xa + obj->extrinsic_xa;
+}
+
+
+inline float object_total_ya (object_t *obj)
+{
+    return obj->intrinsic_ya + obj->extrinsic_ya;
+}
+
+
+void object_set_intrinsic_xa (object_t *obj, float xa)
+{
+    obj->intrinsic_xa = xa;
+}
+
+
+void object_set_intrinsic_ya (object_t *obj, float ya)
+{
+    obj->intrinsic_ya = ya;
+}
+
+
+void object_add_intrinsic_ya (object_t *obj, float dya)
+{
+    obj->intrinsic_ya += dya;
+}
+
+
+void object_add_extrinsic_xaya (object_t *obj, float dxa, float dya)
+{
+    obj->extrinsic_xa += dxa;
+    obj->extrinsic_ya += dya;
 }
 
 
@@ -1301,13 +1326,16 @@ void object_do_physics (object_t *obj, map_t *map)
     float old_yv = obj->yv;
 
     if (!obj->ladder_state) {
-	obj->ya += obj->mass;
-	if ((obj->ya > 0) && (object_supported (obj, map)))
-	    obj->ya = 0;
+	obj->intrinsic_ya += obj->mass;
+	if ((obj->intrinsic_ya > 0) && (object_supported (obj, map)))
+	    obj->intrinsic_ya = 0;
     }
 
-    obj->xv = (obj->xv + obj->xa) * obj->xv_decay;
-    obj->yv = (obj->yv + obj->ya) * obj->yv_decay;
+    obj->xv = (obj->xv + object_total_xa (obj)) * obj->xv_decay;
+    obj->yv = (obj->yv + object_total_ya (obj)) * obj->yv_decay;
+
+    obj->extrinsic_xa *= 0.94;	/* guesses */
+    obj->extrinsic_ya *= 0.96;	/* guesses */
 
     if ((ABS (obj->xv) > 50) || (ABS (obj->yv) > 50)) {
 
@@ -1323,10 +1351,9 @@ void object_do_physics (object_t *obj, map_t *map)
 	
 	for (i = 0; i < steps; i++) {
 	    if (object_move (obj, OBJECT_MASK_MAIN, map, small_xv, small_yv)) {
-		obj->xa = 0;
-		obj->xv = 0;
-		obj->ya = 0;
-		obj->yv = 0;
+		obj->intrinsic_xa = obj->extrinsic_xa = 0;
+		obj->intrinsic_ya = obj->extrinsic_ya = 0;
+		obj->xv = obj->yv = 0;
 		rep = 1;
 		break;
 	    }
@@ -1346,14 +1373,15 @@ void object_do_physics (object_t *obj, map_t *map)
 
 		    case -1:
 			/* object stopped short of an entire xv */
-			obj->xa = 0;
+			obj->intrinsic_xa = obj->extrinsic_xa = 0;
 			obj->xv = 0;
 			rep = 1;
 			break;
 		    
 		    case 1:
 			/* object required ramping to move */
-			obj->xa /= 2;
+			obj->intrinsic_xa /= 2;
+			obj->extrinsic_xa /= 2;
 			obj->xv /= 2;
 			rep = 1;
 			break;
@@ -1364,7 +1392,7 @@ void object_do_physics (object_t *obj, map_t *map)
 				       ? OBJECT_MASK_LEFT
 				       : OBJECT_MASK_RIGHT),
 				 map, obj->xv, 0)) {
-		    obj->xa = 0;
+		    obj->intrinsic_xa = obj->extrinsic_xa = 0;
 		    obj->xv = 0;
 		    rep = 1;
 		}
@@ -1376,7 +1404,7 @@ void object_do_physics (object_t *obj, map_t *map)
 				   ? OBJECT_MASK_TOP
 				   : OBJECT_MASK_BOTTOM),
 			     map, 0, obj->yv)) {
-		obj->ya = 0;
+		obj->intrinsic_ya = obj->extrinsic_ya = 0;
 		obj->yv = 0;
 		if (old_yv) rep = 1;
 	    }
@@ -1384,14 +1412,17 @@ void object_do_physics (object_t *obj, map_t *map)
     }
 
     if (obj->ladder_state == IN_LADDER) {
-	obj->xa = 0;
-	obj->ya = 0;
+	obj->intrinsic_xa = 0;
+	obj->intrinsic_ya = 0;
+	obj->extrinsic_xa *= 0.8;
+	obj->extrinsic_ya *= 0.8;
 	rep = 1;
     }
 
-    if ((obj->old_xa != obj->xa) || (obj->old_ya != obj->ya)) {
-	obj->old_xa = obj->xa;
-	obj->old_ya = obj->ya;
+    if ((obj->old_total_xa != object_total_xa (obj)) ||
+	(obj->old_total_ya != object_total_ya (obj))) {
+	obj->old_total_xa = object_total_xa (obj);
+	obj->old_total_ya = object_total_ya (obj);
 	rep = 1;
     }
 
