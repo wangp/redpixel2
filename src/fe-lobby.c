@@ -219,7 +219,7 @@ static const char *get_player_stats (int index, int *list_size)
     client_info_t *c;
 
     if (index < 0) {
-	*list_size = 7;
+	*list_size = 3;
 	return NULL;
     }
 
@@ -233,6 +233,7 @@ static const char *get_player_stats (int index, int *list_size)
 	get_player_ranking (c, str);
     else if (index == 2)
 	sprintf (str, "Score: %s", c->score);
+#if 0
     else if (index == 3)
 	sprintf (str, "Kills: %d", 1);
     else if (index == 4)
@@ -241,6 +242,7 @@ static const char *get_player_stats (int index, int *list_size)
 	sprintf (str, "Strike rate: %f", 1.0 / 10.0);
     else
 	sprintf (str, "Frags per minute: %d", 0);
+#endif
 
     /* XXX: memory leaks */
     return strdup (str);
