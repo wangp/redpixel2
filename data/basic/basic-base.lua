@@ -24,12 +24,17 @@ function merge (t1, t2)
     return t
 end
 
--- Return true if t contains v as a value.
-function contains (t, v)
-    for _,x in t do
-	if x == v then return true end
+-- Return the index of value v in t.
+function index_of (t, v)
+    for i, x in t do
+	if x == v then return i end
     end
     return false
+end
+
+-- Return true if t contains v as a value.
+function contains (t, v)
+    return index_of (t, v) ~= false
 end
 
 
