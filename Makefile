@@ -13,7 +13,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include -I lua-4.1-work3/include \
+	  -I libnet/include -I lua-4.1-work4/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -155,7 +155,7 @@ $(OBJDIR)/%.o: %.c
 src/bindings.inc: src/bindgen.lua
 	$(PLAT_LUABIN) $< > $@
 
-src/objectet.inc: src/objgen.lua
+src/objectmt.inc: src/objgen.lua
 	$(PLAT_LUABIN) $< > $@
 
 $(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA)
@@ -170,7 +170,7 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work3
+	$(MAKE) -C lua-4.1-work4
 
 endif
 
@@ -181,9 +181,9 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-4.1-work3/src
-	$(MAKE) -C lua-4.1-work3/src/lib
-	$(MAKE) -C lua-4.1-work3/src/lua
+	$(MAKE) -C lua-4.1-work4/src
+	$(MAKE) -C lua-4.1-work4/src/lib
+	$(MAKE) -C lua-4.1-work4/src/lua
 endif
 
 #----------------------------------------------------------------------
@@ -241,7 +241,7 @@ prepare-dist: cleaner
 	$(MAKE) depend
 	$(MAKE) -C libnet cleaner
 	rm libnet/port.mak
-	$(MAKE) -C lua-4.1-work3 clean
+	$(MAKE) -C lua-4.1-work4 clean
 
 .PHONY: clean cleaner backup suidroot prepare-dist
 

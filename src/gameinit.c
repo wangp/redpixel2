@@ -39,7 +39,7 @@ void game_init (void)
     store_init (1023);  /* (2^n)-1 or primes are supposed to be good */
     bitmask_ref_init ();
  
-    mylua_open (0);
+    mylua_open ();
     bindings_init ();
 
     tiles_init ();
