@@ -183,6 +183,15 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
     if ((color_type == PNG_COLOR_TYPE_GRAY) && (bit_depth < 8))
 	png_set_expand(png_ptr);
 
+    /* Adds a full alpha channel if there is transparency information
+     * in a tRNS chunk. */
+    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+	png_set_tRNS_to_alpha(png_ptr);
+
+    /* Convert 16-bit to 8-bit. */
+    if (bit_depth == 16)
+	png_set_strip_16(png_ptr);
+
     /* Convert grayscale to RGB triplets */
     if ((color_type == PNG_COLOR_TYPE_GRAY) ||
 	(color_type == PNG_COLOR_TYPE_GRAY_ALPHA))

@@ -1,0 +1,121 @@
+# configuration file for making Lua 5.0
+# see INSTALL for installation instructions
+
+# == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
+
+# ------------------------------------------------------------------ Lua core
+
+# Lua uses double for numbers. To change this, uncomment and edit the following
+# line to add one of -DUSE_DOUBLE, -DUSE_FLOAT, -DUSE_LONG, -DUSE_INT.
+# See etc/luser_*.h for other examples of core configuration.
+#
+#NUMBER= -DLUA_USER_H='"../etc/luser_number.h"' -DUSE_XXXX
+
+# If you want support for pipes in the IO library, uncomment the following line.
+# You need popen in and pclose your C library.
+# The second form will probably work in (some) Windows systems.
+#POPEN= -DUSE_POPEN
+#POPEN= -DUSE_POPEN -Dpopen=_popen -Dpclose=_pclose
+
+# ------------------------------------------------------------------ C compiler
+
+# You need an ANSI C compiler. gcc is a popular one.
+CC= gcc
+WARN= -ansi -pedantic -Wall
+
+# On IRIX, cc is a good ANSI compiler.
+#CC= cc
+#WARN= -ansi -fullwarn
+
+# On Solaris, cc is an optional software package.
+# You may have to add -Dsparc if you use -Xc.
+#CC= cc
+#WARN= -Xc # -Dsparc
+
+# On AIX, cc may not be ANSI by default. Use c89 or xlc, or cc -qlanglvl=ansi.
+#CC= cc
+#WARN= -qlanglvl=ansi
+
+# ------------------------------------------------------------------ C options
+
+# Write here any options you may need for your C compiler.
+# If you are using gcc, -O3 will get you a faster but larger code.
+# You can also add -fomit-frame-pointer to get even faster code at the cost
+# of losing debug information.
+# If you only want the shared libraries, you may want to add -fPIC to MYCFLAGS
+MYCFLAGS= -O2
+#MYCFLAGS= -O3 -fomit-frame-pointer
+
+# Write here any options you may need for your C linker.
+MYLDFLAGS=
+
+# ------------------------------------------------------------- Lua interpreter
+
+# If your C library is not POSIX compliant, comment the following line.
+# This is only used in the stand-alone Lua interpreter (src/lua/lua.c), and
+# then only for a small detail (isatty to test whether stdin is interactive).
+POSIX= -D_POSIX_SOURCE
+
+# The stand-alone Lua interpreter needs the math functions, which are usually
+# in libm.a (-lm).  If your C library already includes the math functions,
+# or if you are using a modified interpreter that does not need them,
+# then comment the following line or add the appropriates libraries.
+EXTRA_LIBS= -lm
+
+# If you want to customize the stand-alone Lua interpreter, uncomment
+# and edit the following two lines; also edit etc/config.c to suit your needs.
+# -DUSE_READLINE adds line editing and history to the interpreter; see
+# the file etc/readline.c for details. You need to add -lreadline (and
+# perhaps also -lhistory and -lcurses or -lncurses) to EXTRA_LIBS.
+# -DUSE_LOADLIB adds a bare-bones dynamic loader to the interpreter; see
+# the file etc/loadlib.c for details. You need to add -ldl to EXTRA_LIBS.
+#
+#USERCONF=-DLUA_USERCONFIG='"$(LUA)/etc/config.c"' -DUSE_READLINE -DUSE_LOADLIB
+#EXTRA_LIBS= -lm -lreadline -ldl # -lhistory -lcurses -lncurses
+
+# ------------------------------------------------------------------ librarian
+
+# This should work in all Unix systems.
+AR= ar rcu
+
+# If your system doesn't have (or need) ranlib, use RANLIB=true.
+# On some systems, "ar s" does what ranlib would do.
+RANLIB= ranlib
+#RANLIB= ar s
+#RANLIB= true
+
+# ------------------------------------------------------------------ stripper
+
+# This should work in all Unix systems, but you may want to add options.
+STRIP= strip
+
+# ------------------------------------------------------------------ install
+
+# Locations for "make install". You may need to be root do "make install".
+INSTALL_ROOT= /usr/local
+INSTALL_BIN= $(INSTALL_ROOT)/bin
+INSTALL_INC= $(INSTALL_ROOT)/include
+INSTALL_LIB= $(INSTALL_ROOT)/lib
+INSTALL_MAN= $(INSTALL_ROOT)/man/man1
+
+# You may prefer to use "install" instead of "cp" if you have it.
+# If you use "install", you may also want to change the permissions after -m.
+INSTALL_EXEC= cp
+INSTALL_DATA= cp
+#INSTALL_EXEC= install -m 0755
+#INSTALL_DATA= install -m 0644
+
+# == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========
+
+V=5.0
+
+BIN= $(LUA)/bin
+INC= $(LUA)/include
+LIB= $(LUA)/lib
+
+INCS= -I$(INC) $(EXTRA_INCS)
+DEFS= $(NUMBER) $(EXTRA_DEFS)
+
+CFLAGS= $(MYCFLAGS) $(WARN) $(INCS) $(DEFS)
+
+# (end of config)

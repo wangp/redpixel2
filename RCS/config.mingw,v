@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.7
+date	2002.12.18.15.01.15;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.08.17.03.34.07;	author tjaden;	state Exp;
@@ -40,9 +45,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Updated to Lua 5.0 alpha.
+@Updated for Lua 5.0 beta
 @
 text
 @# Configuration for Mingw Win32 build.  -*- makefile -*-
@@ -54,12 +59,24 @@ PLAT_CFLAGS := -DTHREADS_WIN32 -Iwin32/pdcurses/pdcurses
 PLAT_LDFLAGS := -mwindows
 PLAT_OBJDIR := obj/mingw
 PLAT_LIBNET := libnet/lib/libnet.a
-PLAT_LUABIN := lua-5.0-alpha/bin/lua
-PLAT_LIBLUA := lua-5.0-alpha/lib/liblua.a lua-5.0-alpha/lib/liblualib.a
+PLAT_LUABIN := lua-5.0-beta/bin/lua
+PLAT_LIBLUA := lua-5.0-beta/lib/liblua.a lua-5.0-beta/lib/liblualib.a
 PLAT_LIBS := -lalleg $(PLAT_LIBNET) -lwsock32 $(PLAT_LIBLUA) \
 		win32/pdcurses/pdcurses/win32/pdcurses.a \
 		-lwinmm
 PLAT_EXE := .exe
+@
+
+
+1.6
+log
+@Updated to Lua 5.0 alpha.
+@
+text
+@d10 2
+a11 2
+PLAT_LUABIN := lua-5.0-alpha/bin/lua
+PLAT_LIBLUA := lua-5.0-alpha/lib/liblua.a lua-5.0-alpha/lib/liblualib.a
 @
 
 

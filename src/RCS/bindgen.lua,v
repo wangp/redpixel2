@@ -1,9 +1,14 @@
-head	1.46;
+head	1.47;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.47
+date	2002.12.18.15.02.17;	author tjaden;	state Exp;
+branches;
+next	1.46;
 
 1.46
 date	2002.07.15.11.13.27;	author tjaden;	state Exp;
@@ -240,12 +245,16 @@ desc
 @@
 
 
-1.46
+1.47
 log
-@Be a bit tighter with types.
+@Updated for Lua 5.0 beta
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
+
+gsub = string.gsub
+getn = table.getn
+date = os.date
 
 
 -- Types that we should know about.
@@ -470,7 +479,7 @@ generate_init {
     		   { String, "name" },
 		   { String, "icon" },
 		   { Method, "func", nil, 
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }},
+		     "$ = (lua_isnoneornil(L, $#) ? LUA_NOREF : lua_ref(L, $#));" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -488,9 +497,9 @@ generate_init {
 		   { Int, "nframes" },
 		   { Int, "tics" },
 	       	   { String, "light", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" },
+		     "$ = (lua_isnoneornil(L, $#) ? 0 : lua_tostring(L, $#));" },
 	           { String, "sound", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#)); "}},
+		     "$ = (lua_isnoneornil(L, $#) ? 0 : lua_tostring(L, $#)); "}},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -731,7 +740,7 @@ generate_server {
 		   { Object, "owner" },
 		   { Float, "speed" },
 		   { Float, "delta_angle", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0. : lua_tonumber(L, $#));" }},
+		     "$ = (lua_isnoneornil(L, $#) ? 0. : lua_tonumber(L, $#));" }},
     ret		= { Object, "obj", "!$" },
     success	= "lua_pushobject(L, obj); return 1;"
 }
@@ -809,7 +818,7 @@ generate_server {
     args	= {{ Object, "obj" },
 		   { String, "method" },
 		   { String, "arg", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? \"\" : lua_tostring(L, $#));" }}
+		     "$ = (lua_isnoneornil(L, $#) ? \"\" : lua_tostring(L, $#));" }}
 }
 
 generate_server {
@@ -913,6 +922,30 @@ print (reg_client)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.46
+log
+@Be a bit tighter with types.
+@
+text
+@d3 4
+d230 1
+a230 1
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }},
+d248 1
+a248 1
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" },
+d250 1
+a250 1
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#)); "}},
+d491 1
+a491 1
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0. : lua_tonumber(L, $#));" }},
+d569 1
+a569 1
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? \"\" : lua_tostring(L, $#));" }}
 @
 
 

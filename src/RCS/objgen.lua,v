@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.7
+date	2002.12.18.15.02.37;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.08.17.03.35.52;	author tjaden;	state Exp;
@@ -40,9 +45,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Updated to Lua 5.0 alpha.
+@Updated for Lua 5.0 beta
 @
 text
 @-- objgen.lua -- generate game object field accessors
@@ -109,10 +114,10 @@ static void type_mismatch_in_assign(lua_State *L)
 ]])
 
 
--- gettable metatable method
+-- index metatable method
 
 p (0, 'static int')
-p (0, 'object_metatable_gettable(lua_State *L)')
+p (0, 'object_metatable_index(lua_State *L)')
 p (0, '{')
 p (1, 'struct object *quux = lua_unboxpointer(L, 1);')
 p (1, 'const char *index = lua_tostring(L, 2);')
@@ -131,10 +136,10 @@ p (1, 'return 1;')
 p (0, '}\n')
 
 
--- settable metatable method
+-- newindex metatable method
 
 p (0, 'static int')
-p (0, 'object_metatable_settable(lua_State *L)')
+p (0, 'object_metatable_newindex(lua_State *L)')
 p (0, '{')
 p (1, 'struct object *quux = lua_unboxpointer(L, 1);')
 p (1, 'const char *index = lua_tostring(L, 2);')
@@ -160,16 +165,44 @@ p (0, '}')
 -- tag method registration
 print ([[
 #define REGISTER_OBJECT_METATABLE_METHODS(L)			\
-	lua_pushliteral(L, "__gettable");			\
-	lua_pushcfunction(L, object_metatable_gettable);	\
+	lua_pushliteral(L, "__index");				\
+	lua_pushcfunction(L, object_metatable_index);		\
 	lua_settable(L, -3);					\
-	lua_pushliteral(L, "__settable");			\
-	lua_pushcfunction(L, object_metatable_settable);	\
+	lua_pushliteral(L, "__newindex");			\
+	lua_pushcfunction(L, object_metatable_newindex);	\
 	lua_settable(L, -3);
 ]])
 
 
 -- objgen.lua ends here
+@
+
+
+1.6
+log
+@Updated to Lua 5.0 alpha.
+@
+text
+@d65 1
+a65 1
+-- gettable metatable method
+d68 1
+a68 1
+p (0, 'object_metatable_gettable(lua_State *L)')
+d87 1
+a87 1
+-- settable metatable method
+d90 1
+a90 1
+p (0, 'object_metatable_settable(lua_State *L)')
+d116 2
+a117 2
+	lua_pushliteral(L, "__gettable");			\
+	lua_pushcfunction(L, object_metatable_gettable);	\
+d119 2
+a120 2
+	lua_pushliteral(L, "__settable");			\
+	lua_pushcfunction(L, object_metatable_settable);	\
 @
 
 

@@ -1,5 +1,9 @@
 -- bindgen.lua -- generate Lua <-> C bindings
 
+gsub = string.gsub
+getn = table.getn
+date = os.date
+
 
 -- Types that we should know about.
 --	field 1: checkargs type char
@@ -223,7 +227,7 @@ generate_init {
     		   { String, "name" },
 		   { String, "icon" },
 		   { Method, "func", nil, 
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }},
+		     "$ = (lua_isnoneornil(L, $#) ? LUA_NOREF : lua_ref(L, $#));" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -241,9 +245,9 @@ generate_init {
 		   { Int, "nframes" },
 		   { Int, "tics" },
 	       	   { String, "light", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" },
+		     "$ = (lua_isnoneornil(L, $#) ? 0 : lua_tostring(L, $#));" },
 	           { String, "sound", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#)); "}},
+		     "$ = (lua_isnoneornil(L, $#) ? 0 : lua_tostring(L, $#)); "}},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -484,7 +488,7 @@ generate_server {
 		   { Object, "owner" },
 		   { Float, "speed" },
 		   { Float, "delta_angle", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0. : lua_tonumber(L, $#));" }},
+		     "$ = (lua_isnoneornil(L, $#) ? 0. : lua_tonumber(L, $#));" }},
     ret		= { Object, "obj", "!$" },
     success	= "lua_pushobject(L, obj); return 1;"
 }
@@ -562,7 +566,7 @@ generate_server {
     args	= {{ Object, "obj" },
 		   { String, "method" },
 		   { String, "arg", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? \"\" : lua_tostring(L, $#));" }}
+		     "$ = (lua_isnoneornil(L, $#) ? \"\" : lua_tostring(L, $#));" }}
 }
 
 generate_server {

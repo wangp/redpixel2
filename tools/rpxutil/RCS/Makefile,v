@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.5
+date	2002.12.18.15.05.24;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.08.17.03.36.08;	author tjaden;	state Exp;
@@ -30,13 +35,13 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Updated to Lua 5.0 alpha.
+@Updated for Lua 5.0 beta
 @
 text
-@ALLEGRODIR := $(HOME)/cvs/allegro40/allegro
-LUADIR := ../../lua-5.0-alpha
+@ALLEGRODIR := $(HOME)/code/cvs/allegro40/allegro
+LUADIR := ../../lua-5.0-beta
 
 CC := gcc
 CFLAGS := -Wall -g -I$(ALLEGRODIR)/tools -I$(LUADIR)/include
@@ -54,6 +59,18 @@ endif
 
 rpxutil: $(SOURCES)
 	$(CC) $(CFLAGS) -o rpxutil $(SOURCES) $(LDLIBS)
+@
+
+
+1.4
+log
+@Updated to Lua 5.0 alpha.
+@
+text
+@d1 2
+a2 2
+ALLEGRODIR := $(HOME)/cvs/allegro40/allegro
+LUADIR := ../../lua-5.0-alpha
 @
 
 

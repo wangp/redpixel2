@@ -13,7 +13,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include -I lua-5.0-alpha/include \
+	  -I libnet/include -I lua-5.0-beta/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -179,7 +179,7 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-5.0-alpha
+	$(MAKE) -C lua-5.0-beta
 
 endif
 
@@ -190,9 +190,9 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-5.0-alpha/src
-	$(MAKE) -C lua-5.0-alpha/src/lib
-	$(MAKE) -C lua-5.0-alpha/src/lua
+	$(MAKE) -C lua-5.0-beta/src
+	$(MAKE) -C lua-5.0-beta/src/lib
+	$(MAKE) -C lua-5.0-beta/src/lua
 endif
 
 #----------------------------------------------------------------------
@@ -208,10 +208,10 @@ tags: $(SOURCES)
 #----------------------------------------------------------------------
 
 doc/gui_api.html: src/gui/gui.h
-	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@
+	$(PLAT_LUABIN) tools/mtfm.lua $< > $@
 
 doc/ug_api.html: src/ug/ug.h
-	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@
+	$(PLAT_LUABIN) tools/mtfm.lua $< > $@
 
 mtfmdocs: doc/gui_api.html doc/ug_api.html
 
@@ -220,7 +220,7 @@ mtfmdocs: doc/gui_api.html doc/ug_api.html
 depend: $(SOURCES)
 	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$$(OBJDIR)/\1,' > makefile.dep
 
-include makefile.dep
+-include makefile.dep
 
 #----------------------------------------------------------------------
 
@@ -247,7 +247,7 @@ EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
 EXCLUDE := $(addprefix --exclude , $(EXCLUDE_LIST))
 
 backup:
-	cd ../ && tar zcvf redstone-`date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
+	cd ../ && tar ycvf redstone-`date +%Y%m%d`.tar.bz2 redstone $(EXCLUDE)
 
 suidroot:
 	chown root.games $(PROGRAM)
@@ -257,7 +257,7 @@ prepare-dist: cleaner
 	$(MAKE) depend
 	$(MAKE) -C libnet cleaner
 	rm libnet/port.mak
-	$(MAKE) -C lua-5.0-alpha clean
+	$(MAKE) -C lua-5.0-beta clean
 
 .PHONY: clean cleaner backup suidroot prepare-dist
 

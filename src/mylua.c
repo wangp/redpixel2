@@ -156,15 +156,21 @@ void mylua_open_server_and_client_namespaces (void)
 
 void mylua_close (void)
 {
+#if 0
+    /* XXX: how to do this with lua 5.0 ? */
     if (client_lua_namespace) {
-	lua_closethread (the_lua_state, client_lua_namespace);
+	lua_close (client_lua_namespace);
 	client_lua_namespace = NULL;
     }
 
     if (server_lua_namespace) {
-	lua_closethread (the_lua_state, server_lua_namespace);
+	lua_close (server_lua_namespace);
 	server_lua_namespace = NULL;
     }
+#else
+    client_lua_namespace = NULL;
+    server_lua_namespace = NULL;
+#endif
 
     lua_close (the_lua_state);
     the_lua_state = NULL;
@@ -180,25 +186,22 @@ int lua_call_with_error (lua_State *L, int nargs, int nresults)
 	    /* do nothing */
 	    break;
 	case LUA_ERRRUN:
-	    printf ("** lua error (run): %s", lua_tostring (L, -1));
+	    printf ("** lua error (run): %s\n", lua_tostring (L, -1));
 	    break;
 	case LUA_ERRFILE:
-	    printf ("** lua error (file): %s", lua_tostring (L, -1));
+	    printf ("** lua error (file): %s\n", lua_tostring (L, -1));
 	    break;
 	case LUA_ERRSYNTAX:
-	    printf ("** lua error (syntax): %s", lua_tostring (L, -1));
+	    printf ("** lua error (syntax): %s\n", lua_tostring (L, -1));
 	    break;
 	case LUA_ERRMEM:
-	    printf ("** lua error (mem): %s", lua_tostring (L, -1));
+	    printf ("** lua error (mem): %s\n", lua_tostring (L, -1));
 	    break;
 	case LUA_ERRERR:
-	    printf ("** lua error (err): %s", lua_tostring (L, -1));
-	    break;
-	case LUA_ERRTHROW:
-	    printf ("** lua error (throw): %s", lua_tostring (L, -1));
+	    printf ("** lua error (err): %s\n", lua_tostring (L, -1));
 	    break;
 	default:
-	    printf ("** lua error (unknown): %s", lua_tostring (L, -1));
+	    printf ("** lua error (unknown): %s\n", lua_tostring (L, -1));
 	    break;
     }
 

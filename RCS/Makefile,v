@@ -1,9 +1,15 @@
-head	1.28;
+head	1.29;
 access;
 symbols;
-locks; strict;
+locks
+	tjaden:1.29; strict;
 comment	@# @;
 
+
+1.29
+date	2002.12.18.15.01.04;	author tjaden;	state Exp;
+branches;
+next	1.28;
 
 1.28
 date	2002.09.07.13.46.02;	author tjaden;	state Exp;
@@ -150,9 +156,9 @@ desc
 @@
 
 
-1.28
+1.29
 log
-@Compile with gcc -pipe for a bit more speed
+@Updated for Lua 5.0 beta
 @
 text
 @##
@@ -170,7 +176,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include -I lua-5.0-alpha/include \
+	  -I libnet/include -I lua-5.0-beta/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -336,7 +342,7 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-5.0-alpha
+	$(MAKE) -C lua-5.0-beta
 
 endif
 
@@ -347,9 +353,9 @@ $(PLAT_LIBNET):
 	$(MAKE) -C libnet lib
 
 $(PLAT_LIBLUA):
-	$(MAKE) -C lua-5.0-alpha/src
-	$(MAKE) -C lua-5.0-alpha/src/lib
-	$(MAKE) -C lua-5.0-alpha/src/lua
+	$(MAKE) -C lua-5.0-beta/src
+	$(MAKE) -C lua-5.0-beta/src/lib
+	$(MAKE) -C lua-5.0-beta/src/lua
 endif
 
 #----------------------------------------------------------------------
@@ -365,10 +371,10 @@ tags: $(SOURCES)
 #----------------------------------------------------------------------
 
 doc/gui_api.html: src/gui/gui.h
-	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@@
+	$(PLAT_LUABIN) tools/mtfm.lua $< > $@@
 
 doc/ug_api.html: src/ug/ug.h
-	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@@
+	$(PLAT_LUABIN) tools/mtfm.lua $< > $@@
 
 mtfmdocs: doc/gui_api.html doc/ug_api.html
 
@@ -377,7 +383,7 @@ mtfmdocs: doc/gui_api.html doc/ug_api.html
 depend: $(SOURCES)
 	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$$(OBJDIR)/\1,' > makefile.dep
 
-include makefile.dep
+-include makefile.dep
 
 #----------------------------------------------------------------------
 
@@ -414,7 +420,7 @@ prepare-dist: cleaner
 	$(MAKE) depend
 	$(MAKE) -C libnet cleaner
 	rm libnet/port.mak
-	$(MAKE) -C lua-5.0-alpha clean
+	$(MAKE) -C lua-5.0-beta clean
 
 .PHONY: clean cleaner backup suidroot prepare-dist
 
@@ -422,6 +428,37 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.28
+log
+@Compile with gcc -pipe for a bit more speed
+@
+text
+@d16 1
+a16 1
+	  -I libnet/include -I lua-5.0-alpha/include \
+d182 1
+a182 1
+	$(MAKE) -C lua-5.0-alpha
+d193 3
+a195 3
+	$(MAKE) -C lua-5.0-alpha/src
+	$(MAKE) -C lua-5.0-alpha/src/lib
+	$(MAKE) -C lua-5.0-alpha/src/lua
+d211 1
+a211 1
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@@
+d214 1
+a214 1
+	$(PLAT_LUABIN) -f tools/mtfm.lua $< > $@@
+d223 1
+a223 1
+include makefile.dep
+d260 1
+a260 1
+	$(MAKE) -C lua-5.0-alpha clean
 @
 
 
