@@ -6,14 +6,7 @@ local make_basic_powerup_init = function (respawn_secs)
     return function (self)
 	self:set_collision_flags ("p")
 	function self:collide_hook (player)
-	    self:hide ()
-	    self:set_update_hook (
-		1000 * respawn_secs,
-		function (self)
-		    self:show ()
-		    self:remove_update_hook ()
-		end
-	    )
+	    self:hide_and_respawn_later (1000 * respawn_secs)
 	end
     end
 end

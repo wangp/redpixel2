@@ -33,6 +33,15 @@ function _internal_object_init_hook (self)
 	self.remove_all_masks = object_remove_all_masks
 	self.receive_damage = dummy
 
+	function self:hide_and_respawn_later (msecs)
+	    self:hide ()
+	    self:set_update_hook (msecs,
+				  function (self)
+				      self:show ()
+				      self:remove_update_hook ()
+				  end)
+	end
+
 	-- proxy methods
 	self.add_layer = dummy
 	self.replace_layer = dummy
