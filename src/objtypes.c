@@ -54,7 +54,7 @@ static objtype_t *create (const char *type, const char *name,
 }
 
 
-static void destroy_all ()
+static void destroy_all (void)
 {
     int i;
 
@@ -71,14 +71,14 @@ static void destroy_all ()
 }
 
 
-void objtypes_init ()
+void objtypes_init (void)
 {
     types = 0;
     num = 0;
 }
 
 
-void objtypes_shutdown ()
+void objtypes_shutdown (void)
 {
     destroy_all ();
 }

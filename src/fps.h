@@ -5,8 +5,8 @@
 extern volatile int frames, fps;
 
 
-void fps_init ();
-void fps_shutdown ();
+void fps_init (void);
+void fps_shutdown (void);
 
 
 #endif

@@ -33,7 +33,7 @@ int mylua_open (int stacksize)
 }
 
 
-void mylua_close ()
+void mylua_close (void)
 {
     lua_close (lua_state);
 }

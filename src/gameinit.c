@@ -5,7 +5,7 @@
 
 
 #include <allegro.h>
-#include <libnet.h>
+#include "libnet.h"
 #include "bindings.h"
 #include "bitmaskr.h"
 #include "blod.h"
@@ -22,7 +22,7 @@
 #include "store.h"
 
 
-void game_init ()
+void game_init (void)
 {
     build_sqrt_table ();
 
@@ -56,7 +56,7 @@ void game_init ()
 }
 
 
-void game_shutdown ()
+void game_shutdown (void)
 {
     net_shutdown ();
 

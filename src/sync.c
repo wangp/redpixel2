@@ -32,7 +32,7 @@ void sync_init (void *(*server_thread)(void *))
 }
 
 
-void sync_shutdown ()
+void sync_shutdown (void)
 {
     if (threaded) {
 	pthread_join (thread, NULL);
@@ -44,7 +44,7 @@ void sync_shutdown ()
 }
 
 
-void sync_server_lock ()
+void sync_server_lock (void)
 {
     if (threaded) {
 	pthread_mutex_lock (&mutex);
@@ -54,13 +54,13 @@ void sync_server_lock ()
 }
 
 
-int sync_server_stop_requested ()
+int sync_server_stop_requested (void)
 {
     return 0;
 }
 
 
-void sync_server_unlock ()
+void sync_server_unlock (void)
 {
     if (!threaded)
 	yield ();
@@ -69,7 +69,7 @@ void sync_server_unlock ()
 }
 
 
-void sync_client_lock ()
+void sync_client_lock (void)
 {
     if (threaded) {
 	pthread_mutex_lock (&mutex);
@@ -78,7 +78,7 @@ void sync_client_lock ()
 }
 
 
-void sync_client_unlock ()
+void sync_client_unlock (void)
 {
     if (!threaded)
 	yield ();
@@ -119,7 +119,7 @@ void sync_init (void *(*server_thread)(void *))
 }
 
 
-void sync_shutdown ()
+void sync_shutdown (void)
 {
     if (threaded) {
 	stop_requested = 1;
@@ -131,7 +131,7 @@ void sync_shutdown ()
 }
 
 
-void sync_server_lock ()
+void sync_server_lock (void)
 {
     if (threaded) {
 	WaitForSingleObject (semaphore, INFINITE);
@@ -140,7 +140,7 @@ void sync_server_lock ()
 }
 
 
-void sync_server_unlock ()
+void sync_server_unlock (void)
 {
     if (!threaded)
 	yield ();
@@ -149,13 +149,13 @@ void sync_server_unlock ()
 }
 
 
-int sync_server_stop_requested ()
+int sync_server_stop_requested (void)
 {
     return stop_requested;
 }
 
 
-void sync_client_lock ()
+void sync_client_lock (void)
 {
     if (threaded) {
 	WaitForSingleObject (semaphore, INFINITE);
@@ -164,7 +164,7 @@ void sync_client_lock ()
 }
 
 
-void sync_client_unlock ()
+void sync_client_unlock (void)
 {
     if (!threaded)
 	yield ();

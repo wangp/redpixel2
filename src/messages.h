@@ -5,11 +5,11 @@
 struct BITMAP;
 
 
-int messages_init ();
-void messages_shutdown ();
+int messages_init (void);
+void messages_shutdown (void);
 void messages_render (struct BITMAP *);
 void messages_add (const char *fmt, ...);
-void messages_poll_input ();
+void messages_poll_input (void);
 
 
 #endif

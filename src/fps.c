@@ -10,7 +10,7 @@
 
 volatile int frames, fps;
 
-static void fps_ticker ()
+static void fps_ticker (void)
 {
     fps = frames;
     frames = 0;
@@ -19,7 +19,7 @@ static void fps_ticker ()
 END_OF_STATIC_FUNCTION (fps_ticker);
 
 
-void fps_init ()
+void fps_init (void)
 {
     LOCK_VARIABLE (frames);
     LOCK_VARIABLE (fps);
@@ -30,7 +30,7 @@ void fps_init ()
 }
 
 
-void fps_shutdown ()
+void fps_shutdown (void)
 {
     remove_int (fps_ticker);
 }

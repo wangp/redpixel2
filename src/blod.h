@@ -6,8 +6,8 @@ struct map;
 
 
 void blod_spawn (struct map *, float x, float y, long nparticles);
-void blod_init ();
-void blod_shutdown ();
+void blod_init (void);
+void blod_shutdown (void);
 
 
 #endif

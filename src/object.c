@@ -141,7 +141,7 @@ static lua_ref_t object_eventtable;
  */
 
 
-int object_init ()
+int object_init (void)
 {
     next_id = OBJID_PLAYER_MAX;
 
@@ -156,7 +156,7 @@ int object_init ()
 }
 
 
-void object_shutdown ()
+void object_shutdown (void)
 {
     lua_unref (lua_state, object_eventtable);
 }

@@ -39,7 +39,7 @@ static void callback (DATAFILE *d)
 }
 
 
-void register_extended_datafile ()
+void register_extended_datafile (void)
 {
     register_datafile_object (DAT_MASK, NULL, (void (*)(void *)) bitmask_destroy);
 }

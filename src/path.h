@@ -5,8 +5,8 @@
 extern char *path_share[];
 
 
-void path_init ();
-void path_shutdown ();
+void path_init (void);
+void path_shutdown (void);
 
 
 #endif

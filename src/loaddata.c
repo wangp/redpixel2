@@ -28,7 +28,7 @@ struct file_list {
 
 static list_head_t tiles_list;
 
-int tiles_init ()
+int tiles_init (void)
 {
     list_init (tiles_list);
     return 0;
@@ -50,7 +50,7 @@ int tiles_load (const char *filename, const char *prefix)
     return 0;
 }
 
-void tiles_shutdown ()
+void tiles_shutdown (void)
 {
     file_list_t *f;
 
@@ -78,7 +78,7 @@ void tiles_enumerate (void (*proc) (const char *prefix, int id))
 
 static list_head_t lights_list;
 
-int lights_init ()
+int lights_init (void)
 {
     list_init (lights_list);
     return 0;
@@ -100,7 +100,7 @@ int lights_load (const char *filename, const char *prefix)
     return 0;
 }
 
-void lights_shutdown ()
+void lights_shutdown (void)
 {
     file_list_t *f;
 

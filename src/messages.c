@@ -8,6 +8,7 @@
 #include <string.h>
 #include <allegro.h>
 #include "magic4x4.h"
+#include "messages.h"
 #include "store.h"
 
 
@@ -26,7 +27,7 @@ static int input_blink;
 static FONT *fnt;
 
 
-int messages_init ()
+int messages_init (void)
 {
     if (!(fnt = store_dat ("/basic/font/mini")))
 	return -1;
@@ -36,7 +37,7 @@ int messages_init ()
 }
 
 
-void messages_shutdown ()
+void messages_shutdown (void)
 {
     int i;
     for (i = 0; i < num_lines; i++)
@@ -67,7 +68,6 @@ static void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf, int x
 
 void messages_render (BITMAP *bmp)
 {
-    FONT *fnt = font;		/* XXX current font doesn't work yet */
     int i, y, h;
     
     y = YMARGIN;
@@ -115,7 +115,7 @@ void messages_add (const char *fmt, ...)
 }
 
 
-void messages_poll_input ()
+void messages_poll_input (void)
 {
     int c;
 
