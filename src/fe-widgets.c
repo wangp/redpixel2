@@ -2,6 +2,7 @@
 #include <string.h>
 #include <allegro.h>
 #include "fe-widgets.h"
+#include "strlcpy.h"
 #include "yield.h"
 
 static int gray, light_gray, white;
@@ -340,8 +341,8 @@ int fancy_edit_proc (int msg, DIALOG *d, int c)
 	    if (d->flags & D_GOTFOCUS)
 		highlight_widget (d);
 
-	    /* The text. */
-	    snprintf (buf, d->d2 + 1, "%s", (char *)d->dp);
+	    /* Get how far along the cursor is, in pixels. */
+	    strlcpy (buf, (char *)d->dp, d->d2 + 1);
 	    l = text_length (fancy_edit_font, buf);
 
 	    save_clip (fancy_screen, &old_clip);
