@@ -84,6 +84,53 @@ static void ticks_shutdown ()
 
 
 /*----------------------------------------------------------------------*/
+/*			    Network stats				*/
+/*----------------------------------------------------------------------*/
+
+
+static int incoming_count;
+static int outgoing_count;
+static struct timeval count_start_time;
+
+static float avg_incoming_bytes;
+static float avg_outgoing_bytes;
+
+static void netstats_init ()
+{
+    incoming_count = outgoing_count = 0;
+    gettimeofday (&count_start_time, NULL);
+}
+
+static int netstats_poll ()
+{
+    struct timeval now;
+    ulong_t elapsed_msec;
+
+    gettimeofday (&now, NULL);
+    elapsed_msec = (((now.tv_sec * 1000) + (now.tv_usec / 1000)) -
+		    ((count_start_time.tv_sec * 1000) +
+		     (count_start_time.tv_usec / 1000)));
+
+    if (elapsed_msec > 1000) {
+	avg_incoming_bytes = (float) incoming_count / elapsed_msec * 1000;
+	avg_outgoing_bytes = (float) outgoing_count / elapsed_msec * 1000;
+
+	incoming_count = outgoing_count = 0;
+	count_start_time = now;
+
+	return 1;
+    }
+
+    return 0;
+}
+
+static void netstats_shutdown ()
+{
+    avg_outgoing_bytes = avg_incoming_bytes = 0;
+}
+
+
+/*----------------------------------------------------------------------*/
 /*			          Client nodes	      			*/
 /*----------------------------------------------------------------------*/
 
@@ -170,10 +217,12 @@ static int client_timed_out (client_t *c)
     return client_cantimeout (c) && timeout_test (&c->timeout);
 }
 
-static int client_send_rdm (client_t *c, const void *buf, int size)
+static int client_send_rdm (client_t *c, const void *buf, size_t size)
 {
     int x = net_send_rdm (c->conn, buf, size);
-    if (x < 0) {
+    if (x == 0)
+	outgoing_count += size;
+    else if (x < 0) {
 	client_set_state (c, CLIENT_STATE_BITOFF);
 	server_log ("Client %s was disconnected [send error]", c->name);
     }
@@ -189,7 +238,7 @@ static int client_send_rdm_encode (client_t *c, const char *fmt, ...)
 {
     va_list ap;
     uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-    int size;
+    size_t size;
 
     va_start (ap, fmt);
     size = packet_encode_v (buf, fmt, ap);
@@ -197,16 +246,19 @@ static int client_send_rdm_encode (client_t *c, const char *fmt, ...)
     return client_send_rdm (c, buf, size);
 }
 
-static int client_receive_rdm (client_t *c, void *buf, int size)
+static int client_receive_rdm (client_t *c, void *buf, size_t size)
 {
+    int n;
     if (!net_query_rdm (c->conn))
 	return 0;
-    return net_receive_rdm (c->conn, buf, size);
+    if ((n = net_receive_rdm (c->conn, buf, size)) > 0)
+	incoming_count += n;
+    return n;
 }
 
 #define for_each_client(c)		list_for_each(c, &clients)
 
-static void clients_broadcast_rdm (const void *buf, int size)
+static void clients_broadcast_rdm (const void *buf, size_t size)
 {
     client_t *c;
 
@@ -225,7 +277,7 @@ static void clients_broadcast_rdm_encode (const char *fmt, ...)
 {
     va_list ap;
     uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-    int size;
+    size_t size;
 
     va_start (ap, fmt);
     size = packet_encode_v (buf, fmt, ap);
@@ -363,7 +415,7 @@ static void server_check_new_connections ()
 
 /* Handling complex incoming network packets. */
 
-static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, int size)
+static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, size_t size)
 {
     const void *end = buf + size;
 
@@ -432,7 +484,7 @@ static void server_poll_clients_state_joining (client_t *c)
 static void server_poll_clients_state_joined (client_t *c)
 {
     uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-    int size;
+    size_t size;
 
     size = client_receive_rdm (c, buf, sizeof buf);
     if (size <= 0)
@@ -694,7 +746,7 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
 void game_server_spawn_blood (float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
-    int size;
+    size_t size;
     
     size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
@@ -707,7 +759,7 @@ void game_server_spawn_blood (float x, float y, long nparticles, float spread)
 void game_server_spawn_blod (float x, float y, long nparticles)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
-    int size;
+    size_t size;
     
     size = packet_encode (buf, "cffl", MSG_SC_GAMEINFO_BLOD_CREATE,
 			  x, y, nparticles);
@@ -722,7 +774,7 @@ void game_server_spawn_blod (float x, float y, long nparticles)
 void game_server_call_method_on_clients (object_t *obj, const char *method, const char *arg)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
-    int size;
+    size_t size;
 
     size = packet_encode (buf, "clss", MSG_SC_GAMEINFO_OBJECT_CALL,
 			  object_id (obj), method, arg);
@@ -903,12 +955,24 @@ static void gameinfo_packet_queue_flush (void)
 /* XXX lots of potention buffer overflows */
 static size_t make_object_creation_packet (object_t *obj, char *buf)
 {
-    char *p;
+    lua_State *L = lua_state;
+    int top = lua_gettop (L);
+    const char *type;
     list_head_t *list;
     creation_field_t *f;
+    char *p;
+
+    /* look up object type alias */
+    type = objtype_name (object_type (obj));
+    lua_getglobal (L, "object_alias");
+    lua_pushstring (L, type);
+    lua_rawget (L, -2);
+    if (lua_isstring (L, -1))
+	type = lua_tostring (L, -1);
     
+    /* create the packet */
     p = buf + packet_encode (buf, "cslcffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
-			     objtype_name (object_type (obj)), 
+			     type,
 			     object_id (obj), object_hidden (obj),
 			     object_x (obj), object_y (obj),
 			     object_xv (obj), object_yv (obj),
@@ -922,6 +986,9 @@ static size_t make_object_creation_packet (object_t *obj, char *buf)
 			    object_get_number (obj, f->name));
 
     p += packet_encode (p, "c", 0); /* terminator */
+
+    lua_settop (L, top);
+
     return p - buf;
 }
 
@@ -1253,6 +1320,7 @@ static int server_state_game_init ()
 
     server_perform_mass_game_state_feed ();
     ticks_init ();
+    netstats_init ();
     return 0;
 }
 
@@ -1316,7 +1384,7 @@ static void server_state_game_poll ()
 {
     ulong_t t = ticks;
     long dt, i;
-    
+
     if (!ticks_poll ())
 	return;
     if ((dt = ticks - t) <= 0)
@@ -1336,11 +1404,24 @@ static void server_state_game_poll ()
     done_gameinfo_packet ();
 
     server_purge_stale_objects ();
+
+    if (netstats_poll ()) {
+	char buf[1024];
+
+	if (interface) {
+	    snprintf (buf, sizeof buf, "Incoming %.1f, outgoing %.1f  (avg bytes per sec)",
+		      avg_incoming_bytes, avg_outgoing_bytes);
+	    interface->set_status (buf);
+	}
+    }
 }
 
 static void server_state_game_shutdown ()
 {
     server_log ("Leaving game");
+    if (interface)
+	interface->set_status (NULL);
+    netstats_shutdown ();
     ticks_shutdown ();
     server_free_game_state ();
 }
