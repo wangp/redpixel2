@@ -82,6 +82,8 @@ local Explosive_Projectile = function (t)
 	end,
 
 	proxy_init = function (self)
+	    self:add_light ("/basic/light/white-16", 0, 0)
+
             if t.proxy_init then
 		t.proxy_init (self)
 	    end
