@@ -36,7 +36,8 @@ function _internal_player_spawned_hook (id)
     end
 end
 
--- Called by player Lua code when a player is killed
+-- Called by player Lua code (and occasionally server C code) when a
+-- player is killed
 function _internal_player_died_hook (player_id, killer_id)
     if game_type.player_died then
 	game_type.player_died (player_id, killer_id)

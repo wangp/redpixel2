@@ -11,6 +11,7 @@
 #include "bitmask.h"
 #include "bitmaskg.h"
 #include "bitmaskr.h"
+#include "error.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "map.h"
@@ -1347,8 +1348,18 @@ void object_do_physics (object_t *obj, map_t *map)
 	rep = 1;
     }
 
-    if (!object_is_client (obj) && (too_far_off_map (obj, map)))
+    if (too_far_off_map (obj, map)) {
 	obj->is_stale = 1;
+	if (object_is_client (obj)) {
+	    lua_State *L = server_lua_namespace;
+	    lua_getglobal (L, "_internal_player_died_hook");
+	    if (!lua_isfunction (L, -1))
+		error ("Missing _internal_player_died_hook\n");
+	    lua_pushnumber (L, obj->id);
+	    lua_pushnumber (L, obj->id); /* (probably) suicide */
+	    lua_call (L, 2, 0);
+	}
+    }
     else if (rep)
 	obj->replication_flags |= OBJECT_REPLICATE_UPDATE;
 }
