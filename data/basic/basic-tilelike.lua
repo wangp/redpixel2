@@ -95,7 +95,7 @@ local Barrel = function (t)
 		    end
 
 		    self:hide ()
-		    self:hiberate (t.respawn_secs * 1000)
+		    self:hibernate (t.respawn_secs * 1000)
 		end
 	    end
 
