@@ -9,6 +9,7 @@ typedef struct {
     void(*init) ();
     void (*shutdown) ();
     void (*add_log) (const char *prefix, const char *text);
+    void (*set_status) (const char *text);
     const char *(*poll) ();
 } game_server_interface_t;
 
