@@ -1017,7 +1017,7 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
     }
 
     interval = curr_time - obj->auth.time;
-    while (interval--) {
+    while (interval-- > 0) {
 	obj->target.xv = (obj->target.xv + obj->auth.xa) * obj->xv_decay;
 	obj->target.yv = (obj->target.yv + obj->auth.ya) * obj->yv_decay;
 	obj->target.x += obj->target.xv;
