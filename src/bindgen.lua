@@ -222,6 +222,11 @@ generate {
 }
 
 generate {
+    cname	= "object_set_collision_is_projectile",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
     cname	= "object_set_collision_is_ladder",
     args	= {{ Object, "obj" }}
 }

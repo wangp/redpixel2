@@ -45,6 +45,7 @@ end
 local Standard_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
+	    object_set_collision_is_projectile (self)
 	    function self:collide_hook (obj)
 		obj:receive_damage (t.damage)
 		self:destroy ()
@@ -64,6 +65,7 @@ end
 local Explosive_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
+	    object_set_collision_is_projectile (self)
 	    local hook = function (self, obj)
 		if t.explosion then
 		    spawn_explosion (t.explosion, self.x, self.y)

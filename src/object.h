@@ -68,6 +68,7 @@ void object_set_jump (object_t *, int);
 int object_moving_horizontally (object_t *);
 
 void object_set_collision_is_player (object_t *);
+void object_set_collision_is_projectile (object_t *);
 void object_set_collision_is_ladder (object_t *);
 void object_set_collision_flags (object_t *, int tiles, int players, int nonplayers);
 void object_set_collision_flags_string (object_t *, const char *flags);

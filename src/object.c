@@ -29,11 +29,12 @@ typedef struct objmask {
 
 /* collision flags */
 #define CNFLAG_IS_PLAYER	0x01
-#define CNFLAG_IS_LADDER	0x02
-#define CNFLAG_IS_BITS		(CNFLAG_IS_PLAYER | CNFLAG_IS_LADDER)
-#define CNFLAG_TOUCH_TILES	0x04
-#define CNFLAG_TOUCH_PLAYERS	0x08
-#define CNFLAG_TOUCH_NONPLAYERS	0x10
+#define CNFLAG_IS_PROJECTILE	0x02
+#define CNFLAG_IS_LADDER	0x04
+#define CNFLAG_IS_BITS		(CNFLAG_IS_PLAYER | CNFLAG_IS_PROJECTILE | CNFLAG_IS_LADDER)
+#define CNFLAG_TOUCH_TILES	0x08
+#define CNFLAG_TOUCH_PLAYERS	0x10
+#define CNFLAG_TOUCH_NONPLAYERS	0x20
 #define CNFLAG_TOUCH_OBJECTS	(CNFLAG_TOUCH_PLAYERS | CNFLAG_TOUCH_NONPLAYERS)
 #define CNFLAG_DEFAULT		(CNFLAG_TOUCH_TILES | CNFLAG_TOUCH_OBJECTS)
 
@@ -462,6 +463,12 @@ int object_moving_horizontally (object_t *obj)
 void object_set_collision_is_player (object_t *obj)
 {
     obj->collision_flags |= CNFLAG_IS_PLAYER;
+}
+
+
+void object_set_collision_is_projectile (object_t *obj)
+{
+    obj->collision_flags |= CNFLAG_IS_PROJECTILE;
 }
 
 
@@ -924,6 +931,7 @@ static void set_default_masks (object_t *obj)
 
 #define is_player(o)		((o)->collision_flags & CNFLAG_IS_PLAYER)
 #define is_nonplayer(o)		(!is_player (o))
+#define is_projectile(o)	((o)->collision_flags & CNFLAG_IS_PROJECTILE)
 #define is_ladder(o)		((o)->collision_flags & CNFLAG_IS_LADDER)
 #define touch_tiles(o)		((o)->collision_flags & CNFLAG_TOUCH_TILES)
 #define touch_players(o)	((o)->collision_flags & CNFLAG_TOUCH_PLAYERS)
@@ -1005,7 +1013,8 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 	if ((is_player (obj) && !touch_players (p)) ||
 	    (is_nonplayer (obj) && !touch_nonplayers (p)) ||
 	    (is_player (p) && !touch_players (obj)) ||
-	    (is_nonplayer (p) && !touch_nonplayers (obj)))
+	    (is_nonplayer (p) && !touch_nonplayers (obj)) ||
+	    (is_projectile (obj) && (is_projectile (p))))
 	    continue;
 	
 	if (!(bitmask_check_collision
