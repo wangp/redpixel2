@@ -27,7 +27,7 @@ static int thread_started;
 
 static void *thread_stub_pthread (void *proc_)
 {
-    void (*proc)(void *) = proc_;
+    void (*proc)(void) = proc_;
     proc ();
     return NULL;
 }
