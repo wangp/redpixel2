@@ -10,6 +10,8 @@
 #include "store.h"
 
 
+/*----------------------------------------------------------------------*/
+
 /*
  * This tracks the list of files that are currently loaded.
  */
@@ -66,6 +68,8 @@ free_file_list (void)
 	remove_from_file_list (file_list_head.next);
 }
 
+
+/*----------------------------------------------------------------------*/
 
 /*
  * This maintains a big array (called "the store") of all the datafile
@@ -279,6 +283,8 @@ find_in_lookup_table (const char *key)
 }
 
 
+/*----------------------------------------------------------------------*/
+
 /*
  * This is the public interface.
  */
@@ -338,7 +344,7 @@ store_unload (store_file_t f)
     clear_from_the_store (f->dat);
     unload_datafile (f->dat);
     remove_from_file_list (f);
-    
+
     clear_lookup_table ();
     for (p = file_list_head.next; p != NULL; p = p->next)
 	add_to_lookup_table (p->dat, p->prefix);
