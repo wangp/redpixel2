@@ -4,8 +4,8 @@ dvi: manual.dvi
 
 manual.dvi: manual.tex
 	latex manual.tex
-        latex manual.tex -interaction=batchmode
-        latex manual.tex -interaction=batchmode
+	latex manual.tex -interaction=batchmode
+	latex manual.tex -interaction=batchmode
 
 html: manual/index.html
 
