@@ -125,13 +125,11 @@ int main (int argc, char *argv[])
     int stretch_method = STRETCH_METHOD_NONE;
     int run_server = 0;
     int run_editor = 0;
-    const char *name = "noname";
-    const char *addr = "127.0.0.1";
     int c;
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":2sa:n:ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":2sew:h:d:")) != -1) {
 	switch (c) {
 	    case '2':
 		/* XXX this is temporary */
@@ -142,12 +140,6 @@ int main (int argc, char *argv[])
 		break;
 	    case 's':
 		run_server = 1;
-		break;
-	    case 'a':
-		addr = optarg;
-		break;
-	    case 'n':
-		name = optarg;
 		break;
 	    case 'e':
 		run_editor = 1;
