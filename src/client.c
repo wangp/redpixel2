@@ -1342,6 +1342,10 @@ void client_run (int client_server)
 		    scores_brightness = MID (0, scores_brightness, 15);
 		}
 
+		/* Hack: this makes Allegro half-heartedly grab the
+		 * mouse inside a window. */
+		{int x,y; get_mouse_mickeys (&x, &y);}
+
 		dbg ("do physics");
 		perform_simple_physics (t, t - last_ticks);
 
