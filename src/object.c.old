@@ -36,23 +36,6 @@ typedef struct objmask {
 #define CNFLAG_DEFAULT		(CNFLAG_TOUCH_TILES | CNFLAG_TOUCH_OBJECTS)
 
 
-typedef struct {
-    float x, y;
-} vector_t;
-
-
-struct proxy {
-
-    /* stores the last known authoritative position, velocity and
-       acceleration received from the server, and the game time at
-       which that was sent */
-    unsigned long auth_time;
-    vector_t auth_pos;
-    vector_t auth_vel;
-    vector_t auth_acc;
-};
-
-
 struct object {
     object_t *next;
     object_t *prev;

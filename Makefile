@@ -83,6 +83,7 @@ MODULES_GAME =					\
 	main					\
 	map					\
 	mapfile					\
+	messages				\
 	mylua					\
 	object					\
 	objtypes				\

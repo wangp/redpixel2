@@ -2,10 +2,9 @@
 #define __included_object_h
 
 
-#include "mylua.h"
-
 struct BITMAP;
 struct map;
+struct lua_State;
 
 
 typedef struct object object_t;
@@ -68,9 +67,6 @@ int object_need_replication (object_t *, int);
 void object_set_replication_flag (object_t *, int);
 void object_clear_replication_flags (object_t *);
 
-int object_catchup (object_t *);
-void object_set_catchup (object_t *, int);
-
 
 /* Layers.  */
 
@@ -114,13 +110,19 @@ int object_supported_at (object_t *, struct map *, float x, float y);
 /* Movement.  */
 
 void object_do_physics (object_t *, struct map *);
-void object_do_simulation (object_t *);
+
+
+void object_set_auth_info (object_t *obj, unsigned long time,
+			   float x, float y,
+			   float xv, float yv,
+			   float xa, float ya);
+void object_do_simulation (object_t *obj, unsigned long curr_time);
 
 
 /* Lua table operations.  */
 
-void lua_pushobject (lua_State *, object_t *);
-object_t *lua_toobject (lua_State *, int index);
+void lua_pushobject (struct lua_State *, object_t *);
+object_t *lua_toobject (struct lua_State *, int index);
 void object_call (object_t *, const char *method);
 float object_get_number (object_t *, const char *var);
 void object_set_number (object_t *, const char *var, float value);

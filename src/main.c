@@ -15,13 +15,6 @@
 #include "textface.h"
 
 
-/* XXX remove this when glibc is properly upgraded */
-int atexit(void (*fnc)(void))
-{
-    return 0;
-}
-
-
 static int setup_video (int w, int h, int d)
 {
     int depths[] = { 16, 15, 0 }, *i;

@@ -6,6 +6,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef TEST
 # include "packet.h"

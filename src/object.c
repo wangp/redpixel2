@@ -5,6 +5,7 @@
 
 
 #include <stdlib.h>
+#include <string.h>
 #include <allegro.h>
 #include "alloc.h"
 #include "bitmask.h"
@@ -39,33 +40,62 @@ typedef struct objmask {
 struct object {
     object_t *next;
     object_t *prev;
+
+    /*
+     * Common
+     */
+
     objtype_t *type;
     objid_t id;
-    char is_stale;
     char is_proxy;
+    char is_stale;
 
-    /* server/client */
     float x, y;
-    float xv, yv;
-    float xa, ya;
-    float xv_decay;	/* not replicated */
-    float yv_decay;	/* not replicated */
-    float mass;		/* not replicated */
+    float xv_decay, yv_decay;	/* not replicated */
+    float mass;			/* not replicated */
     lua_ref_t table;
 
-    /* server (non-proxy) */
-    char _ramp;
-    char jump;
-    objmask_t mask[OBJECT_MASK_MAX];
-    char collision_flags;
-    char collision_tag;
-    char replication_flags;
+    
+    /*
+     * Non-proxy
+     */
+
+    float xv, yv;
+    float xa, ya;
     float old_xa, old_ya;
 
-    /* client (proxy) */
+    char _ramp;
+    char jump;
+    char collision_flags;
+    char collision_tag;
+    objmask_t mask[OBJECT_MASK_MAX];
+    char replication_flags;
+
+
+    /*
+     * Proxy
+     */
+
+    /* Our last known authoritative pva received from the server, and
+     * the game time at which that was sent. */
+    struct {
+	unsigned long time;
+	float x, y;
+	float xv, yv;
+	float xa, ya;
+    } auth;
+
+    /* The target pv, i.e. this is where we think we are supposed to
+     * be at a point in time, extrapolated from authoritative pv.
+     * This is not where we _actually_ are, which is stored in x, y.
+     */
+    struct {
+	float x, y;
+	float xv, yv;
+    } target;
+
     list_head_t layers;
     list_head_t lights;
-    int catchup;		/* XXX can rid this soon */
 };
 
 
@@ -393,18 +423,6 @@ void object_set_replication_flag (object_t *obj, int flag)
 void object_clear_replication_flags (object_t *obj)
 {
     obj->replication_flags = 0;
-}
-
-
-int object_catchup (object_t *obj)
-{
-    return obj->catchup;
-}
-
-
-void object_set_catchup (object_t *obj, int nticks)
-{
-    obj->catchup = nticks;
 }
 
 
@@ -773,37 +791,34 @@ static int check_collision_with_objects (object_t *obj, int mask_num,
 
     list = map_object_list (map);
     list_for_each (p, list) {
-	if (/* can't collide with self (we assume same address == same id) */
-	    (p != obj)
-	    /* must not be stale */
-	    && (!object_stale (p))
-	    /* must have bitmask */
-	    && (p->mask[0].ref)
-	    /* must have no collision tag or different collision tags */
-	    && (!(p->collision_tag)
-		|| (p->collision_tag != obj->collision_tag))
-	    /* must have matching flags to touch players or non-players */
-	    && ((is_player (obj) && touch_players (p))
-		|| (is_nonplayer (obj) && touch_nonplayers (p)))
-	    /* bitmasks must collide */
-	    && (bitmask_check_collision
-		(bitmask_ref_bitmask (mask[mask_num].ref),
-		 bitmask_ref_bitmask (p->mask[0].ref),
-		 x - mask[mask_num].centre_x, y - mask[mask_num].centre_y,
-		 p->x - p->mask[0].centre_x, p->y - p->mask[0].centre_y)))
-	{
-	    /* Finally, we have a collision! */
-	    
-	    call_collide_hook (p, obj);
-	    if (object_stale (p)) continue;
-	    if (object_stale (obj)) return 0;
+	if ((p == obj) || (object_stale (p)) || (!p->mask[0].ref))
+	    continue;
+	
+	if ((p->collision_tag) && (p->collision_tag == obj->collision_tag))
+	    continue;
+	
+	if ((is_player (obj) && !touch_players (p)) ||
+	    (is_nonplayer (obj) && !touch_nonplayers (p)))
+	    continue;
+	
+	if (!(bitmask_check_collision
+	      (bitmask_ref_bitmask (mask[mask_num].ref),
+	       bitmask_ref_bitmask (p->mask[0].ref),
+	       x - mask[mask_num].centre_x, y - mask[mask_num].centre_y,
+	       p->x - p->mask[0].centre_x,
+	       p->y - p->mask[0].centre_y)))
+	    continue;
 
-	    call_collide_hook (obj, p);
-	    if (object_stale (p)) continue;
-	    if (object_stale (obj)) return 0;
+	/* we have a collision! */
+	call_collide_hook (p, obj);
+	if (object_stale (p)) continue;
+	if (object_stale (obj)) return 0;
 
-	    return 1;
-	}
+	call_collide_hook (obj, p);
+	if (object_stale (p)) continue;
+	if (object_stale (obj)) return 0;
+
+	return 1;
     }
     
     return 0;
@@ -830,7 +845,7 @@ int object_supported_at (object_t *obj, map_t *map, float x, float y)
 }
 
 
-/* Movement.  */
+/* Object movement.  */
 
 
 #define SIGN(a)	((a < 0) ? -1 : 1)
@@ -844,7 +859,7 @@ static int object_move (object_t *obj, int mask_num, map_t *map, float dx, float
 	idx = (ABS (dx) < 1) ? dx : SIGN (dx);
 	idy = (ABS (dy) < 1) ? dy : SIGN (dy);
 
-	if (map && check_collision (obj, mask_num, map, obj->x + idx, obj->y + idy))
+	if (check_collision (obj, mask_num, map, obj->x + idx, obj->y + idy))
 	    return -1;
 
 	obj->x += idx;
@@ -898,7 +913,6 @@ static int too_far_off_map (object_t *obj, map_t *map)
 void object_do_physics (object_t *obj, map_t *map)
 {
     int rep = 0;
-    float old_xv = obj->xv;
     float old_yv = obj->yv;
 
     obj->ya += obj->mass;
@@ -943,15 +957,57 @@ void object_do_physics (object_t *obj, map_t *map)
 	object_set_stale (obj);
     else if (rep)
 	object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
+
+/* XXX temp */
+    if (obj->xv || obj->yv)
+	object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
 }
 
 
-void object_do_simulation (object_t *obj)
+/* Proxy simulation.  */
+
+
+void object_set_auth_info (object_t *obj,
+			   unsigned long time,
+			   float x, float y,
+			   float xv, float yv,
+			   float xa, float ya)
 {
-    obj->xv = (obj->xv + obj->xa) * obj->xv_decay;
-    obj->yv = (obj->yv + obj->ya) * obj->yv_decay;
-    obj->x += obj->xv;
-    obj->y += obj->yv;
+    obj->auth.time = time;
+    obj->auth.x = x;
+    obj->auth.y = y;
+    obj->auth.xv = xv;
+    obj->auth.yv = yv;
+    obj->auth.xa = xa;
+    obj->auth.ya = ya;
+}
+
+
+void object_do_simulation (object_t *obj, unsigned long curr_time)
+{
+    int interval;
+
+    obj->target.x = obj->auth.x;
+    obj->target.y = obj->auth.y;
+    obj->target.xv = obj->auth.xv;
+    obj->target.yv = obj->auth.yv;
+
+    if (!obj->auth.xv && !obj->auth.yv && !obj->auth.xa && !obj->auth.ya) {
+	obj->x = obj->auth.x;
+	obj->y = obj->auth.y;
+	return;
+    }
+
+    interval = curr_time - obj->auth.time;
+    while (interval--) {
+	obj->target.xv = (obj->target.xv + obj->auth.xa) * obj->xv_decay;
+	obj->target.yv = (obj->target.yv + obj->auth.ya) * obj->yv_decay;
+	obj->target.x += obj->target.xv;
+	obj->target.y += obj->target.yv;
+    }
+
+    obj->x += ((obj->target.x - obj->x) * 0.5);
+    obj->y += ((obj->target.y - obj->y) * 0.5);
 }
 
 

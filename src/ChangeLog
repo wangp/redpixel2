@@ -1,3 +1,13 @@
+2001-07-21  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* messages.c: New module.
+
+	* New physics/network approach: we save the information we got
+	from the server, then each frame extrapolate from there to get the
+	point where we think we are supposed to be at.  We don't move the
+	object directly there, but only move x% of the way from the
+	current point to the calculated point.
+
 2001-07-20  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* Did some work on the physics/network code again, but its not

@@ -15,6 +15,7 @@
 #include "magicrt.h"
 #include "map.h"
 #include "mapfile.h"
+#include "messages.h"
 #include "netmsg.h"
 #include "object.h"
 #include "packet.h"
@@ -128,14 +129,11 @@ static void perform_simple_physics ()
 {
     list_head_t *object_list;
     object_t *obj;
-    int i;
+    ulong_t t = ticks;
     
     object_list = map_object_list (map);
-    list_for_each (obj, object_list) {
-/*  	for (i = 0; i < 1 + object_catchup (obj); i++) */
-	    object_do_simulation (obj);
-/*  	object_set_catchup (obj, 0); */
-    }
+    list_for_each (obj, object_list)
+	object_do_simulation (obj, t);
 }
 
 
@@ -210,8 +208,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 		buf += packet_decode (buf, "slffffc", &len, type, &id, &x, &y, &xv, &yv, &ctag);
 		obj = object_create_proxy (type, id);
+		object_set_auth_info (obj, ticks - lag, x, y, xv, yv, 0, 0);
 		object_set_xy (obj, x, y);
-		object_set_xvyv (obj, xv, yv);
 		object_set_collision_tag (obj, ctag);
 		if (id == client_id) {
 		    local_object = obj;
@@ -219,6 +217,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		}
 		object_run_init_func (obj);
 		map_link_object (map, obj);
+
+		messages_add ("new object #%d", id);
 		break;
 	    }
 
@@ -245,16 +245,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		object_t *obj;
 
 		buf += packet_decode (buf, "lffffff", &id, &x, &y, &xv, &yv, &xa, &ya);
-		if ((obj = map_find_object (map, id))) {
-		    object_set_xy (obj, x, y);
-		    object_set_xvyv (obj, xv, yv);
-		    object_set_xa (obj, xa);
-		    object_set_ya (obj, ya);
-/*  		    object_set_catchup (obj, lag); */
-
-		    {int i; for (i = 0; i < lag-1; i++)
-			object_do_simulation (obj);}
-		}
+		if ((obj = map_find_object (map, id)))
+		    object_set_auth_info (obj, ticks - lag, x, y, xv, yv, xa, ya);
 		break;
 	    }
 
@@ -352,6 +344,7 @@ static void update_screen ()
     scare_mouse ();
     acquire_screen ();
     blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
+    messages_render (screen);	/* XXX */
     release_screen ();
     unscare_mouse ();
 
@@ -548,9 +541,6 @@ void game_client_run ()
     
     dbg ("game");
     {
-	ulong_t last_ticks = 0;
-	int redraw = 1;
-
 	ticks_init ();
 
 	pinging = 0;
@@ -562,17 +552,6 @@ void game_client_run ()
 	    if (key[KEY_Q]) {
 		sync_client_unlock ();
 		goto disconnect;
-	    }
-
-	    if (ticks != last_ticks) {
-		dbg ("send gameinfo");
-		send_gameinfo_controls ();
-	    }
-
-	    while (ticks > last_ticks) {
-		perform_simple_physics ();
-		last_ticks++;
-		redraw = 1;
 	    }
 
 	    dbg ("process network input");
@@ -600,7 +579,6 @@ void game_client_run ()
 
 			case MSG_SC_GAMEINFO:
 			    process_sc_gameinfo_packet (buf+1, size-1);
-			    redraw = 1;
 			    break;
 
 			case MSG_SC_LOBBY:
@@ -624,26 +602,27 @@ void game_client_run ()
 		if (lobby_later) { sync_client_unlock (); goto lobby; }
 		if (end_later) { sync_client_unlock (); goto end; }
 	    }
+	    
+	    dbg ("send gameinfo");
+	    send_gameinfo_controls ();
 
-	    dbg ("handling pinging");
-	    if ((!pinging) && (ticks > last_ping_time + (2 * TICKS_PER_SECOND))) {
-		pinging = 1;
-		last_ping_time = ticks;
-		net_send_rdm_byte (conn, MSG_CS_PING);
-	    }
+	    dbg ("do physics");
+	    perform_simple_physics ();
 
 	    if (local_object)
 		object_call (local_object, "_client_update_hook");
 
 	    map_destroy_stale_objects (map);
 
-	    if (update_camera ())
-		redraw = 1;
-
-	    if (redraw) {
-		dbg ("update screen");
-		update_screen ();
-		redraw = 0;
+	    dbg ("update screen");
+	    update_camera ();
+	    update_screen ();
+	    
+	    dbg ("handling pinging");
+	    if ((!pinging) && (ticks > last_ping_time + (2 * TICKS_PER_SECOND))) {
+		pinging = 1;
+		last_ping_time = ticks;
+		net_send_rdm_byte (conn, MSG_CS_PING);
 	    }
 
 	    sync_client_unlock ();
@@ -694,6 +673,11 @@ int game_client_init (const char *name, int net_driver, const char *addr)
 	return -1;
     net_connect (conn, addr);
     
+    if (messages_init () < 0) {
+	net_closeconn (conn);
+	return -1;
+    }
+    
     client_name = ustrdup (name);
 
     bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
@@ -742,5 +726,6 @@ void game_client_shutdown ()
     camera_destroy (cam);
     destroy_bitmap (bmp);
     free (client_name);
+    messages_shutdown ();
     net_closeconn (conn);
 }

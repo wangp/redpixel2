@@ -1,10 +1,14 @@
-physics.c merged with object.c
-
 split objects into different areas?
 
-clean up: client/server in the same process
-
 map_link_object and map_link_object_bottom may be reversed (or the renderers are)
+
+spawn_projectile too slow?
+
+reread and recleanup network/physics code (I think it's fixed now)
+
+save lua state at the start of the program (after init scripts), then
+use copies of that (for hygiene)
+
 
 ------------------------------
 
