@@ -36,6 +36,10 @@ static int prompt_filename (const char *msg, char *path, const char *ext,
     gui_bg_color = makecol (0, 0, 0);
     ret = file_select_ex (msg, path, ext, path_size, 0, 0);
 
+    /* XXX -- this is a hack so that the gui_mouse.d* do not register
+     * changes the next time gui_mouse_update() is called */
+    { void gui_mouse_update (); gui_mouse_update (); }
+
     scare_mouse ();
     blit (bmp, screen, 0, 0, 0, 0, bmp->w, bmp->h);
     unscare_mouse ();
