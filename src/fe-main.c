@@ -11,6 +11,7 @@
 #include "fe-main.h"
 #include "fe-options.h"
 #include "fe-widgets.h"
+#include "gamma.h"
 #include "jpgalleg.h"
 #include "messages.h"
 #include "music.h"
@@ -514,6 +515,7 @@ int gamemenu_init (void)
     fancy_gui_init ();
 
     background = load_jpg ("data/frontend/frontend-menuback.jpg", NULL);
+    apply_gamma (background, gamma_factor);
     fancy_edit_font = store_get_dat ("/frontend/menu/lucida-12");
     fancy_font = store_get_dat ("/frontend/menu/font");
     type_sound = store_get_dat ("/frontend/menu/type-sound");

@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <allegro.h>
+#include "gamma.h"
 #include "jpgalleg.h"
 #include "music.h"
 #include "store.h"
@@ -118,6 +119,7 @@ void do_credits (void)
     clear_bitmap (screen);
     {
 	BITMAP *skull = load_jpg ("data/frontend/frontend-skull.jpg", NULL);
+	apply_gamma (skull, gamma_factor);
 	blit (skull, screen, 0, 0, 0, SCREEN_H - skull->h, skull->w, skull->h);
 	destroy_bitmap (skull);
     }
