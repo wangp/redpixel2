@@ -319,7 +319,60 @@ game for this setting to take effect.}
 %----------------------------------------------------------------------
 \section{Editor}
 
-\emph{Undocumented yet.}
+After starting the map editor, you will be presented with a blank
+screen full of little green dots.  Along the bottom of the screen are
+four buttons: \texttt{tiles}, \texttt{lights}, \texttt{objects} and
+\texttt{starts} (starting locations).  These change the editing mode.
+
+In the top-right corner of the screen are another four buttons,
+followed by a palette.  The \texttt{up} and \texttt{down} buttons
+scrolls the current list.  The left and right buttons selects another
+list if any exist.
+
+Maps cannot be resized at the moment.
+
+
+\subsection{General controls}
+
+\begin{itemize}
+
+\item Arrow keys, pan map.
+
+\item Spacebar, toggle environmental lights.
+
+\item Ctrl-L, load a map.
+
+\item Ctrl-S, save the map.
+
+\item Ctrl-Q, quit the map editor.  This will not alert you if changes have been made.
+
+\item Left mouse button, place or move selected tile/light/object/start point.
+
+\item Shift + left mouse button, select tile.
+
+\item Middle mouse button, pan map.
+
+\item Right mouse button, remove tile/light/start point.
+
+\item Mouse wheel, scroll selection.
+
+\end{itemize}
+
+\subsection{Object mode specific controls}
+
+When in object mode, a special actions box titled \texttt{obj} will
+appear, changing what the left mouse button does.  It can be
+(un)hidden with right mouse button.
+
+\texttt{Add} either creates a new object or moves an existing object.
+Shift clicking an object will select that object.  The
+\texttt{delete}, \texttt{raise} and \texttt{lower} actions will do
+just that.  Raising and lowering objects is useful for concealing
+weapons behind crates.
+
+When toggled, the snap button will snap newly placed and moved objects
+to a 16x16 grid.  There is no way of changing the grid size.
+
 
 
 %----------------------------------------------------------------------
