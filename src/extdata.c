@@ -11,6 +11,7 @@
 #include "magic4x4.h"
 
 
+#define DAT_BRIG	DAT_ID ('B','R','I','G')
 #define DAT_MAGK	DAT_ID ('M','A','G','K')
 #define DAT_MASK	DAT_ID ('M','A','S','K')
 
@@ -33,6 +34,13 @@ static void callback (DATAFILE *d)
 	else if (!property_exists (d, DAT_MAGK)) {
 	    BITMAP *old = d->dat;
 	    d->dat = get_magic_bitmap_format (old, 0);
+
+	    if (property_exists (d, DAT_BRIG)) {
+		int br = atoi (get_datafile_property (d, DAT_BRIG));
+		br = MID (0, br, 15);
+		set_magic_bitmap_brightness_skipping_black (d->dat, br, br, br);
+	    }
+
 	    destroy_bitmap (old);
 	}
     }
