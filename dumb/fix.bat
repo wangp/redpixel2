@@ -52,7 +52,7 @@ echo include make/%DUH_MAKEFILE% >> makefile
 set DUH_COMPILER=
 set DUH_MAKEFILE=
 
-echo Done! Now run makeall or makecore to start the compilation.
+rem echo Done! Now run makeall or makecore to start the compilation.
 
 :end
 

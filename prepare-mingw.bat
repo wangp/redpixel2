@@ -4,10 +4,15 @@ rem
 rem You must run this script once before compiling with MinGW.
 rem 
 
-echo "Preparing libnet"
+echo Preparing libnet...
 copy libnet\makfiles\mingw.mak libnet\port.mak
+echo.
 
-echo "Preparing DUMB"
+echo Preparing DUMB...
 cd dumb
-fix.bat mingw
+call fix.bat mingw
 cd ..
+echo.
+
+echo Done.  Use Mingw make to compile.
+echo.
