@@ -36,7 +36,6 @@ cvars = {{ Float, 'x' },
 	 { Float, 'yv_decay' },
 	 { Float, 'mass' },
 	 { Bool, 'is_proxy' },
-	 { Int, '_ramp' },
 	 { Int, 'collision_tag' }}
 
 
