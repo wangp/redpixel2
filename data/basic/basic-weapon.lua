@@ -171,7 +171,7 @@ Explosive_Projectile {
     icon = "/basic/weapon/bow/projectile",
     radius = 35,
     damage = 40,
-    explosion = "basic-simple42",
+    explosion = "basic-explo42",
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
@@ -309,7 +309,7 @@ Explosive_Projectile {
     icon = "/basic/weapon/rpg/projectile",
     radius = 50,
     damage = 80,
-    explosion = "basic-simple42",
+    explosion = "basic-explo42",
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
