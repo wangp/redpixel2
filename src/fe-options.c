@@ -250,7 +250,10 @@ void options_menu_run (void)
      * gamma = 1.0 --> d2 =  5/10
      * gamma = 0.5 --> d2 = 10/10
      */
-    GAMMA_SLIDER.d2 = 10 - ((gamma_factor - 0.5) * 10.);
+    /* The 0.1 is there to avoid floating point inaccuracies that end
+     * up being rounded downwards, e.g. 1.99999 -> 1.
+     */
+    GAMMA_SLIDER.d2 = (10. - ((gamma_factor - 0.5) * 10.)) + 0.1;
     old_desired_brightness = GAMMA_SLIDER.d2;
 
     fancy_do_dialog (options_menu, DEFAULT_FOCUS);
