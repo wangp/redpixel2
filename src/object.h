@@ -164,7 +164,7 @@ void object_do_simulation (object_t *, unsigned long curr_time);
 
 void lua_pushobject (struct lua_State *, object_t *);
 object_t *lua_toobject (struct lua_State *, int index);
-void object_call (object_t *, const char *method);
+void object_call (object_t *, const char *method, int nargs);
 float object_get_number (object_t *, const char *var);
 void object_set_number (object_t *, const char *var, float value);
 const char *object_get_string (object_t *, const char *var);

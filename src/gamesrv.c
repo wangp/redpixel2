@@ -374,6 +374,18 @@ static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, 
 		buf += packet_decode (buf, "cf", &c->controls, &c->aim_angle);
 		break;
 
+	    case MSG_CS_GAMEINFO_WEAPON_SWITCH: {
+		long len;
+		char name[NETWORK_MAX_PACKET_SIZE];
+		
+		buf += packet_decode (buf, "s", &len, name);
+		if (c->client_object) {
+		    lua_pushstring (lua_state, name);
+		    object_call (c->client_object, "switch_weapon", 1);
+		}
+		break;
+	    }
+
 	    default:
 		error ("error: unknown code in gameinfo packet (server)\n");
 	}
@@ -679,7 +691,7 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
 
 /* Spawn some blood (Lua binding). */
 
-int game_server_spawn_blood (float x, float y, long nparticles, float spread)
+void game_server_spawn_blood (float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
@@ -687,13 +699,12 @@ int game_server_spawn_blood (float x, float y, long nparticles, float spread)
     size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
-    return 0;
 }
 
 
 /* Spawn some blods (Lua binding). */
 
-int game_server_spawn_blod (float x, float y, long nparticles)
+void game_server_spawn_blod (float x, float y, long nparticles)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
@@ -701,7 +712,21 @@ int game_server_spawn_blod (float x, float y, long nparticles)
     size = packet_encode (buf, "cffl", MSG_SC_GAMEINFO_BLOD_CREATE,
 			  x, y, nparticles);
     add_to_gameinfo_packet_queue (buf, size);
-    return 0;
+}
+
+
+/* Call method on client (Lua binding). */
+/* XXX we only allow a single string arg at the moment
+   XXX add more as they are required, somehow */
+
+void game_server_call_method_on_clients (object_t *obj, const char *method, const char *arg)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    int size;
+
+    size = packet_encode (buf, "clss", MSG_SC_GAMEINFO_OBJECT_CALL,
+			  object_id (obj), method, arg);
+    add_to_gameinfo_packet_queue (buf, size);
 }
 
 
@@ -1079,8 +1104,10 @@ static void server_handle_client_controls ()
 			object_set_ya (obj, object_ya (obj) - object_mass (obj) - 4/object_jump(obj));
 			object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
 		    }
-		    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
-			object_set_jump (obj, 1);
+		    else if ((jump == 0) && (object_supported (obj, map))) {
+			float yv = object_yv (obj);
+			if ((yv >= 0.0) && (yv < 0.0000001))
+			    object_set_jump (obj, 1);
 		    }
 		}
 		break;
@@ -1104,7 +1131,7 @@ static void server_handle_client_controls ()
 	 * Fire.
 	 */
 	if (c->controls & CONTROL_FIRE)
-	    object_call (obj, "_internal_fire_hook");
+	    object_call (obj, "_internal_fire_hook", 0);
     }
 }
 

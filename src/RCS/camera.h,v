@@ -1,9 +1,19 @@
-head	1.1;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.21.04.15.46;	author tjaden;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2002.01.20.12.52.28;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +25,10 @@ desc
 @@
 
 
-1.1
+1.3
 log
-@Initial revision
+@Made switching to the sniper rifle increase the max distance the
+camera can see.
 @
 text
 @#ifndef __included_camera_h
@@ -36,11 +47,38 @@ float camera_x (camera_t *cam);
 float camera_y (camera_t *cam);
 int camera_view_width (camera_t *cam);
 int camera_view_height (camera_t *cam);
+void camera_set (camera_t *cam, int pushable, int max_dist);
 void camera_track_point (camera_t *cam, int x, int y);
 void camera_track_object (camera_t *cam, struct object *obj);
 void camera_track_object_with_mouse (camera_t *cam, struct object *obj, 
-				     int mouse_x, int mouse_y, int max_dist);
+				     int mouse_x, int mouse_y);
 
 
 #endif
+@
+
+
+1.2
+log
+@Added ability to "push" the camera, i.e. for the sniper rifle so you
+can see further that your mouse would normally allow on the screen.
+This isn't actually enabled when you pick up a sniper rifle, yet.
+@
+text
+@d17 1
+d21 1
+a21 2
+				     int mouse_x, int mouse_y, int max_dist,
+				     int allow_push);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d20 2
+a21 1
+				     int mouse_x, int mouse_y, int max_dist);
 @

@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.01.21.00.20.57;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.01.19.12.36.18;	author tjaden;	state Exp;
@@ -40,9 +45,10 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Made spawn_object, spawn_projectile return the objects they create.
+@Added mechanism for server scripts to tell clients to execute object
+methods (i.e. remote calls).
 @
 text
 @#ifndef __included_gamesrv_h
@@ -68,11 +74,24 @@ void game_server_shutdown ();
 
 struct object *game_server_spawn_object (const char *typename, float x, float y);
 struct object *game_server_spawn_projectile (const char *typename, struct object *, float speed, float delta_angle);
-int game_server_spawn_blood (float x, float y, long nparticles, float spread);
-int game_server_spawn_blod (float x, float y, long nparticles);
+void game_server_spawn_blood (float x, float y, long nparticles, float spread);
+void game_server_spawn_blod (float x, float y, long nparticles);
+void game_server_call_method_on_clients (struct object *, const char *method, const char *arg);
 
 
 #endif
+@
+
+
+1.6
+log
+@Made spawn_object, spawn_projectile return the objects they create.
+@
+text
+@d24 3
+a26 2
+int game_server_spawn_blood (float x, float y, long nparticles, float spread);
+int game_server_spawn_blod (float x, float y, long nparticles);
 @
 
 

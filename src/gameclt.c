@@ -223,6 +223,35 @@ static void send_gameinfo_controls ()
 }
 
 
+static void send_gameinfo_weapon_switch () /* XXX stuff in the same packet as _CONTROLS? */
+{
+    static int last_key[10] = {0,0,0,0,0,0,0,0,0,0};
+    lua_State *L = lua_state;
+    int i;
+
+    for (i = 0; i < 10; i++) {
+	int K = KEY_1 + i;
+	int is_down = key[K];
+
+	if (is_down && !last_key[K]) {
+	    last_key[K] = 1;
+	    lua_getglobal (L, "weapon_order");
+	    lua_pushnumber (L, i+1);
+	    lua_rawget (L, -2);
+	    if (lua_isstring (L, -1)) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     lua_tostring (L, -1));
+	    }
+	    lua_pop (L, 1);
+	    return;
+	}
+
+	last_key[K] = is_down;
+    }
+}
+
+
 /*----------------------------------------------------------------------*/
 
 
@@ -350,6 +379,23 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		break;
 	    }
 
+	    case MSG_SC_GAMEINFO_OBJECT_CALL:
+	    {
+		long id;
+		long method_len;
+		char method[NETWORK_MAX_PACKET_SIZE];
+		long arg_len;
+		char arg[NETWORK_MAX_PACKET_SIZE];
+		object_t *obj;
+		
+		buf += packet_decode (buf, "lss", &id, &method_len, method, &arg_len, arg);
+		if ((obj = map_find_object (map, id))) {
+		    lua_pushstring (lua_state, arg);
+		    object_call (obj, method, 1);
+		}
+		break;
+	    }
+
 	    case MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE:
 	    {
 		long id;
@@ -397,6 +443,12 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 /*----------------------------------------------------------------------*/
 
 
+void game_client_set_camera (int pushable, int max_dist)
+{
+    camera_set (cam, pushable, max_dist);
+}
+
+
 static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 			      int color, const char *fmt, ...)
 {
@@ -429,7 +481,7 @@ static int update_camera ()
     oldx = camera_x (cam);
     oldy = camera_y (cam);
 
-    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y, 96);
+    camera_track_object_with_mouse (cam, tracked_object, mouse_x, mouse_y);
 
     return (oldx != camera_x (cam)) || (oldy != camera_y (cam));
 }
@@ -754,6 +806,7 @@ void game_client_run ()
 	    if (last_ticks != t) {
 		dbg ("send gameinfo");
 		send_gameinfo_controls ();
+		send_gameinfo_weapon_switch ();
 
 		dbg ("do physics");
 		perform_simple_physics (t, t - last_ticks);

@@ -1,9 +1,24 @@
-head	1.18;
+head	1.21;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.21
+date	2002.01.21.15.27.08;	author tjaden;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	2002.01.21.00.20.34;	author tjaden;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	2002.01.20.13.41.28;	author tjaden;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	2002.01.19.12.36.08;	author tjaden;	state Exp;
@@ -100,9 +115,9 @@ desc
 @@
 
 
-1.18
+1.21
 log
-@Made spawn_object, spawn_projectile return the objects they create.
+@Added weapon switching with keyboard.
 @
 text
 @/* gamesrv.c
@@ -481,6 +496,18 @@ static void server_process_cs_gameinfo_packet (client_t *c, const uchar_t *buf, 
 		buf += packet_decode (buf, "cf", &c->controls, &c->aim_angle);
 		break;
 
+	    case MSG_CS_GAMEINFO_WEAPON_SWITCH: {
+		long len;
+		char name[NETWORK_MAX_PACKET_SIZE];
+		
+		buf += packet_decode (buf, "s", &len, name);
+		if (c->client_object) {
+		    lua_pushstring (lua_state, name);
+		    object_call (c->client_object, "switch_weapon", 1);
+		}
+		break;
+	    }
+
 	    default:
 		error ("error: unknown code in gameinfo packet (server)\n");
 	}
@@ -786,7 +813,7 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
 
 /* Spawn some blood (Lua binding). */
 
-int game_server_spawn_blood (float x, float y, long nparticles, float spread)
+void game_server_spawn_blood (float x, float y, long nparticles, float spread)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
@@ -794,13 +821,12 @@ int game_server_spawn_blood (float x, float y, long nparticles, float spread)
     size = packet_encode (buf, "cfflf", MSG_SC_GAMEINFO_BLOOD_CREATE,
 			  x, y, nparticles, spread);
     add_to_gameinfo_packet_queue (buf, size);
-    return 0;
 }
 
 
 /* Spawn some blods (Lua binding). */
 
-int game_server_spawn_blod (float x, float y, long nparticles)
+void game_server_spawn_blod (float x, float y, long nparticles)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     int size;
@@ -808,7 +834,21 @@ int game_server_spawn_blod (float x, float y, long nparticles)
     size = packet_encode (buf, "cffl", MSG_SC_GAMEINFO_BLOD_CREATE,
 			  x, y, nparticles);
     add_to_gameinfo_packet_queue (buf, size);
-    return 0;
+}
+
+
+/* Call method on client (Lua binding). */
+/* XXX we only allow a single string arg at the moment
+   XXX add more as they are required, somehow */
+
+void game_server_call_method_on_clients (object_t *obj, const char *method, const char *arg)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    int size;
+
+    size = packet_encode (buf, "clss", MSG_SC_GAMEINFO_OBJECT_CALL,
+			  object_id (obj), method, arg);
+    add_to_gameinfo_packet_queue (buf, size);
 }
 
 
@@ -1186,8 +1226,10 @@ static void server_handle_client_controls ()
 			object_set_ya (obj, object_ya (obj) - object_mass (obj) - 4/object_jump(obj));
 			object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
 		    }
-		    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
-			object_set_jump (obj, 1);
+		    else if ((jump == 0) && (object_supported (obj, map))) {
+			float yv = object_yv (obj);
+			if ((yv >= 0.0) && (yv < 0.0000001))
+			    object_set_jump (obj, 1);
 		    }
 		}
 		break;
@@ -1211,7 +1253,7 @@ static void server_handle_client_controls ()
 	 * Fire.
 	 */
 	if (c->controls & CONTROL_FIRE)
-	    object_call (obj, "_internal_fire_hook");
+	    object_call (obj, "_internal_fire_hook", 0);
     }
 }
 
@@ -1554,6 +1596,51 @@ void game_server_shutdown ()
 	interface->shutdown ();
     net_closeconn (listen);
 }
+@
+
+
+1.20
+log
+@Added mechanism for server scripts to tell clients to execute object
+methods (i.e. remote calls).
+@
+text
+@d377 12
+@
+
+
+1.19
+log
+@Fixed a bug where sometimes you couldn't jump because the player's yv
+was very, very, very close to zero but not zero.
+@
+text
+@d682 1
+a682 1
+int game_server_spawn_blood (float x, float y, long nparticles, float spread)
+a689 1
+    return 0;
+d695 1
+a695 1
+int game_server_spawn_blod (float x, float y, long nparticles)
+d703 15
+a717 1
+    return 0;
+d1122 1
+a1122 1
+	    object_call (obj, "_internal_fire_hook");
+@
+
+
+1.18
+log
+@Made spawn_object, spawn_projectile return the objects they create.
+@
+text
+@d1082 4
+a1085 2
+		    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
+			object_set_jump (obj, 1);
 @
 
 

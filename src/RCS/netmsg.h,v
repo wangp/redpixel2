@@ -1,9 +1,19 @@
-head	1.8;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.10
+date	2002.01.21.15.27.11;	author tjaden;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2002.01.21.00.20.26;	author tjaden;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2002.01.18.14.30.26;	author tjaden;	state Exp;
@@ -50,9 +60,9 @@ desc
 @@
 
 
-1.8
+1.10
 log
-@Added blods.
+@Added weapon switching with keyboard.
 @
 text
 @#ifndef __included_netmsg_h
@@ -208,6 +218,14 @@ enum {
 	CONTROL_RESPAWN = 0x20,
 
 
+    /* Notify server of wish to change weapon.
+
+       Args: long len, byte weapon_name[].
+     */
+
+    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w',
+
+
     /* Tell server to broadcast text message to all clients.
 
        Args: long len, char text[].
@@ -270,6 +288,14 @@ enum {
     MSG_SC_GAMEINFO_OBJECT_HIDDEN = 'h',
     
 
+    /* Tell clients to call an object method.
+
+       Args: long object_id, long len, byte method[], long len2, byte arg[].
+     */
+
+    MSG_SC_GAMEINFO_OBJECT_CALL = 'C',
+
+
     /* Tell clients about a client's new aim angle.  Note: these
        angles are only approximate.
 
@@ -305,6 +331,25 @@ enum {
 
 
 #endif
+@
+
+
+1.9
+log
+@Added mechanism for server scripts to tell clients to execute object
+methods (i.e. remote calls).
+@
+text
+@d154 8
+@
+
+
+1.8
+log
+@Added blods.
+@
+text
+@d216 8
 @
 
 

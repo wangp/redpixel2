@@ -1,3 +1,62 @@
+2002-01-22  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-weapon.lua, basic-powerup.lua, basic-base.lua:
+	Allow a second argument to Objtype and Weapon, which should
+	contain a table of fields to add into or override in the first
+	argument.
+
+	* basic-weapon.lua, basic-player.lua: Animated weapon firing.
+
+	* netmsg.h, gamesrv.c, gameclt.c, basic-weapon.lua,
+	* basic-player.lua: Added weapon switching with keyboard.
+
+	* basic-weapon.lua, basic-player.lua: Added ammo limits.
+
+2002-01-21  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* basic-player.lua: Made player bleed when on low health.
+
+	* gameclt.h, bindgen.lua, basic-weapon.lua, basic-player.lua,
+	* camera.h, camera.c, gameclt.c:
+	Made switching to the sniper rifle increase the max distance the
+	camera can see.
+
+	* basic-weapon.lua: Changed the generalised declarators to take
+	table arguments, which are more verbose and easier to read.
+
+	* basic-player.lua, basic-weapon.lua:
+	Use the right image for the weapon we are holding (not animated yet).
+
+	* gameclt.c, bindgen.lua, gamesrv.h, gamesrv.c, netmsg.h:
+	Added mechanism for server scripts to tell clients to execute object
+	methods (i.e. remote calls).
+
+	* object.h, object.c:
+	Allowed object_call() to take an nargs argument.  The arguments should
+	be already be pushed on the lua stack.
+
+	* basic-base.lua: Added merge function.
+
+	* gamesrv.c: Fixed a bug where sometimes you couldn't jump because
+	the player's yv was very, very, very close to zero but not zero.
+
+2002-01-20  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gameclt.c, camera.h, camera.c:
+	Added ability to "push" the camera, i.e. for the sniper rifle so you
+	can see further that your mouse would normally allow on the screen.
+	This isn't actually enabled when you pick up a sniper rifle, yet.
+
+	* basic-weapon.lua:
+	Added initial code for AK-47 and miniguns, and shared a lot of code
+	between the weapon types.
+
+	* basic-tilelike.lua:
+	Some initial code to make crates destructible.
+
+	* basic-powerup.lua, basic-base.lua:
+	Added hide_and_respawn_later() method which is used a lot by objects.
+
 2002-01-19  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* objgen.lua: Exposed object's id value.  This was done for corpse
@@ -7,10 +66,10 @@
 	* gamesrv.h, gamesrv.c, bindgen.lua: Made spawn_object,
 	spawn_projectile return the objects they create.
 
-	* gameclt.c, basic/basic-player.lua:
+	* gameclt.c, basic-player.lua:
 	Added tracking corpses after death.
 
-	* basic/basic-weapon.lua:
+	* basic-weapon.lua:
 	The start of some new weapons: shotguns and sniper rifles.
 
 	* bindgen.lua, gamesrv.h, gamesrv.c:
@@ -23,9 +82,9 @@
 	* editor/mdobject.c, bindgen.lua:
 	Allow objects without a category which don't show up in the editor.
 	* blod.c: Made blod types not show up in map editor.
-	* basic/basic-player.lua: Made test corpse not show up in editor.
+	* basic-player.lua: Made test corpse not show up in editor.
 
-	* objtypes.h, objtypes.c, basic/basic-base.lua:
+	* objtypes.h, objtypes.c, basic-base.lua:
 	Return error code if registering an object type failed.
 
 	* object.c:
@@ -41,14 +100,14 @@
 	* gamesrv.c: Made jumping from standing on top of ladder position
 	to be as high as jump from normal tile.
 
-	* basic/basic-player.lua: Decreased player xv_decay, yv_decay to
+	* basic-player.lua: Decreased player xv_decay, yv_decay to
 	slow down movement a little.
 
 	* store/README, store/CHANGES, store/hash.c, store/store.c:
 	Reverted to the libc string functions and only support
 	ASCII/UTF-8 (faster).
 
-	* basic/basic-player.lua, bindgen.lua, gameclt.c, gameinit.c,
+	* basic-player.lua, bindgen.lua, gameclt.c, gameinit.c,
 	* gamesrv.c, gamesrv.h, netmsg.h, blod.c, blod.h:
 	Added blods.
 
@@ -89,12 +148,12 @@
 	Removed player-only `jump' and `_ramp' variables from object
 	struc, and used the generic lua table instead.
 
-	* gamesrv.c, bindgen.lua, object.c, basic/basic-player.lua,
-	* basic/basic-base.lua:
+	* gamesrv.c, bindgen.lua, object.c, basic-player.lua,
+	* basic-base.lua:
 	Prefixed internal functions/variables that are somehow accessible
 	from Lua with "_internal".
 
-	* bindgen.lua, basic/basic-tilelike.lua, gamesrv.c, object.h,
+	* bindgen.lua, basic-tilelike.lua, gamesrv.c, object.h,
 	* object.c:
 	Added support for ladders.
 
@@ -112,11 +171,11 @@
 	closer to colours in death fountain anim.  Also cleaned up the
 	file a bit.
 
-	* basic/basic-player.lua, blood.h, blood.c, gamesrv.h,
+	* basic-player.lua, blood.h, blood.c, gamesrv.h,
 	* bindgen.lua, netmsg.h, gameclt.c, gamesrv.c: 
 	Made the spread parameter to spawn blood a float (instead of int).
 
-	* basic/basic-player.lua: Added a light for the test corpse, which
+	* basic-player.lua: Added a light for the test corpse, which
 	disappears after its animation finishes.
 
 	* gamesrv.c: Added `a bit off' state, before the client becomes
@@ -130,21 +189,21 @@
 
 	* Updated to Lua 4.1-work3.
 
-	* basic/basic-weapon.lua: Removed the light from blaster
+	* basic-weapon.lua: Removed the light from blaster
 	projectiles (it was just a test).
 
 	* blood.c: Changed blood particles to use linked lists instead of
 	an array.  This is/should/might be faster and will allocate more
 	particles if needed.
 
-	* basic/basic-powerup.lua: Used object hidden attribute to
-	implement respawning powerups.
+	* basic-powerup.lua: Used object hidden attribute to implement
+	respawning powerups.
 
-	* basic/basic-base.lua, bindgen.lua, gameclt.c, gamesrv.c,
+	* basic-base.lua, bindgen.lua, gameclt.c, gamesrv.c,
 	* netmsg.h, object.h, object.c:
 	Added ``hidden'' attribute to objects.
 
-	* basic/basic-base.lua, bindgen.lua, object.h, object.c:
+	* basic-base.lua, bindgen.lua, object.h, object.c:
 	Added object_set_masks_centre() for the situation where you want
 	to change where the centre of all the bitmasks are at once.
 
@@ -153,8 +212,8 @@
 	* gameclt.c: Update camera at consistent rate on different
 	machines.
 
-	* basic/basic-player.lua: Flip and rotate remote clients' arms
-	depending on the aim angle.
+	* basic-player.lua: Flip and rotate remote clients' arms depending
+	on the aim angle.
 	
 	* netmsg.h, gamesrv.c, gameclt.c: Send and receive remote player's
 	aim angles.
@@ -166,7 +225,7 @@
 	* magic/magichf.c: Fixed the horizontal clipping for
 	draw_magic_sprite_h_flip().
 
-	* basic/basic-player.lua: Put in playing walking animation.
+	* basic-player.lua: Put in playing walking animation.
 	
 	* object.h, object.c, bindgen.lua:
 	Added `object_moving_horizontally' function, which is a hack for
@@ -180,13 +239,13 @@
 
 	* netmsg.h, gamesrv.c, gameclt.c: Added player respawning.
 
-	* basic/basic-weapon.lua: Rotate blaster projectile in the angle
-	it is fired.
+	* basic-weapon.lua: Rotate blaster projectile in the angle it is
+	fired.
 
-	* basic/basic-player.lua: The beginnings of corpses.
+	* basic-player.lua: The beginnings of corpses.
 
-	* basic/basic-base.lua, basic/basic-player.lua: Update hook and
-	creation fields changes.
+	* basic-base.lua, basic-player.lua: Update hook and creation
+	fields changes.
 
 	* gameclt.c: Limited the update rate.
 

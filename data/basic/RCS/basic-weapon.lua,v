@@ -1,10 +1,44 @@
-head	1.5;
+head	1.12;
 access;
 symbols;
-locks
-	tjaden:1.5; strict;
+locks; strict;
 comment	@# @;
 
+
+1.12
+date	2002.01.21.17.08.26;	author tjaden;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2002.01.21.16.11.44;	author tjaden;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2002.01.21.15.26.12;	author tjaden;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2002.01.21.14.19.44;	author tjaden;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2002.01.21.04.16.09;	author tjaden;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2002.01.21.00.27.41;	author tjaden;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2002.01.20.06.59.48;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.19.08.22.28;	author tjaden;	state Exp;
@@ -36,9 +70,10 @@ desc
 @@
 
 
-1.5
+1.12
 log
-@The start of some new weapons: shotguns and sniper rifles.
+@Allow a second argument to Objtype and Weapon, which should contain a
+table of fields to add into or override in the first argument.
 @
 text
 @-- basic-weapon.lua
@@ -47,21 +82,63 @@ text
 store_load ("basic/basic-weapon.dat", "/basic/weapon/")
 
 
-local make_weapon_nonproxy_init
-function make_weapon_nonproxy_init (weapon_to_give, respawn_secs)
-    return
-    function (self)
-	self:set_collision_flags ("p")
-	function self:collide_hook (player)
-	    player:receive_weapon (weapon_to_give)
-	    self:hide ()
-	    self:set_update_hook (respawn_secs * 1000,
-				  function (self)
-				      self:show ()
-				      self:remove_update_hook ()
-				  end)
+
+----------------------------------------------------------------------
+--  Generalised declarators
+----------------------------------------------------------------------
+
+
+-- Declare a new weapon type with a standard firing routine, and standard ammo
+-- counts.
+local Weapon_With_Firer = function (t)
+    return Weapon (t, {
+	can_fire = function (player)
+	    return player:ammo (t.ammo_type) > 0
+	end,
+	fire = function (player)
+	    spawn_projectile (t.projectile, player, t.projectile_speed)
+	    player.fire_delay = t.fire_delay_secs * 50
+	    player:deduct_ammo (t.ammo_type)
 	end
-    end
+    })
+end
+
+
+-- Declare a new weapon or ammo pickup, which respawns a while after being
+-- picked up.
+local Standard_Pickup = function (t)
+    return Objtype (t, {
+	category = "weapon",
+	nonproxy_init = function (self)
+	    self:set_collision_flags ("p")
+	    function self:collide_hook (player)
+		if t.weapon_to_give then
+		    player:receive_weapon (t.weapon_to_give)
+		end
+		if t.ammo_to_give then
+		    player:receive_ammo (t.ammo_to_give, t.ammo_amount)
+		end
+		self:hide_and_respawn_later (t.respawn_secs * 1000)
+	    end
+	end
+    })
+end
+
+
+-- Declare a new projectile type.  This only handles standard-style
+-- projectiles, like bullets.
+local Standard_Projectile = function (t)
+    return Objtype (t, {
+	nonproxy_init = function (self)
+	    function self:collide_hook (obj)
+		obj:receive_damage (t.damage)
+		self:destroy ()
+	    end
+	    function self:tile_collide_hook ()
+		self:destroy ()
+	    end	
+	end
+    })
 end
 
 
@@ -70,33 +147,31 @@ end
 ----------------------------------------------------------------------
 
 Weapon {
-    name = "basic-blaster",
+    name = "basic-blaster", 
+    arm_anim = {
+	"/basic/weapon/blaster/1arm000",
+	"/basic/weapon/blaster/1arm001",
+	"/basic/weapon/blaster/1arm002",
+	"/basic/weapon/blaster/1arm003";
+	cx = 0, cy = 3, tics = 2
+    },
     fire = function (player)
 	spawn_projectile ("basic-blaster-projectile", player, 10)
-	player.fire_delay = 5
+	player.fire_delay = 50 * 0.1
     end
 }
 
-Objtype {
-    category = "weapon",
+Standard_Pickup {
     name = "basic-blaster",
     icon = "/basic/weapon/blaster/pickup",
-    nonproxy_init = make_weapon_nonproxy_init ("basic-blaster", 10)
+    weapon_to_give = "basic-blaster",
+    respawn_secs = 10
 }
 
-Objtype {
-    category = "projectile",
+Standard_Projectile {
     name = "basic-blaster-projectile",
     icon = "/basic/weapon/blaster/projectile",
-    nonproxy_init = function (self)
-	function self:collide_hook (obj)
-	    obj:receive_damage (10)
-	    self:destroy ()
-	end
-	function self:tile_collide_hook ()
-	    self:destroy ()
-	end
-    end,
+    damage = 10,
     proxy_init = function (self)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
@@ -107,23 +182,27 @@ Objtype {
 --  Bow and arrow
 ----------------------------------------------------------------------
 
-Objtype {
-    category = "weapon",
+Standard_Pickup {
     name = "basic-bow",
     icon = "/basic/weapon/bow/pickup",
-    nonproxy_init = make_weapon_nonproxy_init ("basic-bow", 10)
+    weapon_to_give = "basic-bow",
+    ammo_to_give = "basic-arrow",
+    ammo_amount = 10,
+    respawn_secs = 10
 }
 
-Objtype {
-    category = "weapon",
+Standard_Pickup {
     name = "basic-arrow",
-    icon = "/basic/weapon/ammo/arrow"
+    icon = "/basic/weapon/ammo/arrow", 
+    ammo_to_give = "basic-arrow",
+    ammo_amount = 10,
+    respawn_secs = 10
 }
 
-Objtype {
-    category = "projectile",
+Standard_Projectile {
     name = "basic-arrow-projectile",
-    icon = "/basic/weapon/bow/projectile"
+    icon = "/basic/weapon/bow/projectile",
+    damage = 10
 }
 
 
@@ -131,24 +210,84 @@ Objtype {
 --  Bullet weapons
 ----------------------------------------------------------------------
 
-Objtype {
-    category = "weapon",
+Standard_Pickup {
+    name = "basic-bullet",
+    icon = "/basic/weapon/ammo/bullet",
+    ammo_to_give = "basic-bullet",
+    ammo_amount = 30,
+    respawn_secs = 10
+}
+
+Weapon_With_Firer {
+    name = "basic-ak",
+    ammo_type = "basic-bullet",
+    projectile = "basic-ak-projectile",
+    projectile_speed = 12,
+    fire_delay_secs = 0.12,
+    arm_anim = {
+	"/basic/weapon/ak/2arm000",
+	"/basic/weapon/ak/2arm001",
+	"/basic/weapon/ak/2arm002",
+	"/basic/weapon/ak/2arm003",
+	"/basic/weapon/ak/2arm004",
+	"/basic/weapon/ak/2arm005",
+	"/basic/weapon/ak/2arm006";
+	cx = 0, cy = 3
+    }
+}
+
+Standard_Pickup {
     name = "basic-ak",
     icon = "/basic/weapon/ak/pickup",
-    nonproxy_init = make_weapon_nonproxy_init ("basic-ak", 10)
+    weapon_to_give = "basic-ak",
+    ammo_to_give = "basic-bullet",
+    ammo_amount = 10,
+    respawn_secs = 10
 }
 
-Objtype {
-    category = "weapon", 
-    name = "basic-minigun", 
+Standard_Projectile {
+    name = "basic-ak-projectile",
+    icon = "/basic/weapon/shotgun/projectile", -- XXX
+    damage = 10
+}
+
+Weapon {
+    name = "basic-minigun",
+    ammo_type = "basic-bullet",
+    can_fire = function (player)
+	return player:ammo ("basic-bullet") > 0
+    end,
+    fire = function (player)
+	spawn_projectile ("basic-minigun-projectile", player, 12,
+			  ((random(10) - 5) / 10) * (PI/48))
+	player.fire_delay = 0.05 * 50
+	player:deduct_ammo ("basic-bullet")
+    end,
+    arm_anim = {
+	"/basic/weapon/minigun/2arm000",
+	"/basic/weapon/minigun/2arm001",
+	"/basic/weapon/minigun/2arm002",
+	"/basic/weapon/minigun/2arm003",
+	"/basic/weapon/minigun/2arm004",
+	"/basic/weapon/minigun/2arm005",
+	"/basic/weapon/minigun/2arm006";
+	cx = 0, cy = 1, tics = 2
+    }
+}
+
+Standard_Pickup {
+    name = "basic-minigun",
     icon = "/basic/weapon/minigun/pickup",
-    nonproxy_init = make_weapon_nonproxy_init ("basic-minigun", 10)
+    weapon_to_give = "basic-minigun",
+    ammo_to_give = "basic-bullet",
+    ammo_amount = 10,
+    respawn_secs = 10
 }
 
-Objtype {
-    category = "weapon", 
-    name = "basic-bullet", 
-    icon = "/basic/weapon/ammo/bullet"
+Standard_Projectile {
+    name = "basic-minigun-projectile",
+    icon = "/basic/weapon/shotgun/projectile", -- XXX
+    damage = 10
 }
 
 
@@ -156,23 +295,27 @@ Objtype {
 --  Rocket weapons
 ----------------------------------------------------------------------
 
-Objtype {
-    category = "weapon", 
-    name = "basic-rpg", 
+Standard_Pickup {
+    name = "basic-rpg",
     icon = "/basic/weapon/rpg/pickup",
-    nonproxy_init = make_weapon_nonproxy_init ("basic-rpg", 10)
+    weapon_to_give = "basic-rpg",
+    ammo_to_give = "basic-rocket",
+    ammo_amount = 1,
+    respawn_secs = 10
 }
 
-Objtype {
-    category = "weapon", 
-    name = "basic-rocket", 
-    icon = "/basic/weapon/ammo/rocket"
+Standard_Pickup {
+    name = "basic-rocket",
+    icon = "/basic/weapon/ammo/rocket",
+    ammo_to_give = "basic-rocket",
+    ammo_amount = 10,
+    respawn_secs = 10,
 }
 
-Objtype {
-    category = "projectile",
-    name = "basic-rocket-projectile", 
-    icon = "/basic/weapon/rpg/projectile"
+Standard_Projectile {
+    name = "basic-rocket-projectile",
+    icon = "/basic/weapon/rpg/projectile",
+    damage = 10
 }
 
 
@@ -180,45 +323,51 @@ Objtype {
 --  Shotgun
 ----------------------------------------------------------------------
 
-local shotgun_spread = PI / 96
-
 Weapon {
     name = "basic-shotgun",
+    can_fire = function (player)
+	return player:ammo ("basic-shell") > 0
+    end,
     fire = function (player)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, -2*shotgun_spread)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, -shotgun_spread)
+	local spread = PI / 96
+	spawn_projectile ("basic-shotgun-projectile", player, 10, -2 * spread)
+	spawn_projectile ("basic-shotgun-projectile", player, 10, -spread)
 	spawn_projectile ("basic-shotgun-projectile", player, 10, 0)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, shotgun_spread)
-	spawn_projectile ("basic-shotgun-projectile", player, 10, 2*shotgun_spread)
+	spawn_projectile ("basic-shotgun-projectile", player, 10, spread)
+	spawn_projectile ("basic-shotgun-projectile", player, 10, 2 * spread)
 	player.fire_delay = 50 * 0.4
-    end
+	player:deduct_ammo ("basic-shell")
+    end,
+    arm_anim = {
+	"/basic/weapon/shotgun/2arm000",
+	"/basic/weapon/shotgun/2arm001",
+	"/basic/weapon/shotgun/2arm002",
+	"/basic/weapon/shotgun/2arm003";
+	cx = 1, cy = 4, tics = 4
+    }
 }
 
-Objtype {
-    category = "weapon", 
-    name = "basic-shotgun", 
+Standard_Pickup {
+    name = "basic-shotgun",
     icon = "/basic/weapon/shotgun/pickup",
-    nonproxy_init = make_weapon_nonproxy_init ("basic-shotgun", 10)
+    weapon_to_give = "basic-shotgun",
+    ammo_to_give = "basic-shell",
+    ammo_amount = 10,
+    respawn_secs = 10
 }
 
-Objtype {
-    category = "weapon", 
-    name = "basic-shell", 
-    icon = "/basic/weapon/ammo/shell"
+Standard_Pickup {
+    name = "basic-shell",
+    icon = "/basic/weapon/ammo/shell",
+    ammo_to_give = "basic-shell",
+    ammo_amount = 10,
+    respawn_secs = 10,
 }
 
-Objtype {
+Standard_Projectile {
     name = "basic-shotgun-projectile",
     icon = "/basic/weapon/shotgun/projectile",
-    nonproxy_init = function (self)
-	function self:collide_hook (obj)
-	    obj:receive_damage (10)
-	    self:destroy ()
-	end
-	function self:tile_collide_hook ()
-	    self:destroy ()
-	end	
-    end
+    damage = 10
 }
 
 
@@ -226,19 +375,30 @@ Objtype {
 --  Sniper rifle
 ----------------------------------------------------------------------
 
-Weapon {
+Weapon_With_Firer {
     name = "basic-rifle",
-    fire = function (player)
-	spawn_projectile ("basic-rifle-projectile", player, 15)
-	player.fire_delay = 50 * 0.5
+    ammo_type = "basic-slug",
+    projectile = "basic-rifle-projectile",
+    projectile_speed = 15,
+    fire_delay_secs = 0.5,
+    arm_anim = {
+	"/basic/weapon/rifle/1arm000",
+	"/basic/weapon/rifle/1arm001",
+	"/basic/weapon/rifle/1arm002";
+	cx = -2, cy = 4
+    },
+    client_switch_to_hook = function ()
+	_internal_set_camera (1, 300)
     end
 }
 
-Objtype {
-    category = "weapon", 
-    name = "basic-rifle", 
+Standard_Pickup {
+    name = "basic-rifle",
     icon = "/basic/weapon/rifle/pickup",
-    nonproxy_init = make_weapon_nonproxy_init ("basic-rifle", 10)
+    weapon_to_give = "basic-rifle",
+    ammo_to_give = "basic-slug",
+    ammo_amount = 2,
+    respawn_secs = 10
 }
 
 Objtype {
@@ -258,6 +418,562 @@ Objtype {
 --  Mines
 ----------------------------------------------------------------------
 
+Standard_Pickup {
+    name = "basic-mine",
+    icon = "/basic/weapon/mine/pickup",
+    respawn_secs = 10
+}
+
+
+----------------------------------------------------------------------
+--  Weapon switch order
+----------------------------------------------------------------------
+
+weapon_order = {
+    "basic-blaster",
+    "basic-shotgun",
+    "basic-ak",
+    "basic-minigun",
+    "basic-bow",
+    "basic-rpg",
+    "basic-rifle"
+}
+@
+
+
+1.11
+log
+@Animated weapon firing.
+@
+text
+@d16 10
+a25 8
+    return Weapon (merge (t, { can_fire = function (player)
+				   return player:ammo (t.ammo_type) > 0
+			       end,
+			       fire = function (player)
+			           spawn_projectile (t.projectile, player, t.projectile_speed)
+				   player.fire_delay = t.fire_delay_secs * 50
+				   player:deduct_ammo (t.ammo_type)
+			       end }))
+d32 15
+a46 13
+    return Objtype (merge (t, { category = "weapon",
+			        nonproxy_init = function (self)
+				    self:set_collision_flags ("p")
+				    function self:collide_hook (player)
+					if t.weapon_to_give then
+					    player:receive_weapon (t.weapon_to_give)
+					end
+					if t.ammo_to_give then
+					    player:receive_ammo (t.ammo_to_give, t.ammo_amount)
+					end
+					self:hide_and_respawn_later (t.respawn_secs * 1000)
+				    end
+				end }))
+d53 11
+a63 9
+    return Objtype (merge (t, { nonproxy_init = function (self)
+				    function self:collide_hook (obj)
+					obj:receive_damage (t.damage)
+					self:destroy ()
+				    end
+				    function self:tile_collide_hook ()
+					self:destroy ()
+				    end	
+				end }))
+@
+
+
+1.10
+log
+@Added weapon switching with keyboard.
+@
+text
+@d72 1
+a72 2
+	cx = 0, 
+	cy = 3
+d76 1
+a76 1
+	player.fire_delay = 0.1 * 50
+d190 1
+a190 1
+	cx = 0, cy = 1
+d262 1
+a262 1
+	cx = 1, cy = 4
+@
+
+
+1.9
+log
+@Added ammo limits.
+@
+text
+@d343 15
+@
+
+
+1.8
+log
+@Made switching to the sniper rifle increase the max distance the
+camera can see.
+@
+text
+@d13 2
+a14 1
+-- Declare a new weapon type with a standard firing routine.
+d16 4
+a19 1
+    return Weapon (merge (t, { fire = function (player)
+d22 1
+d27 1
+a27 1
+-- Declare a new weapon pickup, which respawns a while after being
+d29 1
+a29 1
+local Weapon_Pickup = function (t)
+d34 6
+a39 14
+					player:receive_weapon (t.weapon_to_give)
+					self:hide_and_respawn_later (t.respawn_secs * 1000)
+				    end
+				end }))
+end
+
+
+-- Declare some weapon ammunition, which respawns a while after being
+-- picked up.
+local Weapon_Ammo = function (t)
+    return Objtype (merge (t, { category = "weapon",
+			        nonproxy_init = function (self)
+				    self:set_collision_flags ("p")
+				    function self:collide_hook (obj)
+d65 1
+a65 1
+Weapon_With_Firer {
+a66 3
+    projectile = "basic-blaster-projectile",
+    projectile_speed = 10,
+    fire_delay_secs = 0.1,
+d74 5
+a78 1
+    }
+d81 1
+a81 1
+Weapon_Pickup {
+d102 1
+a102 1
+Weapon_Pickup {
+d106 2
+d111 1
+a111 1
+Weapon_Ammo {
+d114 2
+d130 1
+a130 1
+Weapon_Ammo {
+d133 2
+d140 1
+d156 1
+a156 1
+Weapon_Pickup {
+d160 2
+d173 4
+d181 1
+d195 1
+a195 1
+Weapon_Pickup {
+d199 2
+d215 1
+a215 1
+Weapon_Pickup {
+d219 2
+d224 1
+a224 1
+Weapon_Ammo {
+d227 3
+a229 1
+    respawn_secs = 10
+d245 3
+d256 1
+d267 1
+a267 1
+Weapon_Pickup {
+d271 2
+d276 1
+a276 1
+Weapon_Ammo {
+d279 3
+a281 1
+    respawn_secs = 10
+d297 1
+d312 1
+a312 1
+Weapon_Pickup {
+d316 2
+d338 1
+a338 1
+Weapon_Ammo {
+@
+
+
+1.7
+log
+@Use the right image for the weapon we are holding (not animated yet).
+Also, changed the generalised declarators to take table arguments,
+which are more verbose and easier to read.
+@
+text
+@d279 4
+a282 1
+    }
+@
+
+
+1.6
+log
+@Added initial code for AK-47 and miniguns, and shared a lot of code
+between the weapon types.
+@
+text
+@d14 5
+a18 8
+local Weapon_With_Firer = function (name, projectile, speed, fire_delay_secs)
+    return Weapon {
+	name = name,
+	fire = function (player)
+	    spawn_projectile (projectile, player, speed)
+	    player.fire_delay = fire_delay_secs * 50
+	end
+    }
+d24 9
+a32 13
+local Weapon_Pickup = function (name, icon, weapon_to_give, respawn_secs)
+    return Objtype {
+	category = "weapon",
+	name = name,
+	icon = icon,
+	nonproxy_init = function (self)
+	    self:set_collision_flags ("p")
+	    function self:collide_hook (player)
+		player:receive_weapon (weapon_to_give)
+		self:hide_and_respawn_later (respawn_secs * 1000)
+	    end
+	end
+    }
+d38 8
+a45 12
+local Weapon_Ammo = function (name, icon, respawn_secs)
+    return Objtype {
+	category = "weapon",
+	name = name,
+	icon = icon,
+	nonproxy_init = function (self)
+	    self:set_collision_flags ("p")
+	    function self:collide_hook (obj)
+		self:hide_and_respawn_later (respawn_secs * 1000)
+	    end
+	end
+    }
+d51 10
+a60 15
+local Standard_Projectile = function (name, icon, damage, proxy_init)
+    return Objtype {
+	name = name,
+	icon = icon,
+	nonproxy_init = function (self)
+	    function self:collide_hook (obj)
+		obj:receive_damage (damage)
+		self:destroy ()
+	    end
+	    function self:tile_collide_hook ()
+		self:destroy ()
+	    end	
+	end,
+	proxy_init = proxy_init
+    }
+d68 14
+a81 1
+Weapon_With_Firer ("basic-blaster", "basic-blaster-projectile", 10, 0.1)
+d83 6
+a88 2
+Weapon_Pickup ("basic-blaster", "/basic/weapon/blaster/pickup",
+	       "basic-blaster", 10)
+d90 8
+a97 7
+Standard_Projectile ("basic-blaster-projectile",
+		     "/basic/weapon/blaster/projectile",
+		     10,
+		     -- proxy_init
+		     function (self)
+			 self:rotate_layer (0, radian_to_bangle (self.angle))
+		     end)
+d104 6
+a109 2
+Weapon_Pickup ("basic-bow", "/basic/weapon/bow/pickup",
+	       "basic-bow", 10)
+d111 5
+a115 1
+Weapon_Ammo ("basic-arrow", "/basic/weapon/ammo/arrow", 10)
+d117 5
+a121 3
+Standard_Projectile ("basic-arrow-projectile",
+		     "/basic/weapon/bow/projectile",
+		     10)
+d128 5
+a132 1
+Weapon_Ammo ("basic-bullet", "/basic/weapon/ammo/bullet", 10)
+d134 16
+a149 1
+Weapon_With_Firer ("basic-ak", "basic-ak-projectile", 12, 0.12)
+d151 6
+a156 2
+Weapon_Pickup ("basic-ak", "/basic/weapon/ak/pickup",
+	       "basic-ak", 10)
+d158 5
+a162 3
+Standard_Projectile ("basic-ak-projectile",
+		     "/basic/weapon/shotgun/projectile", -- XXX
+		     10)
+d170 11
+a180 1
+    end
+d183 6
+a188 2
+Weapon_Pickup ("basic-minigun", "/basic/weapon/minigun/pickup",
+	       "basic-minigun", 10)
+d190 5
+a194 3
+Standard_Projectile ("basic-minigun-projectile",
+		     "/basic/weapon/shotgun/projectile", -- XXX
+		     10)
+d201 6
+a206 2
+Weapon_Pickup ("basic-rpg", "/basic/weapon/rpg/pickup",
+	       "basic-rpg", 10)
+d208 5
+a212 1
+Weapon_Ammo ("basic-rocket", "/basic/weapon/ammo/rocket", 10)
+d214 5
+a218 3
+Standard_Projectile ("basic-rocket-projectile",
+		     "/basic/weapon/rpg/projectile",
+		     10)
+d235 8
+a242 1
+    end
+d245 6
+a250 2
+Weapon_Pickup ("basic-shotgun", "/basic/weapon/shotgun/pickup",
+	       "basic-shotgun", 10)
+d252 5
+a256 1
+Weapon_Ammo ("basic-shell", "/basic/weapon/ammo/shell", 10)
+d258 5
+a262 3
+Standard_Projectile ("basic-shotgun-projectile",
+		     "/basic/weapon/shotgun/projectile",
+		     10)
+d269 12
+a280 1
+Weapon_With_Firer ("basic-rifle", "basic-rifle-projectile", 15, 0.5)
+d282 6
+a287 2
+Weapon_Pickup ("basic-rifle", "/basic/weapon/rifle/pickup",
+	       "basic-rifle", 10)
+d306 5
+a310 1
+Weapon_Ammo ("basic-mine", "/basic/weapon/mine/pickup", 10)
+@
+
+
+1.5
+log
+@The start of some new weapons: shotguns and sniper rifles.
+@
+text
+@d7 48
+a54 13
+local make_weapon_nonproxy_init
+function make_weapon_nonproxy_init (weapon_to_give, respawn_secs)
+    return
+    function (self)
+	self:set_collision_flags ("p")
+	function self:collide_hook (player)
+	    player:receive_weapon (weapon_to_give)
+	    self:hide ()
+	    self:set_update_hook (respawn_secs * 1000,
+				  function (self)
+				      self:show ()
+				      self:remove_update_hook ()
+				  end)
+d56 21
+a76 1
+    end
+d84 1
+a84 7
+Weapon {
+    name = "basic-blaster",
+    fire = function (player)
+	spawn_projectile ("basic-blaster-projectile", player, 10)
+	player.fire_delay = 5
+    end
+}
+d86 2
+a87 6
+Objtype {
+    category = "weapon",
+    name = "basic-blaster",
+    icon = "/basic/weapon/blaster/pickup",
+    nonproxy_init = make_weapon_nonproxy_init ("basic-blaster", 10)
+}
+d89 7
+a95 17
+Objtype {
+    category = "projectile",
+    name = "basic-blaster-projectile",
+    icon = "/basic/weapon/blaster/projectile",
+    nonproxy_init = function (self)
+	function self:collide_hook (obj)
+	    obj:receive_damage (10)
+	    self:destroy ()
+	end
+	function self:tile_collide_hook ()
+	    self:destroy ()
+	end
+    end,
+    proxy_init = function (self)
+	self:rotate_layer (0, radian_to_bangle (self.angle))
+    end
+}
+d102 2
+a103 6
+Objtype {
+    category = "weapon",
+    name = "basic-bow",
+    icon = "/basic/weapon/bow/pickup",
+    nonproxy_init = make_weapon_nonproxy_init ("basic-bow", 10)
+}
+d105 1
+a105 5
+Objtype {
+    category = "weapon",
+    name = "basic-arrow",
+    icon = "/basic/weapon/ammo/arrow"
+}
+d107 3
+a109 5
+Objtype {
+    category = "projectile",
+    name = "basic-arrow-projectile",
+    icon = "/basic/weapon/bow/projectile"
+}
+d116 18
+a133 5
+Objtype {
+    category = "weapon",
+    name = "basic-ak",
+    icon = "/basic/weapon/ak/pickup",
+    nonproxy_init = make_weapon_nonproxy_init ("basic-ak", 10)
+d136 2
+a137 6
+Objtype {
+    category = "weapon", 
+    name = "basic-minigun", 
+    icon = "/basic/weapon/minigun/pickup",
+    nonproxy_init = make_weapon_nonproxy_init ("basic-minigun", 10)
+}
+d139 3
+a141 5
+Objtype {
+    category = "weapon", 
+    name = "basic-bullet", 
+    icon = "/basic/weapon/ammo/bullet"
+}
+d148 2
+a149 6
+Objtype {
+    category = "weapon", 
+    name = "basic-rpg", 
+    icon = "/basic/weapon/rpg/pickup",
+    nonproxy_init = make_weapon_nonproxy_init ("basic-rpg", 10)
+}
+d151 1
+a151 5
+Objtype {
+    category = "weapon", 
+    name = "basic-rocket", 
+    icon = "/basic/weapon/ammo/rocket"
+}
+d153 3
+a155 5
+Objtype {
+    category = "projectile",
+    name = "basic-rocket-projectile", 
+    icon = "/basic/weapon/rpg/projectile"
+}
+a161 2
+local shotgun_spread = PI / 96
+
+d165 3
+a167 2
+	spawn_projectile ("basic-shotgun-projectile", player, 10, -2*shotgun_spread)
+	spawn_projectile ("basic-shotgun-projectile", player, 10, -shotgun_spread)
+d169 2
+a170 2
+	spawn_projectile ("basic-shotgun-projectile", player, 10, shotgun_spread)
+	spawn_projectile ("basic-shotgun-projectile", player, 10, 2*shotgun_spread)
+d175 2
+a176 6
+Objtype {
+    category = "weapon", 
+    name = "basic-shotgun", 
+    icon = "/basic/weapon/shotgun/pickup",
+    nonproxy_init = make_weapon_nonproxy_init ("basic-shotgun", 10)
+}
+d178 1
+a178 5
+Objtype {
+    category = "weapon", 
+    name = "basic-shell", 
+    icon = "/basic/weapon/ammo/shell"
+}
+d180 3
+a182 13
+Objtype {
+    name = "basic-shotgun-projectile",
+    icon = "/basic/weapon/shotgun/projectile",
+    nonproxy_init = function (self)
+	function self:collide_hook (obj)
+	    obj:receive_damage (10)
+	    self:destroy ()
+	end
+	function self:tile_collide_hook ()
+	    self:destroy ()
+	end	
+    end
+}
+d189 1
+a189 7
+Weapon {
+    name = "basic-rifle",
+    fire = function (player)
+	spawn_projectile ("basic-rifle-projectile", player, 15)
+	player.fire_delay = 50 * 0.5
+    end
+}
+d191 2
+a192 6
+Objtype {
+    category = "weapon", 
+    name = "basic-rifle", 
+    icon = "/basic/weapon/rifle/pickup",
+    nonproxy_init = make_weapon_nonproxy_init ("basic-rifle", 10)
+}
+d211 1
+a211 5
 Objtype {
     category = "weapon", 
     name = "basic-mine", 

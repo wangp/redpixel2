@@ -1,10 +1,24 @@
-head	1.8;
+head	1.11;
 access;
 symbols;
-locks
-	tjaden:1.8; strict;
+locks; strict;
 comment	@# @;
 
+
+1.11
+date	2002.01.21.17.07.45;	author tjaden;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2002.01.21.00.18.29;	author tjaden;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2002.01.20.06.58.06;	author tjaden;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2002.01.19.01.37.28;	author tjaden;	state Exp;
@@ -51,9 +65,10 @@ desc
 @@
 
 
-1.8
+1.11
 log
-@Return error code if registering an object type failed.
+@Allow a second argument to Objtype and Weapon, which should contain a
+table of fields to add into or override in the first argument.
 @
 text
 @-- basic-base.lua -- XXX: rename this file?
@@ -90,6 +105,15 @@ function _internal_object_init_hook (self)
 	self.remove_mask = object_remove_mask
 	self.remove_all_masks = object_remove_all_masks
 	self.receive_damage = dummy
+
+	function self:hide_and_respawn_later (msecs)
+	    self:hide ()
+	    self:set_update_hook (msecs,
+				  function (self)
+				      self:show ()
+				      self:remove_update_hook ()
+				  end)
+	end
 
 	-- proxy methods
 	self.add_layer = dummy
@@ -138,7 +162,8 @@ end
 
 -- objtype_register wrapper
 
-function Objtype (t)
+function Objtype (t, u)
+    if u then t = merge (t, u) end
     local result =
     objtype_register (t.category, t.name, t.icon,
 	function (self)
@@ -158,8 +183,9 @@ end
 
 weapons = {}
 
-function Weapon (t)
-    weapons[t.name] = t
+function Weapon (t, u)
+    if u then t = merge (t, u) end
+    weapons[t.name] = u and merge (t, u) or t
 end
 
 
@@ -168,6 +194,46 @@ end
 function radian_to_bangle (rads)
     return rads * 128 / PI
 end
+
+function merge (t1, t2)
+    local t = {}
+    for i,v in t1 do t[i] = v end
+    for i,v in t2 do t[i] = v end
+    return t
+end
+@
+
+
+1.10
+log
+@Added merge function.
+@
+text
+@d92 2
+a93 1
+function Objtype (t)
+d113 3
+a115 2
+function Weapon (t)
+    weapons[t.name] = t
+@
+
+
+1.9
+log
+@Added hide_and_respawn_later() method which is used a lot by objects.
+@
+text
+@d122 7
+@
+
+
+1.8
+log
+@Return error code if registering an object type failed.
+@
+text
+@d36 9
 @
 
 

@@ -1,9 +1,39 @@
-head	1.15;
+head	1.21;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.21
+date	2002.01.21.16.11.40;	author tjaden;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	2002.01.21.15.26.01;	author tjaden;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	2002.01.21.14.19.41;	author tjaden;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	2002.01.21.07.59.19;	author tjaden;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	2002.01.21.04.16.00;	author tjaden;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	2002.01.21.00.26.28;	author tjaden;	state Exp;
+branches;
+next	1.15;
 
 1.15
 date	2002.01.19.12.35.06;	author tjaden;	state Exp;
@@ -85,9 +115,9 @@ desc
 @@
 
 
-1.15
+1.21
 log
-@Added tracking corpses after death.
+@Animated weapon firing.
 @
 text
 @-- basic-player.lua
@@ -128,15 +158,37 @@ local player_nonproxy_init = function (self)
 
     -- weapon stuff
     self.have_weapon = {}
+
     function self:receive_weapon (weapon_name)
 	if weapons[weapon_name] then
 	    self.have_weapon[weapon_name] = 1
---	    if not self.current_weapon then
-		self.current_weapon = weapons[weapon_name]
---	    end
+	    self:switch_weapon (weapon_name)
 	end
     end
+
+    function self:switch_weapon (weapon_name)
+	if weapons[weapon_name] and self.have_weapon[weapon_name] then
+	    self.current_weapon = weapons[weapon_name]
+	    call_method_on_clients (self, "switch_weapon", weapon_name)
+	end
+    end
+
     self:receive_weapon ("basic-blaster")
+
+    -- ammo stuff
+    self._ammo = {}
+
+    function self:receive_ammo (ammo_type, amount)
+	self._ammo[ammo_type] = (self._ammo[ammo_type] or 0) + amount
+    end
+
+    function self:deduct_ammo (ammo_type, amount)
+	self._ammo[ammo_type] = max (0, (self._ammo[ammo_type] or 0) - (amount or 1))
+    end
+
+    function self:ammo (ammo_type)
+	return self._ammo[ammo_type] or 0
+    end
 
     -- firing stuff
     self.fire_delay = 0
@@ -145,19 +197,10 @@ local player_nonproxy_init = function (self)
 	    local w = self.current_weapon
 	    if w and (not w.can_fire or w.can_fire (self)) then
 		w.fire (self)
+		call_method_on_clients (self, "start_firing_anim")
 	    end
 	end
     end
-
-    -- update hook
-    self:set_update_hook (
-	1000/50,
-	function (self)
-	    if self.fire_delay > 0 then
-		self.fire_delay = self.fire_delay - 1
-	    end
-	end
-    )
 
     -- health stuff
     self.health = 100
@@ -176,6 +219,26 @@ local player_nonproxy_init = function (self)
 	    self:destroy ()
 	end
     end
+
+    -- update hook (fire delay and blood trails)
+    self.trail_tics = 0
+    self:set_update_hook (
+	1000/50,
+	function (self)
+	    if self.fire_delay > 0 then
+		self.fire_delay = self.fire_delay - 1
+	    end
+
+	    if self.health <= 20 then
+		if self.trail_tics > 0 then
+		    self.trail_tics = self.trail_tics - 1
+		else
+		    self.trail_tics = 50
+		    spawn_blood (self.x + cx, self.y + cx, 40, 2)
+		end
+	    end
+	end
+    )
 end
 
 
@@ -184,6 +247,23 @@ end
 --
 
 local animate_player_proxy = function (self)
+    -- firing
+    if self.animate_arm then
+	if self.arm_tics > 0 then
+	    self.arm_tics = self.arm_tics - 1
+	else
+	    local anim = self.current_weapon.arm_anim
+	    self.arm_tics = anim.tics or 5
+	    self.arm_frame = self.arm_frame + 1
+	    if self.arm_frame > self.last_arm_frame then
+		self.arm_frame = 1
+		self.animate_arm = false
+	    end
+	    self:replace_layer (self.arm_layer, anim[self.arm_frame], anim.cx, anim.cy)
+	end
+    end
+
+    -- walking
     if not _internal_object_moving_horizontally (self) then
 	return
     end
@@ -221,10 +301,22 @@ local player_proxy_init = function (self)
 
     -- layers
     self:move_layer (0, cx, cy)
-    self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
 
     -- light
     self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
+
+    -- arm stuff
+    self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
+    self.arm_frame = 1
+
+    -- (called by nonproxy fire hook)
+    function self:start_firing_anim ()
+	if not self.animate_arm then
+	    self.animate_arm = 1
+	    self.arm_tics = 0
+	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
+	end
+    end
 
     -- animation and update hook
     self.walk_frame = 0
@@ -236,6 +328,18 @@ local player_proxy_init = function (self)
 	    rotate_and_flip_player_proxy_based_on_aim_angle (self)
 	end
     )
+
+    -- switch weapon (called by nonproxy switch_weapon)
+    function self:switch_weapon (weapon_name)
+	local w = weapons[weapon_name]
+	self.current_weapon = w
+	self:replace_layer (self.arm_layer, w.arm_anim[1],
+			    w.arm_anim.cx, w.arm_anim.cy)
+	_internal_set_camera (0, 96)
+	if self.is_local and w.client_switch_to_hook then
+	    w.client_switch_to_hook ()
+	end
+    end
 end
 
 
@@ -291,6 +395,94 @@ Objtype {
 	death_fountain_update_hook (self) -- set the initial layer
     end
 }
+@
+
+
+1.20
+log
+@Added weapon switching with keyboard.
+@
+text
+@d78 1
+d128 17
+a181 1
+    self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
+d186 13
+d213 6
+a218 7
+	if w then
+	    self:replace_layer (self.arm_layer, w.arm_anim[1],
+				w.arm_anim.cx, w.arm_anim.cy)
+	    _internal_set_camera (0, 96)
+	    if self.is_local and w.client_switch_to_hook then
+		w.client_switch_to_hook ()
+	    end
+@
+
+
+1.19
+log
+@Added ammo limits.
+@
+text
+@d48 1
+a48 1
+	if weapons[weapon_name] then
+@
+
+
+1.18
+log
+@Made player bleed when on low health.
+@
+text
+@d56 15
+@
+
+
+1.17
+log
+@Made switching to the sniper rifle increase the max distance the
+camera can see.
+@
+text
+@a66 10
+    -- update hook
+    self:set_update_hook (
+	1000/50,
+	function (self)
+	    if self.fire_delay > 0 then
+		self.fire_delay = self.fire_delay - 1
+	    end
+	end
+    )
+
+d84 20
+@
+
+
+1.16
+log
+@Use the right image for the weapon we are holding (not animated yet).
+@
+text
+@d161 4
+@
+
+
+1.15
+log
+@Added tracking corpses after death.
+@
+text
+@d39 1
+d43 8
+a50 3
+--	    if not self.current_weapon then
+		self.current_weapon = weapons[weapon_name]
+--	    end
+d53 1
+d154 9
 @
 
 

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.21.04.16.28;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.16.35;	author tjaden;	state Exp;
@@ -15,9 +20,10 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Made switching to the sniper rifle increase the max distance the
+camera can see.
 @
 text
 @#ifndef __included_gameclt_h
@@ -29,5 +35,17 @@ void game_client_run ();
 void game_client_shutdown ();
 
 
+void game_client_set_camera (int pushable, int max_dist);
+
+
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d10 3
 @

@@ -12,6 +12,7 @@
 
 #include <allegro.h>
 #include "extdata.h"
+#include "gameclt.h"
 #include "gamesrv.h"
 #include "loaddata.h"
 #include "store.h"

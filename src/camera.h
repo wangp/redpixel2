@@ -14,10 +14,11 @@ float camera_x (camera_t *cam);
 float camera_y (camera_t *cam);
 int camera_view_width (camera_t *cam);
 int camera_view_height (camera_t *cam);
+void camera_set (camera_t *cam, int pushable, int max_dist);
 void camera_track_point (camera_t *cam, int x, int y);
 void camera_track_object (camera_t *cam, struct object *obj);
 void camera_track_object_with_mouse (camera_t *cam, struct object *obj, 
-				     int mouse_x, int mouse_y, int max_dist);
+				     int mouse_x, int mouse_y);
 
 
 #endif

@@ -1,9 +1,24 @@
-head	1.15;
+head	1.18;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.18
+date	2002.01.21.16.08.54;	author tjaden;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	2002.01.21.04.16.16;	author tjaden;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	2002.01.21.00.21.09;	author tjaden;	state Exp;
+branches;
+next	1.15;
 
 1.15
 date	2002.01.19.12.37.35;	author tjaden;	state Exp;
@@ -85,9 +100,9 @@ desc
 @@
 
 
-1.15
+1.18
 log
-@Made spawn_object, spawn_projectile return the objects they create.
+@Made last argument to call_method_on_clients() optional.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -486,8 +501,7 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
-		   { Float, "spread" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Float, "spread" }}
 }
 
 generate {
@@ -495,14 +509,69 @@ generate {
     lname	= "spawn_blod",
     args	= {{ Float, "x" },
 		   { Float, "y" },
-		   { Int, "nparticles" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Int, "nparticles" }}
+}
+
+generate {
+    cname	= "game_server_call_method_on_clients",
+    lname	= "call_method_on_clients",
+    check	= "us[sN-]",
+    args	= {{ Object, "obj" },
+		   { String, "method" },
+		   { String, "arg", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? \"\" : lua_tostring(L, $#));" }}
+}
+
+generate {
+    cname	= "game_client_set_camera",
+    lname	= "_internal_set_camera",
+    args	= {{ Int, "pushable" },	-- XXX should be Bool
+		   { Int, "max_dist" }}
 }
 
 print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.17
+log
+@Made switching to the sniper rifle increase the max distance the
+camera can see.
+@
+text
+@d411 1
+d414 2
+a415 1
+		   { String, "arg" }}	-- XXX this should be optional
+@
+
+
+1.16
+log
+@Added mechanism for server scripts to tell clients to execute object
+methods (i.e. remote calls).
+@
+text
+@d416 7
+@
+
+
+1.15
+log
+@Made spawn_object, spawn_projectile return the objects they create.
+@
+text
+@d397 1
+a397 2
+		   { Float, "spread" }},
+    ret		= { Int, "ret", "$ < 0" }
+d405 9
+a413 2
+		   { Int, "nparticles" }},
+    ret		= { Int, "ret", "$ < 0" }
 @
 
 

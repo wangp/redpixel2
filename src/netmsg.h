@@ -151,6 +151,14 @@ enum {
 	CONTROL_RESPAWN = 0x20,
 
 
+    /* Notify server of wish to change weapon.
+
+       Args: long len, byte weapon_name[].
+     */
+
+    MSG_CS_GAMEINFO_WEAPON_SWITCH = 'w',
+
+
     /* Tell server to broadcast text message to all clients.
 
        Args: long len, char text[].
@@ -212,6 +220,14 @@ enum {
 
     MSG_SC_GAMEINFO_OBJECT_HIDDEN = 'h',
     
+
+    /* Tell clients to call an object method.
+
+       Args: long object_id, long len, byte method[], long len2, byte arg[].
+     */
+
+    MSG_SC_GAMEINFO_OBJECT_CALL = 'C',
+
 
     /* Tell clients about a client's new aim angle.  Note: these
        angles are only approximate.

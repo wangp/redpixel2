@@ -7,4 +7,7 @@ void game_client_run ();
 void game_client_shutdown ();
 
 
+void game_client_set_camera (int pushable, int max_dist);
+
+
 #endif

@@ -89,7 +89,8 @@ end
 
 -- objtype_register wrapper
 
-function Objtype (t)
+function Objtype (t, u)
+    if u then t = merge (t, u) end
     local result =
     objtype_register (t.category, t.name, t.icon,
 	function (self)
@@ -109,8 +110,9 @@ end
 
 weapons = {}
 
-function Weapon (t)
-    weapons[t.name] = t
+function Weapon (t, u)
+    if u then t = merge (t, u) end
+    weapons[t.name] = u and merge (t, u) or t
 end
 
 
@@ -118,4 +120,11 @@ end
 
 function radian_to_bangle (rads)
     return rads * 128 / PI
+end
+
+function merge (t1, t2)
+    local t = {}
+    for i,v in t1 do t[i] = v end
+    for i,v in t2 do t[i] = v end
+    return t
 end

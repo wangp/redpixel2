@@ -394,8 +394,7 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 		   { Int, "nparticles" },
-		   { Float, "spread" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Float, "spread" }}
 }
 
 generate {
@@ -403,8 +402,24 @@ generate {
     lname	= "spawn_blod",
     args	= {{ Float, "x" },
 		   { Float, "y" },
-		   { Int, "nparticles" }},
-    ret		= { Int, "ret", "$ < 0" }
+		   { Int, "nparticles" }}
+}
+
+generate {
+    cname	= "game_server_call_method_on_clients",
+    lname	= "call_method_on_clients",
+    check	= "us[sN-]",
+    args	= {{ Object, "obj" },
+		   { String, "method" },
+		   { String, "arg", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? \"\" : lua_tostring(L, $#));" }}
+}
+
+generate {
+    cname	= "game_client_set_camera",
+    lname	= "_internal_set_camera",
+    args	= {{ Int, "pushable" },	-- XXX should be Bool
+		   { Int, "max_dist" }}
 }
 
 print (reg)
