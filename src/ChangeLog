@@ -1,3 +1,7 @@
+2001-06-07  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* yield.c (yield): Use select instead of sleep under Unix.
+
 2001-06-01  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* Minor changes to Store.

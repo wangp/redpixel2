@@ -6,7 +6,7 @@
  */
 
 
-#include <stdlib.h>
+#include <sys/time.h>
 #include <allegro.h>
 #include "yield.h"
 
@@ -14,8 +14,11 @@
 void yield ()
 {
 #ifdef ALLEGRO_UNIX
-
-    sleep (0);
+    
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 1;
+    select(0, 0, 0, 0, &tv);
 
 #else
     
