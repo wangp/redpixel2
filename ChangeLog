@@ -1,0 +1,15 @@
+April 1999
+
+...	David started doing bits of graphics.  I was coding Libnet 
+	serial driver.
+
+5	Started Red Pixel II code.
+	Got hash table system working.
+	Dirty rectangle system working.
+
+8	(bloody reinstalled Red Hat 5.2 today...)
+	Scrapped hash tables.
+	Map editing system working.
+	Primitive tile editing done.
+	
+	
