@@ -14,9 +14,6 @@ store_load ("basic/basic-weapon.dat", "/basic/weapon/")
 -- counts.
 local Weapon_With_Firer = function (t)
     return Weapon (t, {
-	can_fire = function (player)
-	    return player:ammo (t.ammo_type) > 0
-	end,
 	fire = function (player)
 	    spawn_projectile (t.projectile, player, t.projectile_speed)
 	    player.fire_delay = t.fire_delay_secs * 50
@@ -98,9 +95,6 @@ Weapon {
 	"/basic/weapon/blaster/1arm004";
 	cx = 0, cy = 3, tics = 2
     },
-    can_fire = function (player)
-	return true
-    end,
     fire = function (player)
 	spawn_projectile ("basic-blaster-projectile", player, 10)
 	player.fire_delay = 50 * 0.1
@@ -203,9 +197,6 @@ Standard_Projectile {
 Weapon {
     name = "basic-minigun",
     ammo_type = "basic-bullet",
-    can_fire = function (player)
-	return player:ammo ("basic-bullet") > 0
-    end,
     fire = function (player)
 	spawn_projectile ("basic-minigun-projectile", player, 12,
 			  ((random(10) - 5) / 10) * (PI/48))
@@ -299,9 +290,7 @@ Explosive_Projectile {
 
 Weapon {
     name = "basic-shotgun",
-    can_fire = function (player)
-	return player:ammo ("basic-shell") > 0
-    end,
+    ammo_type = "basic-shell",
     fire = function (player)
 	local spread = PI / 96
 	spawn_projectile ("basic-shotgun-projectile", player, 10, -2 * spread)
