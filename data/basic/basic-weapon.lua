@@ -253,7 +253,7 @@ Weapon {
     fire = function (player)
 	local proj = spawn_projectile ("basic-minigun-projectile", player, 12,
 				       ((random(10) - 5) / 10) * (PI/48))
-	player:set_fire_delay (0.05)
+	player:set_fire_delay (0.06)
 	player:deduct_ammo ("basic-bullet")
 	return proj
     end,
