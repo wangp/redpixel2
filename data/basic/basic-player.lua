@@ -665,7 +665,7 @@ local player_proxy_init = function (self)
 	self.current_weapon = w
 	self:replace_layer (self.arm_layer, w.arm_anim[1], w.arm_anim.cx, w.arm_anim.cy)
 	if self.is_local then
-	    _internal_set_camera (false, 96)
+	    _internal_set_camera (false, 140)
 	    if w.client_switch_to_hook then
 		w.client_switch_to_hook ()
 	    end
