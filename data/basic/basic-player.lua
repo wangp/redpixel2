@@ -56,12 +56,6 @@ local player_nonproxy_init = function (self)
 		return
 	    end
 
-	    -- if we're not holding a weapon currently, use the new one
-	    if not self.current_weapon then
-		self:switch_weapon (name)
-		return
-	    end
-
 	    -- don't switch if our current weapon is not auto-switchable
 	    if not contains (weapon_auto_switch_order, self.current_weapon.name) then
 		return
@@ -111,7 +105,7 @@ local player_nonproxy_init = function (self)
 	self._ammo[ammo_type] = (self._ammo[ammo_type] or 0) + amount
 
 	if self.desired_weapon ~= self.current_weapon and
-	    self:has_ammo_for (self, self.desired_weapon) and
+	    self:has_ammo_for (self.desired_weapon) and
 	    contains (weapon_auto_switch_order, self.desired_weapon.name)
 	then
 	    self.current_weapon = self.desired_weapon
@@ -142,16 +136,16 @@ local player_nonproxy_init = function (self)
     end
 
     -- initial weapon
-    self:receive_weapon ("basic-blaster")
+    self.have_weapon["basic-blaster"] = true
+    self:switch_weapon ("basic-blaster")
 
     -- firing stuff
     self.fire_delay = 0
 
     function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
-	    local w = self.current_weapon
-	    if self.current_weapon and self:has_ammo_for (self.current_weapon) then
-		w.fire (self)
+	    if self:has_ammo_for (self.current_weapon) then
+		self.current_weapon.fire (self)
 		call_method_on_clients (self, "start_firing_anim")
 	    else
 		self:auto_switch_weapon ()
@@ -234,7 +228,7 @@ local animate_player_proxy_firing = function (self)
     if self.animate_arm then
 	if self.arm_tics > 0 then
 	    self.arm_tics = self.arm_tics - 1
-	elseif self.current_weapon then
+	else
 	    local anim = self.current_weapon.arm_anim
 	    self.arm_tics = anim.tics or 5
 	    self.arm_frame = self.arm_frame + 1
@@ -318,7 +312,7 @@ local player_proxy_init = function (self)
 
     -- (called by nonproxy fire hook)
     function self:start_firing_anim ()
-	if not self.animate_arm and self.current_weapon then
+	if not self.animate_arm then
 	    self.animate_arm = true
 	    self.arm_tics = 0
 	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
