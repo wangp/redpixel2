@@ -75,6 +75,7 @@ local player_nonproxy_init = function (self)
 	    local w = self.current_weapon
 	    if w and (not w.can_fire or w.can_fire (self)) then
 		w.fire (self)
+		call_method_on_clients (self, "start_firing_anim")
 	    end
 	end
     end
@@ -124,6 +125,23 @@ end
 --
 
 local animate_player_proxy = function (self)
+    -- firing
+    if self.animate_arm then
+	if self.arm_tics > 0 then
+	    self.arm_tics = self.arm_tics - 1
+	else
+	    local anim = self.current_weapon.arm_anim
+	    self.arm_tics = anim.tics or 5
+	    self.arm_frame = self.arm_frame + 1
+	    if self.arm_frame > self.last_arm_frame then
+		self.arm_frame = 1
+		self.animate_arm = false
+	    end
+	    self:replace_layer (self.arm_layer, anim[self.arm_frame], anim.cx, anim.cy)
+	end
+    end
+
+    -- walking
     if not _internal_object_moving_horizontally (self) then
 	return
     end
@@ -161,10 +179,22 @@ local player_proxy_init = function (self)
 
     -- layers
     self:move_layer (0, cx, cy)
-    self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
 
     -- light
     self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
+
+    -- arm stuff
+    self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
+    self.arm_frame = 1
+
+    -- (called by nonproxy fire hook)
+    function self:start_firing_anim ()
+	if not self.animate_arm then
+	    self.animate_arm = 1
+	    self.arm_tics = 0
+	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
+	end
+    end
 
     -- animation and update hook
     self.walk_frame = 0
@@ -180,13 +210,12 @@ local player_proxy_init = function (self)
     -- switch weapon (called by nonproxy switch_weapon)
     function self:switch_weapon (weapon_name)
 	local w = weapons[weapon_name]
-	if w then
-	    self:replace_layer (self.arm_layer, w.arm_anim[1],
-				w.arm_anim.cx, w.arm_anim.cy)
-	    _internal_set_camera (0, 96)
-	    if self.is_local and w.client_switch_to_hook then
-		w.client_switch_to_hook ()
-	    end
+	self.current_weapon = w
+	self:replace_layer (self.arm_layer, w.arm_anim[1],
+			    w.arm_anim.cx, w.arm_anim.cy)
+	_internal_set_camera (0, 96)
+	if self.is_local and w.client_switch_to_hook then
+	    w.client_switch_to_hook ()
 	end
     end
 end

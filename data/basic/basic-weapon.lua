@@ -69,12 +69,11 @@ Weapon {
 	"/basic/weapon/blaster/1arm001",
 	"/basic/weapon/blaster/1arm002",
 	"/basic/weapon/blaster/1arm003";
-	cx = 0, 
-	cy = 3
+	cx = 0, cy = 3, tics = 2
     },
     fire = function (player)
 	spawn_projectile ("basic-blaster-projectile", player, 10)
-	player.fire_delay = 0.1 * 50
+	player.fire_delay = 50 * 0.1
     end
 }
 
@@ -188,7 +187,7 @@ Weapon {
 	"/basic/weapon/minigun/2arm004",
 	"/basic/weapon/minigun/2arm005",
 	"/basic/weapon/minigun/2arm006";
-	cx = 0, cy = 1
+	cx = 0, cy = 1, tics = 2
     }
 }
 
@@ -260,7 +259,7 @@ Weapon {
 	"/basic/weapon/shotgun/2arm001",
 	"/basic/weapon/shotgun/2arm002",
 	"/basic/weapon/shotgun/2arm003";
-	cx = 1, cy = 4
+	cx = 1, cy = 4, tics = 4
     }
 }
 
