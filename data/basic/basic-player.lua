@@ -185,9 +185,9 @@ local player_nonproxy_init = function (self)
     _internal_tell_armour (self, self.armour)
 
     function self:receive_damage (damage, attacker)
-	spawn_blood_on_clients (self.x + cx, self.y + cy, 100, 2)
-	if damage/5 >= 1 then
-	    spawn_blod_on_clients (self.x, self.y, damage/5)
+	spawn_blood_on_clients (self.x + cx, self.y + cy, 200, 2)
+	if damage/3 >= 1 then
+	    spawn_blod_on_clients (self.x, self.y, damage/3)
 	end
 
 	local dmg = damage/2	-- armour absorbs half damage

@@ -79,7 +79,7 @@ void blod_spawn (map_t *map, float x, float y, long nparticles)
 
 	lua_pushcfunction (client_lua_namespace, blod_update_hook);
 	hook = lua_ref (client_lua_namespace, 1);
-	object_set_update_hook (obj, rnd (10 * 1000, 15 * 1000), hook);
+	object_set_update_hook (obj, rnd (15 * 1000, 30 * 1000), hook);
 
 	map_link_object (map, obj);
     }
