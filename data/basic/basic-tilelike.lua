@@ -71,6 +71,15 @@ local Barrel = function (t)
 		    spawn_explosion ("basic-explo42", self.x, self.y)
 		    spawn_sparks (self.x, self.y, 30, 3)
 		    spawn_blast (self.x, self.y, 45, 50)
+
+		    if t.chunks then
+			for i = 1, random (10) do
+			    spawn_object (t.chunks,
+					  self.x + random (17) - 8,
+					  self.y + random (17) - 8)
+			end
+		    end
+
 		    self:hide ()
 		    function the_hook (self)
 			if _internal_would_collide_with_objects (self) then
@@ -88,18 +97,52 @@ local Barrel = function (t)
     })
 end
 
+local BarrelChunks = function (t)
+    return Objtype (t, {
+	icon = t.images[1],
+	nonproxy_init = function (self)
+	    self.mass = 0.001
+	    self:set_collision_flags ("t")
+	    self:set_update_hook (1000 + random (3000), object_destroy)
+	end,
+	proxy_init = function (self)
+	    self:replace_layer (0, t.images[random (getn (t.images))], 0, 0)
+	end
+    })
+end
+
 Barrel {
     name = "basic-barrel-red",
     icon = "/basic/tilelike/barrel-red/main",
     health = 30,
-    respawn_secs = 20
+    respawn_secs = 20,
+    chunks = "basic-barrel-red-chunks"
 }
 
 Barrel {
     name = "basic-barrel-grey",
     icon = "/basic/tilelike/barrel-gray/main",
     health = 30,
-    respawn_secs = 20
+    respawn_secs = 20,
+    chunks = "basic-barrel-gray-chunks"
+}
+
+BarrelChunks {
+    name = "basic-barrel-red-chunks",
+    images = {
+	"/basic/tilelike/barrel-red/chunk0",
+	"/basic/tilelike/barrel-red/chunk1",
+	"/basic/tilelike/barrel-red/chunk2"
+    }
+}
+
+BarrelChunks {
+    name = "basic-barrel-gray-chunks",
+    images = {
+	"/basic/tilelike/barrel-gray/chunk0",
+	"/basic/tilelike/barrel-gray/chunk1",
+	"/basic/tilelike/barrel-gray/chunk2"
+    }
 }
 
 
