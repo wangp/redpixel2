@@ -27,8 +27,7 @@ Compiling
     The files you need are: hash.c hash.h store.c store.h
 
     If you get warnings when compiling about the `const' keyword, get
-    a newer version of Allegro (3.9.33 or above).  (As of the time of
-    writing, this is not out yet :-)
+    a newer version of Allegro (3.9.33 or above).
 
 
 API
@@ -114,11 +113,13 @@ Credits
 	
 Contact
 
-    Email:	tjaden@psynet.net
-    WWW: 	http://www.psynet.net/tjaden/
+    Email:	tjaden@users.sourceforge.net
+    WWW: 	http://www.alphalink.com.au/~tjaden/
 
 
 History
+
+    28 April 2001: Some changes in the hash table implementation.
 
     June 2000: Initial version, for Red Pixel II.
 

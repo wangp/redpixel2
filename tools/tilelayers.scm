@@ -3,7 +3,7 @@
 ;; 
 ;; Tile layers
 ;; Copyright (c) 2000 Peter Wang
-;; tjaden@psynet.net
+;; tjaden@users.sourceforge.net
 ;;
 ;; This file is gift-ware.  This file is given to you freely
 ;; as a gift.  You may use, modify, redistribute, and generally hack

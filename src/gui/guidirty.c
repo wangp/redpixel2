@@ -1,6 +1,6 @@
 /* guidirty.c - yet another hack of `demo.c'
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

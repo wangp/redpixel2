@@ -4,6 +4,8 @@
  * Hacked to pieces by Peter Wang, June 1999.
  * ... and again in June 2000 (made to use Allegro Unicode string
  * 	functions, and fixed hash_enumerate)
+ * ... and again in April 2001 (changed the hashing function, made
+ *	shorter, and added scmp)
  */
 
 
@@ -11,6 +13,31 @@
 #include <stdlib.h>
 #include <allegro.h>
 #include "hash.h"
+
+
+
+/* hash: 
+ *  Hashes a string.
+ */
+static unsigned long hash(const unsigned char *str)
+{
+    unsigned long hash = 0, c;
+    while ((c = *str++)) 
+	hash = (hash * 17) ^ c;
+    return hash;
+}
+
+
+
+/* scmp:
+ *  We can get a little more speed in string comparisons by comparing
+ *  the first character before calling a comparison function.  Returns
+ *  zero if the strings are equal, non-zero otherwise (no ordering).
+ */
+static inline int scmp(const char *s1, const char *s2)
+{
+    return (*s1 != *s2) || (ustrcmp(s1, s2));
+}
 
 
 
@@ -24,38 +51,16 @@ struct hash_table *hash_construct(struct hash_table *table, int size)
     int i;
     struct bucket **temp;
 
-    table->size = size;
-    table->table = (struct bucket **)malloc(sizeof(struct bucket *) * size);
+    table->table = malloc(sizeof(struct bucket *) * size);
     temp = table->table;
-
-    if (temp == NULL) {
+    if (NULL == temp)
 	table->size = 0;
-	return table;
+    else {
+	table->size = size;
+	for (i = 0; i < size; i++)
+	    temp[i] = NULL;
     }
-
-    for (i = 0; i < size; i++)
-	temp[i] = NULL;
     return table;
-}
-
-
-
-/* hash: 
- *  Hashes a string to an unsigned short (16 bits).
- */
-static unsigned short hash(const char *string)
-{
-    unsigned short ret_val = 0;
-    int i;
-
-    while (*string) {
-	i = *(int *)string;
-	ret_val ^= i;
-	ret_val <<= 1;
-	string++;
-    }
-    
-    return ret_val;
 }
 
 
@@ -70,29 +75,15 @@ void *hash_insert(const char *key, void *data, struct hash_table *table)
     unsigned int val = hash(key) % table->size;
     struct bucket *ptr;
     
-    /* NULL means this struct bucket hasn't been used yet */
-    if (NULL == (table->table)[val]) {
-	(table->table)[val] = (struct bucket *)malloc(sizeof(struct bucket));
-	if (NULL == (table->table)[val])
-	    return NULL;
-
-	(table->table)[val]->key = ustrdup(key);
-	(table->table)[val]->next = NULL;
-	(table->table)[val]->data = data;
-	return (table->table)[val]->data;
-    }
-
-    /* This spot in the table is already in use.  See if the current string
-     * has already been inserted, and if so, increment its count.
+    /* See if the current string has already been inserted, and if so,
+     * replace the old data.
      */
-    for (ptr = (table->table)[val]; NULL != ptr; ptr = ptr->next)
-      if (0 == ustrcmp(key, ptr->key)) {
-	  void *old_data;
-	  
-	  old_data = ptr->data;
-	  ptr->data = data;
-	  return old_data;
-      }
+    for (ptr = table->table[val]; NULL != ptr; ptr = ptr->next)
+	if (0 == scmp(key, ptr->key)) {
+	    void *old_data = ptr->data;
+	    ptr->data = data;
+	    return old_data;
+	}
     
     /* This key must not be in the table yet.  We'll add it to the head of
      * the list at this spot in the hash table.  Speed would be
@@ -101,15 +92,14 @@ void *hash_insert(const char *key, void *data, struct hash_table *table)
      * take place as soon as it was determined that the present key in the
      * list was larger than this one.
      */
-
-    ptr = (struct bucket *)malloc(sizeof(struct bucket));
+    ptr = malloc(sizeof(struct bucket));
     if (NULL == ptr)
-	return 0;
+	return NULL;
     ptr->key = ustrdup(key);
     ptr->data = data;
-    ptr->next = (table->table)[val];
-    (table->table)[val] = ptr;
-    return data;
+    ptr->next = table->table[val];
+    table->table[val] = ptr;
+    return NULL;
 }
 
 
@@ -123,12 +113,9 @@ void *hash_lookup(const char *key, struct hash_table *table)
     unsigned int val = hash(key) % table->size;
     struct bucket *ptr;
     
-    if (NULL == (table->table)[val])
-      return NULL;
-
-    for (ptr = (table->table)[val]; NULL != ptr; ptr = ptr->next) 
-      if (0 == ustrcmp(key, ptr->key))
-	return ptr->data;
+    for (ptr = table->table[val]; NULL != ptr; ptr = ptr->next) 
+	if (0 == scmp(key, ptr->key))
+	    return ptr->data;
 
     return NULL;
 }
@@ -145,38 +132,18 @@ void *hash_del(const char *key, struct hash_table *table)
     void *data;
     struct bucket *ptr, *last = NULL;
     
-    if (NULL == (table->table)[val])
-	return NULL;
-    
-    for (last = NULL, ptr = (table->table)[val];
-	 NULL != ptr;
-	 last = ptr, ptr = ptr->next) {
-	
-	if (0 == ustrcmp(key, ptr->key)) {
-	    if (last != NULL) {
-		data = ptr->data;
+    for (ptr = table->table[val]; NULL != ptr; ptr = ptr->next) {
+	if (0 == scmp(key, ptr->key)) {
+	    if (NULL != last)
 		last->next = ptr->next;
-		free(ptr->key);
-		free(ptr);
-		return data;
-	    }
-	    
-	    /*
-	     ** If 'last' still equals NULL, it means that we need to
-	     ** delete the first node in the list. This simply consists
-	     ** of putting our own 'next' pointer in the array holding
-	     ** the head of the list.  We then dispose of the current
-	     ** node as above.
-	     */
-
-	    else {
-		data = ptr->data;
-		(table->table)[val] = ptr->next;
-		free(ptr->key);
-		free(ptr);
-		return data;
-	    }
+	    else
+		table->table[val] = ptr->next;
+	    data = ptr->data;
+	    free(ptr->key);
+	    free(ptr);
+	    return data;
 	}
+	last = ptr;
     }
 
     return NULL;
@@ -193,8 +160,8 @@ void hash_enumerate(struct hash_table *table, void (*callback)(const char *, voi
     int i;
     struct bucket *bucket, *next;
 
-    for (i = 0; i < table->size; i++) 
-	for (bucket = table->table[i]; bucket; bucket = next) {
+    for (i = 0; i < table->size; i++)
+	for (bucket = table->table[i]; NULL != bucket; bucket = next) {
 	    next = bucket->next;
 	    callback(bucket->key, bucket->data);
 	}
@@ -205,7 +172,7 @@ void hash_enumerate(struct hash_table *table, void (*callback)(const char *, voi
 /* These are used in freeing a table.  Perhaps I should code up
  * something a little less grungy, but it works, so what the heck.
  */
-static void (*function)(void *) = (void (*)(void *))NULL;
+static void (*function)(void *) = NULL;
 static struct hash_table *the_table = NULL;
 
 
@@ -244,5 +211,5 @@ void hash_free(struct hash_table *table, void (*func)(void *))
     table->size = 0;
 
     the_table = NULL;
-    function = (void (*)(void *))NULL;
+    function = NULL;
 }

@@ -5,7 +5,7 @@
  *  exlights.c, trading off image quality (12 bpp instead of 15 bpp) for a few
  *  extra lighting levels (16 instead of 8).
  *
- *  Peter Wang <tjaden@psynet.net>
+ *  Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

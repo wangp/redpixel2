@@ -1,6 +1,6 @@
 /* ugthmpaw.c - The Paw theme for UG
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

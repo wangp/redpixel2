@@ -1,6 +1,6 @@
 /* bdobject.c - Lua export functions (object)
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

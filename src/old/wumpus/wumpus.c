@@ -1,4 +1,4 @@
-/*  Wumpus, by Peter Wang <tjaden@psynet.net>
+/*  Wumpus, by Peter Wang <tjaden@users.sourceforge.net>
  *  See README for information.
  */
 

@@ -1,6 +1,6 @@
 /* hub.c - central launch point 
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

@@ -1,6 +1,6 @@
 /* bitmask.c - based heavily off PPCol, by Ivan Baldo
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

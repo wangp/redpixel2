@@ -2,7 +2,7 @@
 
 /* yield.c - yeild a timeslice
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

@@ -1,6 +1,6 @@
 /* gamenet.c - game network protocol
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

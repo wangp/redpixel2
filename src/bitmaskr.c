@@ -1,6 +1,6 @@
 /* bitmaskr.c - bitmask references
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

@@ -1,3 +1,11 @@
+2001-05-10  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Changed email address in many files (sigh).
+
+2001-04-28  Peter Wang  <tjaden@psynet.net>
+
+	* Some changes to Store (see src/store/README).
+
 2001-04-26  Peter Wang  <tjaden@psynet.net>
 
 	* Now store_load is exported straight to Lua (path unaware).  The

@@ -1,6 +1,6 @@
 /* guiwmdef.c - default [only] window manager
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

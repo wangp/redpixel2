@@ -2,7 +2,7 @@
  *
  * Parts of this module is Unicode-unaware, as we pass strings to Lua.
  * 
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

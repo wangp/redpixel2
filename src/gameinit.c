@@ -1,6 +1,6 @@
 /* gameinit.c - main init and shutdown
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 

@@ -1,6 +1,6 @@
 /* bitmaskg.c - bitmask generation
  *
- * Peter Wang <tjaden@psynet.net>
+ * Peter Wang <tjaden@users.sourceforge.net>
  */
 
 
