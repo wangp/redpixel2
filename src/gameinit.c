@@ -14,6 +14,7 @@
 #include "fastsqrt.h"
 #include "gameinit.h"
 #include "jpgalleg.h"
+#include "loadaud.h"
 #include "loaddata.h"
 #include "magic4x4.h"
 #include "mylua.h"
@@ -32,6 +33,7 @@ void game_init (void)
     
     register_bitmap_file_type ("jpg", load_jpg, NULL);
     register_extended_datafile ();
+    register_aud_file_type ();
 
     path_init ();
     store_init (200);

@@ -5,7 +5,7 @@
 include config.linux
 
 SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
-	   src/gui src/ug src/editor src/server
+	   src/loadaud src/gui src/ug src/editor src/server
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
@@ -40,6 +40,9 @@ MODULES_FASTSQRT :=				\
 
 MODULES_JPGALLEG :=				\
 	jpeg
+
+MODULES_LOADAUD :=				\
+	loadaud
 
 MODULES_GUI :=					\
 	gui					\
@@ -124,6 +127,7 @@ MODULES := 					\
 	$(MODULES_MAGIC)			\
 	$(MODULES_FASTSQRT)			\
 	$(MODULES_JPGALLEG)			\
+	$(MODULES_LOADAUD)			\
 	$(MODULES_GUI)				\
 	$(MODULES_UG)				\
 	$(MODULES_EDITOR)			\
