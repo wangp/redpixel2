@@ -282,9 +282,15 @@ objid_t object_id (object_t *obj)
 }
 
 
-int object_is_client (object_t *obj)
+inline int object_is_client (object_t *obj)
 {
-    return obj->id < OBJID_PLAYER_MAX;
+    return (obj->id != OBJID_CLIENT_PROCESSED) && (obj->id < OBJID_PLAYER_MAX);
+}
+
+
+int object_is_client_processed (object_t *obj)
+{
+    return obj->id == OBJID_CLIENT_PROCESSED;
 }
 
 
@@ -1253,7 +1259,7 @@ void object_do_physics (object_t *obj, map_t *map)
 	rep = 1;
     }
 
-    if ((obj->id >= OBJID_PLAYER_MAX) && (too_far_off_map (obj, map)))
+    if (!object_is_client (obj) && (too_far_off_map (obj, map)))
 	obj->is_stale = 1;
     else if (rep)
 	obj->replication_flags |= OBJECT_REPLICATE_UPDATE;
