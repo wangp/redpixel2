@@ -38,6 +38,7 @@ static store_file_t menu_data_file;
 char address_editbox_buf[32] = "localhost";
 char name_editbox_buf[32] = "Gutless";
 char port_editbox_buf[8] = DEFAULT_PORT;
+int client_connected = 0;
 int client_was_kicked = 0;
 int desired_menu_screen_w = 640, desired_menu_screen_h = 480;
 
@@ -249,7 +250,11 @@ static int client_finished_entering_name (void)
 
 static int join_server_pressed (void)
 {
+    int ret = D_REDRAW;
+
     messages_init ();
+
+    client_connected = 0;
 
     if (client_init(name_editbox_buf, INET_DRIVER, address_editbox_buf) == 0) {
 	sync_init (NULL);
@@ -258,12 +263,16 @@ static int join_server_pressed (void)
 	client_shutdown ();
     }
 
+    if (client_connected)
+	ret = D_EXIT;
+
     messages_shutdown ();
     set_menu_gfx_mode ();
     set_menu_mouse_range ();
     show_mouse (screen);
     select_frontend_music ();
-    return D_EXIT;
+
+    return ret;
 }
 
 

@@ -1225,6 +1225,9 @@ void client_run (int client_server)
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 
+	/* XXX */
+	client_connected = 1;
+
 	while (1) {
 	    sync_client_lock ();
 
