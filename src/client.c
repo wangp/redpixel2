@@ -175,6 +175,7 @@ typedef struct client_info {
     struct client_info *prev;
     client_id_t id;
     char *name;
+    char *face_icon;
     char *score;
 } client_info_t;
 
@@ -188,12 +189,15 @@ static void client_info_list_init (void)
 }
 
 
-static void client_info_list_add (client_id_t id, const char *name, const char *score)
+static void client_info_list_add (client_id_t id, const char *name,
+				  const char *face_icon,
+				  const char *score)
 {
     client_info_t *c = alloc (sizeof *c);
 
     c->id = id;
     c->name = ustrdup (name);
+    c->face_icon = ustrdup (face_icon);
     c->score = ustrdup (score);
     list_append (client_info_list, c);
 }
@@ -254,11 +258,13 @@ static void process_sc_client_add (const char *buf)
     client_id_t id;
     short nlen;
     char name[NETWORK_MAX_PACKET_SIZE];
+    short flen;
+    char face[NETWORK_MAX_PACKET_SIZE];
     short slen;
     char score[NETWORK_MAX_PACKET_SIZE];
 
-    packet_decode (buf, "lss", &id, &nlen, name, &slen, score);
-    client_info_list_add (id, name, score);
+    packet_decode (buf, "lsss", &id, &nlen, name, &flen, face, &slen, score);
+    client_info_list_add (id, name, face, score);
 }
 
 

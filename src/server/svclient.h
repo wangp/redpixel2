@@ -28,6 +28,7 @@ struct svclient {
     int id;
     struct object *client_object;
     char *name;
+    char *face_icon;
     int flags;
     int controls;
     int old_controls;    
@@ -66,6 +67,7 @@ extern struct list_head svclients;
 svclient_t *svclient_create (struct NET_CONN *conn);
 void svclient_destroy (svclient_t *c);
 void svclient_set_name (svclient_t *c, const char *name);
+void svclient_set_face_icon (svclient_t *c, const char *face_icon);
 void svclient_set_score (svclient_t *c, const char *score);
 void svclient_set_timeout (svclient_t *c, int secs);
 int svclient_timed_out (svclient_t *c);

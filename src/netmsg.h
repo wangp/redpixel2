@@ -58,7 +58,7 @@ enum {
        that exists (possibly itself).  This is sent once when a new
        client is connected.
 
-       Args: long client_id, string name, string score.
+       Args: long client_id, string name, string face_icon, string score.
        Score maybe be 0-length.
      */
 

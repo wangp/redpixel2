@@ -68,7 +68,8 @@ end
 -- modules to load
 
 local files = {
-    "basic/basic-init.lua"
+    "basic/basic-init.lua",
+    "frontend/frontend-menu.lua"
 }
 
 for _,filename in files do

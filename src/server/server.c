@@ -94,13 +94,32 @@ static void poll_client_joining (svclient_t *c)
 	    }
 	    else {
 		svclient_t *other;
-			
+
+		/* Give this client a face icon.  */
+		{
+		    lua_State *L = server_lua_namespace;
+		    const char *s;
+
+		    lua_getglobal (L, "_internal_get_random_face");
+		    if (!lua_isfunction (L, -1))
+			error ("Missing _internal_get_random_face\n");
+		    lua_call (L, 0, 1);
+
+		    if (!lua_isstring (L, -1))
+			error ("Expecting string return type from _internal_get_random_face\n");
+		    s = lua_tostring (L, -1);
+
+		    svclient_set_face_icon (c, s);
+
+		    lua_pop (L, 1);
+		}
+
 		/* Tell existing clients about this new client.  */
 		for_each_svclient (other)
 		    if (other->state == SVCLIENT_STATE_JOINED)
 			svclient_send_rdm_encode (
-			    other, "clss", MSG_SC_CLIENT_ADD,
-			    c->id, c->name, c->score);
+			    other, "clsss", MSG_SC_CLIENT_ADD,
+			    c->id, c->name, c->face_icon, c->score);
 
 		svclient_set_state (c, SVCLIENT_STATE_JOINED);
 
@@ -108,8 +127,9 @@ static void poll_client_joining (svclient_t *c)
 		for_each_svclient (other)
 		    if (other->state == SVCLIENT_STATE_JOINED)
 			svclient_send_rdm_encode (
-			    c, "clss", MSG_SC_CLIENT_ADD,
-			    other->id, other->name, other->score);
+			    c, "clsss", MSG_SC_CLIENT_ADD,
+			    other->id, other->name, other->face_icon,
+			    other->score);
 
 		if (curr_state == SERVER_STATE_GAME)
 		    svclient_set_wantfeed (c);
