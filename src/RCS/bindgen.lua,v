@@ -1,9 +1,19 @@
-head	1.38;
+head	1.40;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.40
+date	2002.07.13.06.21.53;	author tjaden;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	2002.07.12.17.28.16;	author tjaden;	state Exp;
+branches;
+next	1.38;
 
 1.38
 date	2002.07.12.05.19.42;	author tjaden;	state Exp;
@@ -200,11 +210,11 @@ desc
 @@
 
 
-1.38
+1.40
 log
-@Made all spawn-and-forget server functions be named *_on_clients,
-e.g. spawn_blod_on_clients.  Added a different spawn_explosion
-binding, so clients can create their own explosions.
+@Added svgame_get_client_name and svgame_broadcast_text_message
+exports.  Also made bindings return true and false by default instead
+of 1 and nil.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -221,6 +231,7 @@ ctypes = {
     Float	= { "n", "float", "lua_tonumber" },
     Function 	= { "f", "lua_ref_t", "lua_ref" },
     Int	 	= { "n", "int", "lua_tonumber" },
+    Bool	= { "b", "int", "lua_toboolean" },
     String	= { "s", "const char *", "lua_tostring" },
     -- custom and readability types
     Method   	= { "f", "lua_ref_t", "lua_ref" },
@@ -232,6 +243,7 @@ ctypes = {
 Float = "Float"
 Function = "Function"
 Int = "Int"
+Bool = "Bool"
 String = "String"
 Method = "Method"
 Object = "Object"
@@ -325,7 +337,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
     end
 
     -- success clause
-    str = str..tab..(success or "lua_pushnumber(L, 1); return 1;").."\n"
+    str = str..tab..(success or "lua_pushboolean(L, 1); return 1;").."\n"
 
     -- bad args clause
     str = str..
@@ -333,7 +345,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
 	tab.."goto error; /* shut up the compiler about unused labels */\n"
 
     -- error clause
-    str = str.."error:\n"..tab..(error or "lua_pushnil(L); return 1;").."\n"
+    str = str.."error:\n"..tab..(error or "lua_pushboolean(L, 0); return 1;").."\n"
 
     str = str.."}\n"
     print (str)
@@ -470,6 +482,12 @@ generate_server {
 }
 
 generate_client {
+    cname	= "object_set_highlighted",
+    args	= {{ Object, "obj" },
+		   { Bool, "yes_or_no" }}
+}
+
+generate_client {
     cname	= "object_moving_horizontally",
     lname	= "_internal_object_moving_horizontally",
     args	= {{ Object, "obj" }},
@@ -549,7 +567,7 @@ generate_client {
     cname	= "object_hflip_layer",
     args	= {{ Object, "obj" },
 		   { Int, "layerid" },
-		   { Int, "hflip" }},	-- XXX should be Bool
+		   { Bool, "hflip" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -769,6 +787,20 @@ generate_server {
 		   { String, "sample" }}
 }
 
+generate_server {
+    cname	= "svgame_get_client_name",
+    lname	= "get_client_name",
+    args	= {{ Int, "clientid" }},
+    ret		= { String, "ret", "!$" },
+    success	= "lua_pushstring(L, ret); return 1;"
+}
+
+generate_server {
+    cname	= "svgame_broadcast_text_message",
+    lname	= "broadcast_text_message",
+    args	= {{ String, "message" }}
+}
+
 
 --------------
 -- client.h --
@@ -792,7 +824,7 @@ generate_client {
 generate_client {
     cname	= "client_set_camera",
     lname	= "_internal_set_camera",
-    args	= {{ Int, "pushable" },	-- XXX should be Bool
+    args	= {{ Bool, "pushable" },
 		   { Int, "max_dist" }}
 }
 
@@ -807,6 +839,41 @@ print (reg_client)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.39
+log
+@Made generated bindings use a proper Bool type where appropriate
+instead of an Int.  Added object_set_highlighted binding.
+@
+text
+@d121 1
+a121 1
+    str = str..tab..(success or "lua_pushnumber(L, 1); return 1;").."\n"
+d129 1
+a129 1
+    str = str.."error:\n"..tab..(error or "lua_pushnil(L); return 1;").."\n"
+d569 14
+@
+
+
+1.38
+log
+@Made all spawn-and-forget server functions be named *_on_clients,
+e.g. spawn_blod_on_clients.  Added a different spawn_explosion
+binding, so clients can create their own explosions.
+@
+text
+@d15 1
+d27 1
+d266 6
+d351 1
+a351 1
+		   { Int, "hflip" }},	-- XXX should be Bool
+d594 1
+a594 1
+    args	= {{ Int, "pushable" },	-- XXX should be Bool
 @
 
 

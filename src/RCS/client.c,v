@@ -1,9 +1,19 @@
-head	1.43;
+head	1.45;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.45
+date	2002.07.13.13.03.01;	author tjaden;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	2002.07.13.07.23.25;	author tjaden;	state Exp;
+branches;
+next	1.43;
 
 1.43
 date	2002.07.12.06.52.13;	author tjaden;	state Exp;
@@ -225,9 +235,10 @@ desc
 @@
 
 
-1.43
+1.45
 log
-@Made the scores sheet fade in/out gradually.
+@Added up/down weapon switching (aka. Q/E or mouse wheel weapon
+switching).
 @
 text
 @/* client.c
@@ -613,32 +624,90 @@ static void send_gameinfo_controls (void)
 
 
 /* XXX stuff in the same packet as _CONTROLS? */
+/* XXX a bit dirty this function */
 static void send_gameinfo_weapon_switch (void)
 {
-    static char last_key[10] = {0,0,0,0,0,0,0,0,0,0};
-    int cant_set = 0;
-    int i;
+    int keyboard_grabbed;
+    int already_set = 0;
 
-    if (messages_grabbed_keyboard ())
-	cant_set = 1;
+    keyboard_grabbed = messages_grabbed_keyboard ();
 
-    for (i = 0; i < 10; i++) {
-	int is_down = key[KEY_1 + i];
+    /* KEY_1 - KEY_9 */
+    {
+	static char last_key[9] = {0,0,0,0,0,0,0,0,0};
+	int i;
 
-	if (!cant_set && is_down && !last_key[i]) {
-	    lua_getglobal (Lclt, "weapon_order");
-	    lua_pushnumber (Lclt, i+1);
-	    lua_rawget (Lclt, -2);
-	    if (lua_isstring (Lclt, -1)) {
+	for (i = 0; i < 9; i++) {
+	    int is_down = key[KEY_1 + i];
+
+	    if (!already_set && !keyboard_grabbed &&
+		is_down && !last_key[i]) {
+		lua_getglobal (Lclt, "weapon_order");
+		lua_pushnumber (Lclt, i+1);
+		lua_rawget (Lclt, -2);
+		if (lua_isstring (Lclt, -1)) {
+		    net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+					 MSG_CS_GAMEINFO_WEAPON_SWITCH,
+					 lua_tostring (Lclt, -1));
+		}
+		lua_pop (Lclt, 1);
+		already_set = 1;
+	    }
+
+	    last_key[i] = is_down;
+	}
+    }
+
+    /* KEY_Q, KEY_E */
+    {
+	static int last_Q;
+	static int last_E;
+
+	int Q = key[KEY_Q];
+	int E = key[KEY_E];
+
+	int prev = !last_Q && Q;
+	int next = !last_E && E;
+
+	last_Q = Q;
+	last_E = E;
+
+	if (!already_set && !keyboard_grabbed) {
+	    if (prev && !next) {
 		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
 				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
-				     lua_tostring (Lclt, -1));
+				     "_internal_prev");
+		already_set = 1;
 	    }
-	    lua_pop (Lclt, 1);
-	    cant_set = 1;
+	    else if (next && !prev) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     "_internal_next");
+		already_set = 1;
+	    }
 	}
+    }
 
-	last_key[i] = is_down;
+    /* mouse wheelie */
+    {
+	static int last_mouse_z;
+	int dir = last_mouse_z - mouse_z;
+	last_mouse_z = mouse_z;
+
+	if (!already_set) {
+	    if (dir > 0) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     "_internal_prev");
+		already_set = 1;
+	    }
+	    else if (dir < 0) {
+		net_send_rdm_encode (conn, "ccs", MSG_CS_GAMEINFO,
+				     MSG_CS_GAMEINFO_WEAPON_SWITCH,
+				     "_internal_next");
+		already_set = 1;
+	    }
+	}
     }
 }
 
@@ -1248,7 +1317,7 @@ void client_run (int client_server)
 			   "Press Q to cancel", NULL);
 
 	do {
-	    if (key[KEY_Q])
+	    if (key[KEY_ESC])
 		return;
 	    sync_client_lock ();
 	    status = net_poll_connect (conn);
@@ -1315,7 +1384,7 @@ void client_run (int client_server)
 	    sync_client_lock ();
 
 	    if (!messages_grabbed_keyboard ()) {
-		if (key[KEY_Q]) {
+		if (key[KEY_ESC]) {
 		    if (lobby_bmp) destroy_bitmap (lobby_bmp); /* XXX */
 		    sync_client_unlock ();
 		    goto disconnect;
@@ -1383,7 +1452,7 @@ void client_run (int client_server)
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_Q]) {
+	    if (key[KEY_ESC]) {
 		sync_client_unlock ();
 		goto disconnect;
 	    }
@@ -1431,7 +1500,7 @@ void client_run (int client_server)
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_Q]) {
+	    if (key[KEY_ESC]) {
 		sync_client_unlock ();
 		goto disconnect;
 	    }
@@ -1490,7 +1559,7 @@ void client_run (int client_server)
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_Q]) {
+	    if (key[KEY_ESC]) {
 		sync_client_unlock ();
 		goto disconnect;
 	    }
@@ -1573,6 +1642,10 @@ void client_run (int client_server)
 		    scores_brightness += (want_scores ? 1 : -1);
 		    scores_brightness = MID (0, scores_brightness, 15);
 		}
+
+		/* Hack: this makes Allegro half-heartedly grab the
+		 * mouse inside a window. */
+		{int x,y; get_mouse_mickeys (&x, &y);}
 
 		dbg ("do physics");
 		perform_simple_physics (t, t - last_ticks);
@@ -1722,6 +1795,66 @@ void client_shutdown (void)
     free (client_name);
     net_closeconn (conn);
 }
+@
+
+
+1.44
+log
+@Small hack to make Allegro grab the mouse inside the window.
+@
+text
+@d384 1
+d387 53
+a439 15
+    static char last_key[10] = {0,0,0,0,0,0,0,0,0,0};
+    int cant_set = 0;
+    int i;
+
+    if (messages_grabbed_keyboard ())
+	cant_set = 1;
+
+    for (i = 0; i < 10; i++) {
+	int is_down = key[KEY_1 + i];
+
+	if (!cant_set && is_down && !last_key[i]) {
+	    lua_getglobal (Lclt, "weapon_order");
+	    lua_pushnumber (Lclt, i+1);
+	    lua_rawget (Lclt, -2);
+	    if (lua_isstring (Lclt, -1)) {
+d442 2
+a443 1
+				     lua_tostring (Lclt, -1));
+a444 2
+	    lua_pop (Lclt, 1);
+	    cant_set = 1;
+d446 7
+d454 14
+a467 1
+	last_key[i] = is_down;
+d1077 1
+a1077 1
+	    if (key[KEY_Q])
+d1144 1
+a1144 1
+		if (key[KEY_Q]) {
+d1212 1
+a1212 1
+	    if (key[KEY_Q]) {
+d1260 1
+a1260 1
+	    if (key[KEY_Q]) {
+d1319 1
+a1319 1
+	    if (key[KEY_Q]) {
+@
+
+
+1.43
+log
+@Made the scores sheet fade in/out gradually.
+@
+text
+@d1345 4
 @
 
 

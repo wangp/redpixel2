@@ -1,9 +1,19 @@
-head	1.16;
+head	1.18;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.18
+date	2002.07.13.06.21.25;	author tjaden;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	2002.07.13.05.52.26;	author tjaden;	state Exp;
+branches;
+next	1.16;
 
 1.16
 date	2002.07.11.12.24.42;	author tjaden;	state Exp;
@@ -90,11 +100,10 @@ desc
 @@
 
 
-1.16
+1.18
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Added svgame_get_client_name and svgame_broadcast_text_message
+exports.
 @
 text
 @/* svgame.c
@@ -967,6 +976,21 @@ void svgame_play_sound_on_clients (object_t *obj, const char *sound)
 }
 
 
+const char *svgame_get_client_name (int client_id)
+{
+    svclient_t *c = svclients_find_by_id (client_id);
+    return c ? c->name : NULL;
+}
+
+
+void svgame_broadcast_text_message (const char *msg)
+{
+    char buf[64];
+    ustrzcpy (buf, sizeof buf, msg);
+    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -1079,12 +1103,11 @@ static int init_game_state (void)
     }
     string_set (server_current_map_file, server_next_map_file);
 
-    /* Init game type.  Should be extensible in future, currently
-     * hard-wired to Game_Type_Deathmatch.  */
-    lua_getglobal (Lsrv, "_internal_start_game_type");
+    /* Call new map hook.  */
+    lua_getglobal (Lsrv, "_internal_new_map_hook");
     if (!lua_isfunction (Lsrv, -1))
-	error ("Missing _internal_start_game_type\n");
-    lua_getglobal (Lsrv, "Game_Type_Deathmatch");
+	error ("Missing _internal_new_map_hook\n");
+    lua_pushstring (Lsrv, server_current_map_file);
     lua_call (Lsrv, 1, 0);
 
     /* Spawn a bunch of players.  */
@@ -1098,11 +1121,6 @@ static int init_game_state (void)
 
 static void free_game_state (void)
 {
-    lua_getglobal (Lsrv, "_internal_end_game_type");
-    if (!lua_isfunction (Lsrv, -1))
-	error ("Missing _internal_end_game_type\n");
-    lua_call (Lsrv, 0, 0);
-
     if (map) {
 	map_destroy (map);
 	map = NULL;
@@ -1154,6 +1172,41 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.17
+log
+@Changed slightly how game types work and fixed the scoring after
+changes of maps.
+@
+text
+@d871 15
+@
+
+
+1.16
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d983 2
+a984 3
+    /* Init game type.  Should be extensible in future, currently
+     * hard-wired to Game_Type_Deathmatch.  */
+    lua_getglobal (Lsrv, "_internal_start_game_type");
+d986 2
+a987 2
+	error ("Missing _internal_start_game_type\n");
+    lua_getglobal (Lsrv, "Game_Type_Deathmatch");
+a1000 5
+    lua_getglobal (Lsrv, "_internal_end_game_type");
+    if (!lua_isfunction (Lsrv, -1))
+	error ("Missing _internal_end_game_type\n");
+    lua_call (Lsrv, 0, 0);
+
 @
 
 

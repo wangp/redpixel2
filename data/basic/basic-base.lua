@@ -93,6 +93,7 @@ function _internal_object_init_hook (self)
 	self.move_light = object_move_light
 	self.remove_light = object_remove_light
 	self.remove_all_lights = object_remove_all_lights
+	self.set_highlighted = object_set_highlighted
 
     end
 end

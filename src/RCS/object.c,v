@@ -1,9 +1,24 @@
-head	1.27;
+head	1.30;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.30
+date	2002.07.13.07.58.18;	author tjaden;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	2002.07.13.03.44.55;	author tjaden;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	2002.07.12.17.26.38;	author tjaden;	state Exp;
+branches;
+next	1.27;
 
 1.27
 date	2002.07.11.15.25.54;	author tjaden;	state Exp;
@@ -145,10 +160,10 @@ desc
 @@
 
 
-1.27
+1.30
 log
-@Return false instead of non-nil from collide hooks to indicate that a
-collision did not occur (more intuitive).
+@Made player going too far off map count as suicide (e.g. fall off
+bottom).
 @
 text
 @/* object.c
@@ -164,6 +179,7 @@ text
 #include "bitmask.h"
 #include "bitmaskg.h"
 #include "bitmaskr.h"
+#include "error.h"
 #include "list.h"
 #include "magic4x4.h"
 #include "map.h"
@@ -208,6 +224,7 @@ struct object {
     /* Hidden objects are invisible and do not collide, but their
      * update hooks are called. */
     char is_hidden;
+    char is_highlighted;
 
     float x, y;
     float xv_decay, yv_decay;	/* not replicated */
@@ -485,6 +502,22 @@ void object_show (object_t *obj)
     if (obj->is_hidden) {
 	obj->is_hidden = 0;
 	object_set_replication_flag (obj, OBJECT_REPLICATE_HIDDEN);
+    }
+}
+
+
+int object_highlighted (object_t *obj)
+{
+    return obj->is_highlighted;
+}
+
+
+void object_set_highlighted (object_t *obj, int yes_or_no)
+{
+    yes_or_no = !!yes_or_no;
+    if (obj->is_highlighted != yes_or_no) {
+	obj->is_highlighted = yes_or_no;
+	object_set_replication_flag (obj, OBJECT_REPLICATE_HIGHLIGHTED);
     }
 }
 
@@ -1483,8 +1516,18 @@ void object_do_physics (object_t *obj, map_t *map)
 	rep = 1;
     }
 
-    if (!object_is_client (obj) && (too_far_off_map (obj, map)))
+    if (too_far_off_map (obj, map)) {
 	obj->is_stale = 1;
+	if (object_is_client (obj)) {
+	    lua_State *L = server_lua_namespace;
+	    lua_getglobal (L, "_internal_player_died_hook");
+	    if (!lua_isfunction (L, -1))
+		error ("Missing _internal_player_died_hook\n");
+	    lua_pushnumber (L, obj->id);
+	    lua_pushnumber (L, obj->id); /* (probably) suicide */
+	    lua_call (L, 2, 0);
+	}
+    }
     else if (rep)
 	obj->replication_flags |= OBJECT_REPLICATE_UPDATE;
 }
@@ -1583,10 +1626,11 @@ object_t *lua_toobject (lua_State *L, int index)
 }
 
 
-void object_call (lua_State *S, object_t *obj, const char *method, int nargs)
+int object_call (lua_State *S, object_t *obj, const char *method, int nargs)
 {
     int top = lua_gettop (S);
     int i;
+    int err;
 
     lua_getref (S, obj->table);
     lua_pushstring (S, method);
@@ -1595,10 +1639,18 @@ void object_call (lua_State *S, object_t *obj, const char *method, int nargs)
 	lua_pushobject (S, obj);
 	for (i = 0; i < nargs; i++)
 	    lua_pushvalue (S, -3 - nargs);
-	lua_call (S, 1 + nargs, 0);
+	err = lua_call (S, 1 + nargs, 0);
+    }
+    else {
+	char buf[1024];
+	uszprintf (buf, sizeof buf, "couldn't call method %s", method);
+	lua_error (S, buf);
+	err = LUA_ERRRUN;
     }
 
     lua_settop (S, top - nargs);
+
+    return err;
 }
 
 
@@ -1812,6 +1864,46 @@ void object_bounding_box (object_t *obj, int *rx1, int *ry1, int *rx2, int *ry2)
     *rx2 = x2;
     *ry2 = y2;
 }
+@
+
+
+1.29
+log
+@Return an error code if object_call fails.
+@
+text
+@d14 1
+d1351 1
+a1351 1
+    if (!object_is_client (obj) && (too_far_off_map (obj, map)))
+d1353 10
+@
+
+
+1.28
+log
+@Added highlightability of objects.
+@
+text
+@d1450 1
+a1450 1
+void object_call (lua_State *S, object_t *obj, const char *method, int nargs)
+d1454 1
+d1463 7
+a1469 1
+	lua_call (S, 1 + nargs, 0);
+d1473 2
+@
+
+
+1.27
+log
+@Return false instead of non-nil from collide hooks to indicate that a
+collision did not occur (more intuitive).
+@
+text
+@d58 1
+d336 16
 @
 
 

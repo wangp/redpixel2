@@ -12,6 +12,7 @@ ctypes = {
     Float	= { "n", "float", "lua_tonumber" },
     Function 	= { "f", "lua_ref_t", "lua_ref" },
     Int	 	= { "n", "int", "lua_tonumber" },
+    Bool	= { "b", "int", "lua_toboolean" },
     String	= { "s", "const char *", "lua_tostring" },
     -- custom and readability types
     Method   	= { "f", "lua_ref_t", "lua_ref" },
@@ -23,6 +24,7 @@ ctypes = {
 Float = "Float"
 Function = "Function"
 Int = "Int"
+Bool = "Bool"
 String = "String"
 Method = "Method"
 Object = "Object"
@@ -116,7 +118,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
     end
 
     -- success clause
-    str = str..tab..(success or "lua_pushnumber(L, 1); return 1;").."\n"
+    str = str..tab..(success or "lua_pushboolean(L, 1); return 1;").."\n"
 
     -- bad args clause
     str = str..
@@ -124,7 +126,7 @@ function generate_code (lname, cname, check, args, ret, success, error)
 	tab.."goto error; /* shut up the compiler about unused labels */\n"
 
     -- error clause
-    str = str.."error:\n"..tab..(error or "lua_pushnil(L); return 1;").."\n"
+    str = str.."error:\n"..tab..(error or "lua_pushboolean(L, 0); return 1;").."\n"
 
     str = str.."}\n"
     print (str)
@@ -261,6 +263,12 @@ generate_server {
 }
 
 generate_client {
+    cname	= "object_set_highlighted",
+    args	= {{ Object, "obj" },
+		   { Bool, "yes_or_no" }}
+}
+
+generate_client {
     cname	= "object_moving_horizontally",
     lname	= "_internal_object_moving_horizontally",
     args	= {{ Object, "obj" }},
@@ -340,7 +348,7 @@ generate_client {
     cname	= "object_hflip_layer",
     args	= {{ Object, "obj" },
 		   { Int, "layerid" },
-		   { Int, "hflip" }},	-- XXX should be Bool
+		   { Bool, "hflip" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -560,6 +568,20 @@ generate_server {
 		   { String, "sample" }}
 }
 
+generate_server {
+    cname	= "svgame_get_client_name",
+    lname	= "get_client_name",
+    args	= {{ Int, "clientid" }},
+    ret		= { String, "ret", "!$" },
+    success	= "lua_pushstring(L, ret); return 1;"
+}
+
+generate_server {
+    cname	= "svgame_broadcast_text_message",
+    lname	= "broadcast_text_message",
+    args	= {{ String, "message" }}
+}
+
 
 --------------
 -- client.h --
@@ -583,7 +605,7 @@ generate_client {
 generate_client {
     cname	= "client_set_camera",
     lname	= "_internal_set_camera",
-    args	= {{ Int, "pushable" },	-- XXX should be Bool
+    args	= {{ Bool, "pushable" },
 		   { Int, "max_dist" }}
 }
 

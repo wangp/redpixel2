@@ -1,6 +1,113 @@
 	This ChangeLog is automatically produced from RCS logs.
 	See the Makefile for details.
 
+2002-07-13 23:03  tjaden
+
+	* client.c, basic-player.lua: Added up/down weapon switching (aka.
+	Q/E or mouse wheel weapon switching).
+
+2002-07-13 22:59  tjaden
+
+	* blast.c: Now you should not be able to accidentally escape a
+	blast by running towards its centre.  Some minor speed up too, I
+	think.
+
+2002-07-13 17:58  tjaden
+
+	* object.c, basic-gametype.lua: Made player going too far off map
+	count as suicide (e.g. fall off bottom).
+
+2002-07-13 17:47  tjaden
+
+	* server.c: Warn the user if the map selected doesn't exist.
+
+2002-07-13 17:46  tjaden
+
+	* messages.c: Fixed a bug in the message system where the top_line
+	counter would be bigger than the num_lines counter.
+
+2002-07-13 17:23  tjaden
+
+	* client.c: Small hack to make Allegro grab the mouse inside the
+	window.
+
+2002-07-13 16:22  tjaden
+
+	* basic-gametype.lua: Broadcast a text message when a player dies.
+
+2002-07-13 16:21  tjaden
+
+	* bindgen.lua: Added svgame_get_client_name and
+	svgame_broadcast_text_message exports.	Also made bindings return
+	true and false by default instead of 1 and nil.
+
+2002-07-13 16:21  tjaden
+
+	* svgame.c, svgame.h: Added svgame_get_client_name and
+	svgame_broadcast_text_message exports.
+
+2002-07-13 16:20  tjaden
+
+	* basic-player.lua: Small comment change.
+
+2002-07-13 15:52  tjaden
+
+	* basic-gametype.lua, basic-player.lua, server.c, svgame.c: Changed
+	slightly how game types work and fixed the scoring after changes of
+	maps.
+
+2002-07-13 13:59  tjaden
+
+	* basic-weapon.lua: Made explosive projectiles have a small light.
+
+2002-07-13 13:52  tjaden
+
+	* basic-powerup.lua: [no log message]
+
+2002-07-13 13:52  tjaden
+
+	* basic-player.lua: Fixed lightamp support.
+
+2002-07-13 13:44  tjaden
+
+	* object.c, object.h: Return an error code if object_call fails.
+
+2002-07-13 03:46  tjaden
+
+	* basic-powerup.lua: Made lightamps animate.
+
+2002-07-13 03:30  tjaden
+
+	* basic-player.lua, basic-tilelike.lua: Players, crates, barrels
+	now highlight for a short time after getting hurt.
+
+2002-07-13 03:29  tjaden
+
+	* basic-base.lua: Added object_set_highlighted binding.
+
+2002-07-13 03:29  tjaden
+
+	* basic-weapon.lua: Updated calls to bindings which now strictly
+	take boolean values instead of integers.
+
+2002-07-13 03:28  tjaden
+
+	* bindgen.lua: Made generated bindings use a proper Bool type where
+	appropriate instead of an Int.	Added object_set_highlighted
+	binding.
+
+2002-07-13 03:27  tjaden
+
+	* mylua.c: Made lua_checkargs() understand a boolean type.
+
+2002-07-13 03:26  tjaden
+
+	* render.c, object.h, object.c: Added highlightability of objects.
+
+2002-07-13 02:32  tjaden
+
+	* basic-player.lua: Fixed a race condition.
+
 2002-07-12 18:58  tjaden
 
 	* basic-tilelike.lua: tpyo

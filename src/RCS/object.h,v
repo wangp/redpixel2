@@ -1,9 +1,19 @@
-head	1.15;
+head	1.17;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.17
+date	2002.07.13.03.45.08;	author tjaden;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	2002.07.12.17.26.31;	author tjaden;	state Exp;
+branches;
+next	1.15;
 
 1.15
 date	2002.07.11.12.24.24;	author tjaden;	state Exp;
@@ -85,11 +95,9 @@ desc
 @@
 
 
-1.15
+1.17
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Return an error code if object_call fails.
 @
 text
 @#ifndef __included_object_h
@@ -139,6 +147,8 @@ void object_set_stale (object_t *); /* Lua binding */
 int object_hidden (object_t *);
 void object_hide (object_t *);	/* Lua binding */
 void object_show (object_t *);	/* Lua binding */
+int object_highlighted (object_t *);
+void object_set_highlighted (object_t *, int yes_or_no); /* Lua binding */
 
 float object_x (object_t *);
 float object_y (object_t *);
@@ -173,6 +183,7 @@ void object_set_collision_tag (object_t *, int);
 #define OBJECT_REPLICATE_CREATE		0x01
 #define OBJECT_REPLICATE_UPDATE		0x02
 #define OBJECT_REPLICATE_HIDDEN		0x04
+#define OBJECT_REPLICATE_HIGHLIGHTED	0x08
 
 int object_need_replication (object_t *, int);
 void object_set_replication_flag (object_t *, int);
@@ -267,7 +278,7 @@ void object_do_simulation (object_t *, unsigned long curr_time);
 
 void lua_pushobject (struct lua_State *, object_t *);
 object_t *lua_toobject (struct lua_State *, int index);
-void object_call (struct lua_State *, object_t *, const char *method, int nargs);
+int object_call (struct lua_State *, object_t *, const char *method, int nargs);
 int object_get_var_type (object_t *, const char *var);
 float object_get_number (object_t *, const char *var);
 void object_set_number (object_t *, const char *var, float value);
@@ -289,6 +300,29 @@ void object_bounding_box (object_t *, int *rx1, int *ry1, int *rx2, int *ry2);
 
 
 #endif
+@
+
+
+1.16
+log
+@Added highlightability of objects.
+@
+text
+@d179 1
+a179 1
+void object_call (struct lua_State *, object_t *, const char *method, int nargs);
+@
+
+
+1.15
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d48 2
+d84 1
 @
 
 

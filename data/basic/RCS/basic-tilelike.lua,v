@@ -1,9 +1,14 @@
-head	1.16;
+head	1.17;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.17
+date	2002.07.12.17.30.36;	author tjaden;	state Exp;
+branches;
+next	1.16;
 
 1.16
 date	2002.07.12.08.58.59;	author tjaden;	state Exp;
@@ -90,9 +95,10 @@ desc
 @@
 
 
-1.16
+1.17
 log
-@tpyo
+@Players, crates, barrels now highlight for a short time after getting
+hurt.
 @
 text
 @-- basic-tilelike.lua
@@ -107,6 +113,7 @@ store_load ("basic/basic-tilelike.dat", "/basic/tilelike/")
 local Crate = function (t)
     return Objtype (t, {
 	category = "objtile",
+
 	nonproxy_init = function (self)
 	    self.health = t.health
 
@@ -117,6 +124,8 @@ local Crate = function (t)
 		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
+		else
+		    call_method_on_clients (self, "highlight_temporarily")
 		end
 	    end
 
@@ -139,6 +148,19 @@ local Crate = function (t)
 		    self:super_show ()
 		    self:remove_update_hook ()
 		end
+	    end
+	end,
+
+	proxy_init = function (self)
+	    -- (called from server in receive damage function)
+	    function self:highlight_temporarily ()
+		self:set_highlighted (true)
+		self:set_update_hook (
+		    90,
+		    function (self)
+			self:set_highlighted (false)
+		    end
+		)
 	    end
 	end
     })
@@ -173,6 +195,7 @@ Crate {
 local Barrel = function (t)
     return Objtype (t, {
 	category = "objtile",
+
 	nonproxy_init = function (self)
 	    self.health = t.health
 
@@ -193,6 +216,8 @@ local Barrel = function (t)
 
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
+		else
+		    call_method_on_clients (self, "highlight_temporarily")
 		end
 	    end
 
@@ -215,6 +240,19 @@ local Barrel = function (t)
 		    self:super_show ()
 		    self:remove_update_hook ()
 		end
+	    end
+	end,
+
+	proxy_init = function (self)
+	    -- (called from server in receive damage function)
+	    function self:highlight_temporarily ()
+		self:set_highlighted (true)
+		self:set_update_hook (
+		    90,
+		    function (self)
+			self:set_highlighted (false)
+		    end
+		)
 	    end
 	end
     })
@@ -303,6 +341,20 @@ Ladder {
     mask = "/basic/tilelike/ladder-gray5-mask",
     cx = 8, cy = 40
 }
+@
+
+
+1.16
+log
+@tpyo
+@
+text
+@d13 1
+d24 2
+d49 13
+d95 1
+d116 2
+d140 13
 @
 
 

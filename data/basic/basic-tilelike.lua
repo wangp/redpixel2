@@ -10,6 +10,7 @@ store_load ("basic/basic-tilelike.dat", "/basic/tilelike/")
 local Crate = function (t)
     return Objtype (t, {
 	category = "objtile",
+
 	nonproxy_init = function (self)
 	    self.health = t.health
 
@@ -20,6 +21,8 @@ local Crate = function (t)
 		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
+		else
+		    call_method_on_clients (self, "highlight_temporarily")
 		end
 	    end
 
@@ -42,6 +45,19 @@ local Crate = function (t)
 		    self:super_show ()
 		    self:remove_update_hook ()
 		end
+	    end
+	end,
+
+	proxy_init = function (self)
+	    -- (called from server in receive damage function)
+	    function self:highlight_temporarily ()
+		self:set_highlighted (true)
+		self:set_update_hook (
+		    90,
+		    function (self)
+			self:set_highlighted (false)
+		    end
+		)
 	    end
 	end
     })
@@ -76,6 +92,7 @@ Crate {
 local Barrel = function (t)
     return Objtype (t, {
 	category = "objtile",
+
 	nonproxy_init = function (self)
 	    self.health = t.health
 
@@ -96,6 +113,8 @@ local Barrel = function (t)
 
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
+		else
+		    call_method_on_clients (self, "highlight_temporarily")
 		end
 	    end
 
@@ -118,6 +137,19 @@ local Barrel = function (t)
 		    self:super_show ()
 		    self:remove_update_hook ()
 		end
+	    end
+	end,
+
+	proxy_init = function (self)
+	    -- (called from server in receive damage function)
+	    function self:highlight_temporarily ()
+		self:set_highlighted (true)
+		self:set_update_hook (
+		    90,
+		    function (self)
+			self:set_highlighted (false)
+		    end
+		)
 	    end
 	end
     })

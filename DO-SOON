@@ -1,16 +1,25 @@
-blast circles should provide a bit of light (dunno how)
-
-objects should flash a bit white when shot
-
 doc-generation from bindgen.lua
 
 what-weapons-collected display
 Q/E weapon switching
 don't forget to credit kaupo erme
 rocket jump [recoil from getting blasted]
-falling off edge of world
+
 jumping from ladder
 
 backpack
+armour
+vulcan
 food consume sound
+
+radar
+
 corpses continue moving in direction of player
+
+blast circles should provide a bit of light (dunno how)
+
+music
+
+
+bell tower map
+rocket rena plosives

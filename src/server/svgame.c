@@ -868,6 +868,21 @@ void svgame_play_sound_on_clients (object_t *obj, const char *sound)
 }
 
 
+const char *svgame_get_client_name (int client_id)
+{
+    svclient_t *c = svclients_find_by_id (client_id);
+    return c ? c->name : NULL;
+}
+
+
+void svgame_broadcast_text_message (const char *msg)
+{
+    char buf[64];
+    ustrzcpy (buf, sizeof buf, msg);
+    svclients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, buf);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -980,12 +995,11 @@ static int init_game_state (void)
     }
     string_set (server_current_map_file, server_next_map_file);
 
-    /* Init game type.  Should be extensible in future, currently
-     * hard-wired to Game_Type_Deathmatch.  */
-    lua_getglobal (Lsrv, "_internal_start_game_type");
+    /* Call new map hook.  */
+    lua_getglobal (Lsrv, "_internal_new_map_hook");
     if (!lua_isfunction (Lsrv, -1))
-	error ("Missing _internal_start_game_type\n");
-    lua_getglobal (Lsrv, "Game_Type_Deathmatch");
+	error ("Missing _internal_new_map_hook\n");
+    lua_pushstring (Lsrv, server_current_map_file);
     lua_call (Lsrv, 1, 0);
 
     /* Spawn a bunch of players.  */
@@ -999,11 +1013,6 @@ static int init_game_state (void)
 
 static void free_game_state (void)
 {
-    lua_getglobal (Lsrv, "_internal_end_game_type");
-    if (!lua_isfunction (Lsrv, -1))
-	error ("Missing _internal_end_game_type\n");
-    lua_call (Lsrv, 0, 0);
-
     if (map) {
 	map_destroy (map);
 	map = NULL;

@@ -1,10 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
-locks
-	tjaden:1.6; strict;
+locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.12.17.26.23;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.07.12.04.10.18;	author tjaden;	state Exp;
@@ -41,10 +45,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Drawing blasts before explosions seems to create less bad artifacts
-(previously explosions were drawn before blasts).
+@Added highlightability of objects.
 @
 text
 @/* render.c
@@ -110,7 +113,10 @@ static void render_object_layers_and_names (BITMAP *bmp, map_t *map,
 
     list = map_object_list (map);
     list_for_each (obj, list) {
-	object_draw_layers (bmp, obj, offx, offy);
+	if (object_highlighted (obj))
+	    object_draw_lit_layers (bmp, obj, offx, offy, 0x77);
+	else
+	    object_draw_layers (bmp, obj, offx, offy);
 	object_draw_trans_name (bmp, obj, offx, offy);
     }
 }
@@ -149,6 +155,18 @@ void render (BITMAP *bmp, map_t *map, camera_t *cam)
     render_object_lights (bmp, map, x, y);
     map_explosions_draw_lights (map, bmp, x, y);
 }
+@
+
+
+1.6
+log
+@Drawing blasts before explosions seems to create less bad artifacts
+(previously explosions were drawn before blasts).
+@
+text
+@d64 4
+a67 1
+	object_draw_layers (bmp, obj, offx, offy);
 @
 
 

@@ -82,6 +82,8 @@ local Explosive_Projectile = function (t)
 	end,
 
 	proxy_init = function (self)
+	    self:add_light ("/basic/light/white-16", 0, 0)
+
             if t.proxy_init then
 		t.proxy_init (self)
 	    end
@@ -409,7 +411,7 @@ Weapon_With_Firer {
 	cx = -2, cy = 4
     },
     client_switch_to_hook = function ()
-	_internal_set_camera (1, 300)
+	_internal_set_camera (true, 300)
     end,
     sound = "/basic/weapon/rifle/sound"
 }

@@ -1,9 +1,14 @@
-head	1.22;
+head	1.23;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.23
+date	2002.07.12.17.29.34;	author tjaden;	state Exp;
+branches;
+next	1.22;
 
 1.22
 date	2002.07.12.05.20.03;	author tjaden;	state Exp;
@@ -120,10 +125,9 @@ desc
 @@
 
 
-1.22
+1.23
 log
-@Made all spawn-and-forget server functions be named *_on_clients,
-e.g. spawn_blod_on_clients.
+@Added object_set_highlighted binding.
 @
 text
 @-- basic-base.lua
@@ -221,6 +225,7 @@ function _internal_object_init_hook (self)
 	self.move_light = object_move_light
 	self.remove_light = object_remove_light
 	self.remove_all_lights = object_remove_all_lights
+	self.set_highlighted = object_set_highlighted
 
     end
 end
@@ -340,6 +345,16 @@ weapons = {}
 function Weapon (t, u)
     weapons[t.name] = merge (t, u)
 end
+@
+
+
+1.22
+log
+@Made all spawn-and-forget server functions be named *_on_clients,
+e.g. spawn_blod_on_clients.
+@
+text
+@d96 1
 @
 
 

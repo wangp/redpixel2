@@ -321,6 +321,10 @@ static void poll_interface (void)
 	    } else {
 		string_set (server_next_map_file, word);
 		server_log ("Setting map to %s", server_next_map_file);
+
+		if (!file_exists (server_next_map_file,
+				  FA_RDONLY|FA_HIDDEN|FA_SYSTEM|FA_ARCH, NULL))
+		    server_log ("Warning: %s doesn't exist", server_next_map_file);
 	    }
 	}
 	
@@ -518,6 +522,16 @@ int server_init (server_interface_t *iface, int net_driver)
     client_to_quit_with = 0;
 
     gettimeofday_init ();
+
+    /* Call new session hook.  */
+    {
+	lua_State *L = server_lua_namespace;
+	lua_getglobal (L, "_internal_new_session_hook");
+	if (!lua_isfunction (L, -1))
+	    error ("Missing _internal_new_session_hook\n");
+	lua_getglobal (L, "Game_Type_Deathmatch"); /* hardwired for now */
+	lua_call (L, 1, 0);
+    }
 
     return 0;    
 }
