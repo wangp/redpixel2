@@ -75,13 +75,13 @@ void cursor_set_magic_bitmap (BITMAP *bmp, int hotx, int hoty)
 
 void cursor_set_dot ()
 {
-    destroy_dynamic_cursor ();
     change (dot_cursor, 0, 0);
+    destroy_dynamic_cursor ();
 }
 
 
 void cursor_set_default ()
 {
-    destroy_dynamic_cursor ();
     change (0, 0, 0);
+    destroy_dynamic_cursor ();
 }
