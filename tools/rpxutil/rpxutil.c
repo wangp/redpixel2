@@ -551,7 +551,7 @@ int main (int argc, char *argv[])
     register_png_file_type ();
 #endif
 
-    L = lua_open (0);
+    L = lua_open ();
     export_functions (L);
     lua_dofile (L, argv[1]);
 

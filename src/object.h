@@ -2,6 +2,7 @@
 #define __included_object_h
 
 
+#include "id.h"
 #include "mylua.h"
 
 struct BITMAP;
@@ -10,10 +11,6 @@ struct list_head;
 
 
 typedef struct object object_t;
-
-/* Unique id number.  All machines playing the same game have the same
- * id numbers for objects.  */
-typedef unsigned long objid_t;
 
 /* Zero is reserved for objects which the server doesn't care about
  * and only exist on game clients (e.g. blods).  Before thinking about
@@ -24,11 +21,6 @@ typedef unsigned long objid_t;
 /* Numbers less than OBJID_PLAYER_MAX are reserved for use by objects
  * controlled by clients.  */
 #define OBJID_PLAYER_MAX	1024
-
-/* A collision tag number.  Objects with the same collision tag do not
- * collide with each other.  Tags often overlap with object id numbers
- * (and thus with client id numbers).  */
-typedef unsigned long objtag_t;
 
 /* Zero as a collision tag means the object can collide with
  * anything.  */
@@ -71,12 +63,15 @@ float object_yv (object_t *);
 void object_set_xv (object_t *, float);
 void object_set_yv (object_t *, float);
 void object_set_xvyv (object_t *, float, float);
-float object_xa (object_t *);
-float object_ya (object_t *);
-void object_set_xa (object_t *, float);
-void object_set_ya (object_t *, float);
 float object_xv_decay (object_t *);
 float object_yv_decay (object_t *);
+float object_extrinsic_ya (object_t *);
+float object_total_xa (object_t *);
+float object_total_ya (object_t *);
+void object_set_intrinsic_xa (object_t *, float);
+void object_set_intrinsic_ya (object_t *, float);
+void object_add_intrinsic_ya (object_t *, float);
+void object_add_extrinsic_xaya (object_t *, float, float);
 float object_mass (object_t *);
 void object_set_mass (object_t *, float);
 int object_ramp (object_t *);

@@ -48,9 +48,16 @@ local Standard_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    if t.dot_mask then
+		self:set_mask (mask_main,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_top,    "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_bottom, "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_left,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_right,  "/basic/weapon/single-dot-mask", 0, 0)
+	    end
 	    self.damage = t.damage
 	    function self:collide_hook (obj)
-		obj:receive_damage (self.damage, self.owner)
+		obj:receive_damage (self.damage, self.owner, self.x, self.y)
 		self:set_stale ()
 	    end
 	    function self:tile_collide_hook ()
@@ -69,6 +76,13 @@ local Explosive_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    if t.dot_mask then
+		self:set_mask (mask_main,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_top,    "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_bottom, "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_left,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_right,  "/basic/weapon/single-dot-mask", 0, 0)
+	    end
 	    self.damage = t.damage
 	    local hook = function (self, obj)
 		if t.explosion then
@@ -139,7 +153,9 @@ Standard_Projectile {
     icon = "/basic/weapon/blaster/projectile",
     damage = 8,
     sparks = 30,
+    dot_mask = true,
     proxy_init = function (self)
+	self:move_layer (0, 3, 0)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
@@ -195,7 +211,9 @@ Explosive_Projectile {
     radius = 55,
     damage = 40,
     explosion = "basic-explo42",
+    dot_mask = true,
     proxy_init = function (self)
+	self:move_layer (0, 8, 1)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
@@ -333,19 +351,22 @@ Explosive_Projectile {
     icon = "/basic/weapon/rpg/projectile",
     radius = 75,
     damage = 80,
+    dot_mask = true,
     explosion = "basic-explo42",
     smoke_trails = "basic-rocket-smoke",
     proxy_init = function (self)
+	self:move_layer (0, 5, 3)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
 
 explosion_type_register (
     "basic-rocket-smoke",
-    "/basic/weapon/rpg/smoke/000", 16, 50/16,
+    "/basic/weapon/rpg/smoke/000", 16, ticks_per_second/16,
     nil, -- no light
     nil  -- no sound
 )
+
 
 ----------------------------------------------------------------------
 --  Shotgun
@@ -441,7 +462,7 @@ Objtype {
     nonproxy_init = function (self)
 	self.damage = 50
 	function self:collide_hook (obj)
-	    obj:receive_damage (self.damage, self.owner)
+	    obj:receive_damage (self.damage, self.owner, self.x, self.y)
 	    self:set_stale ()
 	end
 	function self:tile_collide_hook (obj)
@@ -453,6 +474,53 @@ Objtype {
 	    return false
 	end
     end
+}
+
+
+----------------------------------------------------------------------
+--  Vulcan cannon
+----------------------------------------------------------------------
+
+Standard_Pickup {
+    name = "basic-vulcan-ammo",
+    icon = "/basic/weapon/ammo/vulcan",
+    ammo_to_give = "basic-vulcan-ammo",
+    ammo_amount = 20,
+    respawn_secs = 10
+}
+
+Weapon_With_Firer {
+    name = "basic-vulcan",
+    ammo_type = "basic-vulcan-ammo",
+    projectile = "basic-vulcan-projectile",
+    projectile_speed = 300,
+    fire_delay_secs = 0.06,
+    arm_anim = {
+	"/basic/weapon/vulcan/2arm000",
+	"/basic/weapon/vulcan/2arm001",
+	"/basic/weapon/vulcan/2arm002",
+	"/basic/weapon/vulcan/2arm003",
+	"/basic/weapon/vulcan/2arm004";
+	cx = 0, cy = 3
+    },
+    sound = "/basic/weapon/vulcan/sound"
+}
+
+Standard_Pickup {
+    name = "basic-vulcan",
+    icon = "/basic/weapon/vulcan/pickup",
+    weapon_to_give = "basic-vulcan",
+    ammo_to_give = "basic-vulcan-ammo",
+    ammo_amount = 10,
+    respawn_secs = 10
+}
+
+Standard_Projectile {
+    name = "basic-vulcan-projectile",
+    alias = "~vp",
+    icon = "/basic/weapon/vulcan/projectile",
+    damage = 7,
+    sparks = 40,
 }
 
 
@@ -525,7 +593,7 @@ Objtype {
 					      rad, 5)
 		    end
 		    spawn_blast (self.x, self.y, 25, 20, self.owner)
-		    play_sound_on_clients (self, "/basic/explosion/explo42/sound") --XXX wrong datapack
+		    spawn_explosion_on_clients ("basic-explo20", self.x, self.y-6)
 		    self:set_stale ()
 		end
 	    end
@@ -590,6 +658,7 @@ weapon_order = {
     "basic-blaster",
     "basic-shotgun",
     "basic-ak",
+    "basic-vulcan",
     "basic-minigun",
     "basic-bow",
     "basic-rpg",
@@ -600,6 +669,7 @@ weapon_order = {
 -- I recommend not putting in explosives.
 weapon_auto_switch_order = {
     "basic-minigun",
+    "basic-vulcan",
     "basic-ak",
     "basic-shotgun",
     "basic-blaster"

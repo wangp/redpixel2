@@ -20,6 +20,8 @@ function install_multiple_update_hook_system (obj, speed)
     obj._update_hooks = {}
 
     -- Add a new hook PROC to be called every NTICS.
+    -- These "tics" are NOT the same as game time ticks, but are
+    -- related to the update hook's speed.
     -- Returns a new hook structure (don't touch it!)
     function obj:add_update_hook (ntics, enabled, proc)
 	local t = {
@@ -80,11 +82,9 @@ local xv_decay, yv_decay = 0.7, 0.45
 -- centre of the player sprites (really?)
 local cx, cy = 5, 5
 
-local player_update_hook_speed = 1000/50
-  -- try not to change this, a lot of things are currently
-  -- determined from this and not from "real-time" time
+local player_update_hook_speed = msecs_per_tick
 
-function secs_to_tics (secs)
+function secs_to_ticks (secs)
     return (secs * 1000) / player_update_hook_speed
 end
 
@@ -266,7 +266,7 @@ local player_nonproxy_init = function (self)
 
     function self:set_fire_delay (secs)
 	self.can_fire = false
-	self:adjust_update_hook_speed (reenable_firing_hook, secs_to_tics (secs))
+	self:adjust_update_hook_speed (reenable_firing_hook, secs_to_ticks (secs))
 	self:enable_update_hook (reenable_firing_hook)
     end
 
@@ -275,7 +275,7 @@ local player_nonproxy_init = function (self)
     self.damage_factor = 1
 
     self.revert_damage_factor_hook = self:add_update_hook (
-	secs_to_tics (30),
+	secs_to_ticks (30),
 	false,
 	function (self)
 	    self.damage_factor = 1
@@ -346,14 +346,14 @@ local player_nonproxy_init = function (self)
     self.armour = 0
     _internal_tell_armour (self, self.armour)
 
-    function self:receive_damage (damage, attacker)
+    function self:receive_damage (damage, attacker, collision_x, collision_y)
 	if self.health <= 0 then
 	    -- This is to prevent a bug that we only saw once.
 	    -- A player managed to die three times at once.
 	    return
 	end
 
-	spawn_blood_on_clients (self.x + cx, self.y + cy, 200, 2)
+	spawn_blood_on_clients (collision_x, collision_y, 200, 2)
 	if damage/3 >= 1 then
 	    spawn_blod_on_clients (self.x, self.y, damage/3)
 	end
@@ -435,7 +435,7 @@ local player_nonproxy_init = function (self)
     --------------------------------------------------
 
     self:add_update_hook (
-	secs_to_tics (1),
+	secs_to_ticks (1),
 	true,
 	function (self)
 	    if self.health <= 20 then
@@ -680,7 +680,7 @@ local Corpse = function (t)
 	if self.frame > t.frames then
 	    self.frame = t.frames
 	    if self.drop_backpack then
-		-- drop the backpack after a little whil
+		-- drop the backpack after a little while
 		self:set_update_hook (
 		    1000/3,
 		    function (self)
@@ -726,11 +726,17 @@ local Corpse = function (t)
 		self:set_mask (mask_bottom, t.mask, t.cx, t.cy)
 	    end
 	    self:set_masks_centre (t.cx, t.cy)
-	    self:set_collision_flags ("t")
+	    self:set_collision_flags ("tn")
 	    self.mass = 0.005
 	    self.frame = 0
 	    self:add_creation_field ("frame")
 	    self:set_update_hook (t.speed, nonproxy_update)
+
+	    function self:collide_hook (other)
+		-- assume we are getting shot, and spew a bit of blood
+		spawn_blood_on_clients (self.x, self.y+5, 4, 1.5)
+		return false
+	    end
 	end,
 	
 	proxy_init = function (self)
@@ -817,6 +823,7 @@ Objtype {
     nonproxy_init = function (self)
 	self.mass = 0.01
 	self:set_collision_flags ("pt")
+	self:set_mask (mask_bottom, "/basic/player/backpack-mask", 6, 8)
 	function self:collide_hook (player)
 	    -- give goodies
 	    if self.ammo then

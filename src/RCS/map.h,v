@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.15.11.43.33;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.07.11.12.24.48;	author tjaden;	state Exp;
@@ -40,17 +45,17 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Moved id types to their own file and gave client id a type of its own.
 @
 text
 @/* This file is shared between the map editor and the game. */
 #ifndef __included_map_h
 #define __included_map_h
 
+
+#include "id.h"
 
 struct object;
 struct blood_particles;
@@ -79,7 +84,7 @@ void map_link_object (map_t *map, struct object *obj);
 void map_link_object_bottom (map_t *map, struct object *obj);
 void map_unlink_object (struct object *obj);
 void map_destroy_stale_objects (map_t *map);
-struct object *map_find_object (map_t *map, int id);
+struct object *map_find_object (map_t *map, objid_t id);
 struct list_head *map_object_list (map_t *map);
 
 light_t *map_light_create (map_t *map, int x, int y, int lightmap);
@@ -113,6 +118,20 @@ void map_blasts_draw (map_t *map, struct BITMAP *dest, int offset_x, int offset_
 
 
 #endif
+@
+
+
+1.6
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d6 2
+d35 1
+a35 1
+struct object *map_find_object (map_t *map, int id);
 @
 
 

@@ -4,24 +4,24 @@ $(OBJDIR)/bitmaskg.o: src/bitmaskg.c src/bitmask.h src/bitmaskg.h \
  src/store/store.h
 $(OBJDIR)/bitmaskr.o: src/bitmaskr.c src/alloc.h src/bitmask.h src/bitmaskr.h \
  src/list.h
-$(OBJDIR)/blast.o: src/blast.c src/alloc.h src/blast.h src/error.h \
+$(OBJDIR)/blast.o: src/blast.c src/alloc.h src/blast.h src/id.h src/error.h \
  src/fastsqrt/fastsqrt.h src/list.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/object.h
-$(OBJDIR)/blod.o: src/blod.c src/blod.h src/map.h src/mylua.h \
+$(OBJDIR)/blod.o: src/blod.c src/blod.h src/map.h src/id.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/object.h src/objtypes.h
 $(OBJDIR)/camera.o: src/camera.c src/alloc.h src/camera.h \
- src/fastsqrt/fastsqrt.h src/object.h src/mylua.h \
+ src/fastsqrt/fastsqrt.h src/object.h src/id.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h
 $(OBJDIR)/client.o: src/client.c libnet/include/libnet.h src/alloc.h src/blod.h \
  src/camera.h src/client.h src/server/clsvface.h src/error.h src/fps.h \
- src/list.h src/magic/magic4x4.h src/map.h src/mapfile.h \
+ src/list.h src/magic/magic4x4.h src/map.h src/id.h src/mapfile.h \
  src/mathcnst.h src/messages.h src/mylibnet.h src/netmsg.h \
  src/object.h src/mylua.h lua-4.1-work4/include/lua.h \
  lua-4.1-work4/include/lauxlib.h src/packet.h src/particle.h \
  src/render.h src/screen.h src/server/server.h src/sound.h \
- src/store/store.h src/sync.h src/textout.h src/timeout.h \
+ src/store/store.h src/sync.h src/textout.h src/ticks.h src/timeout.h \
  src/timeval.h
 $(OBJDIR)/error.o: src/error.c src/error.h
 $(OBJDIR)/explo.o: src/explo.c src/alloc.h src/explo.h src/list.h \
@@ -34,23 +34,25 @@ $(OBJDIR)/gameinit.o: src/gameinit.c libnet/include/libnet.h src/bitmaskr.h \
  src/gameinit.h src/jpgalleg/jpgalleg.h src/loadaud/loadaud.h \
  src/loaddata.h src/store/store.h src/magic/magic4x4.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
- src/object.h src/objtypes.h src/path.h
+ src/object.h src/id.h src/objtypes.h src/path.h
 $(OBJDIR)/gamemenu.o: src/gamemenu.c src/editor/editor.h src/extdata.h \
  src/magic/magic4x4.h src/editor/menu.h src/screen.h src/store/store.h \
  src/textout.h src/messages.h src/sync.h src/client.h \
- libnet/include/libnet.h src/server/clsvface.h src/server/server.h
+ libnet/include/libnet.h src/server/clsvface.h src/server/server.h \
+ src/id.h
 $(OBJDIR)/getoptc.o: src/getoptc.c
 $(OBJDIR)/loaddata.o: src/loaddata.c src/alloc.h src/extdata.h src/list.h \
  src/loaddata.h src/store/store.h src/path.h
 $(OBJDIR)/main.o: src/main.c libnet/include/libnet.h src/client.h \
  src/server/clsvface.h src/editor/editor.h src/gameinit.h \
  src/gamemenu.h src/getoptc.h src/messages.h src/screen.h \
- src/server/server.h src/sync.h src/server/textface.h src/timeval.h
-$(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blast.h src/explo.h \
- src/list.h src/map.h src/object.h src/mylua.h \
+ src/server/server.h src/id.h src/sync.h src/server/textface.h \
+ src/timeval.h
+$(OBJDIR)/map.o: src/map.c src/alloc.h src/bitmask.h src/blast.h src/id.h \
+ src/explo.h src/list.h src/map.h src/object.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/particle.h src/store/store.h
-$(OBJDIR)/mapfile.o: src/mapfile.c src/list.h src/map.h src/mapfile.h \
+$(OBJDIR)/mapfile.o: src/mapfile.c src/list.h src/map.h src/id.h src/mapfile.h \
  src/object.h src/mylua.h lua-4.1-work4/include/lua.h \
  lua-4.1-work4/include/lauxlib.h src/objtypes.h src/store/store.h
 $(OBJDIR)/messages.o: src/messages.c src/magic/magic4x4.h src/messages.h \
@@ -59,23 +61,24 @@ $(OBJDIR)/mylibnet.o: src/mylibnet.c libnet/include/libnet.h src/netmsg.h \
  src/packet.h
 $(OBJDIR)/mylua.o: src/mylua.c lua-4.1-work4/include/lua.h \
  lua-4.1-work4/include/lualib.h src/mylua.h \
- lua-4.1-work4/include/lauxlib.h src/path.h src/client.h src/explo.h \
- src/extdata.h src/loaddata.h src/store/store.h src/server/svgame.h \
- src/object.h src/objtypes.h src/bindings.inc
+ lua-4.1-work4/include/lauxlib.h src/path.h src/ticks.h src/client.h \
+ src/explo.h src/extdata.h src/loaddata.h src/store/store.h \
+ src/server/svgame.h src/id.h src/object.h src/objtypes.h \
+ src/bindings.inc
 $(OBJDIR)/object.o: src/object.c src/alloc.h src/bitmask.h src/bitmaskg.h \
- src/bitmaskr.h src/list.h src/magic/magic4x4.h src/map.h src/mylua.h \
- lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
- src/object.h src/objtypes.h src/store/store.h src/textout.h \
- src/objectmt.inc
+ src/bitmaskr.h src/error.h src/list.h src/magic/magic4x4.h src/map.h \
+ src/id.h src/mylua.h lua-4.1-work4/include/lua.h \
+ lua-4.1-work4/include/lauxlib.h src/object.h src/objtypes.h \
+ src/store/store.h src/textout.h src/objectmt.inc
 $(OBJDIR)/objtypes.o: src/objtypes.c src/alloc.h src/bitmask.h src/bitmaskg.h \
  src/error.h src/mylua.h lua-4.1-work4/include/lua.h \
  lua-4.1-work4/include/lauxlib.h src/objtypes.h src/store/store.h
 $(OBJDIR)/packet.o: src/packet.c src/packet.h src/error.h
 $(OBJDIR)/particle.o: src/particle.c src/alloc.h src/bitmask.h src/map.h \
- src/mathcnst.h src/particle.h
+ src/id.h src/mathcnst.h src/particle.h
 $(OBJDIR)/path.o: src/path.c src/path.h
 $(OBJDIR)/render.o: src/render.c src/camera.h src/explo.h src/list.h \
- src/magic/magic4x4.h src/map.h src/object.h src/mylua.h \
+ src/magic/magic4x4.h src/map.h src/id.h src/object.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/particle.h src/store/store.h src/render.h
 $(OBJDIR)/screen.o: src/screen.c src/2xsai/2xsai.h src/error.h \
@@ -124,63 +127,65 @@ $(OBJDIR)/editarea.o: src/editor/editarea.c src/gui/gui.h src/alloc.h \
 $(OBJDIR)/editor.o: src/editor/editor.c src/gui/gui.h src/ug/ug.h \
  src/editor/cursor.h src/extdata.h src/store/store.h src/path.h \
  src/editor/editarea.h src/editor/menu.h src/editor/modebar.h \
- src/editor/selbar.h src/editor/modemgr.h src/editor/modes.h src/map.h
+ src/editor/selbar.h src/editor/modemgr.h src/editor/modes.h src/map.h \
+ src/id.h
 $(OBJDIR)/edselect.o: src/editor/edselect.c src/ug/ug.h src/ug/uginter.h \
  src/alloc.h src/editor/edselect.h src/magic/magic4x4.h \
  src/editor/rect.h
 $(OBJDIR)/mdlights.o: src/editor/mdlights.c src/alloc.h src/editor/depths.h \
  src/editor/editor.h src/editor/editarea.h src/editor/edselect.h \
  src/ug/ug.h src/list.h src/loaddata.h src/store/store.h \
- src/magic/magic4x4.h src/map.h src/editor/modemgr.h \
+ src/magic/magic4x4.h src/map.h src/id.h src/editor/modemgr.h \
  src/editor/modes.h src/path.h src/editor/rect.h src/render.h \
  src/editor/selbar.h
 $(OBJDIR)/mdobject.o: src/editor/mdobject.c src/gui/gui.h src/ug/ug.h \
  src/alloc.h src/editor/cursor.h src/editor/depths.h \
  src/editor/editor.h src/editor/editarea.h src/editor/edselect.h \
- src/list.h src/map.h src/editor/modemgr.h src/editor/modes.h \
+ src/list.h src/map.h src/id.h src/editor/modemgr.h src/editor/modes.h \
  src/editor/selbar.h src/store/store.h src/object.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/objtypes.h src/editor/rect.h
 $(OBJDIR)/mdstarts.o: src/editor/mdstarts.c src/editor/depths.h \
  src/editor/editor.h src/editor/editarea.h src/editor/edselect.h \
- src/ug/ug.h src/list.h src/magic/magic4x4.h src/map.h \
+ src/ug/ug.h src/list.h src/magic/magic4x4.h src/map.h src/id.h \
  src/editor/modes.h src/editor/modemgr.h src/path.h \
  src/editor/selbar.h src/store/store.h src/editor/rect.h
 $(OBJDIR)/mdtiles.o: src/editor/mdtiles.c src/alloc.h src/editor/depths.h \
  src/editor/editor.h src/editor/editarea.h src/editor/edselect.h \
  src/ug/ug.h src/list.h src/loaddata.h src/store/store.h \
- src/magic/magic4x4.h src/map.h src/editor/modemgr.h \
+ src/magic/magic4x4.h src/map.h src/id.h src/editor/modemgr.h \
  src/editor/modes.h src/editor/selbar.h
 $(OBJDIR)/menu.o: src/editor/menu.c src/gui/gui.h src/ug/ug.h \
- src/editor/editarea.h src/editor/editor.h src/map.h src/mapfile.h
+ src/editor/editarea.h src/editor/editor.h src/map.h src/id.h \
+ src/mapfile.h
 $(OBJDIR)/modemgr.o: src/editor/modemgr.c src/gui/gui.h src/ug/ug.h \
  src/editor/modemgr.h
 $(OBJDIR)/selbar.o: src/editor/selbar.c src/gui/gui.h src/ug/ug.h \
  src/editor/edselect.h src/editor/selbar.h
 $(OBJDIR)/clsvface.o: src/server/clsvface.c src/server/clsvface.h src/messages.h \
- src/server/server.h src/server/svintern.h
+ src/server/server.h src/id.h src/server/svintern.h
 $(OBJDIR)/server.o: src/server/server.c libnet/include/libnet.h src/error.h \
- src/list.h src/netmsg.h src/object.h src/mylua.h \
+ src/list.h src/netmsg.h src/object.h src/id.h src/mylua.h \
  lua-4.1-work4/include/lua.h lua-4.1-work4/include/lauxlib.h \
  src/packet.h src/server/server.h src/server/svclient.h src/timeout.h \
  src/timeval.h src/server/svgame.h src/server/svintern.h \
  src/server/svlobby.h src/sync.h
 $(OBJDIR)/svclient.o: src/server/svclient.c libnet/include/libnet.h src/alloc.h \
- src/list.h src/netmsg.h src/packet.h src/server/server.h \
+ src/list.h src/netmsg.h src/packet.h src/server/server.h src/id.h \
  src/server/svclient.h src/timeout.h src/timeval.h src/server/svgame.h \
  src/server/svintern.h src/server/svstats.h
 $(OBJDIR)/svgame.o: src/server/svgame.c src/alloc.h src/error.h src/list.h \
- src/map.h src/mapfile.h src/mathcnst.h src/netmsg.h src/object.h \
- src/mylua.h lua-4.1-work4/include/lua.h \
+ src/map.h src/id.h src/mapfile.h src/mathcnst.h src/netmsg.h \
+ src/object.h src/mylua.h lua-4.1-work4/include/lua.h \
  lua-4.1-work4/include/lauxlib.h src/objtypes.h src/packet.h \
  src/sync.h src/server/server.h src/server/svclient.h src/timeout.h \
  src/timeval.h src/server/svintern.h src/server/svstats.h \
- src/server/svticker.h
+ src/server/svticker.h src/ticks.h
 $(OBJDIR)/svlobby.o: src/server/svlobby.c src/netmsg.h src/server/server.h \
- src/server/svclient.h src/timeout.h src/timeval.h \
+ src/id.h src/server/svclient.h src/timeout.h src/timeval.h \
  src/server/svintern.h
 $(OBJDIR)/svstats.o: src/server/svstats.c src/timeval.h
 $(OBJDIR)/svticker.o: src/server/svticker.c src/alloc.h src/server/svticker.h \
  src/timeval.h
-$(OBJDIR)/textface.o: src/server/textface.c src/server/server.h \
+$(OBJDIR)/textface.o: src/server/textface.c src/server/server.h src/id.h \
  src/server/svintern.h src/server/textface.h

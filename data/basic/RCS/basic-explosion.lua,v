@@ -1,9 +1,19 @@
-head	1.3;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.5
+date	2002.07.16.00.02.50;	author tjaden;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2002.07.15.14.35.22;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.29.15.04.41;	author tjaden;	state Exp;
@@ -25,9 +35,9 @@ desc
 @@
 
 
-1.3
+1.5
 log
-@Renamed the "basic-simple42" explosion to "basic-explo42".
+@Expose TICKS_PER_SECOND and MSECS_PER_TICK to the Lua state.
 @
 text
 @-- basic-explosion.lua
@@ -35,11 +45,41 @@ text
 store_load ("basic/basic-explosion.dat", "/basic/explosion/")
 
 explosion_type_register (
+    "basic-explo20",
+    "/basic/explosion/explo20/000", 16, ticks_per_second/20,
+    "/basic/light/white-16",
+    "/basic/explosion/explo42/sound" --XXX
+)
+
+explosion_type_register (
     "basic-explo42",
-    "/basic/explosion/explo42/000", 17, 50/17,
+    "/basic/explosion/explo42/000", 17, ticks_per_second/17,
     "/basic/light/white-16",
     "/basic/explosion/explo42/sound"
 )
+@
+
+
+1.4
+log
+@Added basic-explo20.
+@
+text
+@d7 1
+a7 1
+    "/basic/explosion/explo20/000", 16, 40/16,
+d14 1
+a14 1
+    "/basic/explosion/explo42/000", 17, 50/17,
+@
+
+
+1.3
+log
+@Renamed the "basic-simple42" explosion to "basic-explo42".
+@
+text
+@d6 7
 @
 
 

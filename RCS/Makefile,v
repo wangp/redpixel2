@@ -1,9 +1,14 @@
-head	1.24;
+head	1.25;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.25
+date	2002.07.16.07.13.04;	author tjaden;	state Exp;
+branches;
+next	1.24;
 
 1.24
 date	2002.07.11.13.08.44;	author tjaden;	state Exp;
@@ -130,9 +135,9 @@ desc
 @@
 
 
-1.24
+1.25
 log
-@Switched to using cvs2cl.pl to generate the ChangeLog.
+@Made ChangeLog contain full file name paths.
 @
 text
 @##
@@ -374,7 +379,9 @@ cleaner: clean
 ChangeLog:
 	( echo '	This ChangeLog is automatically produced from RCS logs.'; \
 	  echo '	See the Makefile for details.'; echo; \
-	  find -path '*/RCS*/*,v' -exec rlog {} \; | \
+	  find . -path '*/RCS*/*,v' -print | \
+		sed -e 's:^\./\(.*\),v$$:\1: ; s:RCS/::' | \
+		xargs rlog | \
 		tools/cvs2cl.pl --stdin --stdout ) > ChangeLog
 
 EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
@@ -399,6 +406,17 @@ prepare-dist: cleaner
 ##
 ## End of Makefile
 ##
+@
+
+
+1.24
+log
+@Switched to using cvs2cl.pl to generate the ChangeLog.
+@
+text
+@d240 3
+a242 1
+	  find -path '*/RCS*/*,v' -exec rlog {} \; | \
 @
 
 

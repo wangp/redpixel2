@@ -1,9 +1,19 @@
-head	1.18;
+head	1.20;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.20
+date	2002.07.16.12.29.50;	author tjaden;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	2002.07.16.08.18.59;	author tjaden;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	2002.07.15.09.27.30;	author tjaden;	state Exp;
@@ -100,10 +110,11 @@ desc
 @@
 
 
-1.18
+1.20
 log
-@Made it so only player objects can obstruct other objects from
-spawning.
+@receive_damage now takes four arguments.  The final two arguments
+(new) provide an idea of where the collision occurred, which is where
+blood should be spawned, etc.
 @
 text
 @-- basic-tilelike.lua
@@ -122,11 +133,12 @@ local Crate = function (t)
 	nonproxy_init = function (self)
 	    self.health = t.health
 
-	    function self:receive_damage (amount)
+	    function self:receive_damage (amount, attacker, collision_x, collision_y)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
-		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", collision_x, collision_y)
+		    spawn_sparks_on_clients (collision_x, collision_y, 30, 3)
+		    self.health = t.health
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
 		else
@@ -204,11 +216,11 @@ local Barrel = function (t)
 	nonproxy_init = function (self)
 	    self.health = t.health
 
-	    function self:receive_damage (amount, killer_id)
+	    function self:receive_damage (amount, killer_id, collision_x, collision_y)
 		self.health = self.health - amount
 		if self.health <= 0 then
-		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
-		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
+		    spawn_explosion_on_clients ("basic-explo42", collision_x, collision_y)
+		    spawn_sparks_on_clients (collision_x, collision_y, 30, 3)
 		    spawn_blast (self.x, self.y, 68, 50, killer_id)
 
 		    if t.chunks then
@@ -219,6 +231,7 @@ local Barrel = function (t)
 			end
 		    end
 
+		    self.health = t.health
 		    self:hide ()
 		    self:hibernate (t.respawn_secs * 1000)
 		else
@@ -346,6 +359,40 @@ Ladder {
     mask = "/basic/tilelike/ladder-gray5-mask",
     cx = 8, cy = 40
 }
+@
+
+
+1.19
+log
+@Made crates and barrels "respawn" (unhide) with the right amount of
+health.
+@
+text
+@d17 1
+a17 1
+	    function self:receive_damage (amount)
+d20 2
+a21 2
+		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
+		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
+d100 1
+a100 1
+	    function self:receive_damage (amount, killer_id)
+d103 2
+a104 2
+		    spawn_explosion_on_clients ("basic-explo42", self.x, self.y)
+		    spawn_sparks_on_clients (self.x, self.y, 30, 3)
+@
+
+
+1.18
+log
+@Made it so only player objects can obstruct other objects from
+spawning.
+@
+text
+@d22 1
+d115 1
 @
 
 

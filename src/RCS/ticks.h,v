@@ -1,0 +1,38 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2002.07.16.00.01.10;	author tjaden;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#ifndef __included_ticks_h
+#define __included_ticks_h
+
+
+/*
+ * Note that "ticks" and "tics" are different!  "Ticks" are a measure
+ * of game time.  "Tics" are used in the Lua code as counters of some
+ * other unit of time (usually multiples of the update hook's speed).
+ */
+
+#define TICKS_PER_SECOND	(50)
+#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
+
+
+#endif
+@

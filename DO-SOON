@@ -1,23 +1,32 @@
-be tighter with types in bindgen.lua
+-*- outline -*-
 
-what-weapons-collected display
-rocket jump [recoil from getting blasted]
-
-make mines not stack on each other
-small explosion for mines
-
-vulcan
+* easy
+vulcan [graphics/sound]
 blood lust visuals
 food consume sound
+lights for sparks?
+screen shakes for explosions
+recoil from getting blasted [make amount damage dependent]
+meat chunks from explosive death
+barrel chunks inertia
+blods inertia?
 
+* harder
+
+** more interesting
+what-weapons-collected display
 radar
-
 map scrolly thingi
+lua gc jerking
+gamma
+corpses, backpacks on crates (not hard, but want to do it elegantly, not a hack)
 
+** less interesting
 corpses continue moving in direction of player
 music
 doc-generation from bindgen.lua
 blast circles should provide a bit of light (dunno how)
 
+* maps
 bell tower map
 rocket arena explosives

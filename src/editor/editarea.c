@@ -61,7 +61,7 @@ static void draw_layers (BITMAP *bmp)
 
 static void draw (void *p, BITMAP *bmp)
 {
-    clear (magic);
+    clear_bitmap (magic);
     draw_layers (magic);
     blit_magic_format (magic, bmp, bmp->w, bmp->h);
 

@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.07.16.00.29.39;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.24.07.15.16;	author tjaden;	state Exp;
@@ -25,9 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Changed all "()" declarations to "(void)".
+@Fixed usages of depreciated Allegro functions.
 @
 text
 @/* editarea.c
@@ -93,7 +98,7 @@ static void draw_layers (BITMAP *bmp)
 
 static void draw (void *p, BITMAP *bmp)
 {
-    clear (magic);
+    clear_bitmap (magic);
     draw_layers (magic);
     blit_magic_format (magic, bmp, bmp->w, bmp->h);
 
@@ -319,6 +324,17 @@ void editarea_layer_activate (const char *name)
 	    break;
 	}
 }
+@
+
+
+1.3
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d64 1
+a64 1
+    clear (magic);
 @
 
 

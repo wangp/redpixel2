@@ -10,8 +10,8 @@ extern "C" {
 
 /* Overkill :-) */    
 #define LOADPNG_VERSION		0
-#define LOADPNG_SUBVERSION	7
-#define LOADPNG_VERSIONSTR	"0.7"
+#define LOADPNG_SUBVERSION	10
+#define LOADPNG_VERSIONSTR	"0.10"
 
     
 /* Screen gamma value.  Default is -1, which chooses either:

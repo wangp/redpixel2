@@ -96,22 +96,25 @@ Game_Type_Deathmatch = {
 
     player_died =
 	function (player_id, killer_id)
-	    if (dm_frags_total[player_id] ~= nil and
-		dm_frags_total[killer_id] ~= nil) then
-		local kid = killer_id
-		local d = (player_id == kid) and -1 or 1
+	    local player_name = get_client_name (player_id)
+	    if not player_name then 
+		return -- might be possible
 
-		dm_frags_total[kid] = dm_frags_total[kid] + d
-		dm_frags_current_map[kid] = dm_frags_current_map[kid] + d
-		set_deathmatch_score (kid)
+	    elseif player_id == killer_id then
+		dm_frags_total[player_id] = dm_frags_total[player_id] - 1
+		dm_frags_current_map[player_id] = dm_frags_current_map[player_id] - 1
+		set_deathmatch_score (player_id)
+		broadcast_text_message (player_name.." committed suicide")
 
-		if d < 0 then
-		    broadcast_text_message (get_client_name (player_id)
-					    .." committed suicide")
+	    else
+		local killer_name = get_client_name (killer_id)
+		if not killer_name then
+		    broadcast_text_message (player_name.." died but the killer has quit")
 		else
-		    broadcast_text_message (get_client_name (player_id)
-					    .." was killed by "..
-					    get_client_name (killer_id))
+		    dm_frags_total[killer_id] = dm_frags_total[killer_id] + 1
+		    dm_frags_current_map[killer_id] = dm_frags_current_map[killer_id] + 1
+		    set_deathmatch_score (killer_id)
+		    broadcast_text_message (player_name.." was killed by "..killer_name)
 		end
 	    end
 	end

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.07.16.00.29.45;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.12.20.15.28;	author tjaden;	state Exp;
@@ -15,12 +20,12 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Fixed usages of depreciated Allegro functions.
 @
 text
-@/*
+@/* -*- C -*-
  * See magicrot.c
  */
 
@@ -158,10 +163,10 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
       top_index = 3;
 
    /* Get direction of points: clockwise or anti-clockwise. */
-   if (fmul(xs[(top_index+1) & 3] - xs[top_index],
-	    ys[(top_index-1) & 3] - ys[top_index]) >
-       fmul(xs[(top_index-1) & 3] - xs[top_index],
-	    ys[(top_index+1) & 3] - ys[top_index]))
+   if (fixmul(xs[(top_index+1) & 3] - xs[top_index],
+	      ys[(top_index-1) & 3] - ys[top_index]) >
+       fixmul(xs[(top_index-1) & 3] - xs[top_index],
+	      ys[(top_index+1) & 3] - ys[top_index]))
       right_index = 1;
    else
       right_index = -1;
@@ -255,18 +260,18 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
    /* Vertical gap between top corner and centre of topmost scanline. */
    extra_scanline_fraction = (bmp_y_i << 16) + 0x8000 - top_bmp_y;
    /* Calculate x coordinate of beginning of scanline in bmp. */
-   l_bmp_dx = fdiv(left_bmp_x - top_bmp_x,
-		   left_bmp_y - top_bmp_y);
-   l_bmp_x = top_bmp_x + fmul(extra_scanline_fraction, l_bmp_dx);
+   l_bmp_dx = fixdiv(left_bmp_x - top_bmp_x,
+		     left_bmp_y - top_bmp_y);
+   l_bmp_x = top_bmp_x + fixmul(extra_scanline_fraction, l_bmp_dx);
    /* Calculate x coordinate of beginning of scanline in spr. */
    /* note: all these are rounded down which is probably a Good Thing (tm) */
-   l_spr_dx = fdiv(left_spr_x - top_spr_x,
-		   left_bmp_y - top_bmp_y);
-   l_spr_x = top_spr_x + fmul(extra_scanline_fraction, l_spr_dx);
+   l_spr_dx = fixdiv(left_spr_x - top_spr_x,
+		     left_bmp_y - top_bmp_y);
+   l_spr_x = top_spr_x + fixmul(extra_scanline_fraction, l_spr_dx);
    /* Calculate y coordinate of beginning of scanline in spr. */
-   l_spr_dy = fdiv(left_spr_y - top_spr_y,
-		   left_bmp_y - top_bmp_y);
-   l_spr_y = top_spr_y + fmul(extra_scanline_fraction, l_spr_dy);
+   l_spr_dy = fixdiv(left_spr_y - top_spr_y,
+		     left_bmp_y - top_bmp_y);
+   l_spr_y = top_spr_y + fixmul(extra_scanline_fraction, l_spr_dy);
 
    /* Calculate left loop bound. */
    l_bmp_y_bottom_i = (left_bmp_y + 0x8000) >> 16;
@@ -274,18 +279,18 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
       l_bmp_y_bottom_i = clip_bottom_i;
 
    /* Calculate x coordinate of end of scanline in bmp. */
-   r_bmp_dx = fdiv(right_bmp_x - top_bmp_x,
-		   right_bmp_y - top_bmp_y);
-   r_bmp_x = top_bmp_x + fmul(extra_scanline_fraction, r_bmp_dx);
+   r_bmp_dx = fixdiv(right_bmp_x - top_bmp_x,
+		     right_bmp_y - top_bmp_y);
+   r_bmp_x = top_bmp_x + fixmul(extra_scanline_fraction, r_bmp_dx);
    #ifdef KEEP_TRACK_OF_RIGHT_SPRITE_SCANLINE
    /* Calculate x coordinate of end of scanline in spr. */
    r_spr_dx = fdiv(right_spr_x - top_spr_x,
 		   right_bmp_y - top_bmp_y);
-   r_spr_x = top_spr_x + fmul(extra_scanline_fraction, r_spr_dx);
+   r_spr_x = top_spr_x + fixmul(extra_scanline_fraction, r_spr_dx);
    /* Calculate y coordinate of end of scanline in spr. */
    r_spr_dy = fdiv(right_spr_y - top_spr_y,
 		   right_bmp_y - top_bmp_y);
-   r_spr_y = top_spr_y + fmul(extra_scanline_fraction, r_spr_dy);
+   r_spr_y = top_spr_y + fixmul(extra_scanline_fraction, r_spr_dy);
    #endif
 
    /* Calculate right loop bound. */
@@ -324,17 +329,17 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
 	 /* Vertical gap between left corner and centre of scanline. */
 	 extra_scanline_fraction = (bmp_y_i << 16) + 0x8000 - left_bmp_y;
 	 /* Update x coordinate of beginning of scanline in bmp. */
-	 l_bmp_dx = fdiv(bottom_bmp_x - left_bmp_x,
-			 bottom_bmp_y - left_bmp_y);
-	 l_bmp_x = left_bmp_x + fmul(extra_scanline_fraction, l_bmp_dx);
+	 l_bmp_dx = fixdiv(bottom_bmp_x - left_bmp_x,
+			   bottom_bmp_y - left_bmp_y);
+	 l_bmp_x = left_bmp_x + fixmul(extra_scanline_fraction, l_bmp_dx);
 	 /* Update x coordinate of beginning of scanline in spr. */
-	 l_spr_dx = fdiv(bottom_spr_x - left_spr_x,
-			 bottom_bmp_y - left_bmp_y);
-	 l_spr_x = left_spr_x + fmul(extra_scanline_fraction, l_spr_dx);
+	 l_spr_dx = fixdiv(bottom_spr_x - left_spr_x,
+			   bottom_bmp_y - left_bmp_y);
+	 l_spr_x = left_spr_x + fixmul(extra_scanline_fraction, l_spr_dx);
 	 /* Update y coordinate of beginning of scanline in spr. */
-	 l_spr_dy = fdiv(bottom_spr_y - left_spr_y,
-			 bottom_bmp_y - left_bmp_y);
-	 l_spr_y = left_spr_y + fmul(extra_scanline_fraction, l_spr_dy);
+	 l_spr_dy = fixdiv(bottom_spr_y - left_spr_y,
+			   bottom_bmp_y - left_bmp_y);
+	 l_spr_y = left_spr_y + fixmul(extra_scanline_fraction, l_spr_dy);
 
 	 /* Update loop bound. */
 	 if (sub_pixel_accuracy)
@@ -350,18 +355,18 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
 	 /* Vertical gap between right corner and centre of scanline. */
 	 extra_scanline_fraction = (bmp_y_i << 16) + 0x8000 - right_bmp_y;
 	 /* Update x coordinate of end of scanline in bmp. */
-	 r_bmp_dx = fdiv(bottom_bmp_x - right_bmp_x,
-			 bottom_bmp_y - right_bmp_y);
-	 r_bmp_x = right_bmp_x + fmul(extra_scanline_fraction, r_bmp_dx);
+	 r_bmp_dx = fixdiv(bottom_bmp_x - right_bmp_x,
+			   bottom_bmp_y - right_bmp_y);
+	 r_bmp_x = right_bmp_x + fixmul(extra_scanline_fraction, r_bmp_dx);
 	 #ifdef KEEP_TRACK_OF_RIGHT_SPRITE_SCANLINE
 	 /* Update x coordinate of beginning of scanline in spr. */
-	 r_spr_dx = fdiv(bottom_spr_x - right_spr_x,
-			 bottom_bmp_y - right_bmp_y);
-	 r_spr_x = right_spr_x + fmul(extra_scanline_fraction, r_spr_dx);
+	 r_spr_dx = fixdiv(bottom_spr_x - right_spr_x,
+			   bottom_bmp_y - right_bmp_y);
+	 r_spr_x = right_spr_x + fixmul(extra_scanline_fraction, r_spr_dx);
 	 /* Update y coordinate of beginning of scanline in spr. */
-	 r_spr_dy = fdiv(bottom_spr_y - right_spr_y,
-			 bottom_bmp_y - right_bmp_y);
-	 r_spr_y = right_spr_y + fmul(extra_scanline_fraction, r_spr_dy);
+	 r_spr_dy = fixdiv(bottom_spr_y - right_spr_y,
+			   bottom_bmp_y - right_bmp_y);
+	 r_spr_y = right_spr_y + fixmul(extra_scanline_fraction, r_spr_dy);
 	 #endif
 
 	 /* Update loop bound: We aren't supposed to use this any more, so
@@ -380,15 +385,15 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
       /* ... and move starting point in sprite accordingly. */
       if (sub_pixel_accuracy) {
 	 l_spr_x_rounded = l_spr_x +
-			   fmul((l_bmp_x_rounded - l_bmp_x), spr_dx);
+			   fixmul((l_bmp_x_rounded - l_bmp_x), spr_dx);
 	 l_spr_y_rounded = l_spr_y +
-			   fmul((l_bmp_x_rounded - l_bmp_x), spr_dy);
+			   fixmul((l_bmp_x_rounded - l_bmp_x), spr_dy);
       }
       else {
 	 l_spr_x_rounded = l_spr_x +
-			   fmul(l_bmp_x_rounded + 0x7fff - l_bmp_x, spr_dx);
+			   fixmul(l_bmp_x_rounded + 0x7fff - l_bmp_x, spr_dx);
 	 l_spr_y_rounded = l_spr_y +
-			   fmul(l_bmp_x_rounded + 0x7fff - l_bmp_x, spr_dy);
+			   fixmul(l_bmp_x_rounded + 0x7fff - l_bmp_x, spr_dy);
       }
 
       /* Make right bmp coordinate be an integer and clip it. */
@@ -693,4 +698,89 @@ void ROTATE_SPRITE_V_FLIP(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle
 			      angle, 0x10000, TRUE COMMA_COLOR);
 }
 
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+/*
+d139 4
+a142 4
+   if (fmul(xs[(top_index+1) & 3] - xs[top_index],
+	    ys[(top_index-1) & 3] - ys[top_index]) >
+       fmul(xs[(top_index-1) & 3] - xs[top_index],
+	    ys[(top_index+1) & 3] - ys[top_index]))
+d236 3
+a238 3
+   l_bmp_dx = fdiv(left_bmp_x - top_bmp_x,
+		   left_bmp_y - top_bmp_y);
+   l_bmp_x = top_bmp_x + fmul(extra_scanline_fraction, l_bmp_dx);
+d241 3
+a243 3
+   l_spr_dx = fdiv(left_spr_x - top_spr_x,
+		   left_bmp_y - top_bmp_y);
+   l_spr_x = top_spr_x + fmul(extra_scanline_fraction, l_spr_dx);
+d245 3
+a247 3
+   l_spr_dy = fdiv(left_spr_y - top_spr_y,
+		   left_bmp_y - top_bmp_y);
+   l_spr_y = top_spr_y + fmul(extra_scanline_fraction, l_spr_dy);
+d255 3
+a257 3
+   r_bmp_dx = fdiv(right_bmp_x - top_bmp_x,
+		   right_bmp_y - top_bmp_y);
+   r_bmp_x = top_bmp_x + fmul(extra_scanline_fraction, r_bmp_dx);
+d262 1
+a262 1
+   r_spr_x = top_spr_x + fmul(extra_scanline_fraction, r_spr_dx);
+d266 1
+a266 1
+   r_spr_y = top_spr_y + fmul(extra_scanline_fraction, r_spr_dy);
+d305 3
+a307 3
+	 l_bmp_dx = fdiv(bottom_bmp_x - left_bmp_x,
+			 bottom_bmp_y - left_bmp_y);
+	 l_bmp_x = left_bmp_x + fmul(extra_scanline_fraction, l_bmp_dx);
+d309 3
+a311 3
+	 l_spr_dx = fdiv(bottom_spr_x - left_spr_x,
+			 bottom_bmp_y - left_bmp_y);
+	 l_spr_x = left_spr_x + fmul(extra_scanline_fraction, l_spr_dx);
+d313 3
+a315 3
+	 l_spr_dy = fdiv(bottom_spr_y - left_spr_y,
+			 bottom_bmp_y - left_bmp_y);
+	 l_spr_y = left_spr_y + fmul(extra_scanline_fraction, l_spr_dy);
+d331 3
+a333 3
+	 r_bmp_dx = fdiv(bottom_bmp_x - right_bmp_x,
+			 bottom_bmp_y - right_bmp_y);
+	 r_bmp_x = right_bmp_x + fmul(extra_scanline_fraction, r_bmp_dx);
+d336 3
+a338 3
+	 r_spr_dx = fdiv(bottom_spr_x - right_spr_x,
+			 bottom_bmp_y - right_bmp_y);
+	 r_spr_x = right_spr_x + fmul(extra_scanline_fraction, r_spr_dx);
+d340 3
+a342 3
+	 r_spr_dy = fdiv(bottom_spr_y - right_spr_y,
+			 bottom_bmp_y - right_bmp_y);
+	 r_spr_y = right_spr_y + fmul(extra_scanline_fraction, r_spr_dy);
+d361 1
+a361 1
+			   fmul((l_bmp_x_rounded - l_bmp_x), spr_dx);
+d363 1
+a363 1
+			   fmul((l_bmp_x_rounded - l_bmp_x), spr_dy);
+d367 1
+a367 1
+			   fmul(l_bmp_x_rounded + 0x7fff - l_bmp_x, spr_dx);
+d369 1
+a369 1
+			   fmul(l_bmp_x_rounded + 0x7fff - l_bmp_x, spr_dy);
 @

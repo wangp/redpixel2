@@ -1,5 +1,5 @@
 /* loadpng, Allegro wrapper routines for libpng
- * by Peter Wang (tjaden@psynet.net), December 1999.
+ * by Peter Wang (tjaden@users.sf.net), December 1999.
  * 
  * Because all I really did was copy and paste copy out of libpng's example.c,
  * the loadpng is being released under the same licence as libpng itself.
@@ -79,7 +79,7 @@ static void write_data(png_structp png_ptr, png_bytep data, png_uint_32 length)
 }
 
 /* don't think Allegro has any problem with buffering */
-static void flush_data(png_structp png_ptr) { }
+static void flush_data(png_structp png_ptr) { (void)png_ptr; }
 
 
 
@@ -107,6 +107,7 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
 {
     PACKFILE *fp;
     BITMAP *bmp;
+    PALETTE tmppal;
     png_structp png_ptr;
     png_infop info_ptr;
     png_uint_32 width, height, rowbytes;
@@ -114,7 +115,8 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
     double image_gamma, screen_gamma;
     int intent;
     int bpp, dest_bpp;
-    int number_passes, pass, y;
+    int number_passes, pass;
+    png_uint_32 y;
 
     fp = pack_fopen(filename, "r");
     if (!fp) 
@@ -131,7 +133,8 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
      * the compiler header file version, so that we know if the application
      * was compiled with a compatible version of the library.  
      */
-    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (void *)NULL, NULL, NULL);
+    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+				     (void *)NULL, NULL, NULL);
     if (!png_ptr) {
 	pack_fclose(fp);
 	return NULL;
@@ -170,8 +173,6 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
     
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
 		 &interlace_type, NULL, NULL);
-    
-    rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     
     /* Extract multiple pixels with bit depths of 1, 2, and 4 from a single
      * byte into separate bytes (useful for paletted and grayscale images).
@@ -223,6 +224,10 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
 	else
 	    generate_332_palette(pal);
     }
+    else {
+	pal = tmppal;
+	generate_332_palette(pal);  /* shrug */
+    }
     
     /* Flip RGB pixels to BGR. */
     /*if (makecol24(255, 0, 0) > makecol24(0, 0, 255))
@@ -235,6 +240,8 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
      * and update info structure.
      */
     png_read_update_info(png_ptr, info_ptr);
+    
+    rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     
     /* Allocate the memory to hold the image using the fields of info_ptr. */
     if (color_type == PNG_COLOR_TYPE_GRAY)
@@ -255,6 +262,42 @@ BITMAP *load_png(AL_CONST char *filename, RGB *pal)
     for (pass = 0; pass < number_passes; pass++) {
 	for (y = 0; y < height; y++)
 	    png_read_rows(png_ptr, &bmp->line[y], NULL, 1);
+    }
+    
+    /* Hack: I guess libpng and Allegro disagree on RGBA images.
+     * Without this, sometimes things come out in BGR.  Using only
+     * png_set_bgr() causes BGR images in *other* situations.  So we
+     * manually decompose colours, then ask Allegro to rebuild them.
+     * Hopefully this will be the end of it (crosses fingers).
+     */
+    if (bitmap_color_depth(bmp) == 32) {
+	int x, y, c;
+	
+	for (y = 0; y < bmp->h; y++) {
+	    for (x = 0; x < bmp->w; x++) {
+		c = getpixel(bmp, x, y);
+		putpixel(bmp, x, y, makeacol32(c & 0xff,
+					       (c>>8) & 0xff,
+					       (c>>16) & 0xff,
+					       (c>>24) & 0xff));
+	    }
+	}
+    }
+
+    /* Hack: libpng and Allegro sometimes disagree about this too.
+     * It's probably a mistake of mine somewhere.
+     */
+    else if (bitmap_color_depth(bmp) == 24) {
+	int x, y, c;
+	
+	for (y = 0; y < bmp->h; y++) {
+	    for (x = 0; x < bmp->w; x++) {
+		c = getpixel(bmp, x, y);
+		putpixel(bmp, x, y, makecol24(c & 0xff,
+					      (c>>8) & 0xff,
+					      (c>>16) & 0xff));
+	    }
+	}
     }
     
     if (dest_bpp != bpp)
@@ -299,6 +342,38 @@ static int save_hicolour(png_structp png_ptr, BITMAP *bmp, int depth)
 		*p++ = getg16(c);
 		*p++ = getb16(c);
             }
+        }
+	
+        png_write_row(png_ptr, row);
+    }
+    
+    free(row);
+    
+    return 1;
+}
+
+
+
+/* save_truecolour:
+ *  Core save routine for 32 bpp images.
+ */
+static int save_truecolour(png_structp png_ptr, BITMAP *bmp)
+{
+    unsigned char *row, *p; 
+    int i, j, c;
+
+    row = malloc(bmp->w * 4);
+    if (!row)
+	return 0;
+  
+    for (i=0; i<bmp->h; i++) {
+	p = row;
+        for (j = 0; j < bmp->w; j++) {
+            c = getpixel(bmp, j, i);
+	    *p++ = getr32(c);
+	    *p++ = getg32(c);
+	    *p++ = getb32(c);
+	    *p++ = geta32(c);
         }
 	
         png_write_row(png_ptr, row);
@@ -416,6 +491,13 @@ int save_png(AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pal)
     /* Save the data. */
     if ((depth == 15) || (depth == 16)) {
 	if (!save_hicolour(png_ptr, bmp, depth)) {
+	    pack_fclose(fp);
+	    png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+	    return -1;
+	}
+    }
+    else if (depth == 32) {
+	if (!save_truecolour(png_ptr, bmp)) {
 	    pack_fclose(fp);
 	    png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 	    return -1;

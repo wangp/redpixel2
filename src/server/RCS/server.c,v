@@ -1,9 +1,14 @@
-head	1.39;
+head	1.40;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.40
+date	2002.07.15.11.43.43;	author tjaden;	state Exp;
+branches;
+next	1.39;
 
 1.39
 date	2002.07.13.07.47.34;	author tjaden;	state Exp;
@@ -205,9 +210,9 @@ desc
 @@
 
 
-1.39
+1.40
 log
-@Warn the user if the map selected doesn't exist.
+@Moved id types to their own file and gave client id a type of its own.
 @
 text
 @/* server.c
@@ -761,7 +766,7 @@ void server_enable_single_hack (void)
 }
 
 
-void server_set_client_to_quit_with (int id)
+void server_set_client_to_quit_with (client_id_t id)
 {
     client_to_quit_with = id;
 }
@@ -806,6 +811,17 @@ void server_interface_set_status (const char *text)
     if (interface)
 	interface->set_status (text);
 }
+@
+
+
+1.39
+log
+@Warn the user if the map selected doesn't exist.
+@
+text
+@d552 1
+a552 1
+void server_set_client_to_quit_with (int id)
 @
 
 

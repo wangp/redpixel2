@@ -1,9 +1,14 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.7
+date	2002.07.15.11.43.27;	author tjaden;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2002.07.11.12.24.58;	author tjaden;	state Exp;
@@ -40,11 +45,9 @@ desc
 @@
 
 
-1.6
+1.7
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Moved id types to their own file and gave client id a type of its own.
 @
 text
 @/* map.c
@@ -256,7 +259,7 @@ void map_destroy_stale_objects (map_t *map)
 }
 
 
-object_t *map_find_object (map_t *map, int id)
+object_t *map_find_object (map_t *map, objid_t id)
 {
     object_t *p;
 
@@ -518,6 +521,19 @@ void map_blasts_draw (map_t *map, BITMAP *dest, int offset_x, int offset_y)
     list_for_each (b, &map->blasts)
 	blast_draw (dest, b, offset_x, offset_y);
 }
+@
+
+
+1.6
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@d210 1
+a210 1
+object_t *map_find_object (map_t *map, int id)
 @
 
 

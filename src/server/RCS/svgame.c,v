@@ -1,9 +1,24 @@
-head	1.24;
+head	1.27;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.27
+date	2002.07.16.08.07.45;	author tjaden;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	2002.07.16.00.01.35;	author tjaden;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	2002.07.15.11.44.03;	author tjaden;	state Exp;
+branches;
+next	1.24;
 
 1.24
 date	2002.07.15.11.05.31;	author tjaden;	state Exp;
@@ -130,9 +145,9 @@ desc
 @@
 
 
-1.24
+1.27
 log
-@Changed the type of object collision tags.
+@Introduced idea of intrinsic and extrinsic object xa, ya values.
 @
 text
 @/* svgame.c
@@ -160,11 +175,7 @@ text
 #include "svintern.h"
 #include "svstats.h"
 #include "svticker.h"
-
-
-/* Keep this in sync with the client. */
-#define TICKS_PER_SECOND	(50)
-#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
+#include "ticks.h"
 
 
 static map_t *map;
@@ -655,7 +666,7 @@ static void send_object_updates (void)
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
 				    object_xv (obj), object_yv (obj),
-				    object_xa (obj), object_ya (obj));
+				    object_total_xa (obj), object_total_ya (obj));
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_HIDDEN))
 	    add_to_gameinfo_packet ("clc", MSG_SC_GAMEINFO_OBJECT_HIDDEN,
@@ -699,13 +710,13 @@ static void handle_svclient_controls (void)
 	 */
 	switch (c->controls & (CONTROL_LEFT | CONTROL_RIGHT)) {
 	    case CONTROL_LEFT:
-		object_set_xa (obj, -2);
+		object_set_intrinsic_xa (obj, -2);
 		break;
 	    case CONTROL_RIGHT:
-		object_set_xa (obj, +2);
+		object_set_intrinsic_xa (obj, +2);
 		break;
 	    default:
-		object_set_xa (obj, 0);
+		object_set_intrinsic_xa (obj, 0);
 	}
 	    
 	/*
@@ -715,20 +726,19 @@ static void handle_svclient_controls (void)
 
 	    case CONTROL_UP:
 		if (object_head_above_ladder (obj)) {
-		    object_set_ya (obj, -8);
+		    object_set_intrinsic_ya (obj, -8);
 		    object_set_jump (obj, 4);
 		}
 		else if (object_standing_on_ladder (obj) ||
 			 object_in_ladder (obj)) {
-		    object_set_ya (obj, -4);
+		    object_set_intrinsic_ya (obj, -4);
 		    object_set_jump (obj, 2);
 		}
 		else {
 		    int jump = object_jump (obj);
-		    if (jump > 0) {
-			object_set_ya (obj, (object_ya (obj)
-					     - object_mass (obj)
-					     - 4/object_jump(obj)));
+		    if ((jump > 0) && (!object_extrinsic_ya (obj))) {
+			object_add_intrinsic_ya (obj, (- object_mass (obj)
+						       - 4/object_jump(obj)));
 			object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
 		    }
 		    else if ((jump == 0) && (object_supported (obj, map))) {
@@ -744,7 +754,7 @@ static void handle_svclient_controls (void)
 		    object_head_above_ladder (obj) ||
 		    object_in_ladder (obj)) {
 		    object_set_number (obj, "_internal_down_ladder", 1);
-		    object_set_ya (obj, 4);
+		    object_set_intrinsic_ya (obj, 4);
 		}
 		break;
 
@@ -1020,7 +1030,7 @@ void svgame_tell_ammo (object_t *obj, int ammo)
 }
 
 
-void svgame_set_score (int client_id, const char *score)
+void svgame_set_score (client_id_t client_id, const char *score)
 {
     svclient_t *c;
     char buf[NETWORK_MAX_PACKET_SIZE];
@@ -1048,7 +1058,7 @@ void svgame_play_sound_on_clients (object_t *obj, const char *sound)
 }
 
 
-const char *svgame_get_client_name (int client_id)
+const char *svgame_get_client_name (client_id_t client_id)
 {
     svclient_t *c = svclients_find_by_id (client_id);
     return c ? c->name : NULL;
@@ -1063,7 +1073,7 @@ void svgame_broadcast_text_message (const char *msg)
 }
 
 
-void svgame_send_text_message (int client_id, const char *msg)
+void svgame_send_text_message (client_id_t client_id, const char *msg)
 {
     svclient_t *c = svclients_find_by_id (client_id);
     if (c) {
@@ -1255,6 +1265,73 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.26
+log
+@Moved common definition of TICKS_PER_SECOND to a separate file.
+@
+text
+@d517 1
+a517 1
+				    object_xa (obj), object_ya (obj));
+d561 1
+a561 1
+		object_set_xa (obj, -2);
+d564 1
+a564 1
+		object_set_xa (obj, +2);
+d567 1
+a567 1
+		object_set_xa (obj, 0);
+d577 1
+a577 1
+		    object_set_ya (obj, -8);
+d582 1
+a582 1
+		    object_set_ya (obj, -4);
+d587 3
+a589 4
+		    if (jump > 0) {
+			object_set_ya (obj, (object_ya (obj)
+					     - object_mass (obj)
+					     - 4/object_jump(obj)));
+d605 1
+a605 1
+		    object_set_ya (obj, 4);
+@
+
+
+1.25
+log
+@Moved id types to their own file and gave client id a type of its own.
+@
+text
+@d26 1
+a26 5
+
+
+/* Keep this in sync with the client. */
+#define TICKS_PER_SECOND	(50)
+#define MSECS_PER_TICK		(1000 / TICKS_PER_SECOND)
+@
+
+
+1.24
+log
+@Changed the type of object collision tags.
+@
+text
+@d886 1
+a886 1
+void svgame_set_score (int client_id, const char *score)
+d914 1
+a914 1
+const char *svgame_get_client_name (int client_id)
+d929 1
+a929 1
+void svgame_send_text_message (int client_id, const char *msg)
 @
 
 

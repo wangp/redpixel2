@@ -1,9 +1,39 @@
-head	1.40;
+head	1.46;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.46
+date	2002.07.16.12.29.58;	author tjaden;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	2002.07.16.11.49.07;	author tjaden;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	2002.07.16.11.00.02;	author tjaden;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	2002.07.16.00.02.31;	author tjaden;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	2002.07.15.15.24.20;	author tjaden;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	2002.07.15.14.35.52;	author tjaden;	state Exp;
+branches;
+next	1.40;
 
 1.40
 date	2002.07.15.11.07.34;	author tjaden;	state Exp;
@@ -210,10 +240,11 @@ desc
 @@
 
 
-1.40
+1.46
 log
-@Give mines the same collision tag so they don't stack up on top of
-each other.
+@receive_damage now takes four arguments.  The final two arguments
+(new) provide an idea of where the collision occurred, which is where
+blood should be spawned, etc.
 @
 text
 @-- basic-weapon.lua
@@ -266,9 +297,16 @@ local Standard_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    if t.dot_mask then
+		self:set_mask (mask_main,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_top,    "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_bottom, "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_left,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_right,  "/basic/weapon/single-dot-mask", 0, 0)
+	    end
 	    self.damage = t.damage
 	    function self:collide_hook (obj)
-		obj:receive_damage (self.damage, self.owner)
+		obj:receive_damage (self.damage, self.owner, self.x, self.y)
 		self:set_stale ()
 	    end
 	    function self:tile_collide_hook ()
@@ -287,6 +325,13 @@ local Explosive_Projectile = function (t)
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    object_set_collision_is_projectile (self)
+	    if t.dot_mask then
+		self:set_mask (mask_main,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_top,    "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_bottom, "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_left,   "/basic/weapon/single-dot-mask", 0, 0)
+		self:set_mask (mask_right,  "/basic/weapon/single-dot-mask", 0, 0)
+	    end
 	    self.damage = t.damage
 	    local hook = function (self, obj)
 		if t.explosion then
@@ -357,7 +402,9 @@ Standard_Projectile {
     icon = "/basic/weapon/blaster/projectile",
     damage = 8,
     sparks = 30,
+    dot_mask = true,
     proxy_init = function (self)
+	self:move_layer (0, 3, 0)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
@@ -413,7 +460,9 @@ Explosive_Projectile {
     radius = 55,
     damage = 40,
     explosion = "basic-explo42",
+    dot_mask = true,
     proxy_init = function (self)
+	self:move_layer (0, 8, 1)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
@@ -551,19 +600,22 @@ Explosive_Projectile {
     icon = "/basic/weapon/rpg/projectile",
     radius = 75,
     damage = 80,
+    dot_mask = true,
     explosion = "basic-explo42",
     smoke_trails = "basic-rocket-smoke",
     proxy_init = function (self)
+	self:move_layer (0, 5, 3)
 	self:rotate_layer (0, radian_to_bangle (self.angle))
     end
 }
 
 explosion_type_register (
     "basic-rocket-smoke",
-    "/basic/weapon/rpg/smoke/000", 16, 50/16,
+    "/basic/weapon/rpg/smoke/000", 16, ticks_per_second/16,
     nil, -- no light
     nil  -- no sound
 )
+
 
 ----------------------------------------------------------------------
 --  Shotgun
@@ -659,7 +711,7 @@ Objtype {
     nonproxy_init = function (self)
 	self.damage = 50
 	function self:collide_hook (obj)
-	    obj:receive_damage (self.damage, self.owner)
+	    obj:receive_damage (self.damage, self.owner, self.x, self.y)
 	    self:set_stale ()
 	end
 	function self:tile_collide_hook (obj)
@@ -671,6 +723,53 @@ Objtype {
 	    return false
 	end
     end
+}
+
+
+----------------------------------------------------------------------
+--  Vulcan cannon
+----------------------------------------------------------------------
+
+Standard_Pickup {
+    name = "basic-vulcan-ammo",
+    icon = "/basic/weapon/ammo/vulcan",
+    ammo_to_give = "basic-vulcan-ammo",
+    ammo_amount = 20,
+    respawn_secs = 10
+}
+
+Weapon_With_Firer {
+    name = "basic-vulcan",
+    ammo_type = "basic-vulcan-ammo",
+    projectile = "basic-vulcan-projectile",
+    projectile_speed = 300,
+    fire_delay_secs = 0.06,
+    arm_anim = {
+	"/basic/weapon/vulcan/2arm000",
+	"/basic/weapon/vulcan/2arm001",
+	"/basic/weapon/vulcan/2arm002",
+	"/basic/weapon/vulcan/2arm003",
+	"/basic/weapon/vulcan/2arm004";
+	cx = 0, cy = 3
+    },
+    sound = "/basic/weapon/vulcan/sound"
+}
+
+Standard_Pickup {
+    name = "basic-vulcan",
+    icon = "/basic/weapon/vulcan/pickup",
+    weapon_to_give = "basic-vulcan",
+    ammo_to_give = "basic-vulcan-ammo",
+    ammo_amount = 10,
+    respawn_secs = 10
+}
+
+Standard_Projectile {
+    name = "basic-vulcan-projectile",
+    alias = "~vp",
+    icon = "/basic/weapon/vulcan/projectile",
+    damage = 7,
+    sparks = 40,
 }
 
 
@@ -743,7 +842,7 @@ Objtype {
 					      rad, 5)
 		    end
 		    spawn_blast (self.x, self.y, 25, 20, self.owner)
-		    play_sound_on_clients (self, "/basic/explosion/explo42/sound") --XXX wrong datapack
+		    spawn_explosion_on_clients ("basic-explo20", self.x, self.y-6)
 		    self:set_stale ()
 		end
 	    end
@@ -808,6 +907,7 @@ weapon_order = {
     "basic-blaster",
     "basic-shotgun",
     "basic-ak",
+    "basic-vulcan",
     "basic-minigun",
     "basic-bow",
     "basic-rpg",
@@ -818,10 +918,88 @@ weapon_order = {
 -- I recommend not putting in explosives.
 weapon_auto_switch_order = {
     "basic-minigun",
+    "basic-vulcan",
     "basic-ak",
     "basic-shotgun",
     "basic-blaster"
 }
+@
+
+
+1.45
+log
+@Made rotated projectiles use a single dot for collision masks, since
+masks cannot rotate.
+@
+text
+@d60 1
+a60 1
+		obj:receive_damage (self.damage, self.owner)
+d465 1
+a465 1
+	    obj:receive_damage (self.damage, self.owner)
+@
+
+
+1.44
+log
+@Increased vulcan projectile damage.
+@
+text
+@d51 7
+d79 7
+d156 1
+d158 1
+d214 1
+d216 1
+d354 1
+d358 1
+@
+
+
+1.43
+log
+@Expose TICKS_PER_SECOND and MSECS_PER_TICK to the Lua state.
+@
+text
+@d502 1
+a502 1
+    damage = 5,
+@
+
+
+1.42
+log
+@Added vulcan cannon (using placeholder graphics atm).
+@
+text
+@d345 1
+a345 1
+    "/basic/weapon/rpg/smoke/000", 16, 50/16,
+@
+
+
+1.41
+log
+@Spawn a basic-explo20 when an mine is triggered.
+@
+text
+@d350 1
+d461 47
+d641 1
+d652 1
+@
+
+
+1.40
+log
+@Give mines the same collision tag so they don't stack up on top of
+each other.
+@
+text
+@d528 1
+a528 1
+		    play_sound_on_clients (self, "/basic/explosion/explo42/sound") --XXX wrong datapack
 @
 
 

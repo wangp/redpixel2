@@ -1,9 +1,14 @@
-head	1.9;
+head	1.10;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.10
+date	2002.07.16.00.02.15;	author tjaden;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2002.07.12.17.27.22;	author tjaden;	state Exp;
@@ -55,9 +60,9 @@ desc
 @@
 
 
-1.9
+1.10
 log
-@Made lua_checkargs() understand a boolean type.
+@Expose TICKS_PER_SECOND and MSECS_PER_TICK to the Lua state.
 @
 text
 @/* mylua.c
@@ -72,6 +77,7 @@ text
 #include "lualib.h"
 #include "mylua.h"
 #include "path.h"
+#include "ticks.h"
 
 
 /*
@@ -128,6 +134,11 @@ int mylua_open (void)
 
     /* register bindings */
     DO_REGISTRATION_INIT (the_lua_state);
+
+    lua_pushnumber (the_lua_state, TICKS_PER_SECOND);
+    lua_setglobal (the_lua_state, "ticks_per_second");
+    lua_pushnumber (the_lua_state, MSECS_PER_TICK);
+    lua_setglobal (the_lua_state, "msecs_per_tick");
 
     /* for debugging */
     lua_pushstring (the_lua_state, "initial");
@@ -280,6 +291,16 @@ int lua_checkargs (lua_State *L, const char *argtypes)
 
     return 1;
 }
+@
+
+
+1.9
+log
+@Made lua_checkargs() understand a boolean type.
+@
+text
+@d13 1
+d70 5
 @
 
 

@@ -1,9 +1,14 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.8
+date	2002.07.16.07.03.20;	author tjaden;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2002.07.11.12.24.33;	author tjaden;	state Exp;
@@ -45,11 +50,9 @@ desc
 @@
 
 
-1.7
+1.8
 log
-@Separated the one Lua state into two namespaces: server and client, so
-that scripts run on the server don't have access to client-only
-functions, and vice versa.  This makes things much less murky.
+@Added `errorv' (n-ary version of `error').
 @
 text
 @/* objtypes.c
@@ -142,13 +145,10 @@ int objtypes_register (const char *type, const char *name,
 			const char *icon, lua_ref_t init_func)
 {
     BITMAP *icon_bmp;
-    char buf[512];
 
     icon_bmp = store_get_dat (icon);
-    if (!icon_bmp) {
-	uszprintf (buf, sizeof buf, "Bad icon %s\n", icon);
-	error (buf);
-    }
+    if (!icon_bmp)
+	errorv ("Bad icon %s\n", icon);
 
     return (create (type, name, icon, init_func,
 		    bitmask_create_from_magic_bitmap (icon_bmp))
@@ -205,6 +205,24 @@ bitmask_t *objtype_icon_mask (objtype_t *type)
 {
     return type->icon_mask;
 }
+@
+
+
+1.7
+log
+@Separated the one Lua state into two namespaces: server and client, so
+that scripts run on the server don't have access to client-only
+functions, and vice versa.  This makes things much less murky.
+@
+text
+@a90 1
+    char buf[512];
+d93 2
+a94 4
+    if (!icon_bmp) {
+	uszprintf (buf, sizeof buf, "Bad icon %s\n", icon);
+	error (buf);
+    }
 @
 
 

@@ -19,7 +19,7 @@
 
 
 list_head_t svclients;
-static int svclients_next_id = 1;
+static client_id_t svclients_next_id = 1;
 
 
 
@@ -183,7 +183,7 @@ int svclients_count (void)
 }
 
 
-svclient_t *svclients_find_by_id (int id)
+svclient_t *svclients_find_by_id (client_id_t id)
 {
     svclient_t *c;
 

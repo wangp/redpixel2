@@ -3,6 +3,8 @@
 #define __included_map_h
 
 
+#include "id.h"
+
 struct object;
 struct blood_particles;
 struct spark_particles;
@@ -30,7 +32,7 @@ void map_link_object (map_t *map, struct object *obj);
 void map_link_object_bottom (map_t *map, struct object *obj);
 void map_unlink_object (struct object *obj);
 void map_destroy_stale_objects (map_t *map);
-struct object *map_find_object (map_t *map, int id);
+struct object *map_find_object (map_t *map, objid_t id);
 struct list_head *map_object_list (map_t *map);
 
 light_t *map_light_create (map_t *map, int x, int y, int lightmap);
