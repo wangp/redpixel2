@@ -277,7 +277,7 @@ static void change_set (struct type *p)
 static void left_proc (void)
 {
     struct type *prev = current->prev;
-    if (prev == (struct type *) &type_list)
+    if (prev == (void *) &type_list)
 	change_set (prev->prev);
     else
 	change_set (prev);
@@ -286,7 +286,7 @@ static void left_proc (void)
 static void right_proc (void)
 {    
     struct type *next = current->next;
-    if (next == (struct type *) &type_list)
+    if (next == (void *) &type_list)
 	change_set (next->next);
     else
 	change_set (next);

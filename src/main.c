@@ -89,13 +89,6 @@ static void setup_minimal_allegro (void)
 }
 
 
-static void *server_thread (void *arg)
-{
-    server_run ();
-    return NULL;
-}
-
-
 static void do_run_server (void)
 {
     if (server_init (server_text_interface, INET_DRIVER, "") < 0) {

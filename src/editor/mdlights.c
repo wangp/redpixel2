@@ -136,7 +136,7 @@ static void change_set (struct file *p)
 static void left_proc (void)
 {
     struct file *prev = current->prev;
-    if (prev == (struct file *) &file_list)
+    if (prev == (void *) &file_list)
 	change_set (prev->prev);
     else
 	change_set (prev);
@@ -145,7 +145,7 @@ static void left_proc (void)
 static void right_proc (void)
 {    
     struct file *next = current->next;
-    if (next == (struct file *) &file_list)
+    if (next == (void *) &file_list)
 	change_set (next->next);
     else
 	change_set (next);

@@ -97,7 +97,7 @@ static DIALOG connecting_dialog[] =
     { fancy_bitmap_proc, 230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, NULL, NULL, NULL }, /* 0 */
     { fancy_label_proc,  230, 290, 180, 40, 0, -1, 0, 0, 1, 0xa0, "Connecting . . .", NULL, NULL }, /* 1 */
     { fancy_button_proc, 270, 340, 100, 40, 0, -1, 27, D_EXIT, 0, 0x80, "Cancel", NULL, NULL }, /* 2 */
-    { NULL }
+    { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
 
@@ -134,7 +134,7 @@ static DIALOG kicked_dialog[] =
     { fancy_bitmap_proc,   0,   0, 640, 480, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL }, /* 0 */
     { fancy_label_proc,  160, 210, 320,  40, 0, -1, 0, 0, 1, 0xa0, "You were disconnected by the server.", NULL, NULL }, /* 1 */
     { fancy_button_proc, 270, 260, 100,  40, 0, -1, 27, D_EXIT, 0, 0x80, "Ok", NULL, NULL }, /* 2 */
-    { NULL }
+    { NULL,                0,   0,   0,   0, 0,  0,  0, 0, 0, 0, NULL, NULL, NULL }
 };
 
 
@@ -223,7 +223,7 @@ static DIALOG client_server_dialog[] =
     { fancy_button_proc, 370, 290,  80,  40, 0, -1, 27, D_EXIT, 0, 0x80, "Back", NULL, NULL }, /* 7 */
     { fancy_label_proc,    0, 320, 640,  40, 0, -1, 0, D_HIDDEN, 1, 0xa0, "Error: Port already used?", NULL, NULL }, /* 8 */
     { d_yield_proc,        0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
-    { NULL }
+    { NULL,                0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
 
@@ -288,7 +288,7 @@ static DIALOG client_dialog[] =
     { fancy_button_proc, 230, 290,  80,  40, 0, -1, 0, 0, 0, 0x80, "Join!", NULL, join_server_pressed }, /* 5 */
     { fancy_button_proc, 330, 290,  80,  40, 0, -1, 27, D_EXIT, 0, 0x80, "Back", NULL, NULL }, /* 6 */
     { d_yield_proc,        0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
-    { NULL }
+    { NULL,                0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
 
@@ -350,7 +350,7 @@ static DIALOG multiplayer_menu[] =
     { fancy_button_proc, 250, 250, 140,  40, 0, -1, 0, 0, 0, 0x80, "Client", NULL, client_button_pressed }, /* 2 */
     { fancy_button_proc, 250, 300, 140,  40, 0, -1, 27, D_EXIT, 0, 0x80, "Back", NULL, NULL }, /* 3 */
     { d_yield_proc,        0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL },
-    { NULL }
+    { NULL,                0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
 
@@ -431,7 +431,7 @@ static DIALOG main_menu[] =
     { fancy_button_proc, 250, 300, 140,  40, 0, -1, 0, 0, 0, 0x80, "Credits", NULL, credits_pressed }, /* 4 */
     { fancy_button_proc, 250, 350, 140,  40, 0, -1, 0, D_EXIT, 0, 0x80, "Exit", NULL, NULL }, /* 5 */
     { d_yield_proc,        0,   0,   0,   0, 0,  0, 27, 0, 0, 0, NULL, NULL, NULL },
-    { NULL }
+    { NULL,                0,   0,   0,   0, 0,  0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
 

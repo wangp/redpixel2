@@ -6,6 +6,7 @@
 
 #include <allegro.h>
 #include <math.h>
+#include <string.h>
 #include "bitmask.h"
 #include "bitmaskg.h"
 #include "extdata.h"

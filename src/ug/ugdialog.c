@@ -162,7 +162,10 @@ static void layout_dialog (ug_dialog_t *d)
     free (row_shared_w);
     free (row_fixed_h);
 
-#undef border width height percent
+#undef border
+#undef width
+#undef height
+#undef percent
 }
 
 

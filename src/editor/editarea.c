@@ -241,7 +241,7 @@ static void link_layer (struct layer *layer)
     struct layer *p;
 
     list_for_each (p, &layers)
-        if ((p->next == (struct layer *) &layers) ||
+        if ((p->next == (void *) &layers) ||
 	    (p->next->depth > layer->depth)) break;
 
     list_add_at_pos (p, layer);

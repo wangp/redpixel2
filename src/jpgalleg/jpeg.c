@@ -119,7 +119,7 @@ static unsigned long next_bit(DECODER_DATA *dec)
  */
 static int get_bits(DECODER_DATA *dec, int category)
 {
-   unsigned int i;
+   int i;
    int result = 0;
 
    for (i=0; i<category; i++)

@@ -5,6 +5,7 @@
 
 
 #include <allegro.h>
+#include <string.h>
 #include "list.h"
 #include "map.h"
 #include "mapfile.h"
@@ -331,7 +332,7 @@ map_t *map_load (const char *filename, int is_client, int *warning)
     /* Read chunks.  */
     while (!pack_feof (f)) {
 	unsigned long chunk = pack_igetl (f);
-	if (chunk == EOF)
+	if (chunk == (unsigned long) EOF)
 	    goto error;
 
 	switch (chunk) {

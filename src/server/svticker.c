@@ -10,13 +10,13 @@
 
 
 struct svticker {
-    int msecs_per_tick;
+    unsigned int msecs_per_tick;
     unsigned long ticks;
     struct pwtimeval last_update;
 };
 
 
-svticker_t *svticker_create (int ticks_per_sec)
+svticker_t *svticker_create (unsigned int ticks_per_sec)
 {
     svticker_t *t = alloc (sizeof *t);
 

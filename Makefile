@@ -12,7 +12,8 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/loadaud src/2xsai src/gui src/ug src/editor src/server
 
 CC := gcc
-CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
+CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -D_REENTRANT \
+	  -W -Wall -Wno-unused-parameter -Wno-deprecated-declarations \
 	  -I libnet/include -I lua/include -I dumb/include \
 	  $(addprefix -I,$(SRCDIRS)) -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
@@ -20,12 +21,12 @@ LDFLAGS := $(PLAT_LDFLAGS)
 
 ifndef PROFILE
 ifndef DEBUG
-CFLAGS += -O3 -fomit-frame-pointer -funroll-loops -ffast-math -mcpu=i686
+CFLAGS += -O3 -fomit-frame-pointer -funroll-loops -ffast-math
 else
 CFLAGS += -O3 -g
 endif
 else
-CFLAGS += -O3 -funroll-loops -march=i686 -pg
+CFLAGS += -O3 -funroll-loops -pg
 LDFLAGS := -pg
 endif
 
@@ -169,6 +170,9 @@ vpath %.c $(SRCDIRS)
 
 $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJDIR)/fastsqrt.o: fastsqrt.c
+	$(CC) $(CFLAGS) -fno-strict-aliasing -o $@ -c $<
 
 src/bindings.inc: src/bindgen.lua
 	$(PLAT_LUABIN) $< > $@

@@ -14,7 +14,7 @@
 #include <math.h>
 #include "fastsqrt.h"
 
-long sqrt_table[0x100];
+static long sqrt_table[0x100];
 
 void build_sqrt_table(void) {
     unsigned short i;

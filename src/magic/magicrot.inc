@@ -99,7 +99,7 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
    /* Temporary variable. */
    fixed extra_scanline_fraction;
    /* The blender. */
-   void *blender;
+   void *blender = NULL;
 
    /*
     * Variables used in the loop
@@ -470,6 +470,7 @@ static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
 	 /* I'm not going to apoligize for this label and its gotos: to get
 	    rid of it would just make the code look worse. */
 	 skip_draw:
+	    ;
       }
 
       /* Jump to next scanline. */

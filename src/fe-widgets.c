@@ -377,7 +377,7 @@ int fancy_edit_proc (int msg, DIALOG *d, int c)
 		else if (c >> 8 == KEY_E)
 		    d->d2 = strlen (d->dp);
 		else if (c >> 8 == KEY_F)
-		    d->d2 = MIN (d->d2 + 1, strlen (d->dp));
+		    d->d2 = MIN (d->d2 + 1, (int) strlen (d->dp));
 		else if (c >> 8 == KEY_K)
 		    ((char *)d->dp)[d->d2] = '\0';
 		else if (c >> 8 == KEY_U)

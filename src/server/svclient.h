@@ -25,7 +25,7 @@ struct svclient {
     svclient_t *prev;
     struct NET_CONN *conn;
     svclient_state_t state;
-    int id;
+    client_id_t id;
     struct object *client_object;
     char *name;
     char *face_icon;

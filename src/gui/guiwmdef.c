@@ -556,6 +556,7 @@ static void wm_handle_event (gui_event_t event, int d)
 
   more:
     /* nothing yet */
+    ;
 }
 
 /*----------------------------------------------------------------------*/

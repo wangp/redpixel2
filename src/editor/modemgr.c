@@ -6,6 +6,7 @@
 
 #include <allegro.h>
 #include <stdlib.h>
+#include <string.h>
 #include "gui.h"
 #include "ug.h"
 #include "modemgr.h"
