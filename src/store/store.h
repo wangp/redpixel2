@@ -1,11 +1,6 @@
 #ifndef __included_store_h
 #define __included_store_h
 
-/*
- * Note the "lua binding" comments are meaningless outside of the RP2
- * code-base (which Store is part of).  You can disregard them.
- */
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,7 +24,7 @@ store_file_t store_load_ex (AL_CONST char *filename, AL_CONST char *prefix,
 			    DATAFILE *(*loader) (AL_CONST char *)); /* Lua binding */
 void store_unload (store_file_t f);
 
-store_index_t store_get_index (AL_CONST char *key); /* Lua binding */
+store_index_t store_get_index (AL_CONST char *key);
 AL_CONST char *store_get_key (store_index_t index);
 DATAFILE *store_get_datafile (AL_CONST char *key);
 void *store_get_dat (AL_CONST char *key);

@@ -151,14 +151,6 @@ generate {
 		    "$ = !store_load_ex(filename, prefix, load_extended_datafile);" }
 }
 
-generate {
-    cname	= "store_get_index",
-    lname	= "store_index", -- XXX: temporary
-    args	= {{ String, "key" }},
-    ret		= { Int, "ret", "!$" },
-    success	= "lua_pushnumber(L, ret); return 1;"
-}
-
 
 ----------------
 -- loaddata.h --
