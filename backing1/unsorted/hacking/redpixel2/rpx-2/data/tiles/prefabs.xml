@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<prefabs>
+ <prefab name='Tux the Shadow Penguin'>
+  <row>
+   <tile name='/tiles/brick_dumb_010'/>
+   <tile name='/tiles/brick_dumb_011'/>
+  </row>
+  <row>
+   <tile name='/tiles/brick_dumb_012'/>
+   <tile name='/tiles/brick_dumb_013'/>
+  </row>
+ </prefab>
+
+ <prefab name='Pentagram'>
+  <row>
+   <tile name='/tiles/brick_dumb_000'/>
+   <tile name='/tiles/brick_dumb_001'/>
+  </row>
+  <row>
+   <tile name='/tiles/brick_dumb_002'/>
+   <tile name='/tiles/brick_dumb_003'/>
+  </row>
+ </prefab>
+</prefabs>
