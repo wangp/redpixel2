@@ -1447,10 +1447,11 @@ object_t *lua_toobject (lua_State *L, int index)
 }
 
 
-void object_call (lua_State *S, object_t *obj, const char *method, int nargs)
+int object_call (lua_State *S, object_t *obj, const char *method, int nargs)
 {
     int top = lua_gettop (S);
     int i;
+    int err;
 
     lua_getref (S, obj->table);
     lua_pushstring (S, method);
@@ -1459,10 +1460,18 @@ void object_call (lua_State *S, object_t *obj, const char *method, int nargs)
 	lua_pushobject (S, obj);
 	for (i = 0; i < nargs; i++)
 	    lua_pushvalue (S, -3 - nargs);
-	lua_call (S, 1 + nargs, 0);
+	err = lua_call (S, 1 + nargs, 0);
+    }
+    else {
+	char buf[1024];
+	uszprintf (buf, sizeof buf, "couldn't call method %s", method);
+	lua_error (S, buf);
+	err = LUA_ERRRUN;
     }
 
     lua_settop (S, top - nargs);
+
+    return err;
 }
 
 
