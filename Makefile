@@ -247,7 +247,7 @@ EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
 EXCLUDE := $(addprefix --exclude , $(EXCLUDE_LIST))
 
 backup:
-	cd ../ && tar zcvf redstone-`date +%Y%m%d`.tar.gz redstone $(EXCLUDE)
+	cd ../ && tar ycvf redstone-`date +%Y%m%d`.tar.bz2 redstone $(EXCLUDE)
 
 suidroot:
 	chown root.games $(PROGRAM)
