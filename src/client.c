@@ -17,6 +17,7 @@
 #include "magic4x4.h"
 #include "map.h"
 #include "mapfile.h"
+#include "mathcnst.h"
 #include "messages.h"
 #include "mylibnet.h"
 #include "netmsg.h"
@@ -29,11 +30,6 @@
 #include "store.h"
 #include "sync.h"
 #include "timeout.h"
-
-
-#ifndef M_PI
-# define M_PI   3.14159265358979323846
-#endif
 
 
 #if 0

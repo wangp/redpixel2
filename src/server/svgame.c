@@ -12,6 +12,7 @@
 #include "list.h"
 #include "map.h"
 #include "mapfile.h"
+#include "mathcnst.h"
 #include "netmsg.h"
 #include "object.h"
 #include "objtypes.h"
@@ -22,11 +23,6 @@
 #include "svintern.h"
 #include "svstats.h"
 #include "svticker.h"
-
-
-#ifndef M_PI
-# define M_PI   3.14159265358979323846
-#endif
 
 
 /* Keep this in sync with the client. */
