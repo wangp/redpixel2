@@ -170,12 +170,14 @@ generate {
 generate {
     lname	= "objtype_register",
     cname	= "objtypes_register",
-    check	= "sss[fN-]",
-    args	= {{ String, "type" },
+    check	= "[sN]ss[fN-]",
+    args	= {{ String, "type", nil,
+	             "$ = lua_isnil(L, $#) ? 0 : lua_tostring(L, $#);" },
     		   { String, "name" },
 		   { String, "icon" },
 		   { Method, "func", nil, 
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }}
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? LUA_NOREF : lua_ref(L, $#));" }},
+    ret		= { Int, "ret", "$ < 0" }
 }
 
 generate {

@@ -65,6 +65,9 @@ static void callback (objtype_t *objtype)
     BITMAP *bmp;
     struct type *p;
 
+    if (!objtype_type (objtype))
+	return;
+
     bmp = store_dat (objtype_icon (objtype));
     if (!bmp) return;
     
