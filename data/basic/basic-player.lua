@@ -8,7 +8,7 @@ store_load ("basic/basic-player.dat", "/basic/player/")
 ----------------------------------------------------------------------
 
 
-local xv_decay, yv_decay = 0.75, 0.5
+local xv_decay, yv_decay = 0.7, 0.45
 
 -- centre of the player sprites
 local cx, cy = 5, 5
