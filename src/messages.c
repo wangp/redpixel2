@@ -83,16 +83,19 @@ void messages_render (BITMAP *bmp)
     text_mode (-1);
 
     for (i = top_line; i < num_lines; i++, y += h)
-	textout_right_magic (bmp, fnt, lines[i], bmp->w/3 - XMARGIN, y,
-			     text_colour);
+	textout_right_trans_magic (bmp, fnt, lines[i],
+				   bmp->w/3 - XMARGIN, y,
+				   text_colour);
 
     if (input_enabled) {
-	textout_right_magic (bmp, fnt, ucs16_to_utf8 (input_line),
-			     bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
-			     input_colour);
+	textout_right_trans_magic (bmp, fnt, ucs16_to_utf8 (input_line),
+				   bmp->w/3 - XMARGIN - text_length (fnt, "_"), y,
+				   input_colour);
+
 	if (input_blink & 0x8)
-	    textout_right_magic (bmp, fnt, "_", bmp->w/3 - XMARGIN, y,
-				 input_colour);
+	    textout_right_trans_magic (bmp, fnt, "_",
+				       bmp->w/3 - XMARGIN, y,
+				       input_colour);
 	input_blink = (input_blink+1) & 0xf;
     }
 }
