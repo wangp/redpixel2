@@ -332,7 +332,7 @@ local player_nonproxy_init = function (self)
     end
 
     function self:receive_mines (amount)
-	self.num_mines = self.num_mines + 1
+	self.num_mines = self.num_mines + amount
     end
 
 
