@@ -1,0 +1,24 @@
+code consistency, (e.g. between map, object, particles, explosions, render)
+	the code has a stop-start-stop-start feel to it (but at least
+		it works :-)
+
+too many packets sent, e.g. for jumping
+
+server will think send error if our game state is plainly too big to
+	fit into libnet's conn outqueue
+
+spawning lots of projectiles makes server become really
+	slow, probably the do_physics function
+
+
+------------------------------
+
+split loaddata?
+
+rename ed_select?
+
+move ed_select to new src/editor/custom dir?
+     (custom ug widgets would go in there)
+
+dialog dirtiness not precise enough?
+	if not, go to per-widget dirtiness
