@@ -145,7 +145,7 @@ local animate_player_proxy = function (self)
     if self.animate_arm then
 	if self.arm_tics > 0 then
 	    self.arm_tics = self.arm_tics - 1
-	else
+	elseif self.current_weapon then
 	    local anim = self.current_weapon.arm_anim
 	    self.arm_tics = anim.tics or 5
 	    self.arm_frame = self.arm_frame + 1
@@ -206,7 +206,7 @@ local player_proxy_init = function (self)
 
     -- (called by nonproxy fire hook)
     function self:start_firing_anim ()
-	if not self.animate_arm then
+	if not self.animate_arm and self.current_weapon then
 	    self.animate_arm = 1
 	    self.arm_tics = 0
 	    self.last_arm_frame = getn (self.current_weapon.arm_anim)
@@ -228,11 +228,12 @@ local player_proxy_init = function (self)
     function self:switch_weapon (weapon_name)
 	local w = weapons[weapon_name]
 	self.current_weapon = w
-	self:replace_layer (self.arm_layer, w.arm_anim[1],
-			    w.arm_anim.cx, w.arm_anim.cy)
-	_internal_set_camera (0, 96)
-	if self.is_local and w.client_switch_to_hook then
-	    w.client_switch_to_hook ()
+	self:replace_layer (self.arm_layer, w.arm_anim[1], w.arm_anim.cx, w.arm_anim.cy)
+	if self.is_local then
+	    _internal_set_camera (0, 96)
+	    if w.client_switch_to_hook then
+		w.client_switch_to_hook ()
+	    end
 	end
     end
 end
@@ -309,8 +310,5 @@ Objtype {
 	    -- give goodies
 	    self:destroy ()
 	end
-    end,
-    proxy_init = function (self)
-	self:add_light ("/basic/light/white-16", 0, 0)
     end
 }
