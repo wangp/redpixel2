@@ -69,3 +69,9 @@ void lua_enablestacktraceback (lua_State *L)
 {
   lua_register (L, "_ERRORMESSAGE", errorfb);
 }
+
+
+void lua_set_alert (lua_State *L, void (*alertfunc)(lua_State *L))
+{
+  lua_register (L, "_ALERT", alertfunc);
+}

@@ -1,4 +1,18 @@
+2000-07-06  Peter Wang  <tjaden@psynet.net>
+
+	* hub.c: Now uses the console to initiate games and connections.
+
+2000-07-05  Peter Wang  <tjaden@psynet.net>
+
+	* hub.c: New module, to be the central program loop.
+
+	* console.c: Started on a simple console system (using Lua).
+
 2000-07-04  Peter Wang  <tjaden@psynet.net>
+
+	* Made client do collision detection when moving objects, since
+	they were going through walls, etc. too often.  Not sure if this
+	will turn out well, since client has impure data.
 
 	* Got object movement replication going at a decent rate.  The
 	server now only sends replication packets every render loop, not

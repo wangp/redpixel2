@@ -85,7 +85,6 @@ static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
 
 void render (BITMAP *bmp, map_t *map, camera_t *cam)
 {
-    clear (bmp);
     render_tiles (bmp, map, cam->x, cam->y);
     render_objects (bmp, map, cam->x, cam->y);
     render_lights (bmp, map, cam->x, cam->y);

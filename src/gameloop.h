@@ -7,8 +7,12 @@
 
 extern object_t *local_player;
 
+extern int game_quit;
 
-void game_loop ();
+
+int game_loop_init ();
+void game_loop_shutdown ();
+int game_loop_update ();
 
 
 #endif

@@ -1,4 +1,4 @@
-/* init.c - init and shutdown shared by game and editor
+/* gameinit.c - main init and shutdown
  *
  * Peter Wang <tjaden@psynet.net>
  */

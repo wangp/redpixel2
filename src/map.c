@@ -16,6 +16,8 @@
  * I didn't know where to put it.  */
 map_t *map;
 
+char map_filename[1024];
+
     
 map_t *map_create (void)
 {

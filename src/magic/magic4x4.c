@@ -10,6 +10,7 @@
 
 
 #include <allegro.h>
+#include <allegro/aintern.h>
 #include "magic4x4.h"
 
 
@@ -27,6 +28,9 @@ BITMAP *get_magic_bitmap_format(BITMAP *orig, PALETTE pal)
 
    /* Create an 8 bpp image, three times as wide as the original.  */
    bmp = create_bitmap_ex(8, orig->w * 3, orig->h);
+
+   /* Text functions can treat this as a 24 bpp bitmap (with some caveats).  */
+   bmp->vtable->draw_glyph = _linear_draw_glyph24;
 
    /* Store info about the original bitmap format.  */
    bpp = bitmap_color_depth(orig);

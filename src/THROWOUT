@@ -1,0 +1,8 @@
+Files that should be thrown out or rewritten:
+
+console
+gameloop
+gamenet
+hub
+lobby
+vars

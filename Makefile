@@ -66,14 +66,16 @@ MODULES_GAME =					\
 	bdstore					\
 	bindings				\
 	bitmask					\
+	console					\
 	extdata					\
 	fps					\
-	game					\
 	gameinit				\
 	gameloop				\
 	gamenet					\
+	hub					\
 	loaddata				\
 	loadhelp				\
+	lobby					\
 	luastack				\
 	main					\
 	map					\
@@ -85,6 +87,7 @@ MODULES_GAME =					\
 	path					\
 	render					\
 	scripts					\
+	vars					\
 	yield
 
 MODULES = 					\

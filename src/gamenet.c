@@ -9,8 +9,10 @@
 #include "gameloop.h"		/* XXX: local_player */
 #include "gamenet.h"
 #include "map.h"
+#include "mapfile.h"
 #include "net.h"
 #include "object.h"
+#include "vars.h"
 #include "yield.h"
 
 
@@ -22,15 +24,15 @@ static unsigned char *write_char (unsigned char *p, int c)
     return p + 1;
 }
 
-static unsigned char read_char (const unsigned char *p)
-{
-    return *p;
-}
+/*  static unsigned char read_char (const unsigned char *p) */
+/*  { */
+/*      return *p; */
+/*  } */
 
-static const unsigned char *skip_char (const unsigned char *p)
-{
-    return p + 1;
-}
+/*  static const unsigned char *skip_char (const unsigned char *p) */
+/*  { */
+/*      return p + 1; */
+/*  } */
 
 static unsigned char *write_int (unsigned char *ptr, unsigned int i)
 {
@@ -94,7 +96,8 @@ static const unsigned char *skip_str (const unsigned char *p)
 #define GAMENET_REPLICATE_OBJECT_DESTROY	1
 #define GAMENET_REPLICATE_VARIABLE_CHANGE	2
 #define GAMENET_SET_LOCAL_PLAYER		3
-#define GAMENET_GAME_START			4
+#define GAMENET_MAP_SWITCH			4
+#define GAMENET_GAME_START			5
 
 
 
@@ -131,14 +134,20 @@ void gamenet_server_send_game_state ()
 {
     object_t *p;
 
+    {
+	char packet[NET_MAX_PACKET_SIZE], *p = packet;
+	p = write_char (p, GAMENET_MAP_SWITCH);
+	p = write_str (p, map_filename);
+    	net_server_broadcast (packet, p - packet);
+    }
+
     for (p = map->objects.next; p; p = p->next) {
 	send_replicate_object_create (p);
 	yield ();
     }
 
-    /* XXX: I don't think this should be here.  Also, num clients does
-     * not imply num players, although once a lobby system is in we
-     * can easily fix this.  */
+    /* XXX: Should not be here.  Also, num clients does not imply num
+     * players.  */
     {
 	int i;
 
@@ -159,13 +168,16 @@ void gamenet_server_send_game_state ()
 	    }
 
 	    local_player = o;	/* on server, for testing: XXX */
+	    printf ("GAME SERVER %s, %d\n", local_player->type->name, o->id);
 	}
     }
-    
-    {
-	unsigned char packet[0] = { GAMENET_GAME_START };
-    	net_server_broadcast (packet, 1);
-    }
+}
+
+
+void gamenet_server_send_game_start ()    
+{
+    unsigned char packet[0] = { GAMENET_GAME_START };
+    net_server_broadcast (packet, 1);
 }
 
 
@@ -180,7 +192,9 @@ void gamenet_server_replicate_object_destroy (unsigned long id)
 }
 
 
-void gamenet_server_replicate_variable_change (unsigned long id, float x, float y, float xv, float yv)
+void gamenet_server_replicate_variable_change (unsigned long id,
+					       float x, float y,
+					       float xv, float yv)
 {
     unsigned char packet[NET_MAX_PACKET_SIZE];
     unsigned char *p = packet;
@@ -202,7 +216,7 @@ void gamenet_server_replicate_variable_change (unsigned long id, float x, float 
  */
 
 
-static int game_started;
+int game_started;
 
 
 static void handle_replicate_object_create (const unsigned char *packet)
@@ -213,11 +227,13 @@ static void handle_replicate_object_create (const unsigned char *packet)
 
     id = read_int (p);		
     obj = map_find_object (map, id);
-    if (obj)	/* object already exists (probably server == client) */
+    if (obj) {
+	/* Object already exists (probably a listening-client setup).  */
 	return;
+    }
 
     p = skip_int (p);
-    obj = object_create (read_str (p), OBJECT_ROLE_PROXY);	p = skip_str (p);
+    obj = object_create (read_str (p), OBJECT_ROLE_PROXY);   p = skip_str (p);
     obj->x  = read_float (p);	p = skip_float (p);
     obj->y  = read_float (p);	p = skip_float (p);
     obj->xv = read_float (p);	p = skip_float (p);
@@ -263,7 +279,18 @@ static void handle_set_local_player (const unsigned char *packet)
     unsigned long id;
 
     id = read_int (packet);
-    local_player = map_find_object (map, id);
+    if (!server)
+	local_player = map_find_object (map, id);
+    printf ("client has local player %s, %d\n", local_player->type->name, id);
+}
+
+
+static void handle_map_switch (const unsigned char *packet)
+{
+    if (map)
+	map_destroy (map);
+
+    map = map_load (packet, 0);
 }
 
 
@@ -282,19 +309,23 @@ void gamenet_client_process_message (const unsigned char *p, int size)
 	case GAMENET_SET_LOCAL_PLAYER:
 	    handle_set_local_player (p + 1);
 	    break;
+	case GAMENET_MAP_SWITCH:
+	    handle_map_switch (p + 1);
+	    break;
 	case GAMENET_GAME_START:
 	    game_started = 1;
+	    break;
+	default:
+	    /* bad packet */
 	    break;
     }    
 }
 
 
-void gamenet_client_receive_game_state ()
+int gamenet_client_receive_game_state ()
 {
-    game_started = 0;
+    if (net_client_poll () < 0)
+	return -1;
 
-    while (!game_started) {
-	net_client_poll ();
-	yield ();
-    }
+    return game_started;
 }

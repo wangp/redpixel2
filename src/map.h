@@ -31,6 +31,8 @@ typedef struct map {
 
 extern map_t *map;
 
+extern char map_filename[1024];
+
 
 map_t *map_create (void);
 void map_destroy (map_t *map);

@@ -1,0 +1,24 @@
+The Quake game loop in Pythonic pseudo-code, mostly from `host_frame'.
+Thought this might help get the client side smoother, but guess Quake
+does things too differently.  Probably ought to look at QW instead.
+
+
+looping at a fairly constant speed:
+	get input events
+	poll network
+	if listening server:
+		send client messages	# movements, etc.
+
+	# Server ops
+	if server:
+	   check for new clients
+	   read client messages and do thinking
+	   do physics
+	   send messages to clients
+
+	# Client ops
+	if pure client:
+		send client messages  	# i.e. after incoming messages have been read
+	if any client:
+		read data from server	# and update state
+	update video and audio

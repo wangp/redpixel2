@@ -20,6 +20,7 @@ int server, client;
 
 int game ()
 {
+#if 0
 /****************************************************/    
 
     printf ("Do you want to be server?\n");
@@ -34,19 +35,32 @@ int game ()
     }
 
 /****************************************************/
+#else
+    server = client = 1;
+#endif
 
     net_main_init ();
     
     if (server && net_server_init (gamenet_server_process_message) < 0)
 	return 1;
-    if (client && net_client_init (NET_DRIVER_SOCKETS, "192.168.1.2", gamenet_client_process_message) < 0)
+//    if (client && net_client_init (NET_DRIVER_SOCKETS, "127.0.0.1", gamenet_client_process_message) < 0)
+    if (client && net_client_init (NET_DRIVER_LOCAL, "0", gamenet_client_process_message) < 0)
 	return 1;
 
-    while ((server && !net_server_num_clients) ||
-	   (client && !net_client_connected ())) {
-	if (server) net_server_poll ();
-	if (client) net_client_poll ();
-	yield ();
+    while (1) {
+	int end = 1;
+
+	if (server) {
+	    net_server_poll ();
+	    if (!net_server_num_clients) end = 0;
+	}
+
+	if (client) {
+	    net_client_poll ();
+	    if (!net_client_connected ()) end = 0;
+	}
+
+	if (end) break;
     }
 
     map = map_load ("test.pit", server);
@@ -54,9 +68,9 @@ int game ()
     map_destroy (map);
     
     if (server) net_server_ask_quit ();
-    else if (client) net_client_disconnect ();
+    if (client) net_client_disconnect ();
 
-    while ((server && net_server_poll () != -1) ||
+    while ((server && net_server_poll () != -1) |
 	   (client && net_client_poll () != -1))
 	yield ();
 

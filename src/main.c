@@ -6,9 +6,8 @@
 
 #include <stdio.h>
 #include <allegro.h>
-#include "editor.h"
 #include "gameinit.h"
-#include "game.h"
+#include "hub.h"
 
 
 static int setup_video (int w, int h, int d)
@@ -50,26 +49,18 @@ static void setup_allegro (int w, int h, int d)
 	exit (1);
     }
 
-    set_window_title ("Red Pixel II");
+/*      set_window_title ("Red Pixel II"); */
 }
 
 
 int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1, c;
-    int edit = 0;
-    int ret;
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":w:h:d:")) != -1) {
 	switch (c) {
-	    case 'e':
-		edit = 1;
-		break;
-	    case 's':
-		server = 1;
-		break;
 	    case 'w':
 		w = atoi (optarg);
 		break;
@@ -97,15 +88,12 @@ int main (int argc, char *argv[])
     setup_allegro (w, h, d);
 
     game_init ();
-
-    if (edit)
-	ret = editor ();
-    else
-	ret = game ();
-
+    hub_init ();
+    hub ();
+    hub_shutdown ();
     game_shutdown ();
 
-    return ret;
+    return 0;
 }
 
 END_OF_MAIN();

@@ -15,6 +15,8 @@ local player = {
 			     		"/player/mask-bottom",
 			     		"/player/mask-left",
 					"/player/mask-right")
+
+	self._jump = 0
     end,
 
     process = function (self)

@@ -35,8 +35,8 @@ blue).
 	e.g. environmental lights, player lights
 
 
-GLOWBALLS (or plasmas?) are a combination of the two, containing
-colour and light information.  
+GLOWBALLS (or plasmas?  I don't have a term for these yet) are a
+combination of the two, containing colour and light information.
 
        e.g. for things like flickering torches, etc (though this is
        probably better done with two separate sprite + lightmap

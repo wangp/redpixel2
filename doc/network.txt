@@ -1,7 +1,12 @@
+ |  This stuff is design only and has not been implemented yet.  
+ |  It is mostly based on the Unreal networking architecture.    
+ |  It may or may not be out of date.
 
-    This stuff is design only and has not been implemented yet.  
-    It is mostly based on the Unreal networking architecture.    
-    It may or may not be out of date.
+The networking is client/server based.  An instance of program can be:
+
+	a client
+	a dedicated server
+	a listening server (i.e. has client functions)
 
 The game server is authoritive, game clients contain only proxies of
 game objects.  The game client performs simple physics so that state
@@ -10,7 +15,7 @@ does not do other game logic.
 
 Game logic is done by the server, who then sends relevant actions to
 the relevant clients.  Relevant information includes mostly object
-information that is stored in C (i.e. nothing from the Lua state).
+information that is stored in C structures (i.e. not Lua objects)
 
 Lua script variables are to be considered as "internal" data.  Most of
 the time, the client only needs to know where an object is and what it
@@ -18,12 +23,20 @@ looks like (and these things are stored in C structs), so replication
 of Lua variables is not necessary.  If necessary, some variables may
 be replicated to clients through some function calls.  eg.
 
-	  self.something = newvalue
-	  replicate (self, "something")
+	self.something = newvalue
+	replicate (self, "something")
 
-Lua scripts are run mostly on the game server, and all actions that
-need to be send to clients are done through C function calls.  For
-example, say the player has touched a lightamp object (on the server):
+Lua scripts are run on both the client and server, but on the server
+the rendering commands are pointless, and on a pure-client the game
+logic sections should be protected by
+
+	if self.role == "authority" then
+		...
+	end
+
+Most actions that need to be send to clients are done through C
+function calls.  For example, say the player has touched a lightamp
+object (on the server):
 
     The lightamp's `touched' call is started on the server:
 
@@ -32,11 +45,8 @@ example, say the player has touched a lightamp object (on the server):
 	    -- give player stuff, but we will ignore that for now
 	end
 
-    The `object_destroy' function is a C function, which knows that it
-    must tell the client to replicate the event across the network.
-
-Some scripts may run on the client, but they must explicitly do so.
-	[ figure out how to do this ]
+The `object_destroy' function is a C function, which knows that it
+must tell the client to replicate the event across the network.
 
 ----------------------------------------------------------------------
 
@@ -57,11 +67,11 @@ VARIABLE CHANGES - only these C variables may be changed via direct
 replication: x, y, xv, yv.  The rest (such as render type) are
 replicated function calls.  Any Lua variable may be replicated.
 
-FUNCTION CALLS - require a special procotol (based on Lua API?)
+FUNCTION CALLS - require a special protocol [based on Lua API?]
 
 ----------------------------------------------------------------------
 
-Unfortunately it is not that simple, as the client has to tell the
+Unfortunately it is not all that simple, as the client has to tell the
 server the players' actions, and therefore the player expects a
 response by the client instantly.  In a pure client-server model, if a
 player pressed `jump', a key press would be sent to the server, who
@@ -86,20 +96,20 @@ Bullet firing involves:
        4. client spawns a bullet object
        5. server receives FIRE request
        6. server checks the move is valid
-	 6.1. if valid, create object on server
-	 6.2. if invalid, tell the client to destroy the
+       6.1. if valid, create object on server
+       6.2. if invalid, tell the client to destroy the
 	       object (through a DESTROY OBJECT packet)
 
 ----------------------------------------------------------------------
 
-Here are terms used by the UT networking architecture, which may be
-useful when implementing.  It's good sometimes to be able recognise
-things and label them when you see them.  It means you're probably
-doing something right, or at least not in uncharted territory.
+Terms used by the UT networking architecture, which may be useful when
+implementing.  It's good sometimes to be able recognise things and
+label them when you see them.  It means you're probably doing
+something right, or at least not in uncharted territory.
 
       DUMB PROXY - the object just IS.  No physics on this object
-	       performed by client.  All movement comes through from
-	       the server.
+	   performed by client.  All movement comes through from the
+	   server.
 
       SIMULATED PROXY - the object does simple physics on the client,
             but that is all.
@@ -109,6 +119,8 @@ doing something right, or at least not in uncharted territory.
 
       AUTHORITY - I am on the game server.
 
-
 RP2 has an instance variable called `role' in object_t (and the
 corresponding lua object), which can either be `proxy' or `authority'.
+All proxies are "simulated proxies".  Dumb proxies can be easily done,
+but I don't see a need at the moment.  Autonomous proxies are just a
+special case of simulated proxy (as in UT).

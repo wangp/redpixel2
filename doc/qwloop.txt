@@ -1,0 +1,21 @@
+
+Server:
+	if enough time passed: 
+		do physics
+        read packets from clients
+        get console commands and process
+        send messages to clients who had packets read this frame
+        send a heartbeat to the master if needed
+
+
+Client:
+	get input events
+        get console commands and process
+        read results from server
+        send intentions (movement, etc)
+        set up prediction for other players (first without clipping)
+        do client side motion prediction (local player)
+        set up prediction for other players (clipping with other players)
+        update video and audio
+
+        

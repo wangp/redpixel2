@@ -29,8 +29,10 @@ typedef struct object {
     float x, y;
     float xv, yv;
 
-    float old_x, old_y;
-    float old_xv, old_yv;
+/*      float old_x, old_y; */
+/*      float old_xv, old_yv; */
+
+    int dirty;
 
     /* collision masks */
     bitmask_t *mask;
