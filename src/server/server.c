@@ -630,24 +630,24 @@ static void server_poll_interface ()
 
 /* Spawn an object (Lua binding). */
 
-int game_server_spawn_object (const char *typename, float x, float y)
+object_t *game_server_spawn_object (const char *typename, float x, float y)
 {
     object_t *obj;
 
     if (!(obj = object_create (typename)))
-	return -1;
+	return NULL;
 
     object_set_xy (obj, x, y);
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);
-    return 0;
+    return obj;
 }
 
 
 /* Spawn a projectile (Lua binding). */
 
-int game_server_spawn_projectile (const char *typename, object_t *owner, float speed, float delta_angle)
+object_t *game_server_spawn_projectile (const char *typename, object_t *owner, float speed, float delta_angle)
 {
     client_t *c;
     object_t *obj;
@@ -655,10 +655,10 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
     float xv, yv;
 
     if (!(c = clients_find_by_id (object_id (owner))))
-	return -1;
+	return NULL;
 
     if (!(obj = object_create (typename)))
-	return -1;
+	return NULL;
 
     angle = c->aim_angle + delta_angle;
     
@@ -673,7 +673,7 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
     object_add_creation_field (obj, "angle");
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);
-    return 0;
+    return obj;
 }
 
 

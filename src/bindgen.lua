@@ -371,7 +371,8 @@ generate {
     args	= {{ String, "typename" },
 		   { Float, "x" },
 		   { Float, "y" }},
-    ret		= { Int, "ret", "$ < 0" }
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
 }
 
 generate {
@@ -383,7 +384,8 @@ generate {
 		   { Float, "speed" },
 		   { Float, "delta_angle", nil,
 		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0. : lua_tonumber(L, $#));" }},
-    ret		= { Int, "ret", "$ < 0" }
+    ret		= { Object, "obj", "!$" },
+    success	= "lua_pushobject(L, obj); return 1;"
 }
 
 generate {

@@ -19,8 +19,8 @@ void game_server_run ();
 void game_server_shutdown ();
 
 
-int game_server_spawn_object (const char *typename, float x, float y);
-int game_server_spawn_projectile (const char *typename, struct object *, float speed, float delta_angle);
+struct object *game_server_spawn_object (const char *typename, float x, float y);
+struct object *game_server_spawn_projectile (const char *typename, struct object *, float speed, float delta_angle);
 int game_server_spawn_blood (float x, float y, long nparticles, float spread);
 int game_server_spawn_blod (float x, float y, long nparticles);
 
