@@ -339,9 +339,9 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 		    } while (type);
 		}
 
-		/* init and link */
-		object_run_init_func (obj);
+		/* link and init */
 		map_link_object (map, obj);
+		object_run_init_func (obj);
 
 		/* hack to get the camera to track a player's corpse */
 		if (object_get_number (obj, "_internal_stalk_me") == client_id)

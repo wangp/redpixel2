@@ -708,8 +708,8 @@ object_t *game_server_spawn_object (const char *typename, float x, float y)
 
     object_set_xy (obj, x, y);
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
-    object_run_init_func (obj);
     map_link_object (map, obj);
+    object_run_init_func (obj);
     return obj;
 }
 
@@ -740,8 +740,8 @@ object_t *game_server_spawn_projectile (const char *typename, object_t *owner, f
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_set_number (obj, "angle", angle);
     object_add_creation_field (obj, "angle");
-    object_run_init_func (obj);
     map_link_object (map, obj);
+    object_run_init_func (obj);
     return obj;
 }
 
@@ -830,8 +830,8 @@ static object_t *server_spawn_player (objid_t id)
     obj = object_create_ex ("player", id);
     object_set_xy (obj, map_start_x (start), map_start_y (start));
     object_set_collision_tag (obj, id); /* XXX temp */
-    object_run_init_func (obj);
     map_link_object (map, obj);
+    object_run_init_func (obj);
 
     if ((c = clients_find_by_id (id)))
 	c->last_sent_aim_angle = 0;
@@ -1373,8 +1373,8 @@ static void server_handle_wantfeeds ()
 	    obj = object_create_ex ("player", c->id);
 	    object_set_xy (obj, map_start_x (start), map_start_y (start));
 	    object_set_collision_tag (obj, c->id); /* XXX temp */
-	    object_run_init_func (obj);
 	    map_link_object (map, obj);
+	    object_run_init_func (obj);
 
 	    {
 		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
