@@ -65,7 +65,7 @@ static void add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix
 	else if (d[i].type == DAT_BITMAP) {
 	    char *name = get_datafile_property (&d[i], DAT_NAME);
 	    if ((name) && ustrstr (name, "-icon"))
-		ed_select_list_item_add (list, path, d[i].dat);
+		ed_select_list_add_item (list, path, d[i].dat);
 	}
     }
 }
@@ -201,9 +201,8 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
 			   ((p->x - offx) - (icon->w / 6)) * 3,
 			    (p->y - offy) - (icon->h / 2));
 
-    if (full_brightness) {
+    if (full_brightness)
 	set_magic_bitmap_brightness (bmp, 0xf, 0xf, 0xf);
-    }
     else {
         for (p = map->lights.next; p; p = p->next) {
 	    b = store[p->lightmap]->dat;

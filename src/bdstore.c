@@ -7,7 +7,7 @@
 #include <lua.h>
 #include <allegro.h>
 #include "bindings.h"
-#include "magicld.h"
+#include "extdata.h"
 #include "path.h"
 #include "store.h"
 
@@ -29,7 +29,7 @@ static void __export__store_load (void)
 	ustrncpy (tmp, *p, sizeof tmp);
 	ustrncat (tmp, filename, sizeof tmp);
 
-	if (store_load_ex (tmp, prefix, load_magic_datafile) >= 0) {
+	if (store_load_ex (tmp, prefix, load_extended_datafile) >= 0) {
 	    lua_pushnumber (0);
 	    return;
 	}

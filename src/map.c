@@ -31,6 +31,21 @@ void map_destroy (map_t *map)
 	free (map->tile[i]);
     free (map->tile);
     
+    if (map->tile_mask)
+	bitmask_destroy (map->tile_mask);
+
+    while (map->lights.next)
+	map_light_destroy (map, map->lights.next);
+
+    while (map->objects.next) {
+	object_t *p = map->objects.next;
+	map_unlink_object (map, p);
+	object_destroy (p);
+    }
+
+    while (map->starts.next)
+	map_start_destroy (map, map->starts.next);
+
     free (map);
 }
 
@@ -65,6 +80,68 @@ int map_resize (map_t *map, int width, int height)
 
     return 0;
 }
+
+
+/*---------------------------------------------------------------------*/
+
+
+void map_generate_tile_mask (map_t *map)
+{
+    BITMAP *b;
+    int x, y, xx, yy, t;
+
+    if (map->tile_mask)
+	bitmask_destroy (map->tile_mask);
+
+    map->tile_mask = bitmask_create (map->width * 16, map->height * 16);
+
+    for (y = 0; y < map->height; y++)
+	for (x = 0; x < map->width; x++)
+	    if ((t = map->tile[y][x])) {
+		b = store[t]->dat;
+		for (yy = 0; yy < 16; yy++)
+		    for (xx = 0; xx < 16; xx++)
+			bitmask_set_point (map->tile_mask, (x * 16 + xx), (y * 16 + yy),
+					   (b->line[yy][xx * 3]
+					    || b->line[yy][xx * 3 + 1]
+					    || b->line[yy][xx * 3 + 2]));
+	    }
+}
+
+
+
+/*---------------------------------------------------------------------*/
+
+
+void map_link_object (map_t *map, object_t *p)
+{
+    object_t *q;
+
+    q = &map->objects;
+    while (q->next)
+	q = q->next;
+	
+    p->next = q->next;
+    if (p->next)
+	p->next->prev = p;
+    q->next = p;
+    if (q != &map->objects)
+	p->prev = q;
+}
+
+
+void map_unlink_object (map_t *map, object_t *p)
+{
+    if (map->objects.next == p)
+	map->objects.next = p->next;
+    if (p->prev) p->prev->next = p->next;
+    if (p->next) p->next->prev = p->prev;
+
+    p->prev = p->next = 0;
+}
+
+
+/*---------------------------------------------------------------------*/
 
 
 light_t *map_light_create (map_t *map, int x, int y, int lightmap)
@@ -102,86 +179,38 @@ void map_light_destroy (map_t *map, light_t *light)
 }
 
 
-static void link_object (map_t *map, object_t *p)
+/*---------------------------------------------------------------------*/
+
+
+start_t *map_start_create (map_t *map, int x, int y)
 {
-    object_t *q;
+    start_t *p, *q;
 
-    q = &map->objects;
-    while (q->next)
-	q = q->next;
-	
-    p->next = q->next;
-    if (p->next)
-	p->next->prev = p;
-    q->next = p;
-    if (q != &map->objects)
-	p->prev = q;
-}
+    p = alloc (sizeof *p);
 
-
-static void unlink_object (map_t *map, object_t *p)
-{
-    if (map->objects.next == p)
-	map->objects.next = p->next;
-    if (p->prev) p->prev->next = p->next;
-    if (p->next) p->next->prev = p->prev;
-}
-
-
-object_t *map_object_create (map_t *map, const char *type_name)
-{
-    object_t *p;
-    object_type_t *type;
-
-    type = object_type (type_name);
-    if (!type) return 0;
-
-    p = alloc (sizeof (object_t));
-    
     if (p) {
-	p->type = type;
-
-	lua_pushobject (lua_createtable ());
-	p->self = lua_ref (1);
-
-	{
-	    lua_pushobject (lua_getref (p->self));
-	    lua_pushstring ("_parent");
-	    lua_pushuserdata (p);
-	    lua_rawsettable ();
-	}
-
-	p->render = OBJECT_RENDER_MODE_BITMAP;
-	p->bitmap = store_dat (p->type->icon);
-
-	link_object (map, p);
-
-    	/* XXX */
-	/* init (self, type-name) : (no output) */
-	if (lua_istable (lua_getref (p->type->table))) {
-	    lua_Object init;
-
-	    lua_pushobject (lua_getref (p->type->table));
-	    lua_pushstring ("init");
-	    init = lua_gettable ();
-
-	    if (lua_isfunction (init)) {
-		lua_pushobject (lua_getref (p->self));
-		lua_pushstring (p->type->name);
-		lua_callfunction (init);
-	    }
-	}
-    }
+	p->x = x;
+	p->y = y;
 	
+	q = &map->starts;
+	while (q->next)
+	    q = q->next;
+	
+	p->next = q->next;
+	q->next = p;
+    }
+
     return p;
 }
 
 
-void map_object_destroy (map_t *map, object_t *p)
+void map_start_destroy (map_t *map, start_t *start)
 {
-    unlink_object (map, p);
-    if (p->layer)
-	object_layer_list_destroy (p->layer);
-    lua_unref (p->self);
-    free (p);
+    start_t *p;
+
+    for (p = &map->starts; p->next; p = p->next)
+	if (p->next == start) {
+	    p->next = start->next;
+	    break;
+	}
 }

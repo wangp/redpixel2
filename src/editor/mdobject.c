@@ -68,7 +68,7 @@ static struct type *find_type (const char *name)
 
 static void add_to_type (struct type *p, const char *name, BITMAP *bmp)
 {
-    ed_select_list_item_add (p->list, name, bmp);
+    ed_select_list_add_item (p->list, name, bmp);
 }
 
 static void destroy_all_types ()
@@ -85,8 +85,8 @@ static void destroy_all_types ()
 }
 
 
-void mode_objects_register_object_hook (const char *name, lua_Object table,
-					const char *type, const char *icon)
+void mode_objects_object_type_register_hook (const char *name, lua_Object table,
+					     const char *type, const char *icon)
 {
     BITMAP *bmp;
     struct type *p;
@@ -107,7 +107,7 @@ void mode_objects_register_object_hook (const char *name, lua_Object table,
 
 static void cursor_set_selected ()
 {
-    BITMAP *bmp = store_dat (selectbar_selected_name ());
+    BITMAP *bmp = store_dat (object_type (selectbar_selected_name ())->icon);
     if (bmp) cursor_set_magic_bitmap (bmp, 0, 0);
 }
 
@@ -266,23 +266,21 @@ static int event_layer (int event, struct editarea_event *d)
 		move = 0;
 	    }
 	    else if (!p) {
-		BITMAP *b;
-
-		p = map_object_create (map, selectbar_selected_name ()); 
+		p = object_create (selectbar_selected_name ());
 		p->x = x;
 		p->y = y;
+		map_link_object (map, p);
 
 		move = p;
-		b = store_dat (p->type->icon);
-		move_offx = -(b->w / 6);
-		move_offy = -(b->h / 2);
+		move_offx = move_offy = 0;
 		return 1;
 	    }
 	}
 	else if (d->mouse.b == 1) {
 	    p = find_object (x, y);
 	    if (p) {
-		map_object_destroy (map, p);
+		map_unlink_object (map, p);
+		object_destroy (p);
 		return 1;
 	    }
 	}

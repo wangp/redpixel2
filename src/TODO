@@ -1,0 +1,2 @@
+editor/md* shouldn't be calling tiles_load, lights_load, etc.
+share init shutdown code btn editor.c and game.c

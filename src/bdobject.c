@@ -12,17 +12,38 @@
 #include "store.h"
 
 
-static void (*register_object_hook) (const char *, lua_Object,
-				     const char *, const char *);
+#define getnumber(n)	(lua_getnumber (lua_getparam (n)))
+#define getparam(n)	(lua_getparam (n))
+#define getstring(n)	(lua_getstring (lua_getparam (n)))
+#define gettable(n)	(lua_getparam (n))
 
-void set_register_object_hook (void (*hook) (const char *, lua_Object,
-					     const char *, const char *))
+#define isnil(n)	(lua_isnil (lua_getparam (n)))
+#define isnumber(n)	(lua_isnumber (lua_getparam (n)))
+#define isstring(n)	(lua_isstring (lua_getparam (n)))
+#define istable(n)	(lua_istable (lua_getparam (n)))
+
+static void *get_element (lua_Object table, const char *index)
 {
-    register_object_hook = hook;
+    lua_pushobject (table);
+    lua_pushstring (index);
+    return lua_rawgettable ();
+}
+
+#define get_userdata_element(t,i)  (lua_getuserdata (get_element (t, i)))
+
+/*----------------------------------------------------------------------*/
+
+static void (*object_type_register_hook) (const char *, lua_Object,
+					  const char *, const char *);
+
+void set_object_type_register_hook (void (*hook) (const char *, lua_Object,
+						  const char *, const char *))
+{
+    object_type_register_hook = hook;
 }
 
 
-static void __export__register_object (void)
+static void __export__object_type_register (void)
     /* (name, table, type, icon) : (nil on error) */
 {
     const char *name;
@@ -30,77 +51,65 @@ static void __export__register_object (void)
     const char *type;
     const char *icon;
 
-    if (!lua_isstring (lua_getparam (1))
-	|| (!lua_istable (lua_getparam (2))
-	    && !lua_isnil (lua_getparam (2)))
-	|| !lua_isstring (lua_getparam (3))
-	|| !lua_isstring (lua_getparam (4)))
+    if (!isstring (1)
+	|| (!istable (2) && !isnil (2))
+	|| !isstring (3)
+	|| !isstring (4))
 	lua_pushnil ();
 
-    name  = lua_getstring (lua_getparam (1));
-    table = lua_getparam (2);
-    type  = lua_getstring (lua_getparam (3));
-    icon  = lua_getstring (lua_getparam (4));
+    name  = getstring (1);
+    table = getparam  (2);
+    type  = getstring (3);
+    icon  = getstring (4);
 
     object_types_register (name, table, type, icon);
 
-    if (register_object_hook)
-	register_object_hook (name, table, type, icon);
-    
+    if (object_type_register_hook)
+	object_type_register_hook (name, table, type, icon);
+
     lua_pushnumber (1);
 }
 
 
-static void __export__set_visual (void)
+static void __export__object_set_visual_bitmap (void)
     /* (obj, bmp) : (none) */
 {
     lua_Object obj;
     const char *bmp;
     object_t *p;
 
-    if (!lua_istable (lua_getparam (1)) ||
-	!lua_isstring (lua_getparam (2)))
+    if (!istable (1) || !isstring (2))
 	return;
+    obj = gettable (1);
+    bmp = getstring (2);
 
-    obj = lua_getparam (1);
-    bmp = lua_getstring (lua_getparam (2));
-
-    lua_pushobject (obj), lua_pushstring ("_parent");
-    p = lua_getuserdata (lua_rawgettable ());
+    p = get_userdata_element (obj, "_parent");
     if (!p) return;
 
-    if (p->layer) {
-	object_layer_list_destroy (p->layer);
-	p->layer = 0;
-    }
-
-    p->render = OBJECT_RENDER_MODE_BITMAP;
-    p->bitmap = store_dat (bmp);
+    object_set_render_mode (p, OBJECT_RENDER_MODE_BITMAP, store_dat (bmp));
 }
 
 
-static void __export__set_visual_layers (void)
+static void __export__object_set_visual_image (void)
     /* (obj, visual-rep) : (none) */
 {
     lua_Object obj, rep;
     lua_Object elem;
     object_t *p;
-    object_layer_list_t *list;
+    object_image_t *image;
     BITMAP *bmp;
     int i;
 
-    lua_beginblock ();
+    if (!istable (1) || !istable (2)) 
+	return;
 
-    if (!lua_istable (obj = lua_getparam (1)) ||
-	!lua_istable (rep = lua_getparam (2)))
-	goto end;
+    obj = gettable (1);
+    rep = gettable (2);
 
-    lua_pushobject (obj);
-    lua_pushstring ("_parent");
-    p = lua_getuserdata (lua_rawgettable ());
-    if (!p) goto end;
+    p = get_userdata_element (obj, "_parent");
+    if (!p) return;
     
-    list = object_layer_list_create ();
+    image = object_image_create ();
 
     for (i = 1; ; i++) {
 	lua_pushobject (rep);
@@ -111,7 +120,7 @@ static void __export__set_visual_layers (void)
 	    bmp = store_dat (lua_getstring (elem));
 	    if (!bmp) goto error;
 	    
-	    object_layer_list_add (list, bmp, 0, 0, OBJECT_LAYER_NO_ANGLE);
+	    object_image_add_layer (image, bmp, 0, 0, OBJECT_LAYER_NO_ANGLE);
 	}
 	else if (lua_istable (elem)) {
 	    lua_Object x;
@@ -134,10 +143,10 @@ static void __export__set_visual_layers (void)
 		offsety = lua_getnumber (x);
 
 	    lua_pushobject (elem), lua_pushstring ("angle");
-	    if (!lua_isnumber (x = lua_gettable ()))
+	    if (lua_isnumber (x = lua_gettable ()))
 		angle = ftofix (lua_getnumber (x));
 
-	    object_layer_list_add (list, bmp, offsetx, offsety, angle);
+	    object_image_add_layer (image, bmp, offsetx, offsety, angle);
 	}
 	else if (lua_isnil (elem))
 	    break;
@@ -145,23 +154,106 @@ static void __export__set_visual_layers (void)
 	    goto error;
     }
 
-    if (p->layer) {
-	object_layer_list_destroy (p->layer);
-	p->layer = 0;
+    if (p->image) {
+	object_image_destroy (p->image);
+	p->image = 0;
     }
 
-    p->render = OBJECT_RENDER_MODE_LAYERED;
-    p->layer = list;
-
-    goto end;
+    object_set_render_mode (p, OBJECT_RENDER_MODE_IMAGE, image);
+    return;
     
   error:
-    
-    object_layer_list_destroy (list);
 
-  end:
+    object_image_destroy (image);
+}
 
-    lua_endblock ();
+
+static void __export__object_set_visual_anim (void)
+    /* (obj, visual-rep, time) : (none) */
+{
+    lua_Object obj, rep, elem;
+    float time;
+    object_t *p;
+    object_anim_t *anim;
+    BITMAP *bmp;
+    int i;
+
+    if (!istable (1) || !istable (2) || !isnumber (3))
+	return;
+
+    obj = gettable (1);
+    rep = gettable (2);
+    time = getnumber (3);
+
+    p = get_userdata_element (obj, "_parent");
+    if (!p) return;
+
+    anim = object_anim_create ();
+
+    for (i = 1; ; i++) {
+	lua_pushobject (rep);
+	lua_pushnumber (i);
+	elem = lua_gettable ();
+
+	if (lua_isstring (elem)) {
+	    bmp = store_dat (lua_getstring (elem));
+	    if (!bmp) goto error;
+
+	    object_anim_add_frame (anim, bmp, time * 60); /* XXX */
+	}
+	else if (lua_isnil (elem))
+	    break;
+	else
+	    goto error;
+    }
+
+    object_set_render_mode (p, OBJECT_RENDER_MODE_ANIM, anim);
+    return;
+
+  error:
+
+    object_anim_destroy (anim);
+}
+
+
+static void __export__object_set_collision_masks (void)
+    /* (obj, mask, mask-top, mask-bottom, mask-left, mask-right) : (none) */
+{
+    lua_Object obj;
+    object_t *p;
+    bitmask_t *mask;
+    int i;
+
+    if (!istable (1)) return;
+    obj = gettable (1);
+
+    p = get_userdata_element (obj, "_parent");
+    if (!p) return;
+
+    for (i = 2; i <= 6; i++) {
+	mask = isstring (i) ? (store_dat (getstring (i))) : 0;
+
+	switch (i) {
+	    case 2: p->mask        = mask; break;
+	    case 3: p->mask_top    = mask; break;
+	    case 4: p->mask_bottom = mask; break;
+	    case 5: p->mask_left   = mask; break;
+	    case 6: p->mask_right  = mask; break;
+	}
+    }
+}
+
+
+static void __export__object_destroy (void)
+    /* (obj) : (none) */
+{
+    object_t *p;
+
+    if (istable (1)) {
+	p = get_userdata_element (gettable (1), "_parent");
+	if (p)
+	    p->dying = 1;
+    }
 }
 
 
@@ -169,9 +261,12 @@ void __bindings_object_export_functions ()
 {
 #define e(func)	(lua_register (#func, __export__##func))
 
-    e (register_object);
-    e (set_visual);
-    e (set_visual_layers);
-    
+    e (object_type_register);
+    e (object_set_visual_bitmap);
+    e (object_set_visual_image);
+    e (object_set_visual_anim);
+    e (object_set_collision_masks);
+    e (object_destroy);
+
 #undef e
 }

@@ -32,11 +32,13 @@ static void do_file (const char *filename, int attrib, int param)
     lua_Object func;
     struct file *f;
 
+    lua_beginblock ();
+
     lua_pushnil ();
     lua_setglobal (INIT);
 
     if (lua_dofile ((char *) filename) != 0)
-	return;
+	goto end;
 
     func = lua_getglobal (INIT);
     if (lua_isfunction (func))
@@ -44,7 +46,7 @@ static void do_file (const char *filename, int attrib, int param)
     
     func = lua_getglobal (SHUTDOWN);
     if (!lua_isfunction (func))
-	return;
+	goto end;
 
     f = alloc (sizeof *f);
     if (f) {
@@ -53,6 +55,10 @@ static void do_file (const char *filename, int attrib, int param)
 	f->next = file_list.next;
 	file_list.next = f;
     }
+
+  end:
+
+    lua_endblock ();
 }
 
 
@@ -63,8 +69,11 @@ static void undo_files ()
     for (f = file_list.next; f; f = next) {
 	next = f->next;
 
+	lua_beginblock ();
 	lua_callfunction (lua_getref (f->shutdown));
 	lua_unref (f->shutdown);
+	lua_endblock ();
+
 	free (f);
     }
 }

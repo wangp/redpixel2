@@ -1,0 +1,28 @@
+Notes on using bmark.c
+----------------------
+
+1)
+
+For more accurate results, I suggest you comment out
+
+    #define DRAWSTUFF
+
+at the top of the file.  However, you will miss out on the sprites (oh..)
+
+
+2)
+
+bmark.c gives you a reading every 4 or so seconds.  Please ignore the first 
+reading, this is REALLY inaccurate.  The next couple of readings will be 
+more consistant results.
+
+3)
+
+I'm not exactly sure about the accuracy of this, so.. just use it to compare 
+PPCol's functions.
+
+
+Ok, that's about it
+
+Peter Wang (tjaden@alphalink.com.au)
+/14.3.98

@@ -7,7 +7,7 @@ SRCDIRS = src src/store src/gui src/ug src/editor
 CFLAGS = -Wall $(addprefix -I,$(SRCDIRS)) -g
 LOADLIBES = `allegro-config --libs` -llua
 
-PROGRAM = main
+PROGRAM = program
 OBJDIR = obj/linux
 
 #----------------------------------------------------------------------
@@ -46,6 +46,7 @@ MODULES_EDITOR =				\
 	mdlights				\
 	mdobject				\
 	mdtiles					\
+	mdstarts				\
 	modemgr					\
 	newfont					\
 	selbar
@@ -55,6 +56,8 @@ MODULES_GAME =					\
 	bdobject				\
 	bdstore					\
 	bindings				\
+	bitmask					\
+	extdata					\
 	fps					\
 	game					\
 	gameloop				\
@@ -62,10 +65,12 @@ MODULES_GAME =					\
 	loadhelp				\
 	luastack				\
 	magic4x4				\
-	magicld					\
 	magicrot				\
+	main					\
 	map					\
 	mapfile					\
+	object					\
+	objanim					\
 	objlayer				\
 	objtypes				\
 	path					\
@@ -83,12 +88,15 @@ OBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
 
 #----------------------------------------------------------------------
 
+all: $(PROGRAM)
+
 vpath %.c $(SRCDIRS)
 
 $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(PROGRAM): $(OBJS)
+	$(CC) -o $@ $^ $(LOADLIBES)
 
 #----------------------------------------------------------------------
 
@@ -102,7 +110,22 @@ tags: $(SOURCES)
 
 #----------------------------------------------------------------------
 
-.PHONY = backup suidroot clean cleaner
+depend:
+	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$(OBJDIR)/\1,' > depend
+
+-include depend
+
+#----------------------------------------------------------------------
+
+clean: 
+	rm -f $(OBJS) core
+
+cleaner: clean
+	rm -f $(PROGRAM) 
+	rm -f TAGS tags
+	rm -f depend
+
+#----------------------------------------------------------------------
 
 backup:
 	cd ../ && tar zcvf `date +%Y%m%d`.tar.gz redstone
@@ -111,12 +134,8 @@ suidroot:
 	chown root.allegro $(PROGRAM)
 	chmod 4750 $(PROGRAM)
 
-clean: 
-	rm -f $(OBJS) core
 
-cleaner: clean
-	rm -f $(PROGRAM) 
-	rm -f TAGS tags
+.PHONY: clean cleaner backup suidroot 
 
 
 ##

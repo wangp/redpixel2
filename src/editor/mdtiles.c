@@ -13,7 +13,6 @@
 #include "editor.h"
 #include "loaddata.h"
 #include "magic4x4.h"
-#include "magicld.h"
 #include "map.h"
 #include "modemgr.h"
 #include "modes.h"
@@ -58,7 +57,7 @@ static void add_to_list (ed_select_list_t *list, DATAFILE *d, const char *prefix
 	    add_to_list (list, d[i].dat, path);
 	}
 	else if (d[i].type == DAT_BITMAP)
-	    ed_select_list_item_add (list, path, d[i].dat);
+	    ed_select_list_add_item (list, path, d[i].dat);
     }
 }
 

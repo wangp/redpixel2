@@ -1,0 +1,107 @@
+obj/linux/alloc.o: src/alloc.c src/alloc.h
+obj/linux/bdobject.o: src/bdobject.c src/bindings.h src/map.h src/bitmask.h \
+ src/object.h src/objtypes.h src/store/store.h
+obj/linux/bdstore.o: src/bdstore.c src/bindings.h src/extdata.h src/path.h \
+ src/store/store.h
+obj/linux/bindings.o: src/bindings.c src/bindings.h
+obj/linux/bitmask.o: src/bitmask.c src/bitmask.h
+obj/linux/extdata.o: src/extdata.c src/bitmask.h src/extdata.h src/magic4x4.h
+obj/linux/fps.o: src/fps.c src/fps.h
+obj/linux/game.o: src/game.c src/bindings.h src/game.h src/gameloop.h \
+ src/loaddata.h src/magic4x4.h src/map.h src/bitmask.h src/object.h \
+ src/objtypes.h src/mapfile.h src/path.h src/scripts.h \
+ src/store/store.h src/vtree.h
+obj/linux/gameloop.o: src/gameloop.c src/fps.h src/gameloop.h src/magic4x4.h \
+ src/render.h src/map.h src/bitmask.h src/object.h src/objtypes.h \
+ src/store/store.h
+obj/linux/loaddata.o: src/loaddata.c src/alloc.h src/loadhelp.h src/vtree.h
+obj/linux/loadhelp.o: src/loadhelp.c src/alloc.h src/extdata.h src/loadhelp.h \
+ src/path.h src/store/store.h src/vtree.h
+obj/linux/luastack.o: src/luastack.c
+obj/linux/magic4x4.o: src/magic4x4.c src/magic4x4.h
+obj/linux/magicrot.o: src/magicrot.c src/magicrot.h
+obj/linux/main.o: src/main.c src/editor/editor.h src/game.h
+obj/linux/map.o: src/map.c src/alloc.h src/map.h src/bitmask.h src/object.h \
+ src/objtypes.h src/store/store.h
+obj/linux/mapfile.o: src/mapfile.c src/map.h src/bitmask.h src/object.h \
+ src/objtypes.h src/mapfile.h src/store/store.h
+obj/linux/objanim.o: src/objanim.c src/alloc.h src/object.h src/bitmask.h \
+ src/objtypes.h
+obj/linux/object.o: src/object.c src/alloc.h src/bitmask.h src/object.h \
+ src/objtypes.h src/store/store.h
+obj/linux/objlayer.o: src/objlayer.c src/alloc.h src/object.h src/bitmask.h \
+ src/objtypes.h
+obj/linux/objtypes.o: src/objtypes.c src/alloc.h src/objtypes.h
+obj/linux/path.o: src/path.c src/path.h
+obj/linux/render.o: src/render.c src/magic4x4.h src/magicrot.h src/map.h \
+ src/bitmask.h src/object.h src/objtypes.h src/store/store.h \
+ src/render.h
+obj/linux/scripts.o: src/scripts.c src/alloc.h src/bindings.h src/luastack.h \
+ src/path.h src/scripts.h
+obj/linux/example.o: src/store/example.c src/store/store.h
+obj/linux/hash.o: src/store/hash.c src/store/hash.h
+obj/linux/store.o: src/store/store.c src/store/hash.h src/store/store.h
+obj/linux/gui.o: src/gui/gui.c src/gui/gui.h src/gui/guiinter.h
+obj/linux/guidirty.o: src/gui/guidirty.c src/gui/gui.h src/gui/guiinter.h
+obj/linux/guimouse.o: src/gui/guimouse.c src/gui/gui.h src/gui/guiinter.h
+obj/linux/guiwm.o: src/gui/guiwm.c src/gui/gui.h src/gui/guiinter.h
+obj/linux/guiwmdef.o: src/gui/guiwmdef.c src/gui/gui.h src/gui/guiinter.h
+obj/linux/ug.o: src/ug/ug.c src/ug/ug.h src/gui/gui.h src/ug/ugtheme.h
+obj/linux/ugblank.o: src/ug/ugblank.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h
+obj/linux/ugbutton.o: src/ug/ugbutton.c src/ug/ug.h src/gui/gui.h \
+ src/ug/uginter.h src/ug/ugtheme.h
+obj/linux/ugdialog.o: src/ug/ugdialog.c src/gui/gui.h src/ug/ug.h \
+ src/ug/uginter.h src/ug/ugtheme.h
+obj/linux/ugevent.o: src/ug/ugevent.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h
+obj/linux/uglayout.o: src/ug/uglayout.c src/ug/ug.h src/gui/gui.h
+obj/linux/ugmenu.o: src/ug/ugmenu.c src/ug/ug.h src/gui/gui.h src/ug/uginter.h \
+ src/ug/ugtheme.h src/ug/ugbutton.h
+obj/linux/ugscroll.o: src/ug/ugscroll.c
+obj/linux/ugtheme.o: src/ug/ugtheme.c src/ug/ugtheme.h
+obj/linux/ugthmmot.o: src/ug/ugthmmot.c src/ug/ugtheme.h
+obj/linux/ugthmpaw.o: src/ug/ugthmpaw.c src/ug/ugtheme.h
+obj/linux/ugwidget.o: src/ug/ugwidget.c src/ug/ug.h src/gui/gui.h \
+ src/ug/uginter.h
+obj/linux/cursor.o: src/editor/cursor.c src/editor/cursor.h src/magic4x4.h
+obj/linux/editarea.o: src/editor/editarea.c src/gui/gui.h src/alloc.h \
+ src/editor/editarea.h src/magic4x4.h src/editor/modes.h
+obj/linux/editor.o: src/editor/editor.c src/gui/gui.h src/ug/ug.h src/bindings.h \
+ src/editor/cursor.h src/magic4x4.h src/map.h src/bitmask.h \
+ src/object.h src/objtypes.h src/editor/newfont.h src/scripts.h \
+ src/store/store.h src/path.h src/editor/editarea.h src/editor/menu.h \
+ src/editor/modemgr.h src/editor/modes.h src/editor/selbar.h \
+ src/editor/edselect.h
+obj/linux/edselect.o: src/editor/edselect.c src/ug/ug.h src/gui/gui.h \
+ src/ug/uginter.h src/alloc.h src/editor/edselect.h src/magic4x4.h \
+ src/editor/rect.h
+obj/linux/mdlights.o: src/editor/mdlights.c src/alloc.h src/editor/depths.h \
+ src/editor/editarea.h src/editor/editor.h src/editor/edselect.h \
+ src/ug/ug.h src/gui/gui.h src/loaddata.h src/magic4x4.h src/map.h \
+ src/bitmask.h src/object.h src/objtypes.h src/editor/modemgr.h \
+ src/editor/modes.h src/editor/rect.h src/editor/selbar.h \
+ src/store/store.h src/vtree.h
+obj/linux/mdobject.o: src/editor/mdobject.c src/alloc.h src/editor/cursor.h \
+ src/editor/depths.h src/editor/editarea.h src/editor/editor.h \
+ src/editor/edselect.h src/ug/ug.h src/gui/gui.h src/map.h \
+ src/bitmask.h src/object.h src/objtypes.h src/editor/modemgr.h \
+ src/editor/modes.h src/editor/selbar.h src/scripts.h \
+ src/store/store.h src/path.h src/editor/rect.h
+obj/linux/mdstarts.o: src/editor/mdstarts.c src/editor/depths.h \
+ src/editor/editarea.h src/editor/edselect.h src/ug/ug.h src/gui/gui.h \
+ src/magic4x4.h src/map.h src/bitmask.h src/object.h src/objtypes.h \
+ src/editor/modes.h src/editor/modemgr.h src/editor/selbar.h \
+ src/editor/rect.h
+obj/linux/mdtiles.o: src/editor/mdtiles.c src/alloc.h src/editor/depths.h \
+ src/editor/editarea.h src/editor/editor.h src/loaddata.h \
+ src/magic4x4.h src/map.h src/bitmask.h src/object.h src/objtypes.h \
+ src/editor/modemgr.h src/editor/modes.h src/editor/selbar.h \
+ src/editor/edselect.h src/ug/ug.h src/gui/gui.h src/store/store.h \
+ src/vtree.h
+obj/linux/menu.o: src/editor/menu.c src/gui/gui.h src/ug/ug.h \
+ src/editor/editarea.h src/editor/editor.h src/map.h src/bitmask.h \
+ src/object.h src/objtypes.h src/mapfile.h
+obj/linux/modemgr.o: src/editor/modemgr.c src/gui/gui.h src/ug/ug.h \
+ src/editor/modemgr.h
+obj/linux/newfont.o: src/editor/newfont.c
+obj/linux/selbar.o: src/editor/selbar.c src/gui/gui.h src/ug/ug.h \
+ src/editor/edselect.h src/editor/selbar.h

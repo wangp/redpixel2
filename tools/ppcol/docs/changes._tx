@@ -1,0 +1,146 @@
+@<html>
+@<head>
+@<title>PPCol Changes</title>
+@<body>
+@startoutput NEWS
+
+@heading
+1.4 Final version (11 September 1998, released)
+<ul><li>
+   Added specific functions to check the amount we have to move a given
+   sprite or mask to avoid the collision with other sprite in the requested
+   direction.
+   The normal function is a 23.7% faster than using the normal PPCol
+   function and the bitmasked function is a 63.6% faster than using the
+   normal bitmasked PPCol function (on my 5x86).
+   Suggested by Jorg Ruppel "Sharky-X".
+</ul>
+
+
+@heading
+1.3 Final version (17 August 1998, released)
+<ul><li>
+   Grzegorz Adam Hankiewicz contributed an example program showing how to
+   automatically create masks for all the sprites on a datafile.
+<li>
+   Added a general purpose bounding box collision detection macro.
+<li>
+   Minor modifications to the documentation.
+<li>
+   Grzegorz Adam Hankiewicz reformatted the documentation to avoid Allegro
+   Makedoc utility bugs and match better the Allegro documentation.
+</ul>
+
+
+@heading
+1.2 Bugfix version (1st July 1998, released)
+<ul><li>
+   Killed a bug in the bitmask method routines discovered by Peter Wang.
+</ul>
+
+
+@heading
+1.1 Final version (26 June 1998, released)
+<ul><li>
+   Added debugging support.
+<li>
+   Slightly faster check_pp_collision() routine (6% on my 5x86, measured
+   with Peter's BMARK.C program without drawing the sprites on the screen).
+<li>
+   EX1.C now call destroy_ppcol_mask() to release the memory of the masks.
+<li>
+   Changed a bit the license, legal issues and conditions of use.
+<li>
+   Added support for knowing/reporting the version of the library.
+</ul>
+
+
+@heading
+1.0 Final version (8 April 1998, released)
+<ul><li>
+   Corrected a bug in the benchmarking program, it was running for 4 seconds
+   instead of 3... Now it runs for 4 seconds but it divides the total checks
+   by 4 instead of 3.
+<li>
+   Beautified a little the source codes.
+<li>
+   Enhanced a little the documentation.
+</ul>
+
+
+@heading
+1.0 Beta 1 (3 April 1998, released)
+<ul><li>
+   Added 24bpp support for the check_pp_collision function and corrected the
+   16bpp bug. Thanks to Ove Kaaven and Salvador Eduardo Tropea for their
+   helps (they have partially corrected the 24bpp bug while trying to access
+   directly to the bitmap memory, the other half repaired by myself).
+<li>
+   Modified Peter's benchmarking program, now it displays integer results
+   instead of decimals, checks for collision probability and increased the
+   collision probability to a 75%.
+<li>
+   Added the index to the documentation.
+<li>
+   Added manifest files and modified directory structure.
+<li>
+   Optimized a bit the routines.
+</ul>
+
+
+@heading
+1.0 Alpha 7 (18 March 1998, released)
+<ul><li>
+   Corrected the bug that happens when we pass an unclipped bitmap to the
+   mask creation routine.
+<li>
+   Modified ex1.c to be able to select the video mode and color depth at
+   startup, so now we can test better the routines.
+</ul>
+
+
+@heading
+1.0 Alpha 6 (16 March 1998, not released)
+<ul><li>
+   Peter Wang contributed a benchmarking program to measure the different
+   library functions speeds.
+<li>
+   Eduardo Roldan contributed original sprites for the library.
+</ul>
+
+
+@heading
+1.0 Alpha 5 (5 March 1998, released)
+<ul><li>
+   Corrected the check_bb_collision macro, before the correction it was
+   reporting collision when the 2 sprites where together but not overlaping.
+<li>
+   Added the check_pp_collision function for normal pixel perfect collision
+   detection.
+</ul>
+
+
+@heading
+1.0 Alpha 4 (3 March 1998, released)
+<ul><li>
+   First public release.
+<li>
+   Wrote the makefile.
+<li>
+   Wrote the documentation.
+<li>
+   Renamed the check_bbcollision macro to check_bb_collision and added
+   support for both Allegro BITMAP's and PPCOL_MASK's structures.
+</ul>
+
+
+@heading
+1.0 Alpha 3 (28 February 1998, not released)
+<ul><li>
+   Discovered the bug in the mask creation routine, I was multiplicating per
+   4 when the compiler does that automatically... so the pointers pointed to
+   a wrong address. Repaired this bug.
+<li>
+   Now Ex1.C shows the possible keys and now is possible to move also the
+   second sprite.
+</ul>

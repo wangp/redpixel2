@@ -5,8 +5,7 @@ dofile ("tilehelp.lua")
 images = {
     ["book"]	 = "book.png",
     ["desk"]	 = "desk.png",
-    ["chair"]	 = "chair.png",
-    ["computer"] = "computer.png"
+    ["chair"]	 = "chair.png"
 }
 
 make_tile_pack ("office.dat", "office/", images)

@@ -1,4 +1,39 @@
+2000-07-02  Peter Wang  <tjaden@psynet.net>
+
+	* objanim.c: New object render mode: simple, looped animation.
+	* bdobject.c (object_set_visual_anim): Set render mode from Lua.
+
+	* Decoupled object class from map.  New module object.c manages
+	creation and destruction, leaving map.c to linking and unlinking
+	objects from a linked list.
+
 2000-07-01  Peter Wang  <tjaden@psynet.net>
+
+	* gameloop.c: Hackish attempt at player and object movement
+	(collision detection with tiles, gravity, walkings, jumping).
+
+	* object.h: Made object (x, y) `fixed' type.
+
+	* bdobject.c: Objects can now associate a set of collision mask to
+	themselves (set_collion_masks)
+
+	* map.c (map_generate_tile_mask): Generates a tile mask for a map.
+
+	* magicld.c extended to load specially marked bitmaps as bitmasks,
+	and renamed to extdata.c.  Function now `load_extended_datafile'.
+
+	* bitmask.c: New module, which will be used to speed up object to
+	tile collision detection.
+
+	* editor/mdstarts.c: New module to edit map start locations.
+	* mapfile.c: Load and save chunks for them.
+
+	* `map_object_list_t' renamed to `map_image_t' a la The Gimp.
+
+	* mapfile.c (map_load): Rearranged so that it may load chunks in
+	any logical order.
+	(map_save): Rearranged so that chunks may be omitted if not
+	required.
 
 	* magicrot.c: New module to handle magic sprite rotations (hack of
 	rotate.c from Allegro).
@@ -15,6 +50,8 @@
 	mode.  Original mode named `bitmap' mode.
 	* objlayer.c: New module to help out with this.
 
+	* Wrote tilelayers.scm plugin for Gimp... in Scheme :-)
+	
 	* gameloop.c (game_loop): Objects get a `process' loop.  Used it
 	to test out lightamp animation driven in Lua.
 

@@ -10,8 +10,8 @@ void bindings_shutdown ();
 
 #include <lua.h>
 
-void set_register_object_hook (void (*hook) (const char *, lua_Object,
-					     const char *, const char *));
+void set_object_type_register_hook (void (*hook) (const char *, lua_Object,
+						  const char *, const char *));
 
 
 #endif

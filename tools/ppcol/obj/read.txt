@@ -1,0 +1,2 @@
+You can delete this directory after making the library, this files will not be
+necessary.

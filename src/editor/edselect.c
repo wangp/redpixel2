@@ -44,7 +44,7 @@ void ed_select_list_destroy (list_t *p)
     free (p);
 }
 
-void ed_select_list_item_add (list_t *p, const char *name, BITMAP *bmp)
+void ed_select_list_add_item (list_t *p, const char *name, BITMAP *bmp)
 {
     item_t *i;
 

@@ -1,11 +1,8 @@
 -- armour.lua
 
-local armour = {
-}
-
 function __module__init ()
     store_load ("object/armour.dat", "/armour/")
-    register_object ("armour-brown",  %armour, "item", "/armour/armour-brown")
-    register_object ("armour-purple", %armour, "item", "/armour/armour-purple")
-    register_object ("armour-blue",   %armour, "item", "/armour/armour-blue")
+    object_type_register ("armour-brown",  nil, "item", "/armour/armour-brown")
+    object_type_register ("armour-purple", nil, "item", "/armour/armour-purple")
+    object_type_register ("armour-blue",   nil, "item", "/armour/armour-blue")
 end

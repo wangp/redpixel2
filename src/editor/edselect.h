@@ -10,7 +10,7 @@ typedef struct ed_select_list ed_select_list_t;
 
 ed_select_list_t *ed_select_list_create ();
 void ed_select_list_destroy (ed_select_list_t *);
-void ed_select_list_item_add (ed_select_list_t *, const char *name, BITMAP *);
+void ed_select_list_add_item (ed_select_list_t *, const char *name, BITMAP *);
 char *ed_select_list_item_name (ed_select_list_t *, int);
 int ed_select_list_item_index (ed_select_list_t *, const char *name);
 

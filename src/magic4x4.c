@@ -117,8 +117,13 @@ void generate_magic_color_map()
 	 color_map->data[x][y] = c | (l << 4);
       }
    }
+}
 
-   /* XXX: check memory leak with color_map */
+
+void free_magic_color_map ()
+{
+   free(color_map);
+   color_map = 0;
 }
  
 

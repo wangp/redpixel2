@@ -6,8 +6,8 @@
 
 #include <allegro.h>
 #include "alloc.h"
+#include "extdata.h"
 #include "loadhelp.h"
-#include "magicld.h"
 #include "path.h"
 #include "store.h"
 #include "vtree.h"
@@ -30,7 +30,7 @@ static void loader (const char *filename, int attrib, int param)
     struct file *f;
     int id;
 
-    id = store_load_ex (filename, vtree, load_magic_datafile);
+    id = store_load_ex (filename, vtree, load_extended_datafile);
     if (id < 0) return;
     
     f = alloc (sizeof *f);

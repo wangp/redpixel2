@@ -10,7 +10,6 @@
 #include "gameloop.h"
 #include "loaddata.h"
 #include "magic4x4.h"
-#include "magicld.h"
 #include "map.h"
 #include "mapfile.h"
 #include "objtypes.h"
@@ -61,6 +60,8 @@ int game (int argc, char *argv[])
     scripts_shutdown ();
     store_shutdown ();
     path_shutdown ();
-    
+
+    free_magic_color_map ();
+	
     return 0;
 }

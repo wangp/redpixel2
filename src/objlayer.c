@@ -9,13 +9,13 @@
 #include "object.h"
 
 
-object_layer_list_t *object_layer_list_create ()
+object_image_t *object_image_create ()
 {
-    return alloc (sizeof (object_layer_list_t));
+    return alloc (sizeof (object_image_t));
 }
 
 
-void object_layer_list_destroy (object_layer_list_t *p)
+void object_image_destroy (object_image_t *p)
 {
     int i;
 
@@ -25,7 +25,7 @@ void object_layer_list_destroy (object_layer_list_t *p)
 }
 
 
-object_layer_t *object_layer_list_add (object_layer_list_t *list, BITMAP *bmp, int offsetx, int offsety, fixed angle)
+object_layer_t *object_image_add_layer (object_image_t *image, BITMAP *bmp, int offsetx, int offsety, fixed angle)
 {
     object_layer_t *layer;
     void *p;
@@ -33,21 +33,21 @@ object_layer_t *object_layer_list_add (object_layer_list_t *list, BITMAP *bmp, i
     layer = alloc (sizeof *layer);
     if (!layer) return 0;
     
-    p = realloc (list->layer, sizeof (object_layer_t *) * (list->num + 1));
+    p = realloc (image->layer, sizeof (object_layer_t *) * (image->num + 1));
     if (!p) {
 	free (layer);
 	return 0;
     }
     else
-	list->layer = p;
+	image->layer = p;
 
     layer->bitmap  = bmp;
     layer->offsetx = offsetx;
     layer->offsety = offsety;
     layer->angle   = angle;
     
-    list->layer[list->num] = layer;
-    list->num++;
+    image->layer[image->num] = layer;
+    image->num++;
 
     return layer;
 }
