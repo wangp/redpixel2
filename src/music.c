@@ -224,9 +224,13 @@ static void *player_thread_func (void *unused)
 	}
 
 	if (!duh) {
-	    do {
-		song = random_playlist_filename ();
-	    } while (song == last_song);
+	    if (playlist_length == 1)
+		song = playlist[0].name;
+	    else
+		do {
+		    song = random_playlist_filename ();
+		} while (song == last_song);
+
 	    last_song = song;
 
 	    duh = my_load_duh (song);
