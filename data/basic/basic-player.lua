@@ -102,6 +102,8 @@ local player_nonproxy_init = function (self)
 		end
 	    end
 	    self:destroy ()
+	else
+	    call_method_on_clients (self, "start_hurt_light")
 	end
     end
 
@@ -157,6 +159,14 @@ local animate_player_proxy = function (self)
 	end
     end
 
+    -- hurt light
+    if self.hurt_light_tics > 0 then
+	self.hurt_light_tics = self.hurt_light_tics - 1
+	if self.hurt_light_tics == 0 then
+	    self:reset_default_light ()
+	end
+    end
+
     -- walking
     if not _internal_object_moving_horizontally (self) then
 	return
@@ -199,6 +209,21 @@ local player_proxy_init = function (self)
 
     -- light
     self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
+
+    self.hurt_light_tics = 0
+
+    -- (called by nonproxy receive_damage)
+    function self:start_hurt_light ()
+	if self.is_local then
+	    self:replace_light (0, "/basic/light/red-64", 0, 0)
+	    self.hurt_light_tics = 38
+	end
+    end
+
+    -- (called by update hook)
+    function self:reset_default_light ()
+	self:replace_light (0, "/basic/light/white-64", 0, 0)
+    end
 
     -- arm stuff
     self.arm_layer = self:add_layer ("/basic/weapon/blaster/1arm000", 0, 3)
@@ -289,7 +314,7 @@ Objtype {
     end,
 
     proxy_init = function (self)
-	self:add_light ("/basic/light/white-32", 0, 0)
+	self:add_light ("/basic/light/red-32", 0, 0)
 	self:set_update_hook (1000/10, death_fountain_update_hook)
 	death_fountain_update_hook (self) -- set the initial layer
     end
