@@ -931,7 +931,7 @@ void client_set_camera (int pushable, int max_dist)
  */
 
 
-static int update_camera (void)
+static int update_camera (int mouse_x, int mouse_y)
 {
     int oldx, oldy;
 
@@ -1005,7 +1005,7 @@ static void draw_scores (BITMAP *bmp)
 }
     
 
-static void update_screen (void)
+static void update_screen (int mouse_x, int mouse_y)
 {
     if (backgrounded)
 	return;
@@ -1445,14 +1445,19 @@ void client_run (int client_server)
 		    }
 		}
 
-		dbg ("update camera");
 		{
-		    int n = t - last_ticks;
-		    while ((n--) && update_camera ());
-		}
+		    int mx = mouse_x;
+		    int my = mouse_y;
 
-		dbg ("update screen");
-		update_screen ();
+		    dbg ("update camera");
+		    {
+			int n = t - last_ticks;
+			while ((n--) && update_camera (mx, my));
+		    }
+
+		    dbg ("update screen");
+		    update_screen (mx, my);
+		}
 
 		dbg ("update sound reference point");
 		if (local_object)
