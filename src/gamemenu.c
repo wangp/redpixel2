@@ -81,6 +81,7 @@ static int mp_client_server (void)
 	    "Error initialising game server or client.  Perhaps another\n"
 	    "game server is already running on the same port?\n");
     } else {
+	server_inhibit_double_message ();
 	sync_init (server_thread);
 	client_run (1);
 	sync_server_stop_requested ();
