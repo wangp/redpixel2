@@ -16,7 +16,6 @@
 #include "object.h"
 #include "objtypes.h"
 #include "packet.h"
-#include "physics.h"
 #include "sync.h"
 #include "timeout.h"
 
@@ -100,8 +99,6 @@ struct client {
     ulong_t pong_time;
     int lag;
 };
-
-#define client_object_id(c)	((c)->id)
 
 #define client_set_state(c,s)	((c)->state = (s))
 
@@ -259,7 +256,7 @@ static void clients_remove_stale ()
 static void clients_init ()
 {
     list_init (clients);
-    clients_next_id = 0;
+    clients_next_id = 1;
 }
 
 static void clients_shutdown ()
@@ -285,7 +282,6 @@ static server_state_t next_state;
 static game_server_interface_t *interface;
 static NET_CONN *listen;
 static map_t *map;
-static physics_t *physics;
 static string_t current_map_file;
 static string_t next_map_file;
 
@@ -646,7 +642,7 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
     object_t *obj;
     float xv, yv;
 
-    if (!(c = clients_find_by_id (- object_id (owner))))
+    if (!(c = clients_find_by_id (object_id (owner))))
 	return -1;
 
     if (!(obj = object_create (typename)))
@@ -701,7 +697,7 @@ static int server_init_game_state ()
 	object_t *obj;
 
 	start = server_pick_random_start ();
-	obj = object_create_ex ("player", client_object_id (c));
+	obj = object_create_ex ("player", c->id);
 	object_set_xy (obj, map_start_x (start), map_start_y (start));
 	object_set_collision_tag (obj, c->id); /* XXX temp */
 	object_run_init_func (obj);
@@ -709,22 +705,11 @@ static int server_init_game_state ()
 	c->client_object = obj;
     }
 
-    physics = physics_create (map);
-    if (!physics) {
-	map_destroy (map);
-	return -1;
-    }
-
     return 0;
 }
 
 static void server_free_game_state ()
 {
-    if (physics) {
-	physics_destroy (physics);
-	physics = NULL;
-    }
-
     if (map) {
 	map_destroy (map);
 	map = NULL;
@@ -797,7 +782,7 @@ static void server_feed_game_state_to (client_t *c)
 
 	list = map_object_list (map);
 	list_for_each (obj, list)
-	    add_to_gameinfo_packet ("cslffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
+	    add_to_gameinfo_packet ("cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
 				    objtype_name (object_type (obj)), 
 				    object_id (obj),
 				    object_x (obj), object_y (obj),
@@ -919,14 +904,14 @@ static void server_handle_client_controls ()
 	if (c->controls & CONTROL_LEFT) {
 /*  	    object_set_xv (obj, object_xv (obj) - 1.4); */
 /*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
-	    object_set_xa (obj, -1.4);
+	    object_set_xa (obj, -2);
 	}
 
 	/* right */
 	else if (c->controls & CONTROL_RIGHT) {
 /*  	    object_set_xv (obj, object_xv (obj) + 1.4); */
 /*  	    object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
-	    object_set_xa (obj, +1.4);
+	    object_set_xa (obj, +2);
 	}
 
 	else
@@ -937,12 +922,22 @@ static void server_handle_client_controls ()
 	    float jump = object_jump (obj);
 
 	    if (jump > 0) {
-		object_set_yv (obj, object_yv (obj) - MIN (8, 20 / jump));
+/*  		object_set_yv (obj, object_yv (obj) - MIN (8, 20 / jump)); */
+/*  		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0); */
+/*  		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+
+		/* new jump based on accel */
+/*  		object_set_ya (obj, object_ya (obj) - object_mass (obj) - .7); */
 		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
 		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
 	    }
 	    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
-		object_set_yv (obj, object_yv (obj) - 4);
+/*  		object_set_yv (obj, object_yv (obj) - 4); */
+/*  		object_set_jump (obj, 1); */
+/*  		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
+
+		/* new jump based on accel */
+		object_set_ya (obj, object_ya (obj) - 15);
 		object_set_jump (obj, 1);
 		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
 	    }
@@ -966,7 +961,7 @@ static void server_perform_physics ()
 
     object_list = map_object_list (map);
     list_for_each (obj, object_list)
-	physics_move_object (physics, obj);
+	object_do_physics (obj, map); /* XXX find better name */
 }
 
 
@@ -987,23 +982,24 @@ static void server_send_object_updates ()
 	    continue;
 	}
 
-	if (object_need_replication (obj, OBJECT_REPLICATE_CREATE)) {
-	    add_to_gameinfo_packet ("cslffffl", MSG_SC_GAMEINFO_OBJECT_CREATE,
+	if (object_need_replication (obj, OBJECT_REPLICATE_CREATE))
+	    add_to_gameinfo_packet ("cslffffc", MSG_SC_GAMEINFO_OBJECT_CREATE,
 				    objtype_name (object_type (obj)),
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
 				    object_xv (obj), object_yv (obj),
 				    object_collision_tag (obj));
-	    object_clear_replication_flag (obj, OBJECT_REPLICATE_CREATE);
-	}
 
 	if (object_need_replication (obj, OBJECT_REPLICATE_UPDATE)) {
-	    add_to_gameinfo_packet ("clffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
+	    add_to_gameinfo_packet ("clffffff", MSG_SC_GAMEINFO_OBJECT_UPDATE,
 				    object_id (obj), 
 				    object_x (obj), object_y (obj),
-				    object_xv (obj), object_yv (obj));
-	    object_clear_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
+				    object_xv (obj), object_yv (obj),
+				    object_xa (obj), object_ya (obj));
+/*  	    server_log ("replicated %d\n", random()%100); */
 	}
+
+	object_clear_replication_flags (obj);
     }
 
     done_gameinfo_packet ();
@@ -1087,14 +1083,14 @@ static void server_handle_wantfeeds ()
 	    start_t *start;
 	    
 	    start = server_pick_random_start ();
-	    obj = object_create_ex ("player", client_object_id (c));
+	    obj = object_create_ex ("player", c->id);
 	    object_set_xy (obj, map_start_x (start), map_start_y (start));
 	    object_set_collision_tag (obj, c->id); /* XXX temp */
 	    object_run_init_func (obj);
 	    map_link_object_bottom (map, obj);
 
 	    clients_broadcast_rdm_encode
-		("ccslffffl", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
+		("ccslffffc", MSG_SC_GAMEINFO, MSG_SC_GAMEINFO_OBJECT_CREATE,
 		 objtype_name (object_type (obj)),
 		 object_id (obj), object_x (obj), object_y (obj),
 		 object_xv (obj), object_yv (obj), object_collision_tag (obj));
@@ -1110,12 +1106,18 @@ static void server_handle_wantfeeds ()
 
 static void server_state_game_poll ()
 {
+    ulong_t t = ticks;
+    long dt;
     if (!ticks_poll ())
 	return;
+    if ((dt = ticks - t) <= 0)
+	return;
     server_handle_wantfeeds ();
-    server_perform_physics ();
+    while (dt--) {
+	server_perform_physics ();
+	server_poll_client_update_hooks ();
+    }
     server_send_object_updates ();
-    server_poll_client_update_hooks ();
     map_destroy_stale_objects (map);
 }
 

@@ -88,7 +88,6 @@ MODULES_GAME =					\
 	objtypes				\
 	packet					\
 	path					\
-	physics					\
 	render					\
 	sync					\
 	textface				\

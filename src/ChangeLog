@@ -1,4 +1,11 @@
+2001-07-20  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Did some work on the physics/network code again, but its not
+	very good, so will be taking another approach.  Backup first :)
+
 2001-07-19  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c (poll_interface_command_kick): Kick by name.
 
 	* sync.c: New module to contain the thread stuff.
 
@@ -7,9 +14,9 @@
 	etc.  Client objects are no longer negative (not enough of them to
 	justify halving the id space).
 	
-	* Reverted packet size and protocol changes from yesterday as they
-	were mysteriously making client/server in the same process not
-	work properly.
+	* Reverted packet size and protocol changes as they were
+	mysteriously making client/server in the same process not work
+	properly.  Will try again some other time.
 
 2001-07-18  Peter Wang  <tjaden@users.sourceforge.net>
 

@@ -2,7 +2,7 @@
 
 store_load ("basic/basic-player.dat", "/basic/player/")
 
-local xv_decay, yv_decay = 0.75, 0.75
+local xv_decay, yv_decay = 0.75, 0.5
 
 Objtype {
     category = "player",    -- XXX: should be nil in future
@@ -15,7 +15,7 @@ Objtype {
 	self.xv_decay = %xv_decay
 	self.yv_decay = %yv_decay
 	self._ramp = 6
-	self.mass = 2.2
+	self.mass = 0.9
 
 	object_set_collision_is_player (self)
 	self:set_collision_flags ("tn")

@@ -66,7 +66,7 @@ void object_set_collision_tag (object_t *, int);
 
 int object_need_replication (object_t *, int);
 void object_set_replication_flag (object_t *, int);
-void object_clear_replication_flag (object_t *, int);
+void object_clear_replication_flags (object_t *);
 
 int object_catchup (object_t *);
 void object_set_catchup (object_t *, int);
@@ -113,8 +113,8 @@ int object_supported_at (object_t *, struct map *, float x, float y);
 
 /* Movement.  */
 
-int object_move (object_t *, int mask_num, struct map *, float xv, float yv);
-int object_move_x_with_ramp (object_t *, int mask_num, struct map *, float dx, int ramp_amount);
+void object_do_physics (object_t *, struct map *);
+void object_do_simulation (object_t *);
 
 
 /* Lua table operations.  */

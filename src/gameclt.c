@@ -18,7 +18,6 @@
 #include "netmsg.h"
 #include "object.h"
 #include "packet.h"
-#include "physics.h"
 #include "render.h"
 #include "store.h"
 #include "sync.h"
@@ -40,7 +39,6 @@ typedef unsigned long ulong_t;
 static NET_CONN *conn;
 static int client_id;
 static char *client_name;
-#define local_object_id	(client_id)
 
 /* for rendering */
 static BITMAP *bmp;
@@ -54,7 +52,6 @@ static BITMAP *crosshair;
 
 /* the game state */
 static map_t *map;
-static physics_t *physics;
 static object_t *local_object;
 
 /* network stuff */
@@ -135,9 +132,9 @@ static void perform_simple_physics ()
     
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
-	for (i = 0; i < 1 + object_catchup (obj); i++)
-	    physics_extrapolate_proxy (physics, obj);
-	object_set_catchup (obj, 0);
+/*  	for (i = 0; i < 1 + object_catchup (obj); i++) */
+	    object_do_simulation (obj);
+/*  	object_set_catchup (obj, 0); */
     }
 }
 
@@ -195,12 +192,9 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		long len;
 		
 		buf += packet_decode (buf, "s", &len, filename);
-		if (physics)
-		    physics_destroy (physics);
 		if (map)
 		    map_destroy (map);
 		map = map_load (filename, 0, NULL);
-		physics = physics_create (NULL);
 		break;
 	    }
 
@@ -214,12 +208,12 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		int ctag;
 		object_t *obj;
 
-		buf += packet_decode (buf, "slffffl", &len, type, &id, &x, &y, &xv, &yv, &ctag);
+		buf += packet_decode (buf, "slffffc", &len, type, &id, &x, &y, &xv, &yv, &ctag);
 		obj = object_create_proxy (type, id);
 		object_set_xy (obj, x, y);
 		object_set_xvyv (obj, xv, yv);
 		object_set_collision_tag (obj, ctag);
-		if (id == local_object_id) {
+		if (id == client_id) {
 		    local_object = obj;
 		    object_set_number (obj, "is_local", 1);
 		}
@@ -247,13 +241,19 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		objid_t id;
 		float x, y;
 		float xv, yv;
+		float xa, ya;
 		object_t *obj;
 
-		buf += packet_decode (buf, "lffff", &id, &x, &y, &xv, &yv);
+		buf += packet_decode (buf, "lffffff", &id, &x, &y, &xv, &yv, &xa, &ya);
 		if ((obj = map_find_object (map, id))) {
 		    object_set_xy (obj, x, y);
 		    object_set_xvyv (obj, xv, yv);
-		    object_set_catchup (obj, lag);
+		    object_set_xa (obj, xa);
+		    object_set_ya (obj, ya);
+/*  		    object_set_catchup (obj, lag); */
+
+		    {int i; for (i = 0; i < lag-1; i++)
+			object_do_simulation (obj);}
 		}
 		break;
 	    }
@@ -568,9 +568,8 @@ void game_client_run ()
 		dbg ("send gameinfo");
 		send_gameinfo_controls ();
 	    }
-    
-	    while (ticks != last_ticks) {
-		dbg ("perform simple physics");
+
+	    while (ticks > last_ticks) {
 		perform_simple_physics ();
 		last_ticks++;
 		redraw = 1;
@@ -715,7 +714,6 @@ int game_client_init (const char *name, int net_driver, const char *addr)
     crosshair = store_dat ("/basic/crosshair/000");
 
     map = NULL;
-    physics = NULL;
     local_object = NULL;
 
     fps_init ();
@@ -735,10 +733,6 @@ void game_client_shutdown ()
     remove_display_switch_callback (switch_out_callback);
     remove_display_switch_callback (switch_in_callback);
     fps_shutdown ();
-    if (physics) {
-	physics_destroy (physics);
-	physics = NULL;
-    }
     if (map) {
 	map_destroy (map);
 	map = NULL;
