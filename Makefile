@@ -108,6 +108,7 @@ MODULES_GAME :=					\
 	extdata					\
 	fps					\
 	gameinit				\
+	gamemenu				\
 	getoptc					\
 	loaddata				\
 	main					\
