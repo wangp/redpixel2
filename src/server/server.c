@@ -598,6 +598,23 @@ static void server_poll_interface ()
 }
 
 
+/* Spawn an object (Lua binding). */
+
+int game_server_spawn_object (const char *typename, float x, float y)
+{
+    object_t *obj;
+
+    if (!(obj = object_create (typename)))
+	return -1;
+
+    object_set_xy (obj, x, y);
+    object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
+    object_run_init_func (obj);
+    map_link_object_bottom (map, obj);
+    return 0;
+}
+
+
 /* Spawn a projectile (Lua binding). */
 
 int game_server_spawn_projectile (const char *typename, object_t *owner, float speed)
@@ -625,7 +642,7 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
 }
 
 
-/* Spawn some blood (Lua binding).  */
+/* Spawn some blood (Lua binding). */
 
 int game_server_spawn_blood (float x, float y, long nparticles, long spread)
 {
@@ -659,6 +676,20 @@ static start_t *server_pick_random_start ()
     return NULL;
 }
 
+static object_t *server_spawn_player (objid_t id)
+{
+    start_t *start;
+    object_t *obj;
+
+    start = server_pick_random_start ();
+    obj = object_create_ex ("player", id);
+    object_set_xy (obj, map_start_x (start), map_start_y (start));
+    object_set_collision_tag (obj, id); /* XXX temp */
+    object_run_init_func (obj);
+    map_link_object_bottom (map, obj);
+    return obj;
+}
+
 static int server_init_game_state ()
 {
     client_t *c;
@@ -670,18 +701,9 @@ static int server_init_game_state ()
     }
     string_set (current_map_file, next_map_file);
 
-    for_each_client (c) if (c->state == CLIENT_STATE_JOINED) {
-	start_t *start;
-	object_t *obj;
-
-	start = server_pick_random_start ();
-	obj = object_create_ex ("player", c->id);
-	object_set_xy (obj, map_start_x (start), map_start_y (start));
-	object_set_collision_tag (obj, c->id); /* XXX temp */
-	object_run_init_func (obj);
-	map_link_object_bottom (map, obj);
-	c->client_object = obj;
-    }
+    for_each_client (c)
+	if (c->state == CLIENT_STATE_JOINED)
+	    c->client_object = server_spawn_player (c->id);
 
     return 0;
 }
@@ -1131,6 +1153,17 @@ static void server_handle_wantfeeds ()
     clients_broadcast_rdm_byte (MSG_SC_RESUME);
 }
 
+static void server_purge_stale_objects ()
+{
+    client_t *c;
+    
+    for_each_client (c)
+	if ((c->client_object) && (object_stale (c->client_object)))
+	    c->client_object = NULL;
+    
+    map_destroy_stale_objects (map);
+}
+
 static void server_state_game_poll ()
 {
     ulong_t t = ticks;
@@ -1152,8 +1185,8 @@ static void server_state_game_poll ()
     server_send_object_updates ();
     gameinfo_packet_queue_flush ();
     done_gameinfo_packet ();
-    
-    map_destroy_stale_objects (map);
+
+    server_purge_stale_objects ();
 }
 
 static void server_state_game_shutdown ()
