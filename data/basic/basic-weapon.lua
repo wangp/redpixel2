@@ -30,18 +30,14 @@ end
 -- picked up.
 local Standard_Pickup = function (t)
     if t.alias then add_alias (t.name, t.alias) end
-    return Objtype (t, {
+    return Respawning_Item (t, {
 	category = "weapon",
-	nonproxy_init = function (self)
-	    self:set_collision_flags ("p")
-	    function self:collide_hook (player)
-		if t.weapon_to_give then
-		    player:receive_weapon (t.weapon_to_give)
-		end
-		if t.ammo_to_give then
-		    player:receive_ammo (t.ammo_to_give, t.ammo_amount)
-		end
-		self:hide_and_respawn_later (t.respawn_secs * 1000)
+	collide_hook = function (self, player)
+	    if t.weapon_to_give then
+		player:receive_weapon (t.weapon_to_give)
+	    end
+	    if t.ammo_to_give then
+		player:receive_ammo (t.ammo_to_give, t.ammo_amount)
 	    end
 	end
     })

@@ -1,7 +1,33 @@
--- basic-base.lua -- XXX: rename this file?
+-- basic-base.lua
 
 
--- constants
+----------------------------------------------------------------------
+-- Utility functions
+----------------------------------------------------------------------
+
+function radian_to_bangle (rads)
+    return rads * 128 / PI
+end
+
+-- Merge t1 and t2, t2 taking precedence in case of clashes.
+-- For convenience, if t2 is omitted, this is the identity function
+-- (i.e. the table returned is NOT a new table.
+function merge (t1, t2)
+    local t
+    if not t2 then
+	t = t1
+    else
+	t = {}
+	for i,v in t1 do t[i] = v end
+	for i,v in t2 do t[i] = v end
+    end
+    return t
+end
+
+
+----------------------------------------------------------------------
+-- Constants
+----------------------------------------------------------------------
 
 mask_main = 0 
 mask_top = 1
@@ -10,7 +36,9 @@ mask_left = 3
 mask_right = 4
 
 
--- game object base
+----------------------------------------------------------------------
+-- Game object base
+----------------------------------------------------------------------
 
 local dummy = function () end
 
@@ -87,7 +115,9 @@ function _internal_object_init_hook (self)
 end
 
 
+----------------------------------------------------------------------
 -- objtype_register wrapper
+----------------------------------------------------------------------
 
 function Objtype (t, u)
     t = merge (t, u)
@@ -106,32 +136,82 @@ function Objtype (t, u)
 end
 
 
--- weapon registry
+----------------------------------------------------------------------
+-- Respawning items wrapper
+----------------------------------------------------------------------
+
+store_load ("basic/basic-respawn.dat", "/basic/")
+
+local respawning_ball_anim = {}
+local respawning_ball_frames = 19
+
+for i = 0, respawning_ball_frames-1 do
+    respawning_ball_anim[i] = format ("/basic/respawning-ball/%03d", i)
+end
+
+Objtype {
+    name = "basic-respawning-ball",
+    icon = "/basic/respawning-ball/000",
+    nonproxy_init = function (self)
+	self:set_collision_flags ("")
+	self:set_update_hook (
+	    1000,
+	    function (self)
+		if self.item then
+		    self.item:show ()
+		end
+		self:destroy ()
+	    end
+	)
+    end,
+    proxy_init = function (self)
+	self.frame = 0
+	self:set_update_hook (
+	    1000 / respawning_ball_frames,
+	    function (self)
+		self.frame = self.frame + 1
+		if self.frame >= respawning_ball_frames then
+		    self:remove_update_hook ()
+		else
+		    self:replace_layer (0, respawning_ball_anim[self.frame], 8, 8)
+		end
+	    end
+	)
+    end
+}
+
+function Respawning_Item (t, u)
+    t = merge (t, u)
+    return Objtype (t, {
+	category = t.category or "item",
+	nonproxy_init = function (self)
+	    self:set_collision_flags ("p")
+	    function self:collide_hook (player)
+		if t.collide_hook then
+		    t.collide_hook (self, player)
+		end
+		self:hide ()
+		self:set_update_hook (
+		    1000 * t.respawn_secs,
+		    function (self)
+			local ball = spawn_object ("basic-respawning-ball",
+						   self.x, self.y)
+			ball.item = self
+			self:remove_update_hook()
+		    end
+		)
+	    end
+	end
+    })
+end
+
+
+----------------------------------------------------------------------
+-- Weapon registry
+----------------------------------------------------------------------
 
 weapons = {}
 
 function Weapon (t, u)
     weapons[t.name] = merge (t, u)
-end
-
-
--- utility functions
-
-function radian_to_bangle (rads)
-    return rads * 128 / PI
-end
-
--- Merge t1 and t2, t2 taking precedence in case of clashes.
--- For convenience, if t2 is omitted, this is the identity function
--- (i.e. the table returned is NOT a new table.
-function merge (t1, t2)
-    local t
-    if not t2 then
-	t = t1
-    else
-	t = {}
-	for i,v in t1 do t[i] = v end
-	for i,v in t2 do t[i] = v end
-    end
-    return t
 end
