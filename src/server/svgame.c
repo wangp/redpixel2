@@ -35,6 +35,10 @@ static svticker_t *ticker;
 
 
 
+#define L lua_state
+
+
+
 /*
  *----------------------------------------------------------------------
  *	Creating new player objects
@@ -75,9 +79,14 @@ static object_t *spawn_player (objid_t id)
     object_run_init_func (obj);
 
     if ((c = svclients_find_by_id (id))) {
-	object_set_string (obj, "name", c->name);
-	object_add_creation_field (obj, "name");
-	
+	/* Call the player spawned hook.  */
+	lua_getglobal (L, "_internal_player_spawned_hook");
+	if (!lua_isfunction (L, -1))
+	    error ("Missing _internal_player_spawned_hook\n");
+	lua_pushnumber (L, id);
+	lua_call (L, 1, 0);
+
+	/* Reset network stuff.  */
 	c->last_sent_aim_angle = 0;
     } 
     
@@ -112,7 +121,7 @@ void svgame_process_cs_gameinfo_packet (svclient_t *c, const char *buf,
 		
 		buf += packet_decode (buf, "s", &len, name);
 		if (c->client_object) {
-		    lua_pushstring (lua_state, name);
+		    lua_pushstring (L, name);
 		    object_call (c->client_object, "switch_weapon", 1);
 		}
 		break;
@@ -276,7 +285,6 @@ static void gameinfo_packet_queue_flush (void)
 /* XXX lots of potention buffer overflows */
 static size_t make_object_creation_packet (object_t *obj, char *buf)
 {
-    lua_State *L = lua_state;
     int top = lua_gettop (L);
     const char *type;
     list_head_t *list;
@@ -704,6 +712,7 @@ object_t *svgame_spawn_projectile (const char *typename, object_t *owner,
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
     object_set_number (obj, "angle", angle);
     object_add_creation_field (obj, "angle");
+    object_set_number (obj, "owner", object_id (owner));
     map_link_object (map, obj);
     object_run_init_func (obj);
     return obj;
@@ -831,6 +840,34 @@ void svgame_tell_ammo (object_t *obj, int ammo)
 }
 
 
+void svgame_set_score (int client_id, const char *score)
+{
+    svclient_t *c;
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!(c = svclients_find_by_id (client_id)))
+	return;
+
+    svclient_set_score (c, score);
+
+    size = packet_encode (buf, "cls", MSG_SC_GAMEINFO_CLIENT_SCORE,
+			  client_id, score);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+void svgame_play_sound_on_clients (object_t *obj, const char *sound)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    size = packet_encode (buf, "cffs", MSG_SC_GAMEINFO_SOUND_PLAY,
+			  object_x (obj), object_y (obj), sound);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -857,28 +894,15 @@ static void handle_new_svclient_feeds (void)
 	server_log ("Feeding new client %s", c->name);
 	perform_single_game_state_feed (c);
 
-	/* XXX */
 	{
-	    object_t *obj;
-	    start_t *start;
-	    
-	    start = pick_random_start ();
-	    obj = object_create_ex ("player", c->id);
-	    object_set_xy (obj, map_start_x (start), map_start_y (start));
-	    object_set_collision_tag (obj, c->id); /* XXX temp */
-	    map_link_object (map, obj);
-	    object_run_init_func (obj);
-
-	    object_set_string (obj, "name", c->name);
-	    object_add_creation_field (obj, "name");
+	    object_t *obj = spawn_player (c->id);
+	    c->client_object = obj;
 
 	    {
 		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
 		size_t size = make_object_creation_packet (obj, buf+1);
 		svclients_broadcast_rdm (buf, size+1);
 	    }
-
-	    c->client_object = obj;
 	}
 
     	svclient_clear_wantfeed (c);
@@ -948,6 +972,7 @@ static int init_game_state (void)
 {
     svclient_t *c;
 
+    /* Load map.  */
     map = map_load (server_next_map_file, 0, 0);
     if (!map) {
 	server_log ("Couldn't load map %s", server_next_map_file);
@@ -955,6 +980,15 @@ static int init_game_state (void)
     }
     string_set (server_current_map_file, server_next_map_file);
 
+    /* Init game type.  Should be extensible in future, currently
+     * hard-wired to Game_Type_Deathmatch.  */
+    lua_getglobal (L, "_internal_start_game_type");
+    if (!lua_isfunction (L, -1))
+	error ("Missing _internal_start_game_type\n");
+    lua_getglobal (L, "Game_Type_Deathmatch");
+    lua_call (L, 1, 0);
+
+    /* Spawn a bunch of players.  */
     for_each_svclient (c)
 	if (c->state == SVCLIENT_STATE_JOINED)
 	    c->client_object = spawn_player (c->id);
@@ -965,6 +999,11 @@ static int init_game_state (void)
 
 static void free_game_state (void)
 {
+    lua_getglobal (L, "_internal_end_game_type");
+    if (!lua_isfunction (L, -1))
+	error ("Missing _internal_end_game_type\n");
+    lua_call (L, 0, 0);
+
     if (map) {
 	map_destroy (map);
 	map = NULL;

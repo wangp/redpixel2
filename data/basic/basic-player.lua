@@ -157,14 +157,25 @@ local player_nonproxy_init = function (self)
     self.health = 100
     _internal_tell_health (self, self.health)
 
-    function self:receive_damage (damage)
+    function self:receive_damage (damage, attacker)
 	spawn_blood (self.x + cx, self.y + cy, 100, 2)
 	if damage/5 >= 1 then
 	    spawn_blod (self.x, self.y, damage/5)
 	end
+
 	self.health = self.health - damage
 	_internal_tell_health (self, self.health)
+
 	if self.health <= 0 then
+
+	    -- We're dead
+
+	    -- give the attacker points, or whatever
+	    if attacker and _internal_game_type.player_died then
+		_internal_game_type.player_died (self.id, attacker)
+	    end
+
+	    -- spawn a corpse
 	    local corpse = spawn_object (corpses[random (getn (corpses))],
 					 self.x, self.y)
 	    if corpse then
@@ -178,10 +189,16 @@ local player_nonproxy_init = function (self)
 		    spawn_object ("basic-backpack", x, y)
 		end
 	    end
+
+	    -- destroy the object
 	    self:destroy ()
+
 	else
+
+	    -- not dead: blink a red light over the hurt player
 	    call_method_on_clients (self, "start_alt_light",
 		"return '/basic/light/red-64', 38, 10")
+
 	end
     end
 
