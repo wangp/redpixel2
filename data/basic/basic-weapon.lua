@@ -586,7 +586,7 @@ Objtype {
 
 		function self:die ()
 		    -- spew some ball bearings, a blast and play a sound
-		    for i, deg in { 30, 50, 70, 90, 110, 130, 150 } do
+		    for i, deg in { -10, -30, -50, -70, -90, -110, -130, -150, -170} do
 			spawn_projectile_raw ("basic-mine-projectiles",
 					      self.owner, self.x, self.y,
 					      math.rad (deg), 5)
