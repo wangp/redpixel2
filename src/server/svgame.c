@@ -1096,8 +1096,6 @@ static int svgame_init (void)
 
 static void svgame_shutdown (void)
 {
-    server_log ("Leaving game");
-
     server_interface_set_status (NULL);
 
     svstats_shutdown ();

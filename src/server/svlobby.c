@@ -30,7 +30,6 @@ static void svlobby_poll (void)
 
 static void svlobby_shutdown (void)
 {
-    server_log ("Leaving lobby");
 }
 
 
