@@ -5,6 +5,13 @@
 /* Welcome to void pointer country.  We trust you will not be stupid.
    Please leave all ZealotSoft(R) Type Safety Nag-o-Meters(tm) outside.  */
 
+/* Initially, I got this interface from Links.  Later I changed the
+   naming, mostly by prefixing (e.g. list_add() was add_to_list()).
+   Now I found that this interface was from Linux.  A couple of the
+   names here match the names in Linux, and the general naming method
+   is about the same.  So by chance this interface has almost come
+   full-circle.  Kinda interesting.  */
+
 
 typedef struct list_head list_head_t;
 
