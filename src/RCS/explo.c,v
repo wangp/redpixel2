@@ -1,9 +1,14 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.5
+date	2002.02.06.10.07.08;	author tjaden;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2002.02.05.04.08.49;	author tjaden;	state Exp;
@@ -30,10 +35,9 @@ desc
 @@
 
 
-1.4
+1.5
 log
-@Added sound panning/volume based on position of the source relative to
-the player (although it doesn't update when the player moves yet).
+@(oops, some old code)
 @
 text
 @/* explo.c
@@ -155,7 +159,7 @@ explosion_t *explosion_create (const char *name, int x, int y)
     e->tics = t->tics;
 
     if (t->sound)
-	sound_play_once (t->sound, 255, e->x, e->y);
+	sound_play_once (t->sound, e->x, e->y);
     
     return e;
 }
@@ -203,6 +207,18 @@ void explosion_draw_lights (BITMAP *dest, explosion_t *explo,
 				 explo->x - offset_x - bmp->w/3/2,
 				 explo->y - offset_y - bmp->h/2);
 }
+@
+
+
+1.4
+log
+@Added sound panning/volume based on position of the source relative to
+the player (although it doesn't update when the player moves yet).
+@
+text
+@d120 1
+a120 1
+	sound_play_once (t->sound, 255, e->x, e->y);
 @
 
 
