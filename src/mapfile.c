@@ -117,8 +117,8 @@ int map_save (map_t *map, const char *filename)
 		const char *name = p->type->name;
 		
 		if ((pack_fputs_nl (name, f) == EOF)
-		    || (pack_iputl (p->x, f) == EOF)
-		    || (pack_iputl (p->y, f) == EOF))
+		    || (pack_iputl (p->cvar.x, f) == EOF)
+		    || (pack_iputl (p->cvar.y, f) == EOF))
 		    goto error;
 	    }
 	}
@@ -161,6 +161,7 @@ int read_tiles (map_t *map, PACKFILE *f)
 {
     int x, y, t;
     char tmp[1024];
+    int warning = 0;
 
     for (y = 0; y < map->height; y++)
 	for (x = 0; x < map->width; x++) {
@@ -171,13 +172,13 @@ int read_tiles (map_t *map, PACKFILE *f)
 		t = 0;
 	    else {
 		t = store_index (tmp);
-		if (!t) goto error;
+		if (!t) warning = 1;
 	    }
 	    
 	    map->tile[y][x] = t;
 	}
 
-    return 0;
+    return warning;
 
   error:
 
@@ -190,6 +191,7 @@ static int read_lights (map_t *map, PACKFILE *f)
     int num, i;
     char tmp[1024];
     int x, y, idx;
+    int warning = 0;
 
     num = pack_igetl (f);
     if (num == EOF) goto error;
@@ -203,13 +205,13 @@ static int read_lights (map_t *map, PACKFILE *f)
 	if (!pack_fgets (tmp, sizeof tmp, f))
 	    goto error;
 	idx = store_index (tmp);
-	if (idx == 0) goto error;
-	    
-	if (!map_light_create (map, x, y, idx))
+	if (idx == 0)
+	    warning = 1;
+	else if (!map_light_create (map, x, y, idx))
 	    goto error;
     }
 
-    return 0;
+    return warning;
 
   error:
 
@@ -243,8 +245,8 @@ static int read_objects (map_t *map, PACKFILE *f, int loadobjects)
 	    if (!p)
 		goto error;
 	    else {
-		p->x = x;
-		p->y = y;
+		p->cvar.x = x;
+		p->cvar.y = y;
 		map_link_object (map, p);
 	    }
 	}
@@ -262,6 +264,7 @@ static int read_starts (map_t *map, PACKFILE *f)
 {
     int num, i;
     int x, y;
+    int warning = 0;
 
     num = pack_igetl (f);
     if (num == EOF) goto error;
@@ -273,10 +276,10 @@ static int read_starts (map_t *map, PACKFILE *f)
 	    goto error;
 
 	if (!map_start_create (map, x, y))
-	    goto error;
+	    warning = 1;
     }
 
-    return 0;
+    return warning;
 
   error:
 
@@ -284,11 +287,15 @@ static int read_starts (map_t *map, PACKFILE *f)
 }
 
 
-map_t *map_load (const char *filename, int loadobjects)
+map_t *map_load (const char *filename, int loadobjects, int *warning)
 {
     PACKFILE *f;
     map_t *map = 0;
-    
+    int warn;
+
+    if (!warning)
+	warning = &warn;
+
     f = pack_fopen (filename, F_READ_PACKED);
     if (!f) goto error;
 
@@ -330,23 +337,27 @@ map_t *map_load (const char *filename, int loadobjects)
 
 	switch (chunk) {
 	    case MARK_TILES:
-		if (read_tiles (map, f) < 0)
-		    goto error;
+		warn = read_tiles (map, f);
+		if (warn < 0) goto error;
+		if (warn > 0) *warning = 1;
 		break;
 
 	    case MARK_LIGHTS:
-		if (read_lights (map, f) < 0)
-		    goto error;
+		warn = read_lights (map, f);
+		if (warn < 0) goto error;
+		if (warn > 0) *warning = 1;
 		break;
 
 	    case MARK_OBJECTS:
-		if (read_objects (map, f, loadobjects) < 0)
-		    goto error;
+		warn = read_objects (map, f, loadobjects);
+		if (warn < 0) goto error;
+		if (warn > 0) *warning = 1;
 		break;
 
 	    case MARK_STARTS:
-		if (read_starts (map, f) < 0)
-		    goto error;
+		warn = read_starts (map, f);
+		if (warn < 0) goto error;
+		if (warn > 0) *warning = 1;
 		break;
 
 	    default:

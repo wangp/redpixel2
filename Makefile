@@ -64,6 +64,7 @@ MODULES_GAME =					\
 	alloc					\
 	bindings				\
 	bitmask					\
+	camera					\
 	extdata					\
 	fps					\
 	game					\
@@ -126,9 +127,9 @@ tags: $(SOURCES)
 #----------------------------------------------------------------------
 
 depend:
-	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$(OBJDIR)/\1,' > depend
+	gcc $(CFLAGS) -MM $(SOURCES) | sed 's,^\(.*[.]o:\),$(OBJDIR)/\1,' > makefile.dep
 
--include depend
+-include makefile.dep
 
 #----------------------------------------------------------------------
 

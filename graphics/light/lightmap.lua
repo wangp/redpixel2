@@ -13,26 +13,26 @@ end
 
 -- radius, hue (0 - 360), brightness (max 1000), pinpoint (0.0 most focused, 1.0 least focused)
 
-add_lightmap (64,   42, 1000, 0.5, "orange-small")
-add_lightmap (32,   42,  800, 0.1, "orange-tiny")
+add_lightmap (64,   42, 1000, 0.5, "orange-64")
+add_lightmap (32,   42,  800, 0.1, "orange-32")
 
-add_lightmap (64,  108, 1000, 0.5, "lime-small")
-add_lightmap (32,  108,  800, 0.1, "lime-tiny")
+add_lightmap (64,  108, 1000, 0.5, "lime-64")
+add_lightmap (32,  108,  800, 0.1, "lime-32")
 
-add_lightmap (64,  200, 1000, 0.5, "ice-small")
-add_lightmap (32,  200,  850, 0.1, "ice-tiny")
+add_lightmap (64,  200, 1000, 0.5, "ice-64")
+add_lightmap (32,  200,  850, 0.1, "ice-32")
 
-add_lightmap (64,  240, 1000, 0.6, "blue-small")
-add_lightmap (32,  240,  850, 0.1, "blue-tiny")
+add_lightmap (64,  240, 1000, 0.6, "blue-64")
+add_lightmap (32,  240,  850, 0.1, "blue-32")
 
-add_lightmap (64,  273, 1000, 0.2, "violet-small")
-add_lightmap (32,  273,  800, 0.1, "violet-tiny")
+add_lightmap (64,  273, 1000, 0.2, "violet-64")
+add_lightmap (32,  273,  800, 0.1, "violet-32")
 
-add_lightmap (64,   30, 1000, 0.5, "brown-small")
-add_lightmap (32,   30,  800, 0.1, "brown-tiny")
+add_lightmap (64,   30, 1000, 0.5, "brown-64")
+add_lightmap (32,   30,  800, 0.1, "brown-32")
 
-add_lightmap (64,   -1,  600, 0.2, "white-small")
-add_lightmap (32,   -1,  600, 0.1, "white-tiny")
+add_lightmap (64,   -1,  600, 0.2, "white-64")
+add_lightmap (32,   -1,  600, 0.1, "white-32")
 
 
 save_datafile ("lightmap.dat", dat, 1)

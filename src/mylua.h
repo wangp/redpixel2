@@ -6,6 +6,7 @@
 
 
 typedef int lref_t;
+typedef int ltag_t;
 
 #define LS	lua_State *L
 

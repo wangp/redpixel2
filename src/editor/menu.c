@@ -61,14 +61,18 @@ static void load ()
 {
     char filename[1024] = "";
     map_t *m;
+    int warning;
 
     if (!prompt_filename ("Load...", filename, "pit"))
 	return;
     
-    m = map_load (filename, 1);
+    m = map_load (filename, 1, &warning);
     if (!m)
 	prompt ("Error loading map", "Ok", 0);
     else {
+	if (warning)
+	    prompt ("Warnings loading map", "Ok", 0);
+
 	map_destroy (map);
 	map = m;
 	editarea_reset_offset ();

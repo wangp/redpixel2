@@ -13,6 +13,7 @@ void set_magic_bitmap_brightness(BITMAP *bmp, int r, int g, int b);
 
 BITMAP *create_magic_bitmap(int w, int h);
 void draw_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y);
+void draw_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y);
 
 
 #endif

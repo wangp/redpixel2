@@ -1,3 +1,28 @@
+2001-04-01  Peter Wang  <tjaden@psynet.net>
+
+	* object.h: Added light_source cvar.
+	* object.c (object_set_light_source): Added.
+	* bindings.c (bind_object_set_light_source): Added.
+	* render.c: Added code to handle.
+
+	* object.h: Moved loose object_t C variables into cvar
+	substructure and made consequential changes to other files.
+
+	* mapfile.c (map_load): Added warning option, so maps can be
+	loaded even if some resources missing (useful for loading old
+	maps, etc.)
+
+	* magic/magic4x4.c (draw_trans_magic_sprite): New function.
+
+2001-03-31  Peter Wang  <tjaden@psynet.net>
+
+	* camera.c: New module.
+
+	* object.c: Added helper functions for getting and setting table
+	values.
+
+	* magic/magicrot.c (rotate_scaled_magic_sprite): Fixed clipping.
+
 2001-03-30  Peter Wang  <tjaden@psynet.net>
 
 	* Added create_lightmap_from_bitmap to rpxutil for pllight.lua

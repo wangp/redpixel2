@@ -6,7 +6,7 @@
 
 
 int map_save (map_t *map, const char *filename);
-map_t *map_load (const char *filename, int loadobjects);
+map_t *map_load (const char *filename, int loadobjects, int *warning);
 
 
 #endif

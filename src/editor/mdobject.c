@@ -11,6 +11,7 @@
 #include "editarea.h"
 #include "edselect.h"
 #include "list.h"
+#include "magic4x4.h"
 #include "map.h"
 #include "modemgr.h"
 #include "modes.h"
@@ -183,8 +184,8 @@ static void draw_layer (BITMAP *bmp, int offx, int offy)
     offy *= 16;
 
     foreach (p, map->objects)
-	draw_sprite (bmp, store_dat (p->type->icon),
-		     (p->x - offx) * 3, (p->y - offy));
+	draw_magic_sprite (bmp, store_dat (p->type->icon),
+			   (p->cvar.x - offx), (p->cvar.y - offy));
 }
 
 static object_t *find_object (int x, int y)
@@ -195,7 +196,7 @@ static object_t *find_object (int x, int y)
     foreach (p, map->objects) {
 	b = store_dat (p->type->icon);
 
-	if (in_rect (x, y, p->x, p->y, b->w / 3, b->h))
+	if (in_rect (x, y, p->cvar.x, p->cvar.y, b->w / 3, b->h))
 	    last = p;
     }
 
@@ -235,8 +236,8 @@ static int event_layer (int event, struct editarea_event *d)
 
 	    move = p;
 	    if (move) {
-		move_offx = d->mouse.x - (move->x - d->offx * 16);
-		move_offy = d->mouse.y - (move->y - d->offy * 16);
+		move_offx = d->mouse.x - (move->cvar.x - d->offx * 16);
+		move_offy = d->mouse.y - (move->cvar.y - d->offy * 16);
 	    }
 
 	    if (key_shifts & KB_SHIFT_FLAG) {
@@ -245,8 +246,8 @@ static int event_layer (int event, struct editarea_event *d)
 	    }
 	    else if (!p) {
 		p = object_create (selectbar_selected_name ());
-		p->x = x;
-		p->y = y;
+		p->cvar.x = x;
+		p->cvar.y = y;
 		map_link_object (map, p);
 
 		move = p;
@@ -267,8 +268,8 @@ static int event_layer (int event, struct editarea_event *d)
 	if (move) {
 	    x = (d->offx * 16) + d->mouse.x - move_offx;
 	    y = (d->offy * 16) + d->mouse.y - move_offy;
-	    move->x = x;
-	    move->y = y;
+	    move->cvar.x = x;
+	    move->cvar.y = y;
 	    cursor_set_dot ();
 	    return 1;
 	}

@@ -167,7 +167,7 @@ void rotate_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed
 
    /* clip the output rectangle */
    if (bmp->clip) {
-      while (x < bmp->cl) {
+      while (x < bmp->cl/3) {
 	 x++;
 	 wgap--;
 	 f1x += f2xd;
@@ -181,7 +181,7 @@ void rotate_scaled_magic_sprite(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed
 	 f1y += f1yd;
       }
 
-      while (x+wgap > bmp->cr)
+      while (x+wgap > bmp->cr/3)
 	 wgap--;
 
       while (y+hgap > bmp->cb)

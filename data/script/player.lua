@@ -1,6 +1,9 @@
 -- player.lua
 
 local init_player = function (self)
+
+    object_set_light_source (self, "/lights/white-64")
+
 --     self.rep = {
 -- 	"/player/body",
 -- 	{ "/player/legs-walk-1"; offsetx = -2, offsety = 9 }
