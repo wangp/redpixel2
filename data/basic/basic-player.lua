@@ -3,6 +3,9 @@
 store_load ("basic/basic-player.dat", "/basic/player/")
 
 
+local corpses = {}
+
+
 ----------------------------------------------------------------------
 --  Players
 ----------------------------------------------------------------------
@@ -85,10 +88,12 @@ local player_nonproxy_init = function (self)
 
     function self:receive_damage (damage)
 	spawn_blood (self.x + cx, self.y + cy, 100, 2)
-	spawn_blod (self.x, self.y, 10)
+	if damage/5 >= 1 then
+	    spawn_blod (self.x, self.y, damage/5)
+	end
 	self.health = self.health - damage
 	if self.health <= 0 then
-	    local corpse = spawn_object ("basic-player-death-fountain",
+	    local corpse = spawn_object (corpses[random (getn (corpses))],
 					 self.x, self.y)
 	    if corpse then
 		-- this makes the client track the corpse
@@ -279,18 +284,40 @@ Objtype {
 --  Corpses
 ----------------------------------------------------------------------
 
-local death_fountain_update_hook = function (self)
-    self:replace_layer (0,format ("/basic/player/death-fountain/%03d", self.frame), 44, 16)
-    self.frame = self.frame + 1
-    if self.frame > 30 then
-	self.frame = 30
-	if not self.is_proxy then
-	    self:remove_update_hook ()
+local Corpse = function (t)
+
+    local anim = {}
+    for i = 0, t.frames do
+	anim[i] = format (t.fmt, i)
+    end
+
+    -- Note: both proxy and nonproxy have to update self.frames.
+
+    local nonproxy_update = function (self)
+	self.frame = self.frame + 1
+	if self.frame > t.frames then
+	    self.frame = t.frames
 	    if self.drop_backpack then
-		self.drop_backpack ()
+		-- drop the backpack after a little whil
+		self:set_update_hook (
+		    1000/3,
+		    function (self)
+			self.drop_backpack ()
+			self:remove_update_hook ()
+		    end
+		)
+	    else
+		self:remove_update_hook ()
 	    end
-	else
-	    -- proxy: let the light remain for half a second more
+	end
+    end
+
+    local proxy_update = function (self)
+	self:replace_layer (0, anim[self.frame], t.cx, t.cy)
+	self.frame = self.frame + 1
+	if self.frame > t.frames then
+	    self.frame = t.frames
+	    -- let the light remain for half a second more
 	    self:set_update_hook (
 		1000/2,
 		function (self)
@@ -300,26 +327,104 @@ local death_fountain_update_hook = function (self)
 	    )
 	end
     end
+
+    if t.alias then
+	add_alias (t.name, t.alias)
+    end
+
+    if not t.speed then
+	t.speed = 1000/8
+    end
+
+    tinsert (corpses, t.name)
+
+    return Objtype (t, {
+    
+	icon = anim[0],
+	
+	nonproxy_init = function (self)
+	    if t.mask then
+		self:set_mask (mask_main, t.mask, t.cx, t.cy)
+		self:set_mask (mask_bottom, t.mask, t.cx, t.cy)
+	    end
+	    self:set_masks_centre (t.cx, t.cy)
+	    self:set_collision_flags ("t")
+	    self.mass = 0.005
+	    self.frame = 0
+	    self:add_creation_field ("frame")
+	    self:set_update_hook (t.speed, nonproxy_update)
+	end,
+	
+	proxy_init = function (self)
+	    -- self.frame is given by server
+	    self:add_light ("/basic/light/red-32", 0, 0)
+	    self:set_update_hook (t.speed, proxy_update)
+	    proxy_update (self) -- set the initial layer
+	end
+    })
 end
 
-Objtype {
+Corpse {
+    name = "basic-player-death-arm",
+    alias = "~da",
+    fmt = "/basic/player/death-arm/%03d",
+    mask = "/basic/player/death-arm/mask",
+    frames = 16,
+    cx = 26,
+    cy = 8
+}
+
+Corpse {
+    name = "basic-player-death-eye",
+    alias = "~de",
+    fmt = "/basic/player/death-eye/%03d",
+    mask = "/basic/player/death-eye/mask",
+    frames = 20,
+    cx = 26,
+    cy = 9
+}
+
+Corpse {
     name = "basic-player-death-fountain",
-    icon = "/basic/player/death-fountain/000",
+    alias = "~df",
+    fmt = "/basic/player/death-fountain/%03d",
+    mask = "/basic/player/death-fountain/mask",
+    frames = 30,
+    speed = 1000/10,
+    cx = 44,
+    cy = 16
+}
 
-    nonproxy_init = function (self)
-	self:set_masks_centre (44, 16)
-	self:set_collision_flags ("t")
-	self.mass = 0.005
-	self.frame = 0
-	self:add_creation_field ("frame")
-	self:set_update_hook (1000/10, death_fountain_update_hook)
-    end,
+Corpse {
+    name = "basic-player-death-leg",
+    alias = "~dl",
+    fmt = "/basic/player/death-leg/%03d",
+    mask = "/basic/player/death-leg/mask",
+    frames = 15,
+    speed = 1000/7,
+    cx = 26,
+    cy = 8
+}
 
-    proxy_init = function (self)
-	self:add_light ("/basic/light/red-32", 0, 0)
-	self:set_update_hook (1000/10, death_fountain_update_hook)
-	death_fountain_update_hook (self) -- set the initial layer
-    end
+Corpse {
+    name = "basic-player-death-leg2",
+    alias = "~dL",
+    fmt = "/basic/player/death-leg2/%03d",
+    mask = "/basic/player/death-leg2/mask",
+    frames = 17,
+    speed = 1000/6,
+    cx = 21,
+    cy = 8
+}
+
+Corpse {
+    name = "basic-player-death-stomach",
+    alias = "~ds",
+    fmt = "/basic/player/death-stomach/%03d",
+    mask = "/basic/player/death-stomach/mask",
+    frames = 16,
+    cx = 13,
+    cy = 8
 }
 
 
