@@ -13,7 +13,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT \
-	  -I libnet/include -I lua/include \
+	  -I libnet/include -I lua/include -I dumb/include \
 	  $(addprefix -I,$(SRCDIRS)) -g -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -28,10 +28,6 @@ else
 CFLAGS += -O2 -funroll-loops -march=pentium -pg
 LDFLAGS := -pg
 endif
-
-# DUMB
-CFLAGS += -I dumb/include
-LDLIBS += dumb/lib/unix/libaldmb.a dumb/lib/unix/libdumb.a 
 
 PROGRAM := program$(PLAT_EXE)
 OBJDIR := $(PLAT_OBJDIR)
@@ -175,7 +171,7 @@ src/bindings.inc: src/bindgen.lua
 src/objectmt.inc: src/objgen.lua
 	$(PLAT_LUABIN) $< > $@
 
-$(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA) $(PLAT_LIBDUMB)
+$(PROGRAM): $(OBJS) $(PLAT_LIBNET) $(PLAT_LIBLUA) $(PLAT_LIBDUMB) $(PLAT_LIBALDUMB)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
 #----------------------------------------------------------------------
@@ -191,7 +187,11 @@ $(PLAT_LIBLUA):
 
 $(PLAT_LIBDUMB):
 	cd dumb ; ./fix.sh unix
-	$(MAKE) -C dumb core lib/unix/libaldmb.a
+	$(MAKE) -C dumb core
+
+$(PLAT_LIBALDUMB):
+	cd dumb ; ./fix.sh unix
+	$(MAKE) -C dumb lib/unix/libaldmb.a
 
 endif
 

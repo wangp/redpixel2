@@ -7,6 +7,8 @@ PLAT_OBJDIR := obj/linux
 PLAT_LIBNET := libnet/lib/libnet.a
 PLAT_LUABIN := lua/bin/lua
 PLAT_LIBLUA := lua/lib/liblua.a lua/lib/liblualib.a
-PLAT_LIBDUMB := dumb/lib/unix/libdumb.a dumb/lib/unix/libaldmb.a
-PLAT_LIBS := `allegro-config --libs` $(PLAT_LIBNET) $(PLAT_LIBLUA) \
-	     -lpthread -lcurses
+PLAT_LIBDUMB := dumb/lib/unix/libdumb.a
+PLAT_LIBALDUMB := dumb/lib/unix/libaldmb.a
+PLAT_LIBS := $(PLAT_LIBALDUMB) `allegro-config --libs`	\
+	     $(PLAT_LIBNET) $(PLAT_LIBLUA)		\
+	     $(PLAT_LIBDUMB) -lpthread -lcurses
