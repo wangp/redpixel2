@@ -8,11 +8,14 @@
 #include "objtypes.h"
 
 
+typedef int objid_t;
+
+
 typedef struct object {
     struct object *next;
     struct object *prev;
     objtype_t *type;
-    unsigned long id;
+    objid_t id;
 
     /* Lua table ref.  */
     lref_t table;

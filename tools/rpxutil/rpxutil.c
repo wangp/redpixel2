@@ -468,6 +468,39 @@ static int _create_lightmap_icon (lua_State *L)
 
 
 
+static int _create_lightmap_from_bitmap (lua_State *L)
+    /* (filename) : (bmp) */
+{
+    const char *filename = pop_string (L, 1);
+    BITMAP *bmp;
+    BITMAP *magic;
+    int depth;
+    int x, y;
+
+    bmp = load_bitmap (filename, NULL);
+    if (!bmp) {
+	lua_pushnil (L);
+	return 1;
+    }
+    depth = bitmap_color_depth (bmp);
+
+    magic = create_bitmap_ex (8, bmp->w * 3, bmp->h);
+
+    for (y = 0; y < bmp->h; y++)
+	for (x = 0; x < bmp->w; x++) {
+	    magic->line[y][x*3  ] = getr_depth (depth, getpixel (bmp, x, y)) & 0xf0;
+	    magic->line[y][x*3+1] = getg_depth (depth, getpixel (bmp, x, y)) & 0xf0;
+	    magic->line[y][x*3+2] = getb_depth (depth, getpixel (bmp, x, y)) & 0xf0;
+	}
+
+    destroy_bitmap (bmp);
+
+    lua_pushuserdata (L, magic);
+    return 1;
+}
+
+
+
 static int _destroy_bitmap (lua_State *L)
     /* (bmp) : (no output) */
 {
@@ -489,6 +522,7 @@ static void export_functions (lua_State *L)
     e (add_to_datafile_grab_from_grid);
     e (create_simple_lightmap);
     e (create_lightmap_icon);
+    e (create_lightmap_from_bitmap);
     e (destroy_bitmap);
 
 #undef e

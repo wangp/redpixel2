@@ -53,7 +53,6 @@ MODULES_EDITOR =				\
 	mdtiles					\
 	mdstarts				\
 	modemgr					\
-	newfont					\
 	selbar
 
 MODULES_NET =					\
@@ -67,6 +66,7 @@ MODULES_GAME =					\
 	bitmask					\
 	extdata					\
 	fps					\
+	game					\
 	gameinit				\
 	loaddata				\
 	main					\

@@ -44,4 +44,5 @@ local init_player = function (self)
 end
 
 store_load ("object/player.dat", "/player/")
+store_load ("object/pllight.dat", "/player/")
 objtype_register ("player", "player", "/player/body", init_player)

@@ -47,6 +47,9 @@ static void render_lights (BITMAP *bmp, map_t *map, int offx, int offy)
 }
 
 
+/*
+ * Old code.
+ */
 #if 0
 static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
 {
@@ -85,9 +88,21 @@ static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
 #endif
 
 
+static void render_objects (BITMAP *bmp, map_t *map, int offx, int offy)
+{
+    object_t *p;
+    BITMAP *b;
+
+    foreach (p, map->objects) {
+	if ((b = store_dat (p->type->icon)))
+	    draw_magic_sprite (bmp, b, p->x - offx, p->y - offy);
+    }
+}
+
+
 void render (BITMAP *bmp, map_t *map, camera_t *cam)
 {
     render_tiles (bmp, map, cam->x, cam->y);
-/*      render_objects (bmp, map, cam->x, cam->y); */
+    render_objects (bmp, map, cam->x, cam->y);
     render_lights (bmp, map, cam->x, cam->y);
 }

@@ -25,7 +25,7 @@ own.
 	e.g. tiles, players, pickups
 
 
-LIGHTMAPS contain zero'd out colour informaiton, and only contain
+LIGHTMAPS contain zero'd out colour information, and only contain
 lighting information.  They light up other objects (as well as
 tinting), but do not add any colour to the scene.  Coloured light is
 done by varying the amounts of RGB lighting, NOT by adding colour

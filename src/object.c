@@ -12,7 +12,7 @@
 #include "store.h"
 
 
-static unsigned int next_id;
+static objid_t next_id;
 
 
 object_t *object_create (const char *type_name)

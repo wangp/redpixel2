@@ -47,13 +47,11 @@ static void select_slot (ug_widget_t *p, int signal, void *data)
 }    
 
 static ug_dialog_layout_t layout[] = {
-    { &ug_button, -50,    16, "<",    left_slot,  0 },
-    { &ug_button, -50,    16, ">",    right_slot, 0 },		{ UG_DIALOG_LAYOUT_BR },
-    { &ug_button, -100,   16, "Up",   up_slot,    0 },		{ UG_DIALOG_LAYOUT_BR },
-    { &ug_button, -100,   16, "Down", down_slot,  0 },	 	{ UG_DIALOG_LAYOUT_BR },
-    { &ed_select, -100, -100, 0,      select_slot, "sel" },	{ UG_DIALOG_LAYOUT_BR },
-    { &ug_button, -100,   16, "Up",   up_slot,    0 },		{ UG_DIALOG_LAYOUT_BR },
-    { &ug_button, -100,   16, "Down", down_slot,  0 },		{ UG_DIALOG_LAYOUT_END }
+    { &ug_button, -50,    14, "<",    left_slot,  0 },
+    { &ug_button, -50,    14, ">",    right_slot, 0 },		{ UG_DIALOG_LAYOUT_BR },
+    { &ug_button, -100,   13, "Up",   up_slot,    0 },		{ UG_DIALOG_LAYOUT_BR },
+    { &ug_button, -100,   13, "Down", down_slot,  0 },	 	{ UG_DIALOG_LAYOUT_BR },
+    { &ed_select, -100, -100, 0,      select_slot, "sel" },	{ UG_DIALOG_LAYOUT_END }
 };
 
 

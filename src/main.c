@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <allegro.h>
 #include "editor.h"		/* XXX temp? */
+#include "game.h"
 #include "gameinit.h"
 
 
@@ -55,11 +56,13 @@ static void setup_allegro (int w, int h, int d)
 
 int main (int argc, char *argv[])
 {
-    int w = 320, h = 200, d = -1, c;
+    int w = 320, h = 200, d = -1;
+    int run_game = 0;
+    int c;
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":w:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":w:h:d:g")) != -1) {
 	switch (c) {
 	    case 'w':
 		w = atoi (optarg);
@@ -73,6 +76,9 @@ int main (int argc, char *argv[])
 		    fprintf (stderr, "Only 15 and 16 bpp are valid.\n");
 		    return 1;
 		}
+		break;
+	    case 'g':
+		run_game = 1;
 		break;
 	    case ':':
 	    	fprintf (stderr, "Option `%c' missing argument.\n", optopt);
@@ -89,7 +95,10 @@ int main (int argc, char *argv[])
 
     game_init ();
 
-    editor ();
+    if (run_game)
+	game ();
+    else
+	editor ();
     
     game_shutdown ();
 

@@ -1,3 +1,26 @@
+2001-03-30  Peter Wang  <tjaden@psynet.net>
+
+	* Added create_lightmap_from_bitmap to rpxutil for pllight.lua
+	(new script).
+
+	* object.h: Added objid_t typedef.
+
+	* render.c: Enabled some simple object rendering.
+
+	* game.c (game): New module.
+
+	* editor/selbar.c: Removed bottom set of Up / Down buttons in the
+	selector bar, and resized the top set a little.
+
+	* Removed newfont.c stuff.
+
+	* src/editor/editor.c, data/font/font.dat: Added a new font.
+
+2001-01-24  Peter Wang  <tjaden@psynet.net>
+
+	* Took out newfont.c for now, as it does not work with Allegro
+	versions >= 3.9.34.
+	
 2000-12-23  Peter Wang  <tjaden@psynet.net>
 
 	* Cleaned up some list things.

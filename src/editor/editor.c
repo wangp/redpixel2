@@ -8,7 +8,9 @@
 #include "gui.h"
 #include "ug.h"
 #include "cursor.h"
-#include "newfont.h"
+#include "store.h"
+#include "path.h"
+#include "vtree.h"
 
 #include "editarea.h"
 #include "menu.h"
@@ -21,9 +23,28 @@
 #include "map.h"
 
 
+static int load_font ()
+{
+    char **p, filename[1024];
+
+    for (p = path_share; *p; p++) {
+	ustrncpy (filename, *p, sizeof filename);
+	ustrncat (filename, "font/font.dat", sizeof filename);
+	if (store_load (filename, VTREE_FONTS) >= 0)
+	    return 0;
+    }
+
+    return -1;
+}
+
+
 int editor ()
 {
-    font = &_new_font;
+    FONT *f;
+
+    load_font ();
+    if ((f = store_dat (VTREE_FONTS "clean")))
+	font = f;
 
     if ((gui_init () < 0)
 	|| (ug_init () < 0)

@@ -1,6 +1,6 @@
 An object in Red Pixel II is anything that performs an action
 (i.e. can have a script attached) They are stored partly in the
-`object_t' struct in C, and partly in C.  
+`object_t' struct in C, and partly in Lua.
 
 The bits that are in C are there to keep the rendering loop happy,
 such as the object position, image, etc.
