@@ -38,14 +38,22 @@ struct blood_particles {
 };
 
 
-static void alloc_free_particles (blood_particles_t *blood, int num)
+static int alloc_free_particles (blood_particles_t *blood, int num)
 {
+    if (blood->total_particles >= MAX_PARTICLES)
+	return -1;
+
+    if (num > MAX_PARTICLES - blood->total_particles)
+	num = MAX_PARTICLES - blood->total_particles;
+
     blood->total_particles += num;    
     while (num--) {
 	particle_t *p = alloc (sizeof *p);
 	p->next = blood->free_particles;
 	blood->free_particles = p;
     }
+
+    return 0;
 }
 
 
@@ -112,40 +120,46 @@ void blood_particles_update (blood_particles_t *blood, map_t *map)
 	}
     }
 }
+
+
+static inline int rnd (int n)
+{
+    return rand() % n;
+}
  
 
 void blood_particles_spawn (blood_particles_t *blood, float x, float y, long nparticles, float spread)
 {
     particle_t *p;
     double theta;
+    int r, g, b;
 	
     while (nparticles--) {
-
 	/* if out of free particles allocate some more or abort */
-	if (!blood->free_particles) {
-	    int n;
+	if ((!blood->free_particles) &&
+	    (alloc_free_particles (blood, nparticles) < 0))
+	    break;
 
-	    if (blood->total_particles >= MAX_PARTICLES)
-		break;
-
-	    if (nparticles > MAX_PARTICLES - blood->total_particles)
-		n = MAX_PARTICLES - blood->total_particles;
-	    else
-		n = nparticles;	    
-	    alloc_free_particles (blood, n);
-	}
-
+	/* get free particle */
 	p = blood->free_particles;
 	blood->free_particles = p->next;
 
-	theta = (rand() % (int)(M_PI * 2. * 1000.)) / 1000.;
-	p->x = x + (rand()%7) - 6;
-	p->y = y + (rand()%7) - 6;
-	p->xv = (rand() % (int)(spread * 1000)) * cos (theta) / 1000.;
-	p->yv = (rand() % (int)(spread * 1000)) * sin (theta) / 1000.;
+	/* initialise it */
+	theta = rnd (M_PI * 2. * 1000.) / 1000.;
+	p->x = x + rnd (7) - 6;
+	p->y = y + rnd (7) - 6;
+	p->xv = rnd (spread * 1000) * cos (theta) / 1000.;
+	p->yv = rnd (spread * 1000) * sin (theta) / 1000.;
 	p->life = 100;
-	p->color = makecol24 (4 + (rand() % 8), 0, 0);
 
+	r = 4 + rnd (5);
+	g = 0 + rnd (2);
+	b = 1 + rnd (2);
+	if (!rnd (32))
+	    r += rnd (3), g += rnd (3), b += rnd (3);
+	p->color = makecol24 (r, g, b);
+
+	/* put it into live particles list */
 	p->next = blood->live_particles;
 	blood->live_particles = p;
     }
