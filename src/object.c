@@ -1309,43 +1309,77 @@ void object_do_physics (object_t *obj, map_t *map)
     obj->xv = (obj->xv + obj->xa) * obj->xv_decay;
     obj->yv = (obj->yv + obj->ya) * obj->yv_decay;
 
-    if (obj->xv != 0) {
-	int ramp = is_player (obj) ? object_ramp (obj) : 0;
-	if (ramp) {
-	    switch (object_move_x_with_ramp (obj, ((obj->xv < 0)
-						   ? OBJECT_MASK_LEFT
-						   : OBJECT_MASK_RIGHT),
-					     map, obj->xv, ramp)) {
+    if ((ABS (obj->xv) > 50) || (ABS (obj->yv) > 50)) {
 
-		case -1:
-		    /* object stopped short of an entire xv */
-		    obj->xa = 0;
-		    obj->xv = 0;
-		    rep = 1;
-		    break;
-		    
-		case 1:
-		    /* object required ramping to move */
-		    obj->xa /= 2;
-		    obj->xv /= 2;
-		    rep = 1;
-		    break;
-	    }
-	}
-	else {
-	    if (object_move (obj, ((obj->xv < 0) ? OBJECT_MASK_LEFT : OBJECT_MASK_RIGHT), map, obj->xv, 0)) {
+	/* Hack for vulcan cannon projectiles, which is the only thing
+	 * that moves so fast.  The normal movement code treats
+	 * horizontal and vertical movements seperately (I don't
+	 * remember why), but that doesn't work at high speeds.  */
+
+	const int steps = 10;
+	float small_xv = obj->xv / steps;
+	float small_yv = obj->yv / steps;
+	int i;
+	
+	for (i = 0; i < steps; i++) {
+	    if (object_move (obj, OBJECT_MASK_MAIN, map, small_xv, small_yv)) {
 		obj->xa = 0;
 		obj->xv = 0;
+		obj->ya = 0;
+		obj->yv = 0;
 		rep = 1;
+		break;
 	    }
 	}
     }
+    else {
 
-    if (obj->yv != 0) {
-	if (object_move (obj, ((obj->yv < 0) ? OBJECT_MASK_TOP : OBJECT_MASK_BOTTOM), map, 0, obj->yv)) {
-	    obj->ya = 0;
-	    obj->yv = 0;
-	    if (old_yv) rep = 1;
+	/* Normal "slow-moving" objects.  */
+
+	if (obj->xv != 0) {
+	    int ramp = is_player (obj) ? object_ramp (obj) : 0;
+	    if (ramp) {
+		switch (object_move_x_with_ramp (obj, ((obj->xv < 0)
+						       ? OBJECT_MASK_LEFT
+						       : OBJECT_MASK_RIGHT),
+						 map, obj->xv, ramp)) {
+
+		    case -1:
+			/* object stopped short of an entire xv */
+			obj->xa = 0;
+			obj->xv = 0;
+			rep = 1;
+			break;
+		    
+		    case 1:
+			/* object required ramping to move */
+			obj->xa /= 2;
+			obj->xv /= 2;
+			rep = 1;
+			break;
+		}
+	    }
+	    else {
+		if (object_move (obj, ((obj->xv < 0)
+				       ? OBJECT_MASK_LEFT
+				       : OBJECT_MASK_RIGHT),
+				 map, obj->xv, 0)) {
+		    obj->xa = 0;
+		    obj->xv = 0;
+		    rep = 1;
+		}
+	    }
+	}
+
+	if (obj->yv != 0) {
+	    if (object_move (obj, ((obj->yv < 0)
+				   ? OBJECT_MASK_TOP
+				   : OBJECT_MASK_BOTTOM),
+			     map, 0, obj->yv)) {
+		obj->ya = 0;
+		obj->yv = 0;
+		if (old_yv) rep = 1;
+	    }
 	}
     }
 
