@@ -669,7 +669,7 @@ weapon_order = {
 weapon_auto_switch_order = {
     "basic-minigun",
     "basic-vulcan",
-    "basic-ak",
     "basic-shotgun",
+    "basic-ak",
     "basic-blaster"
 }
