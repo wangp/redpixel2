@@ -2,6 +2,7 @@
 #define __included_music_h
 
 
+extern int music_allowed;	   /* boolean */
 extern float music_desired_volume; /* 0.0 to 1.0 */
 
 

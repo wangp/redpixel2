@@ -78,19 +78,20 @@ static void stop_the_thread (void)
 
 
 
+/* Globals */
+int music_allowed = 1;		  /* boolean */
+float music_desired_volume = 1.0; /* 0.0 to 1.0 */
+
+
+/* Internal playlist */
 struct playlist_entry
 {
     char *name;
     struct playlist_entry *next;
 };
 
-
 static int playlist_length;
 static struct playlist_entry *playlist;
-
-
-float music_desired_volume = 1.0; /* 0.0 to 1.0 */
-
 
 
 /*
@@ -315,6 +316,9 @@ void music_init (void)
 void music_select_playlist (const char *filename)
 {
     music_stop_playlist ();
+
+    if (!music_allowed)
+	return;
 
     load_playlist (filename);
     if (playlist)
