@@ -1,6 +1,6 @@
 /* XXX: Replace this with Allegro once it is fixed up.  */
 
-/* yield.c - yeild a timeslice
+/* yield.c - yield a timeslice
  *
  * Peter Wang <tjaden@users.sourceforge.net>
  */

@@ -190,6 +190,14 @@ enum {
     MSG_SC_GAMEINFO_OBJECT_UPDATE = 'u',
 
 
+    /* Tell clients to create some blood particles.
+
+       Args: float x, float y, long nparticles, long spread
+     */
+
+    MSG_SC_GAMEINFO_BLOOD_CREATE = 'b',
+
+
     /* Tell clients to display a text message.
 
        Args: long len, byte text[].

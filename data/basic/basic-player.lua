@@ -5,10 +5,14 @@ store_load ("basic/basic-player.dat", "/basic/player/")
 local xv_decay, yv_decay = 0.75, 0.5
 
 Objtype {
-    category = "player",    -- XXX: should be nil in future
+    category = "player",    -- XXX: should be nil in future; the map editor should not allow it to be placed
     name = "player",	    -- not basic-player
     icon = "/basic/player/walk/000",
 
+
+    --
+    -- Non-proxy
+    --
     nonproxy_init = function (self)
 	local cx, cy = 5, 5
 
@@ -44,14 +48,24 @@ Objtype {
 	end
 
 	function self.receive_weapon (self, weapon_name)
-	    if not weapons[weapon_name] then return end
-	    self.have_weapon[weapon_name] = 1
-	    if not self.current_weapon then
-	    	self.current_weapon = weapon[weapon_name]
+	    if weapons[weapon_name] then
+		self.have_weapon[weapon_name] = 1
+		if not self.current_weapon then
+		    self.current_weapon = weapon[weapon_name]
+		end
 	    end
+	end
+
+	function self.receive_damage (self, damage)
+	    spawn_blood (self.x + %cx, self.y + %cy, 100, 2000)
+	    -- XXX spread should be float
 	end
     end,
 
+
+    --
+    -- Proxy
+    --
     proxy_init = function (self)
 	local cx, cy = 5, 5
 
@@ -69,7 +83,18 @@ Objtype {
 	    function self._client_update_hook (self)
 		function radian_to_bangle (rads) return rads * 128 / 3.1415 end
 		if self.last_aim_angle ~= self.aim_angle then
-		    self:rotate_layer (self.arm_layer, radian_to_bangle (self.aim_angle))
+		    local a = radian_to_bangle (self.aim_angle)
+		    local hflipped = (a < -63 or a > 63) or 0
+		    
+		    self:hflip_layer (0, hflipped)
+		    self:hflip_layer (self.arm_layer, hflipped)
+		    
+		    if hflipped ~= 0 then
+			self:rotate_layer (self.arm_layer, a-128)
+		    else
+			self:rotate_layer (self.arm_layer, a)
+		    end
+
 		    self.last_aim_angle = self.aim_angle
 		end
 	    end

@@ -10,7 +10,7 @@
 
 
 #include <allegro.h>
-#include <allegro/aintern.h>
+#include <allegro/internal/aintern.h>
 #include "magic4x4.h"
 
 

@@ -3,4 +3,4 @@
 PLAT_TARGET := -DTARGET_LINUX
 PLAT_CFLAGS := -DHAVE_GETOPT -DTHREADS_PTHREAD
 PLAT_OBJDIR := obj/linux
-PLAT_LIBS := `allegro-config --libs` -llua -llualib -lnet -lpthread -lcurses
+PLAT_LIBS := `allegro-config --libs` -llua -llualib libnet/lib/libnet.a -lpthread -lcurses

@@ -1,4 +1,6 @@
 split objects into different areas?
+	probably good because soon particles will need collision
+	detection against objects
 
 map_link_object and map_link_object_bottom may be reversed
 	(or the renderers are)

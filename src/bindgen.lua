@@ -226,6 +226,14 @@ generate {
 }
 
 generate {
+    cname	= "object_hflip_layer",
+    args	= {{ Object, "obj" },
+		   { Int, "layerid" },
+		   { Int, "hflip" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
     cname	= "object_rotate_layer",
     args	= {{ Object, "obj" },
 		   { Int, "layerid" },
@@ -314,6 +322,16 @@ generate {
     args	= {{ String, "typename" },
 		   { Object, "owner" },
 		   { Float, "speed" }},
+    ret		= { Int, "ret", "$ < 0" }
+}
+
+generate {
+    cname	= "game_server_spawn_blood",
+    lname	= "spawn_blood",
+    args	= {{ Float, "x" },
+		   { Float, "y" },
+		   { Int, "nparticles" },
+		   { Int, "spread" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 

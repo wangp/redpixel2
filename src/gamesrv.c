@@ -60,9 +60,13 @@ static int ticks_poll ()
 		     (ticks_last_update.tv_usec / 1000)));
 
     if (elapsed_msec > MSECS_PER_TICK) {
-	ticks += (elapsed_msec / MSECS_PER_TICK);
-	/* This isn't completely accurate but should be ok. */
+	long x;
+
+	ticks += elapsed_msec / MSECS_PER_TICK;
+	x = elapsed_msec % MSECS_PER_TICK;
 	ticks_last_update = now;
+	ticks_last_update.tv_sec -= x / 1000;
+	ticks_last_update.tv_usec -= x * 1000;
 	return 1;
     }
 
@@ -272,6 +276,9 @@ static void clients_shutdown ()
 /*----------------------------------------------------------------------*/
 
 
+static void add_to_gameinfo_packet_queue (void *packet, size_t size);
+
+
 typedef enum {
     /* Keep this in sync with server_state_procs. */
     SERVER_STATE_LOBBY,
@@ -439,65 +446,6 @@ static void server_poll_clients ()
 /* Processing commands from the game server interface. */
 
 static const char *whitespace = " \t";
-
-/* ustrtok_r:
- *  Unicode-aware version of the POSIX strtok_r() function.
- *  Modified from the Allegro ustrtok() function.
- */
-static char *ustrtok_r(char *s, AL_CONST char *set, char **last)
-{
-   char *prev_str, *tok;
-   AL_CONST char *setp;
-   int c, sc;
-
-   if (!s) {
-      s = *last;
-
-      if (!s)
-	 return NULL;
-   }
-
-   skip_leading_delimiters:
-
-   prev_str = s;
-   c = ugetxc((AL_CONST char **)&s);
-
-   setp = set;
-
-   while ((sc = ugetxc(&setp)) != 0) {
-      if (c == sc)
-	 goto skip_leading_delimiters;
-   }
-
-   if (!c) {
-      *last = NULL;
-      return NULL;
-   }
-
-   tok = prev_str;
-
-   for (;;) {
-      prev_str = s;
-      c = ugetxc((AL_CONST char **)&s);
-
-      setp = set;
-
-      do {
-	 sc = ugetxc(&setp);
-	 if (sc == c) {
-	    if (!c) {
-	       *last = NULL;
-	       return tok;
-	    }
-	    else {
-	       s += usetat(prev_str, 0, 0);
-	       *last = s;
-	       return tok;
-	    }
-	 }
-      } while (sc);
-   }
-}
 
 static void poll_interface_command_list (char **last)
 {
@@ -677,6 +625,20 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
 }
 
 
+/* Spawn some blood (Lua binding).  */
+
+int game_server_spawn_blood (float x, float y, long nparticles, long spread)
+{
+    char buf[NET_MAX_PACKET_SIZE];
+    int size;
+    
+    size = packet_encode (buf, "cffll", MSG_SC_GAMEINFO_BLOOD_CREATE,
+			  x, y, nparticles, spread);
+    add_to_gameinfo_packet_queue (buf, size);
+    return 0;
+}
+
+
 /* Create and free the game state. */
 
 static start_t *server_pick_random_start ()
@@ -701,7 +663,7 @@ static int server_init_game_state ()
 {
     client_t *c;
 
-    map = map_load (next_map_file, 1, 0);
+    map = map_load (next_map_file, 0, 0);
     if (!map) {
 	server_log ("Couldn't load map %s", next_map_file);
 	return -1;
@@ -747,16 +709,8 @@ static void start_gameinfo_packet (client_t *c)
     gameinfo_packet_dest = c;
 }
 
-static void add_to_gameinfo_packet (const char *fmt, ...)
+static void add_to_gameinfo_packet_raw (void *buf, size_t size)
 {
-    va_list ap;
-    char buf[NET_MAX_PACKET_SIZE];
-    int size;
-    
-    va_start (ap, fmt);
-    size = packet_encode_v (buf, fmt, ap);
-    va_end (ap);
-    
     if (gameinfo_packet_size + size > sizeof gameinfo_packet_buf) {
 	if (gameinfo_packet_dest)
 	    client_send_rdm (gameinfo_packet_dest, gameinfo_packet_buf,
@@ -770,6 +724,19 @@ static void add_to_gameinfo_packet (const char *fmt, ...)
     gameinfo_packet_size += size;
 }
 
+static void add_to_gameinfo_packet (const char *fmt, ...)
+{
+    va_list ap;
+    char buf[NET_MAX_PACKET_SIZE];
+    size_t size;
+    
+    va_start (ap, fmt);
+    size = packet_encode_v (buf, fmt, ap);
+    va_end (ap);
+
+    add_to_gameinfo_packet_raw (buf, size);
+}
+
 static void done_gameinfo_packet ()
 {
     if (gameinfo_packet_size > 1) {
@@ -779,6 +746,54 @@ static void done_gameinfo_packet ()
 	else
 	    clients_broadcast_rdm (gameinfo_packet_buf, gameinfo_packet_size);
     }
+}
+
+
+/* A queue for gameinfo packets.  The packets that are put in here are
+ * generally generated before we are ready to send them.  */
+
+typedef struct node {
+    struct node *next;
+    struct node *prev;
+    void *packet;
+    size_t size;
+} node_t;
+
+static list_head_t packet_queue;
+
+static void gameinfo_packet_queue_init (void)
+{
+    list_init (packet_queue);
+}
+
+static void add_to_gameinfo_packet_queue (void *packet, size_t size)
+{
+    node_t *node = alloc (sizeof *node);
+    node->packet = alloc (size);
+    memcpy (node->packet, packet, size);
+    node->size = size;
+    list_append (packet_queue, node);
+}
+
+static void node_freer (node_t *node)
+{
+    free (node->packet);
+    free (node);
+}
+
+static void gameinfo_packet_queue_shutdown (void)
+{
+    list_free (packet_queue, node_freer);
+}
+
+static void gameinfo_packet_queue_flush (void)
+{
+    node_t *node;
+
+    list_for_each (node, &packet_queue)
+	add_to_gameinfo_packet_raw (node->packet, node->size);
+
+    list_free (packet_queue, node_freer);
 }
 
 
@@ -945,7 +960,7 @@ static void server_handle_client_controls ()
 		/* new jump based on accel */
 /*  		object_set_ya (obj, object_ya (obj) - object_mass (obj) - .7); */
 		object_set_jump (obj, (jump < 10) ? (jump + 1) : 0);
-		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
+		object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); /* XXX --- maybe this can be avoided */
 	    }
 	    else if ((jump == 0) && (object_yv (obj) == 0) && (object_supported (obj, map))) {
 /*  		object_set_yv (obj, object_yv (obj) - 4); */
@@ -988,8 +1003,6 @@ static void server_send_object_updates ()
     list_head_t *object_list;
     object_t *obj;
     
-    start_gameinfo_packet (NULL);
-
     object_list = map_object_list (map);
     list_for_each (obj, object_list) {
 	if (object_stale (obj)) {
@@ -1017,8 +1030,6 @@ static void server_send_object_updates ()
 
 	object_clear_replication_flags (obj);
     }
-
-    done_gameinfo_packet ();
 }
 
 
@@ -1124,16 +1135,24 @@ static void server_state_game_poll ()
 {
     ulong_t t = ticks;
     long dt;
+    
     if (!ticks_poll ())
 	return;
     if ((dt = ticks - t) <= 0)
 	return;
+    
     server_handle_wantfeeds ();
+    
     while (dt--) {
 	server_perform_physics ();
 	server_poll_client_update_hooks ();
     }
+
+    start_gameinfo_packet (NULL);
     server_send_object_updates ();
+    gameinfo_packet_queue_flush ();
+    done_gameinfo_packet ();
+    
     map_destroy_stale_objects (map);
 }
 
@@ -1238,6 +1257,8 @@ int game_server_init (game_server_interface_t *iface, int net_driver)
 
     clients_init ();
 
+    gameinfo_packet_queue_init ();
+
     string_init (current_map_file);
     string_init (next_map_file);
     string_set (current_map_file, "test.pit");
@@ -1259,6 +1280,7 @@ void game_server_shutdown ()
 
     string_free (next_map_file);
     string_free (current_map_file);
+    gameinfo_packet_queue_shutdown ();
     clients_shutdown ();
     if (interface)
 	interface->shutdown ();

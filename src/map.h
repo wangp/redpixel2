@@ -4,6 +4,7 @@
 
 
 struct object;
+struct blood_particles;
 
 
 typedef struct light light_t;
@@ -11,7 +12,7 @@ typedef struct start start_t;
 typedef struct map map_t;
 
 
-map_t *map_create (void);
+map_t *map_create (int is_client);
 void map_destroy (map_t *map);
 int map_width (map_t *map);
 int map_height (map_t *map);
@@ -43,6 +44,8 @@ int map_start_x (start_t *start);
 int map_start_y (start_t *start);
 void map_start_move (start_t *start, int x, int y);
 struct list_head *map_start_list (map_t *map);
+
+struct blood_particles *map_blood_particles (map_t *map);
 
 
 #endif

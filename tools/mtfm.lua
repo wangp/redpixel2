@@ -164,7 +164,7 @@ function output_html_helper(filename, t)
     for i,v in t do
 	local e = external(v.proto)
 	idx = idx.."\n<li>"..
-	      format("<a name='idx_%s'><a href='#sym_%s'>%s%s%s</a>",
+	      format("<a name='idx_%s'></a><a href='#sym_%s'>%s%s%s</a>",
 	             fn..v.name, fn..v.name,
 	             e and "<b>" or "", esc(v.name), e and "</b>" or "")
     end
@@ -174,7 +174,7 @@ function output_html_helper(filename, t)
     desc = desc..("\n<table cellpadding=10 border=1 width=90%><tr>"..
                   "<td bgcolor=#ffd0d0><b>"..basename.."</b></tr></table>")
     for i,v in t do
-	desc = desc.."\n\n<a name='sym_"..fn..v.name.."'>"..
+	desc = desc.."\n\n<a name='sym_"..fn..v.name.."'></a>"..
 	       format("<p><a href='#idx_%s'>%s</a>",
 		      fn..v.name, 
 		      gsub(v.proto, v.name, "<b>"..esc(v.name).."</b>", 1))
@@ -192,6 +192,7 @@ end
 
 -- Output documentation in HTML form.
 function output_html(idx, desc)
+    print [[<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">]]
     print "<html>\n<head><title>Code docs</title></head>"
     print "<body bgcolor=#ffffff text=#000000 link=#0000ff vlink=#0000ff>"
     print(idx)

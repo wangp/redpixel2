@@ -1,37 +1,6 @@
-/*         ______   ___    ___
- *        /\  _  \ /\_ \  /\_ \
- *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
- *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
- *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
- *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
- *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
- *                                           /\____/
- *                                           \_/__/
- *
- *      Translucent sprite rotation routines.
- *
- *      By Shawn Hargreaves.
- *
- *      Flipping routines by Andrew Geers.
- *
- *      Optimized by Sven Sandberg.
- *
- *      Translucency hacked in by Peter Wang, with help from the C
- *      version of draw_trans_sprite, by Michael Bukin.
- *
- *      Hacked for "magic" sprites (i.e. make it use the 24 bpp
- *      routines, and divide bitmap width by 3).  Warning: some
- *      of these functions might not work, as I don't need them.
- *
- *      See readme.txt for copyright information.
+/*
+ * See magicrot.c
  */
-
-
-#include <allegro.h>
-#include <allegro/aintern.h>
-#include <math.h>
-#include "magicrt.h"
-
 
 
 #ifndef M_PI
@@ -40,52 +9,46 @@
 
 
 
-#define BLENDER			COLOR_MAP*
-#define MAKE_BLENDER()		color_map
-#define BLEND(b,o,n)					\
-((b)->data[(o) & 0xFF][(n) & 0xFF]  		      |	\
- (b)->data[(o) >> 8 & 0xFF][(n) >> 8 & 0xFF] << 8     |	\
- (b)->data[(o) >> 16 & 0xFF][(n) >> 16 & 0xFF] << 16)
-
-
-
 /*
  * Scanline drawer.
  */
 
 static inline void
-draw_scanline_magic(BITMAP *bmp, BITMAP *spr,
-		    fixed l_bmp_x, int bmp_y_i,
-		    fixed r_bmp_x,
-		    fixed l_spr_x, fixed l_spr_y,
-		    fixed spr_dx, fixed spr_dy,
-		    void *blender)
+DRAW_SCANLINE(BITMAP *bmp, BITMAP *spr,
+	      fixed l_bmp_x, int bmp_y_i, fixed r_bmp_x,
+	      fixed l_spr_x, fixed l_spr_y,
+	      fixed spr_dx, fixed spr_dy,
+	      void *blender)
 {
-    BLENDER bl = blender;
-    int c;
-    unsigned long addr, end_addr;
-    unsigned char **spr_line = spr->line;
+#ifdef BLENDER
+   BLENDER bl = blender;
+#endif
+   int c;
+   unsigned long addr, end_addr;
+   unsigned char **spr_line = spr->line;
     
-    r_bmp_x >>= 16;
-    l_bmp_x >>= 16;
-    bmp_select(bmp);
-    addr = bmp_write_line(bmp, bmp_y_i);
-    end_addr = addr + r_bmp_x * 3;
-    addr += l_bmp_x * 3;
-    for (; addr <= end_addr; addr += 3) {
-	/* getpixel */ {
-	    unsigned char *p = spr_line[l_spr_y>>16] + (l_spr_x>>16) * 3;
-	    c = p[0];
-	    c |= (int)p[1] << 8;
-	    c |= (int)p[2] << 16;
-	}
-	if (c != MASK_COLOR_8) {
-	    c = BLEND(bl, c, bmp_read24(addr));
-	    bmp_write24(addr, c);
-	}
-	l_spr_x += spr_dx;
-	l_spr_y += spr_dy;
-    }
+   r_bmp_x >>= 16;
+   l_bmp_x >>= 16;
+   bmp_select(bmp);
+   addr = bmp_write_line(bmp, bmp_y_i);
+   end_addr = addr + r_bmp_x * 3;
+   addr += l_bmp_x * 3;
+   for (; addr <= end_addr; addr += 3) {
+      /* getpixel */ {
+	 unsigned char *p = spr_line[l_spr_y>>16] + (l_spr_x>>16) * 3;
+	 c = p[0];
+	 c |= (int)p[1] << 8;
+	 c |= (int)p[2] << 16;
+      }
+      if (c != MASK_COLOR_8) {
+#ifdef BLEND
+	 c = BLEND(bl, c, bmp_read24(addr));
+#endif
+	 bmp_write24(addr, c);
+      }
+      l_spr_x += spr_dx;
+      l_spr_y += spr_dy;
+   }
 }
 
 
@@ -114,9 +77,10 @@ draw_scanline_magic(BITMAP *bmp, BITMAP *spr,
  *  at least partly covered by the sprite. This is useful for doing
  *  anti-aliased blending.
  */
-void _parallelogram_map_trans_magic(BITMAP *bmp, BITMAP *spr,
-				    fixed xs[4], fixed ys[4],
-				    int sub_pixel_accuracy)
+static void PARALLELOGRAM_MAP(BITMAP *bmp, BITMAP *spr,
+			      INT_COLOR_COMMA
+			      fixed xs[4], fixed ys[4],
+			      int sub_pixel_accuracy)
 {
    /* Index in xs[] and ys[] to topmost point. */
    int top_index;
@@ -320,7 +284,9 @@ void _parallelogram_map_trans_magic(BITMAP *bmp, BITMAP *spr,
 		     (xs[1] - xs[0]) * (double)(ys[3] - ys[0])));
 
    /* Set up the blender. */
+#ifdef MAKE_BLENDER
    blender = MAKE_BLENDER();
+#endif
     
    /*
     * Loop through scanlines.
@@ -496,10 +462,10 @@ void _parallelogram_map_trans_magic(BITMAP *bmp, BITMAP *spr,
 	       }
 	    }
 	 }
-	 draw_scanline_magic (bmp, spr,
-			      l_bmp_x_rounded, bmp_y_i, r_bmp_x_rounded,
-			      l_spr_x_rounded, l_spr_y_rounded,
-			      spr_dx, spr_dy, blender);
+	 DRAW_SCANLINE(bmp, spr,
+		       l_bmp_x_rounded, bmp_y_i, r_bmp_x_rounded,
+		       l_spr_x_rounded, l_spr_y_rounded,
+		       spr_dx, spr_dy, blender);
 
 	 /* I'm not going to apoligize for this label and its gotos: to get
 	    rid of it would just make the code look worse. */
@@ -531,10 +497,11 @@ void _parallelogram_map_trans_magic(BITMAP *bmp, BITMAP *spr,
  *  _parallelogram_map_trans_magic() function since then you can bypass it and define
  *  your own scanline drawer, eg. for anti-aliased rotations.
  */
-void _parallelogram_map_trans_magic_standard(BITMAP *bmp, BITMAP *sprite,
-					     fixed xs[4], fixed ys[4])
+static void PARALLELOGRAM_MAP_STANDARD(BITMAP *bmp, BITMAP *sprite,
+				       INT_COLOR_COMMA
+				       fixed xs[4], fixed ys[4])
 {
-    _parallelogram_map_trans_magic(bmp, sprite, xs, ys, FALSE);
+   PARALLELOGRAM_MAP(bmp, sprite, COLOR_COMMA xs, ys, FALSE);
 }
 
 
@@ -543,92 +510,7 @@ void _parallelogram_map_trans_magic_standard(BITMAP *bmp, BITMAP *sprite,
  *  Calculates the coordinates for the rotated, scaled and flipped sprite,
  *  and passes them on to the given function.
  */
-void _rotate_scale_flip_coordinates(fixed w, fixed h,
-				    fixed x, fixed y, fixed cx, fixed cy,
-				    fixed angle,
-				    fixed scale_x, fixed scale_y,
-				    int h_flip, int v_flip,
-				    fixed xs[4], fixed ys[4])
-{
-   fixed fix_cos, fix_sin;
-   int tl = 0, tr = 1, bl = 3, br = 2;
-   int tmp;
-   double cos_angle, sin_angle;
-   fixed xofs, yofs;
-    
-   /* Setting angle to the range -180...180 degrees makes sin & cos
-      more numerically stable. (Yes, this does have an effect for big
-      angles!) Note that using "real" sin() and cos() gives much better
-      precision than fsin() and fcos(). */
-   angle = angle & 0xffffff;
-   if (angle >= 0x800000)
-      angle -= 0x1000000;
-
-   #ifdef ALLEGRO_DJGPP
-      /* Faster way to obtain both sin and cos with one call under djgpp.
-	 Todo: Do other platforms support this? (not watcom, mingw or msvc)
-      */
-      sincos(&cos_angle, &sin_angle, angle * (M_PI / (double)0x800000));
-   #else
-   #ifdef ALLEGRO_LINUX
-      sincos(angle * (M_PI / (double)0x800000), &sin_angle, &cos_angle);
-   #else
-      cos_angle = cos(angle * (M_PI / (double)0x800000));
-      sin_angle = sin(angle * (M_PI / (double)0x800000));
-   #endif
-   #endif
-
-   if (cos_angle >= 0)
-      fix_cos = (int)(cos_angle * 0x10000 + 0.5);
-   else
-      fix_cos = (int)(cos_angle * 0x10000 - 0.5);
-   if (sin_angle >= 0)
-      fix_sin = (int)(sin_angle * 0x10000 + 0.5);
-   else
-      fix_sin = (int)(sin_angle * 0x10000 - 0.5);
-
-   /* Decide what order to take corners in. */
-   if (v_flip) {
-      tl = 3;
-      tr = 2;
-      bl = 0;
-      br = 1;
-   }
-   else {
-      tl = 0;
-      tr = 1;
-      bl = 3;
-      br = 2;
-   }
-   if (h_flip) {
-      tmp = tl;
-      tl = tr;
-      tr = tmp;
-      tmp = bl;
-      bl = br;
-      br = tmp;
-   }
-
-   /* Calculate new coordinates of all corners. */
-   w = fmul(w, scale_x);
-   h = fmul(h, scale_y);
-   cx = fmul(cx, scale_x);
-   cy = fmul(cy, scale_y);
-
-   xofs = x - fmul(cx, fix_cos) + fmul(cy, fix_sin);
-
-   yofs = y - fmul(cx, fix_sin) - fmul(cy, fix_cos);
-
-   xs[tl] = xofs;
-   ys[tl] = yofs;
-   xs[tr] = xofs + fmul(w, fix_cos);
-   ys[tr] = yofs + fmul(w, fix_sin);
-   xs[bl] = xofs - fmul(h, fix_sin);
-   ys[bl] = yofs + fmul(h, fix_cos);
-
-   xs[br] = xs[tr] + xs[bl] - xs[tl];
-   ys[br] = ys[tr] + ys[bl] - ys[tl];
-}
+/* This is exported by Allegro.  */
 
 
 
@@ -642,11 +524,10 @@ void _rotate_scale_flip_coordinates(fixed w, fixed h,
  *  The most generic routine to which you specify the position with angles,
  *  scales, etc.
  */
-static void _pivot_scaled_trans_magic_sprite_flip(BITMAP *bmp, BITMAP *sprite,
-						  fixed x, fixed y, 
-						  fixed cx, fixed cy,
-						  fixed angle, fixed scale,
-						  int v_flip)
+static void _PIVOT_SCALED_SPRITE_FLIP(BITMAP *bmp, BITMAP *sprite,
+				      fixed x, fixed y, fixed cx, fixed cy,
+				      fixed angle, fixed scale, int v_flip
+				      COMMA_INT_COLOR)
 {
    fixed xs[4], ys[4];
 
@@ -654,7 +535,7 @@ static void _pivot_scaled_trans_magic_sprite_flip(BITMAP *bmp, BITMAP *sprite,
    _rotate_scale_flip_coordinates(sprite->w << 16, sprite->h << 16,
 				  x, y, cx, cy, angle, scale, scale,
 				  FALSE, v_flip, xs, ys);
-   _parallelogram_map_trans_magic_standard(bmp, sprite, xs, ys);
+   PARALLELOGRAM_MAP_STANDARD(bmp, sprite, COLOR_COMMA xs, ys);
    sprite->w *= 3;
 }
 
@@ -663,12 +544,14 @@ static void _pivot_scaled_trans_magic_sprite_flip(BITMAP *bmp, BITMAP *sprite,
 /* pivot_scaled_trans_magic_sprite:
  *  Rotates and scales a sprite around the specified pivot centre point.
  */
-void pivot_scaled_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
-				     int x, int y, int cx, int cy,
-				     fixed angle, fixed scale)
+void PIVOT_SCALED_SPRITE(BITMAP *bmp, BITMAP *sprite,
+			 int x, int y, int cx, int cy,
+			 fixed angle, fixed scale
+			 COMMA_INT_COLOR)
 {
-   _pivot_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16,
-					 cx<<16, cy<<16, angle, scale, FALSE);
+   _PIVOT_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16,
+			     cx<<16, cy<<16, angle, scale, FALSE
+			     COMMA_COLOR);
 }
 
 
@@ -676,11 +559,13 @@ void pivot_scaled_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
 /* pivot_trans_magic_sprite:
  *  Rotates a sprite around the specified pivot centre point.
  */
-void pivot_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
-			      int x, int y, int cx, int cy, fixed angle)
+void PIVOT_SPRITE(BITMAP *bmp, BITMAP *sprite,
+		  int x, int y, int cx, int cy, fixed angle
+		  COMMA_INT_COLOR)
 {
-   _pivot_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16, cx<<16,
-					 cy<<16, angle, 0x10000, FALSE);
+   _PIVOT_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16,
+			     cx<<16, cy<<16, angle, 0x10000, FALSE
+			     COMMA_COLOR);
 }
 
 
@@ -689,12 +574,13 @@ void pivot_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
  *  Similar to pivot_scaled_sprite(), except flips the sprite vertically
  *  first.
  */
-void pivot_scaled_trans_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite,
-					    int x, int y, int cx, int cy,
-					    fixed angle, fixed scale)
+void PIVOT_SCALED_SPRITE_V_FLIP(BITMAP *bmp, BITMAP *sprite,
+				int x, int y, int cx, int cy, fixed angle, fixed scale
+				COMMA_INT_COLOR)
 {
-   _pivot_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16,
-					 cx<<16, cy<<16, angle, scale, TRUE);
+   _PIVOT_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16,
+			     cx<<16, cy<<16, angle, scale, TRUE
+			     COMMA_COLOR);
 }
 
 
@@ -702,12 +588,13 @@ void pivot_scaled_trans_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite,
 /* pivot_trans_magic_sprite_v_flip:
  *  Similar to pivot_sprite(), except flips the sprite vertically first.
  */
-void pivot_trans_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite,
-				     int x, int y, int cx, int cy,
-				     fixed angle)
+void PIVOT_SPRITE_V_FLIP(BITMAP *bmp, BITMAP *sprite,
+			 int x, int y, int cx, int cy, fixed angle
+			 COMMA_INT_COLOR)
 {
-   _pivot_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16, 
-					 cx<<16, cy<<16, angle, 0x10000, TRUE);
+   _PIVOT_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16,
+			     cx<<16, cy<<16, angle, 0x10000, TRUE
+			     COMMA_COLOR);
 }
 
 
@@ -722,16 +609,14 @@ void pivot_trans_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite,
  *  Rotates and scales a sprite, optionally flipping it about either axis.
  *  Coordinates are given in fixed point format.
  */
-static void _rotate_scaled_trans_magic_sprite_flip(BITMAP *bmp, BITMAP *sprite,
-						   fixed x, fixed y,
-						   fixed angle, fixed scale,
-						   int v_flip)
+static void _ROTATE_SCALED_SPRITE_FLIP(BITMAP *bmp, BITMAP *sprite,
+				       fixed x, fixed y, fixed angle,
+				       fixed scale, int v_flip COMMA_INT_COLOR)
 {
-   _pivot_scaled_trans_magic_sprite_flip(bmp, sprite,
-					 x + (sprite->w * scale) / 2,
-					 y + (sprite->h * scale) / 2,
-					 sprite->w << 15, sprite->h << 15,
-					 angle, scale, v_flip);
+   _PIVOT_SCALED_SPRITE_FLIP(bmp, sprite,
+			     x + (sprite->w * scale) / 2, y + (sprite->h * scale) / 2,
+			     sprite->w << 15, sprite->h << 15, angle, scale, v_flip
+			     COMMA_COLOR);
 }
 
 
@@ -743,11 +628,9 @@ static void _rotate_scaled_trans_magic_sprite_flip(BITMAP *bmp, BITMAP *sprite,
  *  to a full circle, 64 a right angle, etc. This function can draw between
  *  any two bitmaps.
  */
-void rotate_scaled_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
-				      int x, int y, fixed angle, fixed scale)
+void ROTATE_SCALED_SPRITE(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle, fixed scale COMMA_INT_COLOR)
 {
-   _rotate_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16,
-					  angle, scale, FALSE);
+   _ROTATE_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16, angle, scale, FALSE COMMA_COLOR);
 }
 
 
@@ -759,11 +642,9 @@ void rotate_scaled_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
  *  to a full circle, 64 a right angle, etc. This function can draw between
  *  any two bitmaps.
  */
-void rotate_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
-			       int x, int y, fixed angle)
+void ROTATE_SPRITE(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle COMMA_INT_COLOR)
 {
-   _rotate_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16,
-					  angle, 0x10000, FALSE);
+   _ROTATE_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16, angle, 0x10000, FALSE COMMA_COLOR);
 }
 
 
@@ -772,12 +653,11 @@ void rotate_trans_magic_sprite(BITMAP *bmp, BITMAP *sprite,
  *  Similar to rotate_scaled_sprite(), except flips the sprite vertically
  *  first.
  */
-void rotate_scaled_trans_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite,
-					     int x, int y, fixed angle,
-					     fixed scale)
+void ROTATE_SCALED_SPRITE_V_FLIP(BITMAP *bmp, BITMAP *sprite,
+				 int x, int y, fixed angle,
+				 fixed scale COMMA_INT_COLOR)
 {
-   _rotate_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16,
-					  angle, scale, TRUE);
+   _ROTATE_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16, angle, scale, TRUE COMMA_COLOR);
 }
 
 
@@ -785,10 +665,9 @@ void rotate_scaled_trans_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite,
 /* rotate_trans_magic_sprite_v_flip:
  *  Similar to rotate_sprite(), except flips the sprite vertically first.
  */
-void rotate_trans_magic_sprite_v_flip(BITMAP *bmp, BITMAP *sprite,
-				      int x, int y, fixed angle)
+void ROTATE_SPRITE_V_FLIP(BITMAP *bmp, BITMAP *sprite, int x, int y, fixed angle COMMA_INT_COLOR)
 {
-   _rotate_scaled_trans_magic_sprite_flip(bmp, sprite, x<<16, y<<16,
-					  angle, 0x10000, TRUE);
+   _ROTATE_SCALED_SPRITE_FLIP(bmp, sprite, x<<16, y<<16,
+			      angle, 0x10000, TRUE COMMA_COLOR);
 }
 

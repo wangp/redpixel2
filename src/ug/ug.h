@@ -133,7 +133,7 @@ void ug_widget_send_event_draw (ug_widget_t *, ug_event_t, struct BITMAP *bmp);
 /*: Emit a signal to a widget, with drawing event data.  */
 void ug_widget_emit_signal_draw (ug_widget_t *, ug_signal_t, struct BITMAP *bmp);
 
-/*: Return the bitmap address of a draw event.  */
+/* ug_event_data_draw_bmp: Return the bitmap address of a draw event.  */
 struct BITMAP *ug_event_data_draw_bmp (ug_event_data_t *);
 
 /*: Return the x position of a draw event.  */

@@ -73,6 +73,7 @@ void object_clear_replication_flags (object_t *);
 int object_add_layer (object_t *, const char *key, int offset_x, int offset_y);
 int object_replace_layer (object_t *, int layer_id, const char *key, int offset_x, int offset_y);
 int object_move_layer (object_t *, int layer_id, int offset_x, int offset_y);
+int object_hflip_layer (object_t *, int layer_id, int hflip);
 int object_rotate_layer (object_t *, int layer_id, int angle);
 int object_remove_layer (object_t *, int layer_id);
 void object_remove_all_layers (object_t *);

@@ -1,3 +1,30 @@
+2002-01-12  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* magic/magicrot.c, magic/magicrot.inc: Unified the magic rotation
+	function code somewhat.  Less code, but more importantly, we get
+	pivot_magic_sprite_v_flip.
+
+	* object.c, bindgen.lua: Horizontal flipping added.
+
+	* magic/magicrot.c (pivot_magic_sprite_v_flip): Added.
+
+	* magic/magichf.c: New function/file.
+
+	* packet.c: Use ntohl, htonl functions and simple casts to
+	en/decode packets instead of shifts and memcpys.
+
+	* gamesrv.c: Added a gameinfo packet queue.
+	
+	* blood.c, bindgen.lua, gameclt.c, gamesrv.c, map.c, render.c:
+	Start of a blood particle system, and changes to accomodate it.
+
+2002-01-11  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c (ticks_poll): Fixed a silly assumption that was
+	causing the game server to be missing updates.
+
+	* mtfm.lua: Fixed up minor output problems caught by HTML Tidy.
+
 2001-07-30  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* Cleaned up multiple ports mechanisms a bit.

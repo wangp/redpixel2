@@ -13,7 +13,6 @@
 #include "bitmaskr.h"
 #include "list.h"
 #include "magic4x4.h"
-#include "magicrl.h"
 #include "map.h"
 #include "mylua.h"
 #include "object.h"
@@ -78,6 +77,7 @@ struct object {
 
     /* Our last known authoritative pva received from the server, and
      * the game time at which that was sent. */
+    /* [pva == position, velocity, acceleration] */
     struct {
 	unsigned long time;
 	float x, y;
@@ -438,6 +438,7 @@ struct objlayer {
     BITMAP *bmp;
     int centre_x;
     int centre_y;
+    int hflip;
     int angle;
 };
 
@@ -511,6 +512,20 @@ int object_move_layer (object_t *obj, int layer_id, int centre_x, int centre_y)
 	}
 
     return -1;
+}
+
+
+int object_hflip_layer (object_t *obj, int layer_id, int hflip)
+{
+    objlayer_t *layer;
+
+    list_for_each (layer, &obj->layers)
+	if (layer_id == layer->id) {
+	    layer->hflip = hflip;
+	    return 0;
+	}
+
+    return -1;    
 }
 
 
@@ -851,7 +866,7 @@ int object_supported_at (object_t *obj, map_t *map, float x, float y)
 #define SIGN(a)	((a < 0) ? -1 : 1)
 
 
-inline static int object_move (object_t *obj, int mask_num, map_t *map, float dx, float dy)
+static inline int object_move (object_t *obj, int mask_num, map_t *map, float dx, float dy)
 {
     float idx, idy;
 
@@ -873,7 +888,7 @@ inline static int object_move (object_t *obj, int mask_num, map_t *map, float dx
 }
 
 
-inline static int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
+static inline int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *map,
 					   float dx, int ramp)
 {
     float idx;
@@ -901,7 +916,7 @@ inline static int object_move_x_with_ramp (object_t *obj, int mask_num, map_t *m
 }
 
 
-inline static int too_far_off_map (object_t *obj, map_t *map)
+static inline int too_far_off_map (object_t *obj, map_t *map)
 {
     const float margin = 160;
     return ((object_x (obj) < -margin) || (object_y (obj) < -margin)
@@ -988,6 +1003,13 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
     obj->target.xv = obj->auth.xv;
     obj->target.yv = obj->auth.yv;
 
+    /* testing */
+    if (0) {
+	obj->x = obj->auth.x;
+	obj->y = obj->auth.y;
+	return;
+    }
+
     if (!obj->auth.xv && !obj->auth.yv && !obj->auth.xa && !obj->auth.ya) {
 	obj->x = obj->auth.x;
 	obj->y = obj->auth.y;
@@ -1002,8 +1024,14 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
 	obj->target.y += obj->target.yv;
     }
 
-    obj->x += ((obj->target.x - obj->x) * 0.8);
-    obj->y += ((obj->target.y - obj->y) * 0.8);
+    if (1) {
+	obj->x += ((obj->target.x - obj->x) * 0.8);
+	obj->y += ((obj->target.y - obj->y) * 0.8);
+    }
+    else {
+	obj->x = obj->target.x;
+	obj->y = obj->target.y;
+    }
 }
 
 
@@ -1110,14 +1138,25 @@ void object_draw_layers (BITMAP *dest, object_t *obj,
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
 	if (layer->angle == 0) {
-	    draw_magic_sprite (dest, bmp,
-			       obj->x - offset_x - layer->centre_x,
-			       obj->y - offset_y - layer->centre_y);
+	    if (!layer->hflip)
+		draw_magic_sprite (dest, bmp,
+		   obj->x - offset_x - layer->centre_x,
+		   obj->y - offset_y - layer->centre_y);
+	    else
+		draw_magic_sprite_h_flip (dest, bmp,
+		   obj->x - offset_x - (bmp->w / 3 - layer->centre_x),
+		   obj->y - offset_y - layer->centre_y);
 	} else {
-	    pivot_magic_sprite (dest, bmp, 
-				obj->x - offset_x, obj->y - offset_y,
-				layer->centre_x, layer->centre_y,
-				layer->angle << 16);
+	    if (!layer->hflip)
+		pivot_magic_sprite (dest, bmp, 
+		   obj->x - offset_x, obj->y - offset_y,
+		   layer->centre_x, layer->centre_y,
+		   layer->angle << 16);
+	    else
+		pivot_magic_sprite_v_flip (dest, bmp, 
+		   obj->x - offset_x, obj->y - offset_y,
+		   layer->centre_x, bmp->h - layer->centre_y,
+		   (layer->angle + 128) << 16);
 	}
     }
 }
@@ -1131,17 +1170,20 @@ void object_draw_lit_layers (BITMAP *dest, object_t *obj,
 
     list_for_each (layer, &obj->layers) {
 	bmp = layer->bmp;
-	if (layer->angle == 0) {
-	    draw_lit_magic_sprite (dest, bmp,
-				   obj->x - offset_x - layer->centre_x,
-				   obj->y - offset_y - layer->centre_y,
-				   color);
-	} else {
+	if ((layer->angle != 0) && (!layer->hflip))
 	    pivot_lit_magic_sprite (dest, bmp, 
-				    obj->x - offset_x, obj->y - offset_y,
-				    layer->centre_x, layer->centre_y,
-				    layer->angle << 16, color);
-	}
+	       obj->x - offset_x, obj->y - offset_y,
+	       layer->centre_x, layer->centre_y,
+	       layer->angle << 16, color);
+	else if (!layer->hflip)
+	    draw_lit_magic_sprite (dest, bmp,
+	       obj->x - offset_x - layer->centre_x,
+	       obj->y - offset_y - layer->centre_y, color);
+	else
+	    pivot_lit_magic_sprite_v_flip (dest, bmp, 
+	       obj->x - offset_x, obj->y - offset_y,
+	       layer->centre_x, bmp->h - layer->centre_y,
+	       (layer->angle + 128) << 16, color);
     }
 }
 
@@ -1154,10 +1196,9 @@ void object_draw_lights (BITMAP *dest, object_t *obj,
 
     list_for_each (light, &obj->lights) {
 	bmp = light->bmp;
-	draw_trans_magic_sprite
-	    (dest, bmp,
-	     obj->x - offset_x + light->offset_x - bmp->w/3/2,
-	     obj->y - offset_y + light->offset_y - bmp->h/2);
+	draw_trans_magic_sprite (dest, bmp,
+	   obj->x - offset_x + light->offset_x - bmp->w/3/2,
+	   obj->y - offset_y + light->offset_y - bmp->h/2);
     }
 }
 

@@ -9,6 +9,7 @@ SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -Wall -D_REENTRANT
+CFLAGS += -I libnet/include
 CFLAGS += $(addprefix -I,$(SRCDIRS)) -g
 CFLAGS += -O2 -fomit-frame-pointer -funroll-loops -march=pentium
 # CFLAGS += -pg
@@ -27,9 +28,8 @@ MODULES_STORE :=				\
 
 MODULES_MAGIC :=				\
 	magic4x4				\
-	magicrot				\
-	magicrl					\
-	magicrt					\
+	magichf					\
+	magicrot
 
 MODULES_FASTSQRT :=				\
 	fastsqrt
@@ -78,6 +78,7 @@ MODULES_GAME :=					\
 	bitmask					\
 	bitmaskg				\
 	bitmaskr				\
+	blood					\
 	camera					\
 	error					\
 	extdata					\
@@ -141,7 +142,7 @@ TAGS: $(SOURCES)
 	etags $^
 
 tags: $(SOURCES)
-	gctags $^
+	ctags $^
 
 #----------------------------------------------------------------------
 

@@ -56,7 +56,7 @@ static void textout_right_magic (BITMAP *bmp, FONT *font, const char *buf, int x
     BITMAP *tmp;
 
     tmp = create_magic_bitmap (len, text_height (font));
-    clear (tmp);
+    clear_bitmap (tmp);
     textout (tmp, font, buf, 0, 0, color);
     draw_magic_sprite (bmp, tmp, x - len, y);
     destroy_bitmap (tmp);

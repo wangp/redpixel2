@@ -38,7 +38,7 @@ Objtype {
     icon = "/basic/weapon/blaster/projectile",
     nonproxy_init = function (self)
 	function self.collide_hook (self, obj)
-	    -- hurt player here
+	    obj:receive_damage (10)
 	    self:destroy ()
 	end
 	function self.tile_collide_hook (self)

@@ -6,7 +6,7 @@ struct map;
 
 
 int map_save (struct map *map, const char *filename);
-struct map *map_load (const char *filename, int loadobjects, int *warning);
+struct map *map_load (const char *filename, int is_client, int *warning);
 
 
 #endif

@@ -50,7 +50,7 @@ static void new ()
     if (prompt ("Erase current map?", "&Yes", "&No", 'y', 'n')) {
 	map_destroy (editor_map);
 
-	editor_map = map_create ();
+	editor_map = map_create (0);
 	map_resize (editor_map, 64, 64);
 
 	editarea_reset_offset ();

@@ -7,13 +7,13 @@
 #include <math.h>
 #include <allegro.h>
 #include <libnet.h>
+#include "blood.h"
 #include "camera.h"
 #include "error.h"
 #include "fps.h"
 #include "gameclt.h"
 #include "list.h"
 #include "magic4x4.h"
-#include "magicrt.h"
 #include "map.h"
 #include "mapfile.h"
 #include "messages.h"
@@ -140,6 +140,10 @@ static void perform_simple_physics ()
     object_list = map_object_list (map);
     list_for_each (obj, object_list)
 	object_do_simulation (obj, t);
+
+    blood_particles_update (map_blood_particles (map), map);
+    /* XXX no good because blood particles can only be updated at a
+       regular rate */
 }
 
 
@@ -198,7 +202,7 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		buf += packet_decode (buf, "s", &len, filename);
 		if (map)
 		    map_destroy (map);
-		map = map_load (filename, 0, NULL);
+		map = map_load (filename, 1, NULL);
 		break;
 	    }
 
@@ -254,6 +258,18 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		break;
 	    }
 
+	    case MSG_SC_GAMEINFO_BLOOD_CREATE:
+	    {
+		float x;
+		float y;
+		long nparticles;
+		long spread;
+
+		buf += packet_decode (buf, "ffll", &x, &y, &nparticles, &spread);
+		blood_particles_spawn (map_blood_particles (map), x, y, nparticles, spread);
+		break;
+	    }
+
 	    default:
 		error ("error: unknown code in gameinfo packet (client)\n");
 	}
@@ -278,7 +294,7 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
     va_end (ap);
     
     tmp = create_magic_bitmap (text_length (font, buf), text_height (font));
-    clear (tmp);
+    clear_bitmap (tmp);
     textout (tmp, font, buf, 0, 0, color);
     draw_trans_magic_sprite (bmp, tmp, x, y);
     destroy_bitmap (tmp);
@@ -309,7 +325,7 @@ static void update_screen ()
     if (backgrounded)
 	return;
     
-    clear (bmp);
+    clear_bitmap (bmp);
 
     if (bkgd) {
 	int x = -(camera_x (cam) / (3*parallax_x));

@@ -5,8 +5,7 @@
 
 
 #include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <netinet/in.h>
 
 #ifndef TEST
 # include "packet.h"
@@ -19,33 +18,25 @@
 
 static long get_long (const unsigned char *buf)
 {
-    return (((long) buf[0] << 24) |
-	    ((long) buf[1] << 16) |
-	    ((long) buf[2] <<  8) |
-	    ((long) buf[3] <<  0));
+    return ntohl (*((long *) buf));
 }
 
 
-static void put_long (unsigned char *buf, long l)
+static inline void put_long (unsigned char *buf, long l)
 {
-    buf[0] = (int)((l & 0xFF000000L) >> 24);
-    buf[1] = (int)((l & 0x00FF0000L) >> 16);
-    buf[2] = (int)((l & 0x0000FF00L) >>  8);
-    buf[3] = (int)((l & 0x000000FFL) >>  0);
+    *((long *) buf) = htonl (l);
 }
 
 
 static float get_float (const unsigned char *buf)
 {
-    float f;
-    memcpy (&f, buf, sizeof (float));
-    return f;
+    return *((float *) buf);
 }
 
 
 static void put_float (unsigned char *buf, float f)
 {
-    memcpy (buf, &f, sizeof (float));
+    *((float *) buf) = f;
 }
 
 

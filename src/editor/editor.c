@@ -50,7 +50,7 @@ int editor ()
 		return 1;
 	    modemgr_select ("tiles");
 
-		editor_map = map_create ();
+		editor_map = map_create (0);
 		map_resize (editor_map, 64, 64);
 
 		gui_main ();

@@ -21,6 +21,7 @@ function _object_init_hook (self)
 	self.set_mask = object_set_mask
 	self.remove_mask = object_remove_mask
 	self.remove_all_masks = object_remove_all_masks
+	self.receive_damage = %dummy
 
 	self.add_layer = %dummy
 	self.replace_layer = %dummy
@@ -43,6 +44,7 @@ function _object_init_hook (self)
 	self.add_layer = object_add_layer
 	self.replace_layer = object_replace_layer
 	self.move_layer = object_move_layer
+	self.hflip_layer = object_hflip_layer
 	self.rotate_layer = object_rotate_layer
 	self.remove_layer = object_remove_layer
 	self.remove_all_layers = object_remove_all_layers

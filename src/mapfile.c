@@ -282,7 +282,7 @@ static int read_starts (map_t *map, PACKFILE *f)
 }
 
 
-map_t *map_load (const char *filename, int loadobjects, int *warning)
+map_t *map_load (const char *filename, int is_client, int *warning)
 {
     PACKFILE *f;
     map_t *map = 0;
@@ -309,7 +309,7 @@ map_t *map_load (const char *filename, int loadobjects, int *warning)
 	    goto error;
     }
     
-    map = map_create ();
+    map = map_create (is_client);
     if (!map) goto error;
     
     /* Map dimensions.  */
@@ -345,7 +345,7 @@ map_t *map_load (const char *filename, int loadobjects, int *warning)
 		break;
 
 	    case MARK_OBJECTS:
-		warn = read_objects (map, f, loadobjects);
+		warn = read_objects (map, f, !is_client);
 		if (warn < 0) goto error;
 		if (warn > 0) *warning = 1;
 		break;
