@@ -63,7 +63,6 @@ void cursor_set_magic_bitmap (BITMAP *bmp, int hotx, int hoty)
 	    if (getpixel (tmp, x, y) == makecol (0, 0, 0))
 		putpixel (tmp, x, y, bitmap_mask_color (screen));
 
-    hotx /= 3;
     putpixel (tmp, hotx, hoty, HIGHLIGHT);
 
     change (tmp, hotx, hoty);

@@ -140,13 +140,13 @@ static void set_cursor_for_action ()
 	    cursor_set_selected ();
 	    break;
 	case ACTION_DEL:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/delete"), 0, 0);
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/delete"), 7, 7);
 	    break;
 	case ACTION_RAISE:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/raise"), 3*3, 0);
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/raise"), 3, 0);
 	    break;
 	case ACTION_LOWER:
-	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/lower"), 3*3, 15);
+	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/lower"), 3, 15);
 	    break;
 	case ACTION_EDIT:
 	    cursor_set_magic_bitmap (store_dat ("/editor/cursor/edit"), 0, 6);
