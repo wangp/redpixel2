@@ -1,5 +1,17 @@
 2002-01-28  Peter Wang  <tjaden@users.sourceforge.net>
 
+	* object.h, object.c, bindgen.lua, basic-weapon.lua:
+	Made it so that projectiles cannot hit other projectiles.
+
+	* blast.c: Changed the blast collision detection so that a
+	distance of zero will register as a hit.
+
+	* bindgen.lua, client.c, netmsg.h, svgame.h, svgame.c,
+	* basic-player.lua, basic-weapon.lua:
+	Added client health and ammo displays.
+
+2002-01-27  Peter Wang  <tjaden@users.sourceforge.net>
+
 	* basic-player.lua: Don't auto-switch to a new weapon if our
 	current weapon is not an auto-switchable one.
 
@@ -7,8 +19,6 @@
 	* render.c, netmsg.h, map.h, map.c, client.c, bindgen.lua, Makefile,
 	* blast.h, blast.c: 
 	Added blasts.
-
-2002-01-27  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* basic-player.lua: When picking up a new weapon, don't switch to
 	it unless it is better than the current weapon, or the current

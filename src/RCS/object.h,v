@@ -1,9 +1,14 @@
-head	1.11;
+head	1.12;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.12
+date	2002.01.28.14.06.29;	author tjaden;	state Exp;
+branches;
+next	1.11;
 
 1.11
 date	2002.01.24.07.23.01;	author tjaden;	state Exp;
@@ -65,9 +70,9 @@ desc
 @@
 
 
-1.11
+1.12
 log
-@Changed all "()" declarations to "(void)".
+@Made it so that projectiles cannot hit other projectiles.
 @
 text
 @#ifndef __included_object_h
@@ -140,6 +145,7 @@ void object_set_jump (object_t *, int);
 int object_moving_horizontally (object_t *);
 
 void object_set_collision_is_player (object_t *);
+void object_set_collision_is_projectile (object_t *);
 void object_set_collision_is_ladder (object_t *);
 void object_set_collision_flags (object_t *, int tiles, int players, int nonplayers);
 void object_set_collision_flags_string (object_t *, const char *flags);
@@ -257,6 +263,15 @@ void object_bounding_box (object_t *, int *rx1, int *ry1, int *rx2, int *ry2);
 
 
 #endif
+@
+
+
+1.11
+log
+@Changed all "()" declarations to "(void)".
+@
+text
+@d71 1
 @
 
 

@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.29.00.07.32;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.26.11.54.12;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added sound to explosions.
 @
 text
 @#ifndef __included_explo_h
@@ -33,7 +38,8 @@ typedef struct explosion explosion_t;
 void explosion_init (void);
 void explosion_shutdown (void);
 int explosion_type_register (const char *name, const char *first_frame,
-			     int nframes, int tics, const char *light);
+			     int nframes, int tics, const char *light,
+			     const char *sound);
 explosion_t *explosion_create (const char *name, int x, int y);
 void explosion_destroy (explosion_t *e);
 int explosion_update (explosion_t *e);
@@ -44,4 +50,15 @@ void explosion_draw_lights (struct BITMAP *dest, explosion_t *explo,
 
 
 #endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d14 2
+a15 1
+			     int nframes, int tics, const char *light);
 @

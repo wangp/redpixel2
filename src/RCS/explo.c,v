@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.2
+date	2002.01.29.00.07.25;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.26.11.54.09;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added sound to explosions.
 @
 text
 @/* explo.c
@@ -46,6 +51,7 @@ struct explosion_type {
     int centre_x;
     int centre_y;
     BITMAP *light;
+    SAMPLE *sound;
 };
 
 
@@ -82,7 +88,8 @@ void explosion_shutdown (void)
 
 
 int explosion_type_register (const char *name, const char *first_frame,
-			     int nframes, int tics, const char *light)
+			     int nframes, int tics, const char *light,
+			     const char *sound)
 {
     DATAFILE *d;
     etype_t *t;
@@ -99,6 +106,7 @@ int explosion_type_register (const char *name, const char *first_frame,
     t->centre_x = ((BITMAP *) d->dat)->w/3/2;
     t->centre_y = ((BITMAP *) d->dat)->h/2;
     t->light = light ? store_dat (light) : NULL;
+    t->sound = sound ? store_dat (sound) : NULL;
     
     list_add (etypes, t);
     
@@ -133,6 +141,11 @@ explosion_t *explosion_create (const char *name, int x, int y)
     e->y = y;
     e->frame = 0;
     e->tics = t->tics;
+
+    if (t->sound) {
+	play_sample (t->sound, 128, 128, 1000, FALSE); /* XXX */
+    }
+    
     return e;
 }
 
@@ -179,4 +192,18 @@ void explosion_draw_lights (BITMAP *dest, explosion_t *explo,
 				 explo->x - offset_x - bmp->w/3/2,
 				 explo->y - offset_y - bmp->h/2);
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d27 1
+d64 2
+a65 1
+			     int nframes, int tics, const char *light)
+d82 1
+d117 5
 @

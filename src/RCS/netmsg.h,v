@@ -1,9 +1,14 @@
-head	1.16;
+head	1.17;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.17
+date	2002.01.28.13.01.05;	author tjaden;	state Exp;
+branches;
+next	1.16;
 
 1.16
 date	2002.01.27.14.06.10;	author tjaden;	state Exp;
@@ -90,9 +95,9 @@ desc
 @@
 
 
-1.16
+1.17
 log
-@Added blasts.
+@Added client health and ammo displays.
 @
 text
 @#ifndef __included_netmsg_h
@@ -368,11 +373,31 @@ enum {
        Args: float x, float y, float max_radius, long damage.
      */
 
-    MSG_SC_GAMEINFO_BLAST_CREATE = 'b'
+    MSG_SC_GAMEINFO_BLAST_CREATE = 'b',
+
+
+    /* Tell clients about their status.
+
+       Args: long client_id, byte prop, long value.
+       where prop is 'h' for health, 'a' for ammo
+     */
+
+    MSG_SC_GAMEINFO_CLIENT_STATUS = 's',
 };
 
 
 #endif
+@
+
+
+1.16
+log
+@Added blasts.
+@
+text
+@d274 10
+a283 1
+    MSG_SC_GAMEINFO_BLAST_CREATE = 'b'
 @
 
 

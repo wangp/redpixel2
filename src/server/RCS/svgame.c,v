@@ -1,9 +1,14 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.6
+date	2002.01.28.13.00.53;	author tjaden;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2002.01.27.14.06.23;	author tjaden;	state Exp;
@@ -35,9 +40,9 @@ desc
 @@
 
 
-1.5
+1.6
 log
-@Added blasts.
+@Added client health and ammo displays.
 @
 text
 @/* svgame.c
@@ -814,6 +819,34 @@ int svgame_object_would_collide_with_objects (object_t *obj)
 }
 
 
+void svgame_tell_health (object_t *obj, int health)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!object_is_client (obj))
+	return;
+
+    size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
+			  object_id (obj), 'h', health);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
+void svgame_tell_ammo (object_t *obj, int ammo)
+{
+    char buf[NETWORK_MAX_PACKET_SIZE];
+    size_t size;
+
+    if (!object_is_client (obj))
+	return;
+
+    size = packet_encode (buf, "clcl", MSG_SC_GAMEINFO_CLIENT_STATUS,
+			  object_id (obj), 'a', ammo);
+    add_to_gameinfo_packet_queue (buf, size);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -996,6 +1029,15 @@ server_state_procs_t the_procs =
 };
 
 server_state_procs_t *svgame_procs = &the_procs;
+@
+
+
+1.5
+log
+@Added blasts.
+@
+text
+@d775 28
 @
 
 

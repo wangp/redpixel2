@@ -1,9 +1,14 @@
-head	1.2;
+head	1.3;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.3
+date	2002.01.29.00.07.42;	author tjaden;	state Exp;
+branches;
+next	1.2;
 
 1.2
 date	2002.01.24.07.19.13;	author tjaden;	state Exp;
@@ -20,9 +25,9 @@ desc
 @@
 
 
-1.2
+1.3
 log
-@Changes following cleanup of server and client sources.
+@install_sound
 @
 text
 @/* main.c
@@ -84,6 +89,8 @@ static void setup_allegro (int w, int h, int d)
         allegro_message ("Error initialising mouse.\n");
 	exit (1);
     }
+
+    install_sound (DIGI_AUTODETECT, MIDI_NONE, 0);
 
     set_window_title ("Red Pixel II");
 
@@ -231,6 +238,15 @@ int main (int argc, char *argv[])
 }
 
 END_OF_MAIN();
+@
+
+
+1.2
+log
+@Changes following cleanup of server and client sources.
+@
+text
+@d61 2
 @
 
 

@@ -24,6 +24,7 @@ struct explosion_type {
     int centre_x;
     int centre_y;
     BITMAP *light;
+    SAMPLE *sound;
 };
 
 
@@ -60,7 +61,8 @@ void explosion_shutdown (void)
 
 
 int explosion_type_register (const char *name, const char *first_frame,
-			     int nframes, int tics, const char *light)
+			     int nframes, int tics, const char *light,
+			     const char *sound)
 {
     DATAFILE *d;
     etype_t *t;
@@ -77,6 +79,7 @@ int explosion_type_register (const char *name, const char *first_frame,
     t->centre_x = ((BITMAP *) d->dat)->w/3/2;
     t->centre_y = ((BITMAP *) d->dat)->h/2;
     t->light = light ? store_dat (light) : NULL;
+    t->sound = sound ? store_dat (sound) : NULL;
     
     list_add (etypes, t);
     
@@ -111,6 +114,11 @@ explosion_t *explosion_create (const char *name, int x, int y)
     e->y = y;
     e->frame = 0;
     e->tics = t->tics;
+
+    if (t->sound) {
+	play_sample (t->sound, 128, 128, 1000, FALSE); /* XXX */
+    }
+    
     return e;
 }
 

@@ -183,13 +183,15 @@ generate {
 generate {
     lname	= "explosion_type_register",
     cname	= "explosion_type_register",
-    check	= "ssnn[sN-]",
+    check	= "ssnn[sN-][sN-]",
     args	= {{ String, "name" },
 		   { String, "first_frame" },
 		   { Int, "nframes" },
 		   { Int, "tics" },
 	       	   { String, "light", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" }},
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" },
+	           { String, "sound", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#)); "}},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -218,6 +220,11 @@ generate {
 
 generate {
     cname	= "object_set_collision_is_player",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_set_collision_is_projectile",
     args	= {{ Object, "obj" }}
 }
 
@@ -468,6 +475,20 @@ generate {
     lname	= "_internal_would_collide_with_objects",
     args	= {{ Object, "obj" }},
     ret		= { Int, "ret", "!$" }
+}
+
+generate {
+    cname	= "svgame_tell_health",
+    lname	= "_internal_tell_health",
+    args	= {{ Object, "obj" },
+		   { Int, "health" }}
+}
+
+generate {
+    cname	= "svgame_tell_ammo",
+    lname	= "_internal_tell_ammo",
+    args	= {{ Object, "obj" },
+		   { Int, "ammo" }}
 }
 
 generate {

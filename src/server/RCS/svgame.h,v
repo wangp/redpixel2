@@ -1,9 +1,14 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks; strict;
 comment	@ * @;
 
+
+1.4
+date	2002.01.28.13.01.00;	author tjaden;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2002.01.27.14.06.28;	author tjaden;	state Exp;
@@ -25,9 +30,9 @@ desc
 @@
 
 
-1.3
+1.4
 log
-@Added blasts.
+@Added client health and ammo displays.
 @
 text
 @#ifndef __included_svgame_h
@@ -53,12 +58,23 @@ void svgame_spawn_explosion (const char *name, float x, float y);
 void svgame_spawn_blast (float x, float y, float radius, int damage);
 void svgame_call_method_on_clients (struct object *obj, const char *method, const char *arg);
 int svgame_object_would_collide_with_objects (struct object *obj);
+int svgame_tell_health (struct object *obj, int health);
+int svgame_tell_ammo (struct object *obj, int ammo);
 
 
 extern struct server_state_procs *svgame_procs;
 
 
 #endif
+@
+
+
+1.3
+log
+@Added blasts.
+@
+text
+@d24 2
 @
 
 

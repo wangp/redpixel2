@@ -56,12 +56,6 @@ local player_nonproxy_init = function (self)
 		return
 	    end
 
-	    -- if we're not holding a weapon currently, use the new one
-	    if not self.current_weapon then
-		self:switch_weapon (name)
-		return
-	    end
-
 	    -- don't switch if our current weapon is not auto-switchable
 	    if not contains (weapon_auto_switch_order, self.current_weapon.name) then
 		return
@@ -69,7 +63,7 @@ local player_nonproxy_init = function (self)
 
 	    -- if our current weapon is out of ammo, switch
 	    -- if the new weapon is better than the current weapon, switch
-	    if not self.current_weapon.can_fire (self) or
+	    if not self:has_ammo_for (self.current_weapon) or
 	       (index_of (weapon_auto_switch_order, name) < 
 		index_of (weapon_auto_switch_order, self.current_weapon.name))
 	    then
@@ -78,27 +72,31 @@ local player_nonproxy_init = function (self)
 	end
     end
 
+    function self:post_weapon_switch_hook ()
+	local w = self.current_weapon
+	call_method_on_clients (self, "switch_weapon", w.name)
+	_internal_tell_ammo (self, self._ammo[w.ammo_type] or 0)
+    end
+
     function self:switch_weapon (name)
 	if weapons[name] and self.have_weapon[name] then
 	    self.current_weapon = weapons[name]
 	    self.desired_weapon = weapons[name]
-	    call_method_on_clients (self, "switch_weapon", name)
+	    self:post_weapon_switch_hook ()
 	end
     end
 
     function self:auto_switch_weapon ()
 	for _, name in weapon_auto_switch_order do
 	    if (weapons[name] and self.have_weapon[name] and
-		weapons[name].can_fire (self))
+		self:has_ammo_for (name))
 	    then
 		self.current_weapon = weapons[name]
-		call_method_on_clients (self, "switch_weapon", name)
+		self:post_weapon_switch_hook ()
 		break
 	    end
 	end
     end
-
-    self:receive_weapon ("basic-blaster")
 
     -- ammo stuff
     self._ammo = {}
@@ -107,30 +105,47 @@ local player_nonproxy_init = function (self)
 	self._ammo[ammo_type] = (self._ammo[ammo_type] or 0) + amount
 
 	if self.desired_weapon ~= self.current_weapon and
-	    self.desired_weapon.can_fire (self) and
+	    self:has_ammo_for (self.desired_weapon) and
 	    contains (weapon_auto_switch_order, self.desired_weapon.name)
 	then
 	    self.current_weapon = self.desired_weapon
-	    call_method_on_clients (self, "switch_weapon", self.current_weapon.name)
+	    self:post_weapon_switch_hook ()
+	elseif ammo_type == self.current_weapon.ammo_type then
+	    _internal_tell_ammo (self, self._ammo[ammo_type])
 	end
     end
 
     function self:deduct_ammo (ammo_type, amount)
-	self._ammo[ammo_type] = max (0, (self._ammo[ammo_type] or 0) - (amount or 1))
+	local v = max (0, (self._ammo[ammo_type] or 0) - (amount or 1))
+	self._ammo[ammo_type] = v
+	_internal_tell_ammo (self, v)
     end
 
-    function self:ammo (ammo_type)
-	return self._ammo[ammo_type] or 0
+    function self:has_ammo_for (weapon)
+	local ammo_type
+	if type (weapon) == "string" then
+	    ammo_type = weapons[weapon].ammo_type
+	else
+	    ammo_type = weapon.ammo_type
+	end
+	if ammo_type == nil then
+	    return true
+	end
+	local ammo = self._ammo[ammo_type]
+	return ammo ~= nil and ammo > 0
     end
+
+    -- initial weapon
+    self.have_weapon["basic-blaster"] = true
+    self:switch_weapon ("basic-blaster")
 
     -- firing stuff
     self.fire_delay = 0
 
     function self:_internal_fire_hook ()
 	if self.fire_delay <= 0 then
-	    local w = self.current_weapon
-	    if w and w.can_fire (self) then
-		w.fire (self)
+	    if self:has_ammo_for (self.current_weapon) then
+		self.current_weapon.fire (self)
 		call_method_on_clients (self, "start_firing_anim")
 	    else
 		self:auto_switch_weapon ()
@@ -140,6 +155,7 @@ local player_nonproxy_init = function (self)
 
     -- health stuff
     self.health = 100
+    _internal_tell_health (self, self.health)
 
     function self:receive_damage (damage)
 	spawn_blood (self.x + cx, self.y + cy, 100, 2)
@@ -147,6 +163,7 @@ local player_nonproxy_init = function (self)
 	    spawn_blod (self.x, self.y, damage/5)
 	end
 	self.health = self.health - damage
+	_internal_tell_health (self, self.health)
 	if self.health <= 0 then
 	    local corpse = spawn_object (corpses[random (getn (corpses))],
 					 self.x, self.y)
@@ -170,6 +187,7 @@ local player_nonproxy_init = function (self)
 
     function self:receive_health (amount)
 	self.health = min (100, self.health + amount)
+	_internal_tell_health (self, self.health)
     end
 
     -- update hook (fire delay and blood trails)
@@ -207,10 +225,14 @@ for i = 0,7 do
 end
 
 local animate_player_proxy_firing = function (self)
+    -- this situation can arise due to network conditions
+    if not self.current_weapon then
+	return
+    end
     if self.animate_arm then
 	if self.arm_tics > 0 then
 	    self.arm_tics = self.arm_tics - 1
-	elseif self.current_weapon then
+	else
 	    local anim = self.current_weapon.arm_anim
 	    self.arm_tics = anim.tics or 5
 	    self.arm_frame = self.arm_frame + 1
@@ -294,7 +316,10 @@ local player_proxy_init = function (self)
 
     -- (called by nonproxy fire hook)
     function self:start_firing_anim ()
-	if not self.animate_arm and self.current_weapon then
+-- 	if not self.current_weapon then--XXX possible?
+-- 	    return
+-- 	end
+	if not self.animate_arm then
 	    self.animate_arm = true
 	    self.arm_tics = 0
 	    self.last_arm_frame = getn (self.current_weapon.arm_anim)

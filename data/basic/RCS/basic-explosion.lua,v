@@ -1,9 +1,14 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.2
+date	2002.01.29.00.06.38;	author tjaden;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2002.01.26.11.55.54;	author tjaden;	state Exp;
@@ -15,9 +20,9 @@ desc
 @@
 
 
-1.1
+1.2
 log
-@Initial revision
+@Added sound to explosions.
 @
 text
 @-- basic-explosion.lua
@@ -27,6 +32,18 @@ store_load ("basic/basic-explosion.dat", "/basic/explosion/")
 explosion_type_register (
     "basic-simple42",
     "/basic/explosion/simple42/000", 17, 50/17,
-    "/basic/light/white-16"
+    "/basic/light/white-16",
+    "/basic/explosion/simple42/sound"
 )
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 2
+a9 1
+    "/basic/light/white-16"
 @

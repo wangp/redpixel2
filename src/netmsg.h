@@ -271,7 +271,16 @@ enum {
        Args: float x, float y, float max_radius, long damage.
      */
 
-    MSG_SC_GAMEINFO_BLAST_CREATE = 'b'
+    MSG_SC_GAMEINFO_BLAST_CREATE = 'b',
+
+
+    /* Tell clients about their status.
+
+       Args: long client_id, byte prop, long value.
+       where prop is 'h' for health, 'a' for ammo
+     */
+
+    MSG_SC_GAMEINFO_CLIENT_STATUS = 's',
 };
 
 

@@ -63,6 +63,8 @@ static BITMAP *crosshair;
 static map_t *map;
 static object_t *local_object;
 static object_t *tracked_object;
+static int health;		/* for displaying only */
+static int ammo;		/* the real values are on server */
 
 /* network stuff */
 static int pinging;
@@ -266,19 +268,18 @@ static void send_gameinfo_controls (void)
 /* XXX stuff in the same packet as _CONTROLS? */
 static void send_gameinfo_weapon_switch (void)
 {
-    static int last_key[10] = {0,0,0,0,0,0,0,0,0,0};
+    static char last_key[10] = {0,0,0,0,0,0,0,0,0,0};
     lua_State *L = lua_state;
+    int cant_set = 0;
     int i;
 
     if (messages_grabbed_keyboard ())
-	return;
+	cant_set = 1;
 
     for (i = 0; i < 10; i++) {
-	int K = KEY_1 + i;
-	int is_down = key[K];
+	int is_down = key[KEY_1 + i];
 
-	if (is_down && !last_key[K]) {
-	    last_key[K] = 1;
+	if (!cant_set && is_down && !last_key[i]) {
 	    lua_getglobal (L, "weapon_order");
 	    lua_pushnumber (L, i+1);
 	    lua_rawget (L, -2);
@@ -288,10 +289,10 @@ static void send_gameinfo_weapon_switch (void)
 				     lua_tostring (L, -1));
 	    }
 	    lua_pop (L, 1);
-	    return;
+	    cant_set = 1;
 	}
 
-	last_key[K] = is_down;
+	last_key[i] = is_down;
     }
 }
 
@@ -551,6 +552,31 @@ SC_GAMEINFO_HANDLER (sc_blast_create)
 }
 
 
+SC_GAMEINFO_HANDLER (sc_client_status)
+{
+    long id;
+    char type;
+    long val;
+    
+    buf += packet_decode (buf, "lcl", &id, &type, &val);
+    if (id == client_id) {
+	switch (type) {
+	    case 'h':
+		health = val;
+		break;
+	    case 'a':
+		ammo = val;
+		break;
+	    default:
+		error ("unknown type in gameinfo client status packet (client)\n");
+		break;
+	}
+    }
+
+    return buf;
+}
+
+
 static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 {
     const void *end = buf + size;
@@ -605,6 +631,10 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 		buf = sc_blast_create (buf);
 		break;
 
+	    case MSG_SC_GAMEINFO_CLIENT_STATUS:
+		buf = sc_client_status (buf);
+		break;
+		
 	    default:
 		error ("error: unknown code in gameinfo packet (client)\n");
 	}
@@ -689,6 +719,15 @@ static void trans_textprintf (BITMAP *bmp, FONT *font, int x, int y,
 }
 
 
+static void draw_status (BITMAP *bmp)
+{
+    FONT *f = store_dat ("/basic/font/ugly");
+
+    textprintf_right (bmp, f, bmp->w - 40, bmp->h - text_height (f) - 2, -1, "%d", health);
+    textprintf_right (bmp, f, bmp->w - 2, bmp->h - text_height (f) - 2, -1, "%d", ammo);
+}
+
+
 static void update_screen (void)
 {
     if (backgrounded)
@@ -725,6 +764,8 @@ static void update_screen (void)
 	draw_lit_magic_sprite (bmp, crosshair, mouse_x-2, mouse_y-2,
 			       makecol24 (0xff, 0xff, 0xff));
     }
+
+    draw_status (bmp);
 
     messages_render (bmp);
 

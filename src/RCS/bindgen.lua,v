@@ -1,9 +1,24 @@
-head	1.24;
+head	1.27;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.27
+date	2002.01.29.00.07.13;	author tjaden;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	2002.01.28.14.06.20;	author tjaden;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	2002.01.28.13.01.12;	author tjaden;	state Exp;
+branches;
+next	1.24;
 
 1.24
 date	2002.01.27.14.05.42;	author tjaden;	state Exp;
@@ -130,9 +145,9 @@ desc
 @@
 
 
-1.24
+1.27
 log
-@Added blasts.
+@Added sound to explosions.
 @
 text
 @-- bindgen.lua -- generate Lua <-> C bindings
@@ -320,13 +335,15 @@ generate {
 generate {
     lname	= "explosion_type_register",
     cname	= "explosion_type_register",
-    check	= "ssnn[sN-]",
+    check	= "ssnn[sN-][sN-]",
     args	= {{ String, "name" },
 		   { String, "first_frame" },
 		   { Int, "nframes" },
 		   { Int, "tics" },
 	       	   { String, "light", nil,
-		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" }},
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" },
+	           { String, "sound", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#)); "}},
     ret		= { Int, "ret", "$ < 0" }
 }
 
@@ -355,6 +372,11 @@ generate {
 
 generate {
     cname	= "object_set_collision_is_player",
+    args	= {{ Object, "obj" }}
+}
+
+generate {
+    cname	= "object_set_collision_is_projectile",
     args	= {{ Object, "obj" }}
 }
 
@@ -608,6 +630,20 @@ generate {
 }
 
 generate {
+    cname	= "svgame_tell_health",
+    lname	= "_internal_tell_health",
+    args	= {{ Object, "obj" },
+		   { Int, "health" }}
+}
+
+generate {
+    cname	= "svgame_tell_ammo",
+    lname	= "_internal_tell_ammo",
+    args	= {{ Object, "obj" },
+		   { Int, "ammo" }}
+}
+
+generate {
     cname	= "client_set_camera",
     lname	= "_internal_set_camera",
     args	= {{ Int, "pushable" },	-- XXX should be Bool
@@ -618,6 +654,38 @@ print (reg)
 
 
 -- bindgen.lua ends here
+@
+
+
+1.26
+log
+@Made it so that projectiles cannot hit other projectiles.
+@
+text
+@d186 1
+a186 1
+    check	= "ssnn[sN-]",
+d192 3
+a194 1
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0 : lua_tostring(L, $#));" }},
+@
+
+
+1.25
+log
+@Added client health and ammo displays.
+@
+text
+@d225 5
+@
+
+
+1.24
+log
+@Added blasts.
+@
+text
+@d474 14
 @
 
 
