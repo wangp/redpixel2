@@ -26,6 +26,7 @@
 #include "packet.h"
 #include "particle.h"
 #include "render.h"
+#include "screen.h"
 #include "server.h"
 #include "sound.h"
 #include "store.h"
@@ -966,9 +967,7 @@ static void update_screen (void)
 	draw_scores (bmp);
 
     scare_mouse ();
-    acquire_screen ();
-    blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
-    release_screen ();
+    blit_magic_bitmap_to_screen (bmp);
     unscare_mouse ();
 
     frames++;
@@ -1101,7 +1100,7 @@ void client_run (int client_server)
 	    else
 		blit (lobby_bmp, bmp, 0, 0, 0, 0, bmp->w, bmp->h);
 	    messages_render (bmp);
-	    blit_magic_format (bmp, screen, SCREEN_W, SCREEN_H);
+	    blit_magic_bitmap_to_screen (bmp);
 
 	    if (net_receive_rdm (conn, buf, sizeof buf) <= 0) {
 		sync_client_unlock ();
@@ -1434,8 +1433,8 @@ int client_init (const char *name, int net_driver, const char *addr)
 
     client_name = ustrdup (name);
 
-    bmp = create_magic_bitmap (SCREEN_W, SCREEN_H);
-    cam = camera_create (SCREEN_W, SCREEN_H);
+    bmp = create_magic_bitmap (screen_width, screen_height);
+    cam = camera_create (screen_width, screen_height);
 
     /* XXX */ {
 	PALETTE pal;

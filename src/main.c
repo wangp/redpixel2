@@ -14,6 +14,7 @@
 #include "gamemenu.h"
 #include "getoptc.h"
 #include "messages.h"
+#include "screen.h"
 #include "server.h"
 #include "sync.h"
 #include "textface.h"
@@ -51,7 +52,7 @@ static int setup_video (int w, int h, int d)
 }
 
 
-static void setup_allegro (int w, int h, int d)
+static void setup_allegro (int w, int h, int d, int stretch_method)
 {
     allegro_init ();
     install_timer ();
@@ -70,9 +71,17 @@ static void setup_allegro (int w, int h, int d)
         allegro_message ("Error setting video mode.\n%s\n", allegro_error);
 	exit (1);
     }
+
+    screen_blitter_init (stretch_method, d);
     
     if (set_display_switch_mode (SWITCH_BACKAMNESIA) < 0)
 	set_display_switch_mode (SWITCH_BACKGROUND);
+}
+
+
+static void unsetup_allegro (void)
+{
+    screen_blitter_shutdown ();
 }
 
 
@@ -135,6 +144,7 @@ static void do_run_server (void)
 int main (int argc, char *argv[])
 {
     int w = 320, h = 200, d = -1;
+    int stretch_method = STRETCH_METHOD_NONE;
     int run_server = 0;
     int run_parallel = 0;
     int run_editor = 0;
@@ -144,8 +154,15 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":spa:n:ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":2spa:n:ew:h:d:")) != -1) {
 	switch (c) {
+	    case '2':
+		/* XXX this is temporary */
+		w = 640;
+		h = 400;
+		d = 16;
+		stretch_method = STRETCH_METHOD_PLAIN;
+		break;
 	    case 's':
 		run_server = 1;
 		break;
@@ -193,7 +210,7 @@ int main (int argc, char *argv[])
     if (run_server)
 	setup_minimal_allegro ();
     else
-	setup_allegro (w, h, d);
+	setup_allegro (w, h, d, stretch_method);
 
     game_init ();
 
@@ -213,8 +230,6 @@ int main (int argc, char *argv[])
 	if (gamemenu_init () == 0) {
 	    gamemenu_run ();
 	    gamemenu_shutdown ();
-	    game_shutdown ();
-	    return 0;
 	}
 	else {
 	    allegro_message ("Cannot load data files.  Did you download them?\n");
@@ -224,7 +239,10 @@ int main (int argc, char *argv[])
 
     game_shutdown ();
 
+    if (!run_server)
+	unsetup_allegro ();
+
     return 0;
 }
 
-END_OF_MAIN();
+END_OF_MAIN()

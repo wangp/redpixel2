@@ -9,6 +9,7 @@
 #include "extdata.h"
 #include "magic4x4.h"
 #include "menu.h"
+#include "screen.h"
 #include "store.h"
 #include "textout.h"
 
@@ -212,7 +213,7 @@ static menu_t root_menu[] =
  */
 
 
-#define X_CENTRE	(SCREEN_W/2)
+#define X_CENTRE	(screen_width/2)
 #define Y_START		80
 #define Y_SPACING	20
 
@@ -250,7 +251,7 @@ static void draw_menu (menu_t *menu, int selected)
     }
 
     /* blit to screen */
-    blit_magic_format (dbuf, screen, SCREEN_W, SCREEN_H);
+    blit_magic_bitmap_to_screen (dbuf);
 }
 
 
@@ -316,7 +317,7 @@ int gamemenu_init (void)
 
     fnt = store_get_dat ("/frontend/menu/font");
 
-    dbuf = create_magic_bitmap (SCREEN_W, SCREEN_H);
+    dbuf = create_magic_bitmap (screen_width, screen_height);
 
     return 0;
 }
