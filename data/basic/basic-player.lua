@@ -171,7 +171,9 @@ Objtype {
     icon = "/basic/player/death-fountain/000",
 
     nonproxy_init = function (self)
-	self:set_collision_flags ("")
+	self:set_masks_centre (44, 16)
+	self:set_collision_flags ("t")
+	self.mass = 0.005
 	self.frame = 1
 	self:add_creation_field ("frame")
 	self:set_update_hook (1000/10, death_fountain_update_hook)
