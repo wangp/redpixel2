@@ -1,0 +1,278 @@
+\documentclass[a4paper,titlepage]{article}
+\usepackage{vmargin}
+\usepackage{url}
+\usepackage[colorlinks=false]{hyperref}
+\begin{document}
+
+
+\newcommand{\key}[1]{\fbox{\texttt{#1}}}
+
+
+\title{Red Pixel 2}
+\date{Demo 2}
+\author{Peter Wang}
+\maketitle
+
+\tableofcontents
+\newpage
+
+
+%----------------------------------------------------------------------
+\section{Introduction}
+
+Red Pixel 2 is a platform deathmatch game, playable by two or more
+players on a Local Area Network (LAN).
+
+At the beginning of a match players are dropped into a dark 2d map
+with only a torch and a blaster (the weakest weapon available).
+Players must collect better weapons and ammunition, search out their
+opponents, and then shoot them to a bloody pulp.  Dead players will be
+respawned, but lose all the possessions they had collected.  Scoring
+is based on the number of kills made.
+
+
+\subsection{System requirements}
+
+\begin{itemize}
+\item i686 class machine running Windows 9x/ME or Linux
+\item machines must be connected on a LAN with IP (high speed internet
+  connections may work, but hasn't been tested)
+\item keyboard, mouse, sound card, etc.
+\end{itemize}
+
+Windows XP doesn't work (well?), and I presume neither would Windows
+NT.  I don't have access to those operating systems, so I don't know
+when that will be fixed.
+
+
+
+%----------------------------------------------------------------------
+\section{Entering the game}
+
+
+\subsection{Starting the server}
+
+A Red Pixel 2 game setup consists of a single server and two or more
+clients connected to it.  The server hosts the game and handles most
+of the simulation work.  Clients connect to the server to interact
+with the simulation.
+
+\begin{verbatim}
+        server
+       /  |  \
+     cl  cl  cl
+     pl  pl  pl
+\end{verbatim}
+
+To start a game, a server must be started first.  In this manual we
+will assume the machine running the server will also run a client
+(although it is possible to run a dedicated server if you so wish).
+
+In the main menu, select \textsf{Multiplayer} then
+\textsf{Client-Server}.  After entering a nickname for yourself select
+\textsf{Ok} and you will be placed into the lobby.  At this stage you
+will probably want to wait for clients to join your match (although
+clients can join at any time).
+
+(If you wish to run two or more different Red Pixel 2 games on the
+same LAN, you will need to select a different IP port before pressing
+\textsf{Ok}.  I will assume then that you know what you are doing.)
+
+
+\subsection{Starting a client}
+
+On the client machine, select \textsf{Multiplayer} then
+\textsf{Client}.  Enter a nickname for yourself, and type in the name
+of the server machine or its IP address.  (Sorry, there is no
+broadcast feature.)  You should either be placed into the lobby, or if
+you joined in the middle of a game, you will be dropped directly into
+the map.
+
+
+\subsection{The lobby}
+
+In the lobby you can type messages to other clients in the lower left
+corner.
+
+The client-server can select the next map to play by clicking on the
+small button next to the name of the current map (in the top right
+corner).  Once a map has been chosen, the server can start the game by
+pressing \textsf{Go!}.
+
+You can click on the small icons which represent each connected
+client, and some information about each client will be displayed.  If
+it's necessary, the client-server can forcefully disconnect a client
+by pressing the \textsf{Kick} button.
+
+Once in the game, the client-server can return to the lobby by
+pressing \key{Esc}.  A new map can then be selected, or the game
+ended.  If you wish to return to the game without starting a new map,
+simply press \key{Esc}.
+
+
+\subsection{End of match}
+
+At this stage, Red Pixel 2 does not enforce any notions of when a
+match is finished.  The server can end the match by returning to the
+lobby and pressing the \textsf{Disconnect} button.
+
+
+
+%----------------------------------------------------------------------
+\section{Playing the game}
+
+
+\subsection{Controls}
+
+The player moves his/her character around using the \key{W}, \key{A},
+\key{S}, \key{D} keys, or using the cursor keys.  Weapons can be
+selected directly with the number keys (\key{1} to \key{9}), or you
+can cycle through them using the \key{Q} and \key{E}.  If your mouse
+has a wheel, scrolling the mouse wheel will also cycle through the
+weapons.
+
+Aim the selected weapon using the mouse, and hold down the left mouse
+button to fire.  Notice that by pushing the mouse cursor further from
+your character you can see further in that direction.
+
+You can drop collected mines by pressing the right mouse button.
+Mines are armed soon after dropping.
+
+When you die, press the \key{Space bar} to respawn.
+
+Press \key{Tab} to view everyone's scores.  The total number of kills
+(``frags'') is displayed.  A second number (in brackets) may also be
+present: this is the number of kills made since this map was started.
+Committing suicide will decrease your score.
+
+You can type text messages to other players by pressing \key{Enter}.
+
+Clients can press \key{Esc} during a game to quit.  Client-servers can
+press \key{Esc} during a game to return to the lobby.
+
+
+\subsection{Weapons}
+
+\subsubsection*{Blaster}
+
+The blaster is the weakest of the available weapons.
+
+\noindent
+\emph{Ammunition}: none.
+
+\subsubsection*{AK-47}
+
+A rapid firing gun which is slightly better than a blaster.
+
+\noindent
+\emph{Ammunition}: bullets.
+
+\subsubsection*{Shotgun}
+
+The shotgun is a powerful weapon that sprays shots in various
+directions.  It is particularly good at close range.
+
+\noindent
+\emph{Ammunition}: shells.
+
+\subsubsection*{Vulcan cannon}
+
+The vulcan cannon fires \emph{very} high velocity bullets at a high
+rate, which reach their target almost instantaneously.  However, each
+bullet does not do as much damage as some other weapons.
+
+\noindent
+\emph{Ammunition}: vulcan ammo.
+
+\subsubsection*{Minigun}
+
+The minigun fires bullets at a high rate.  The bullets do more damage
+than vulcan cannon bullets.
+
+\noindent
+\emph{Ammunition}: bullets.
+
+\subsubsection*{Bow}
+
+The bow fires arrows, which explode on impact.
+
+\noindent
+\emph{Ammunition}: explosive arrows.
+
+\subsubsection*{Rocket launcher}
+
+Rockets do significantly more damage than explosive arrows, however
+they take longer to reload.
+
+\noindent
+\emph{Ammunition}: rockets.
+
+\subsubsection*{Sniper rifle}
+
+Sniper rifles fire slugs that can penetrate walls, and each slug does
+a large amount of damage.  However, reloading the rifle takes a rather
+long time.  Since the rifles are designed for sniping, they are also
+equipped with a scope that allows you to see further than usual.
+Excessive use of the scope also leaves you prone to ambush.
+
+\noindent
+\emph{Ammunition}: slugs.
+
+\subsubsection*{Mine}
+
+Unlike other weapons, mines cannot be selected.  They are dropped by
+pressing the right mouse button.  After a short time, they will be
+automatically armed and then will detonate as soon as a player comes
+close to it.  They will also detonate if they are shot or damaged by
+an explosion.
+
+
+\subsection{Other items}
+
+\subsubsection*{Armour}
+
+Armour items come in three flavours: brown, blue and purple.  Picking
+up an armour item will increase your armour points, up to a maximum of
+50.  Armour reduces the amount of damage done by bullets and
+explosions by half.
+
+\subsubsection*{Burger, cola, chocolate bars, pizza, medkit}
+
+These increase your health points by different amounts, up to a
+maximum of 100 health points.
+
+\subsubsection*{Bloodlust}
+
+The bloodlust item temporarily doubles the damage your weapons do.
+
+\subsubsection*{Lightamp}
+
+The lightamp item temporarily gives you night vision goggles that help
+you see better.  It will not affect how other players see you.
+
+\subsubsection*{Backpack}
+
+A backpack is dropped when a player dies, containing half of their
+ammunition (but no weapons).  Mines are not retained.
+
+
+
+%----------------------------------------------------------------------
+\section{Credits}
+
+Red Pixel 2 was written by Peter Wang, with graphics David Wang.
+Kaupo Erme and Oskar Aitaja contributed 3d art and music respectively.
+A number of libraries were used, including:
+
+\begin{description}
+\item [Allegro] \url{http://alleg.sf.net/}
+\item [Libnet] \url{http://libnet.sf.net/}
+\item [Lua] \url{http://www.lua.org/}
+\item [DUMB] \url{http://dumb.sf.net/}
+\end{description}
+
+\noindent
+The Red Pixel 2 web site is at \url{http://redpixel.sf.net/}
+
+
+\end{document}
