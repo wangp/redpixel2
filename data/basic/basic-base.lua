@@ -104,5 +104,5 @@ end
 -- utility functions
 
 function radian_to_bangle (rads)
-    return rads * 128 / 3.1415
+    return rads * 128 / PI
 end

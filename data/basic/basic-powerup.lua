@@ -2,14 +2,13 @@
 
 store_load ("basic/basic-powerup.dat", "/basic/powerup/")
 
-function make_basic_powerup_init (respawn_secs)
+local make_basic_powerup_init = function (respawn_secs)
     return function (self)
-	local respawn_secs = %respawn_secs
 	self:set_collision_flags ("p")
-	function self.collide_hook (self, player)
+	function self:collide_hook (player)
 	    self:hide ()
 	    self:set_update_hook (
-		1000 * %respawn_secs,
+		1000 * respawn_secs,
 		function (self)
 		    self:show ()
 		    self:remove_update_hook ()

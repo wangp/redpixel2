@@ -25,7 +25,7 @@ Objtype {
     icon = "/basic/weapon/blaster/pickup",
     nonproxy_init = function (self)
 	self:set_collision_flags ("p")
-        function self.collide_hook (self, player)
+        function self:collide_hook (player)
 	    player:receive_weapon ("basic-blaster")
 	    self:destroy ()
 	end
@@ -37,11 +37,11 @@ Objtype {
     name = "basic-blaster-projectile",
     icon = "/basic/weapon/blaster/projectile",
     nonproxy_init = function (self)
-	function self.collide_hook (self, obj)
+	function self:collide_hook (obj)
 	    obj:receive_damage (10)
 	    self:destroy ()
 	end
-	function self.tile_collide_hook (self)
+	function self:tile_collide_hook ()
 	    self:destroy ()
 	end
     end,

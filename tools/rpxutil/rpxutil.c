@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <allegro.h>
-#include <lua.h>
+#include "lua.h"
 #include "datedit.h"
 
 #ifndef NO_LOADPNG
@@ -193,7 +193,7 @@ static DATAFILE *new_datafile (void)
 static int _new_datafile (lua_State *L)
     /* (no input) : (dat) */
 {
-    lua_pushuserdata (L, new_datafile ());
+    lua_newuserdatabox (L, new_datafile ());
     return 1;
 }
 
@@ -232,7 +232,7 @@ static int _add_to_datafile_bitmap (lua_State *L)
 
     dat = datedit_insert (dat, NULL, name, DAT_BITMAP, bmp, 0);
 
-    lua_pushuserdata (L, dat);
+    lua_newuserdatabox (L, dat);
     return 1;
 }
 
@@ -249,7 +249,7 @@ static int _add_to_datafile_magic_bitmap (lua_State *L)
     dat = datedit_insert (dat, &new, name, DAT_BITMAP, bmp, 0);
     datedit_set_property (new, DAT_ID ('M','A','G','K'), "Magical lightbulb");
 
-    lua_pushuserdata (L, dat);
+    lua_newuserdatabox (L, dat);
     return 1;
 }
 
@@ -318,7 +318,7 @@ static int _add_to_datafile_grab_from_grid (lua_State *L)
 
   end:
 
-    lua_pushuserdata (L, dat);
+    lua_newuserdatabox (L, dat);
     return 1;
 }
 
@@ -433,9 +433,9 @@ static int _create_simple_lightmap (lua_State *L)
     float brightness = pop_number (L, 3);
     float pinpoint   = pop_number (L, 4);
 
-    lua_pushuserdata (L, ((hue > 0)
-			  ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
-			  : (create_simple_mono_lightmap (radius, brightness, pinpoint))));
+    lua_newuserdatabox (L, ((hue > 0)
+			    ? (create_simple_coloured_lightmap (radius, hue, brightness, pinpoint))
+			    : (create_simple_mono_lightmap (radius, brightness, pinpoint))));
     return 1;
 }
 
@@ -462,7 +462,7 @@ static int _create_lightmap_icon (lua_State *L)
     textprintf_centre (bmp, font, bmp->w / 2, bmp->h / 2,
 		       makecol16 (0, 0, 0), "%d", radius);
 
-    lua_pushuserdata (L, bmp);
+    lua_newuserdatabox (L, bmp);
     return 1;
 }
 
@@ -495,7 +495,7 @@ static int _create_lightmap_from_bitmap (lua_State *L)
 
     destroy_bitmap (bmp);
 
-    lua_pushuserdata (L, magic);
+    lua_newuserdatabox (L, magic);
     return 1;
 }
 
