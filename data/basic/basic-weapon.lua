@@ -29,6 +29,7 @@ end
 -- Declare a new weapon or ammo pickup, which respawns a while after being
 -- picked up.
 local Standard_Pickup = function (t)
+    if t.alias then add_alias (t.name, t.alias) end
     return Objtype (t, {
 	category = "weapon",
 	nonproxy_init = function (self)
@@ -50,6 +51,7 @@ end
 -- Declare a new projectile type.  This only handles standard-style
 -- projectiles, like bullets.
 local Standard_Projectile = function (t)
+    if t.alias then add_alias (t.name, t.alias) end
     return Objtype (t, {
 	nonproxy_init = function (self)
 	    function self:collide_hook (obj)
@@ -92,6 +94,7 @@ Standard_Pickup {
 
 Standard_Projectile {
     name = "basic-blaster-projectile",
+    alias = "~bp",
     icon = "/basic/weapon/blaster/projectile",
     damage = 10,
     proxy_init = function (self)
@@ -123,6 +126,7 @@ Standard_Pickup {
 
 Standard_Projectile {
     name = "basic-arrow-projectile",
+    alias = "~ap",
     icon = "/basic/weapon/bow/projectile",
     damage = 10
 }
@@ -169,6 +173,7 @@ Standard_Pickup {
 
 Standard_Projectile {
     name = "basic-ak-projectile",
+    alias = "~Ap",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     damage = 10
 }
@@ -208,6 +213,7 @@ Standard_Pickup {
 
 Standard_Projectile {
     name = "basic-minigun-projectile",
+    alias = "~mp",
     icon = "/basic/weapon/shotgun/projectile", -- XXX
     damage = 10
 }
@@ -236,6 +242,7 @@ Standard_Pickup {
 
 Standard_Projectile {
     name = "basic-rocket-projectile",
+    alias = "~rp",
     icon = "/basic/weapon/rpg/projectile",
     damage = 10
 }
@@ -288,6 +295,7 @@ Standard_Pickup {
 
 Standard_Projectile {
     name = "basic-shotgun-projectile",
+    alias = "~sp",
     icon = "/basic/weapon/shotgun/projectile",
     damage = 10
 }
@@ -334,6 +342,8 @@ Objtype {
 	end
     end
 }
+
+add_alias ("basic-rifle-projectile", "~Rp")
 
 
 ----------------------------------------------------------------------

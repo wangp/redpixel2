@@ -122,7 +122,7 @@ static int net_send_rdm_encode (NET_CONN *conn, const char *fmt, ...)
 {
     va_list ap;
     uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-    int size;
+    size_t size;
 
     va_start (ap, fmt);
     size = packet_encode_v (buf, fmt, ap);
@@ -255,7 +255,7 @@ static void send_gameinfo_weapon_switch () /* XXX stuff in the same packet as _C
 /*----------------------------------------------------------------------*/
 
 
-static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
+static void process_sc_gameinfo_packet (const uchar_t *buf, size_t size)
 {
     const void *end = buf + size;
 
@@ -279,6 +279,8 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 
 	    case MSG_SC_GAMEINFO_OBJECT_CREATE:
 	    {
+		lua_State *L = lua_state;
+		int top = lua_gettop (L);
 		char type[NETWORK_MAX_PACKET_SIZE];
 		long len;
 		objid_t id;
@@ -287,10 +289,23 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		float xv, yv;
 		int ctag;
 		object_t *obj;
+		const char *realtype;
 
+		/* decode the start of the packet */
 		buf += packet_decode (buf, "slcffffc", &len, type, &id, &hidden,
 				      &x, &y, &xv, &yv, &ctag);
-		obj = object_create_proxy (type, id);
+
+		/* look up the object type alias */
+		lua_getglobal (L, "reverse_object_alias");
+		lua_pushstring (L, type);
+		lua_rawget (L, -2);
+		if (lua_isstring (L, -1))
+		    realtype = lua_tostring (L, -1);
+		else
+		    realtype = type;
+
+		/* create proxy object */
+		obj = object_create_proxy (realtype, id);
 		if (!obj)
 		    error ("error: unable to create a proxy object (unknown type?)");
 		if (hidden)
@@ -324,12 +339,15 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		    } while (type);
 		}
 
+		/* init and link */
 		object_run_init_func (obj);
 		map_link_object (map, obj);
 
+		/* hack to get the camera to track a player's corpse */
 		if (object_get_number (obj, "_internal_stalk_me") == client_id)
 		    tracked_object = obj;
 
+		lua_settop (L, top);
 		break;
 	    }
 
@@ -642,7 +660,7 @@ void game_client_run ()
     dbg ("receive game state");
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-	int size;
+	size_t size;
 
 	sync_client_lock ();
 	net_send_rdm_byte (conn, MSG_CS_GAMESTATEFEED_ACK);
@@ -686,7 +704,7 @@ void game_client_run ()
     dbg ("pause");
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-	int size;
+	size_t size;
 
 	while (1) {
 	    sync_client_lock ();
@@ -747,7 +765,7 @@ void game_client_run ()
 	    dbg ("process network input");
 	    {
 		uchar_t buf[NETWORK_MAX_PACKET_SIZE];
-		int size;
+		size_t size;
 		int receive_game_state_later = 0;
 		int pause_later = 0;
 		int lobby_later = 0;

@@ -42,6 +42,21 @@ function dofile (filename)
 end
 
 
+-- object type name aliases (long name -> short name)
+
+object_alias = {}
+reverse_object_alias = {}
+
+function add_alias (long, short)
+    if reverse_object_alias[short] then
+	print ("Alias short-name "..short.." already exists, ignoring")
+    else
+	object_alias[long] = short
+	reverse_object_alias[short] = long
+    end
+end
+
+
 -- modules to load
 
 local files = {
