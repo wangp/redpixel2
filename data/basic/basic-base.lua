@@ -90,7 +90,7 @@ end
 -- objtype_register wrapper
 
 function Objtype (t, u)
-    if u then t = merge (t, u) end
+    t = merge (t, u)
     local result =
     objtype_register (t.category, t.name, t.icon,
 	function (self)
@@ -111,8 +111,7 @@ end
 weapons = {}
 
 function Weapon (t, u)
-    if u then t = merge (t, u) end
-    weapons[t.name] = u and merge (t, u) or t
+    weapons[t.name] = merge (t, u)
 end
 
 
@@ -122,9 +121,17 @@ function radian_to_bangle (rads)
     return rads * 128 / PI
 end
 
+-- Merge t1 and t2, t2 taking precedence in case of clashes.
+-- For convenience, if t2 is omitted, this is the identity function
+-- (i.e. the table returned is NOT a new table.
 function merge (t1, t2)
-    local t = {}
-    for i,v in t1 do t[i] = v end
-    for i,v in t2 do t[i] = v end
+    local t
+    if not t2 then
+	t = t1
+    else
+	t = {}
+	for i,v in t1 do t[i] = v end
+	for i,v in t2 do t[i] = v end
+    end
     return t
 end
