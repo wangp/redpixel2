@@ -13,7 +13,7 @@ int messages_num_lines (void);
 const char *messages_get_line (int i);
 
 void ingame_messages_render (struct BITMAP *);
-const char *ingame_messages_poll_input (void);
+const char *ingame_messages_poll_input (int c, int sc);
 int ingame_messages_grabbed_keyboard (void);
 
 

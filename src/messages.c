@@ -194,61 +194,55 @@ void ingame_messages_render (BITMAP *bmp)
 }
 
 
-const char *ingame_messages_poll_input (void)
+const char *ingame_messages_poll_input (int c, int sc)
 {
     if ((num_lines > 0) && timeout_test (&next_scroll))
 	scroll_line ();
     
-    while (keypressed ()) {
-	int c, sc;
-	c = ureadkey (&sc);
-
-	if (sc == KEY_ENTER) {
-	    if (input_enabled) {
-		input_enabled = 0;
-		if (input_line[0])
-		    return ucs16_to_utf8 (input_line);
-	    }
-	    else {
-		input_line[0] = 0;
-		input_pos = 0;
-		input_enabled = 1;
-	    }
-	    continue;
+    if (sc == KEY_ENTER) {
+	if (input_enabled) {
+	    input_enabled = 0;
+	    if (input_line[0])
+		return ucs16_to_utf8 (input_line);
 	}
+	else {
+	    input_line[0] = 0;
+	    input_pos = 0;
+	    input_enabled = 1;
+	}
+    }
 
-	if (!input_enabled)
-	    continue;
+    if (!input_enabled)
+	return NULL;
 
-	switch (sc) {
+    switch (sc) {
 
-	    case KEY_ESC:
-		input_enabled = 0;
-		break;
+	case KEY_ESC:
+	    input_enabled = 0;
+	    break;
 		
-	    case KEY_BACKSPACE:
-		if (input_pos > 0)
-		    input_line[--input_pos] = 0;
-		break;
+	case KEY_BACKSPACE:
+	    if (input_pos > 0)
+		input_line[--input_pos] = 0;
+	    break;
 
-	    case KEY_LEFT:
-	    case KEY_RIGHT:
-	    case KEY_UP:
-	    case KEY_DOWN:
-	    case KEY_PGUP:
-	    case KEY_PGDN:
-	    case KEY_HOME:
-	    case KEY_END:
-		/* todo */
-		break;
+	case KEY_LEFT:
+	case KEY_RIGHT:
+	case KEY_UP:
+	case KEY_DOWN:
+	case KEY_PGUP:
+	case KEY_PGDN:
+	case KEY_HOME:
+	case KEY_END:
+	    /* todo */
+	    break;
 
-	    default:
-		if ((c >= ' ') && (input_pos < MAX_INPUT_LEN - 1)) {
-		    input_line[input_pos++] = c;
-		    input_line[input_pos] = 0;
-		}
-		break;
-	}
+	default:
+	    if ((c >= ' ') && (input_pos < MAX_INPUT_LEN - 1)) {
+		input_line[input_pos++] = c;
+		input_line[input_pos] = 0;
+	    }
+	    break;
     }
 
     return NULL;

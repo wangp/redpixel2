@@ -89,6 +89,9 @@ static int last_controls;
 static float aim_angle;
 static float last_aim_angle;
 
+/* quit prompt points to string if enabled, or NULL if disabled */
+static const char *quit_prompt;
+
 /* how bright the scoresheet is (0-15).  0 = disabled */
 static int scores_brightness;
 
@@ -374,7 +377,7 @@ static void send_gameinfo_controls (void)
     int controls = 0;
     int update = 0;
 
-    if (!ingame_messages_grabbed_keyboard ()) {
+    if (!ingame_messages_grabbed_keyboard () && !quit_prompt) {
 	if (key[KEY_A] || key[KEY_LEFT])  controls |= CONTROL_LEFT;
 	if (key[KEY_D] || key[KEY_RIGHT]) controls |= CONTROL_RIGHT;
 	if (key[KEY_W] || key[KEY_UP])    controls |= CONTROL_UP;
@@ -424,7 +427,7 @@ static void send_gameinfo_weapon_switch (void)
     int keyboard_grabbed;
     int already_set = 0;
 
-    keyboard_grabbed = ingame_messages_grabbed_keyboard ();
+    keyboard_grabbed = (ingame_messages_grabbed_keyboard () || quit_prompt);
 
     /* KEY_1 - KEY_9 */
     {
@@ -1095,6 +1098,19 @@ static void draw_status (BITMAP *bmp)
 }
 
 
+static void draw_quit_prompt (BITMAP *bmp)
+{
+    if (quit_prompt) {
+	FONT *f = store_get_dat ("/basic/font/ugly");
+	int col = makecol24 (0xff, 0xff, 0xff);
+	int cx = bmp->w/3/2;
+
+	textout_centre_trans_magic (bmp, f, quit_prompt, cx, 60, col);
+	textout_centre_trans_magic (bmp, f, "Press Y or N", cx, 100, col);
+    }
+}
+
+
 static void draw_scores (BITMAP *bmp)
 {
     if (scores_brightness > 0) {
@@ -1145,6 +1161,8 @@ static void update_screen (int mouse_x, int mouse_y)
 
     draw_scores (bmp);
 
+    draw_quit_prompt (bmp);
+
     scare_mouse ();
     blit_magic_bitmap_to_screen (bmp);
     unscare_mouse ();
@@ -1156,7 +1174,7 @@ static void update_screen (int mouse_x, int mouse_y)
 
 /*
  *----------------------------------------------------------------------
- *	The game client outer loop (XXX too big)
+ *	The game client outer loop (XXX too big, very, very disgusting)
  *----------------------------------------------------------------------
  */
 
@@ -1326,11 +1344,6 @@ void client_run (int client_server)
 	while (1) {
 	    sync_client_lock ();
 
-	    if (key[KEY_ESC]) {
-		sync_client_unlock ();
-		goto lobby;
-	    }
-
 	    size = net_receive_rdm (conn, buf, sizeof buf);
 	    if (size <= 0) {
 		sync_client_unlock ();
@@ -1373,11 +1386,6 @@ void client_run (int client_server)
 
 	while (1) {
 	    sync_client_lock ();
-
-	    if (key[KEY_ESC]) {
-		sync_client_unlock ();
-		goto disconnect;
-	    }
 
 	    size = net_receive_rdm (conn, buf, sizeof buf);
 	    if (size <= 0) {
@@ -1425,12 +1433,16 @@ void client_run (int client_server)
     show_mouse(NULL);
     set_mouse_range(0, 0, screen_width-1, screen_height-1);
 
+    /* good time to force gc */
+    lua_setgcthreshold (Lclt, 0);
+
     dbg ("game");
     {
 	ulong_t last_ticks, t;
-
-	/* good time to force gc */
-	lua_setgcthreshold (Lclt, 0);
+	int receive_game_state_later = 0;
+	int pause_later = 0;
+	int lobby_later = 0;
+	int end_later = 0;
 
 	ticks_init ();
 	last_ticks = ticks;
@@ -1438,22 +1450,15 @@ void client_run (int client_server)
 	pinging = 0;
 	last_ping_time = 0;
 
+	quit_prompt = NULL;
+
 	while (1) {
 	    sync_client_lock ();
-
-	    if (key[KEY_ESC]) {
-		if (client_server)
-		    client_server_interface_add_input ("stop");
-	    }
 
 	    dbg ("process network input");
 	    {
 		uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 		size_t size;
-		int receive_game_state_later = 0;
-		int pause_later = 0;
-		int lobby_later = 0;
-		int end_later = 0;
 
 		while ((size = net_receive_rdm (conn, buf, sizeof buf)) > 0) {
 		    switch (buf[0]) {
@@ -1509,10 +1514,10 @@ void client_run (int client_server)
 		    }
 		}
 
-		if (receive_game_state_later) { sync_client_unlock (); goto receive_game_state; }
-		if (pause_later) { sync_client_unlock (); goto pause; }
-		if (lobby_later) { sync_client_unlock (); goto lobby; }
-		if (end_later) { sync_client_unlock (); goto end; }
+		if (receive_game_state_later || pause_later || lobby_later || end_later) {
+		    sync_client_unlock ();
+		    goto out_of_game;
+		}
 	    }
 
 	    t = ticks;
@@ -1522,7 +1527,7 @@ void client_run (int client_server)
 		send_gameinfo_weapon_switch ();
 
 		/* XXX dunno where to put this */
-		if (!ingame_messages_grabbed_keyboard ()) {
+		if (!ingame_messages_grabbed_keyboard () && !quit_prompt) {
 		    int want_scores = key[KEY_TAB];
 		    scores_brightness += (want_scores ? 1 : -1);
 		    scores_brightness = MID (0, scores_brightness, 15);
@@ -1540,14 +1545,48 @@ void client_run (int client_server)
 
 		map_destroy_stale_objects (map);
 
-		{
+		dbg ("handle typing");
+		while (keypressed ()) {
+		    int c, sc;
 		    const char *s;
 
-		    if ((s = ingame_messages_poll_input ())) {
-			if (client_server && (s[0] == ','))
-			    client_server_interface_add_input (s+1);
-			else
-			    client_send_text_message (s);
+		    c = ureadkey (&sc);
+
+		    if (quit_prompt) {
+			if ((sc == KEY_ESC) || (c == 'n') || (c == 'N')) {
+			    quit_prompt = NULL;
+			}
+			else if ((c == 'y') || (c == 'Y')) {
+			    quit_prompt = NULL;
+			    if (client_server)
+				client_server_interface_add_input ("stop");
+			    else {
+				sync_client_unlock ();
+				goto disconnect;
+			    }
+			}
+		    }
+		    else if (ingame_messages_grabbed_keyboard ()) {
+			if ((s = ingame_messages_poll_input (c, sc))) {
+			    if (client_server && (s[0] == ','))
+				client_server_interface_add_input (s+1);
+			    else
+				client_send_text_message (s);
+			}
+		    }		    
+		    else {
+			if (sc == KEY_ESC) {
+			    quit_prompt = (client_server
+					   ? "Return to lobby?"
+					   : "Disconnect from server?");
+			}
+			else {
+			    /* The only thing this could actually do
+			     * at the moment is enable the message
+			     * input system if Enter is pressed.
+			     */
+			    ingame_messages_poll_input (c, sc);
+			}
 		    }
 		}
 
@@ -1585,7 +1624,14 @@ void client_run (int client_server)
 	    sync_client_unlock ();
 	}
 
+      out_of_game:
+
 	ticks_shutdown ();
+
+	if (receive_game_state_later) goto receive_game_state;
+	if (pause_later) goto pause;
+	if (lobby_later) goto lobby;
+	if (end_later) goto end;
     }
 
   disconnect:
