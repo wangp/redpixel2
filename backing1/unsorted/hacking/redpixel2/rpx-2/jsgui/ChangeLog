@@ -1,0 +1,26 @@
+August 1999
+-----------
+
+Last weekend
+	Designed and prototyped.
+	Some working code.  
+	Too bad the code screwed up the design.
+	Slept.
+
+15	Restarted work, semi-rewrite.
+	Slowly merging things back in to keep design clean.
+
+
+September 1999
+--------------
+
+12	Semi-restarted, again.
+	Simplified and cleaned up design.
+	
+13	Restarted and finished layout routine.
+	Added support for custom widgets.
+	Started event loop and signals and slots framework.
+
+17	jsgui entered into CVS.  
+	This ChangeLog is now redundant.
+	
