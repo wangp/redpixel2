@@ -187,6 +187,7 @@ static inline int valid (lua_State *L, char argtype, int index)
 	case 'u': type = LUA_TUSERDATA; break;
 	case 'N': type = LUA_TNIL; break;
 	case 'n': type = LUA_TNUMBER; break;
+	case 'b': type = LUA_TBOOLEAN; break;
 	case 's': type = LUA_TSTRING; break;
 	case 't': type = LUA_TTABLE; break;
 	case 'f': type = LUA_TFUNCTION; break;
