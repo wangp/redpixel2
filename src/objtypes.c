@@ -8,6 +8,7 @@
 #include "alloc.h"
 #include "bitmask.h"
 #include "bitmaskg.h"
+#include "error.h"
 #include "mylua.h"
 #include "objtypes.h"
 #include "store.h"
@@ -86,8 +87,17 @@ void objtypes_shutdown ()
 int objtypes_register (const char *type, const char *name,
 			const char *icon, lua_ref_t init_func)
 {
+    BITMAP *icon_bmp;
+    char buf[512];
+
+    icon_bmp = store_dat (icon);
+    if (!icon_bmp) {
+	snprintf (buf, sizeof buf, "Bad icon %s\n", icon);
+	error (buf);
+    }
+
     return (create (type, name, icon, init_func,
-		    bitmask_create_from_magic_bitmap (store_dat (icon)))
+		    bitmask_create_from_magic_bitmap (icon_bmp))
 	    ? 0 : -1);
 }
 
