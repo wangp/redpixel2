@@ -647,10 +647,11 @@ int game_server_spawn_object (const char *typename, float x, float y)
 
 /* Spawn a projectile (Lua binding). */
 
-int game_server_spawn_projectile (const char *typename, object_t *owner, float speed)
+int game_server_spawn_projectile (const char *typename, object_t *owner, float speed, float delta_angle)
 {
     client_t *c;
     object_t *obj;
+    float angle;
     float xv, yv;
 
     if (!(c = clients_find_by_id (object_id (owner))))
@@ -659,14 +660,16 @@ int game_server_spawn_projectile (const char *typename, object_t *owner, float s
     if (!(obj = object_create (typename)))
 	return -1;
 
-    xv = speed * cos (c->aim_angle);
-    yv = speed * sin (c->aim_angle);
+    angle = c->aim_angle + delta_angle;
+    
+    xv = speed * cos (angle);
+    yv = speed * sin (angle);
 
     object_set_xy (obj, object_x (owner), object_y (owner));
     object_set_xvyv (obj, xv, yv);
     object_set_collision_tag (obj, object_collision_tag (owner));
     object_set_replication_flag (obj, OBJECT_REPLICATE_CREATE);
-    object_set_number (obj, "angle", c->aim_angle);
+    object_set_number (obj, "angle", angle);
     object_add_creation_field (obj, "angle");
     object_run_init_func (obj);
     map_link_object_bottom (map, obj);

@@ -377,9 +377,12 @@ generate {
 generate {
     cname	= "game_server_spawn_projectile",
     lname	= "spawn_projectile",
+    check	= "sun[nN-]",
     args	= {{ String, "typename" },
 		   { Object, "owner" },
-		   { Float, "speed" }},
+		   { Float, "speed" },
+		   { Float, "delta_angle", nil,
+		     "$ = ((lua_isnil(L, $#) || lua_isnull(L, $#)) ? 0. : lua_tonumber(L, $#));" }},
     ret		= { Int, "ret", "$ < 0" }
 }
 
