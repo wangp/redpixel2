@@ -33,10 +33,6 @@ string_t server_next_map_file;
  * every text message (one for client, one for server).  */
 static int inhibit_double_message;
 
-/* Single hack: waits for one client, then starts, and quits when that
- * client leaves.  For testing the client-server.  */
-static int single_hack;
-
 /* Client-server mode: if this client quits, the server quits too.  */
 static int client_to_quit_with;
 
@@ -481,25 +477,6 @@ void server_run (void)
 	    poll_interface ();
 	}
 
-	if ((single_hack) && (curr_state == next_state)) {
-	    svclient_t *c;
-	    int n = 0;
-	    for_each_svclient (c) if (c->state == SVCLIENT_STATE_JOINED) n++; 
-
-	    if (single_hack == 1) {
-		if (n > 0) {
-		    next_state = SERVER_STATE_GAME;
-		    single_hack = 2;
-		}
-	    }
-	    else if (single_hack == 2) {
-		if (n < 1) {
-		    next_state = SERVER_STATE_QUIT;
-		    single_hack = 3;
-		}
-	    }
-	}
-
 	if (curr_state != next_state) {
 	    if (p->shutdown)
 		p->shutdown ();
@@ -539,7 +516,6 @@ int server_init (server_interface_t *iface, int net_driver)
 
     inhibit_double_message = 0;
 
-    single_hack = 0;
     client_to_quit_with = 0;
 
     gettimeofday_init ();
@@ -561,12 +537,6 @@ int server_init (server_interface_t *iface, int net_driver)
 void server_inhibit_double_message (void)
 {
     inhibit_double_message = 1;
-}
-
-
-void server_enable_single_hack (void)
-{
-    single_hack = 1;
 }
 
 

@@ -105,31 +105,6 @@ static void *server_thread (void *arg)
 }
 
 
-static void do_run_parallel (const char *name)
-{
-    messages_init ();
-
-    if ((server_init (NULL, NET_DRIVER_LOCAL) < 0) ||
-	(client_init (name, NET_DRIVER_LOCAL, "0") < 0)) {
-	error ("Error initialising game server or client.  Perhaps another\n"
-	       "game server is already running on the same port?\n");
-    } else {
-	server_enable_single_hack ();
-
-	sync_init (server_thread);
-	client_run (0);
-	sync_shutdown ();
-
-	client_shutdown ();
-	server_shutdown ();
-
-	allegro_errno = &errno;	/* errno is thread-specific */
-    }
-
-    messages_shutdown ();
-}
-
-
 static void do_run_server (void)
 {
     if (server_init (server_text_interface, INET_DRIVER) < 0) {
@@ -149,7 +124,6 @@ int main (int argc, char *argv[])
     int w = 320, h = 200, d = -1;
     int stretch_method = STRETCH_METHOD_NONE;
     int run_server = 0;
-    int run_parallel = 0;
     int run_editor = 0;
     const char *name = "noname";
     const char *addr = "127.0.0.1";
@@ -157,7 +131,7 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":2spa:n:ew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":2sa:n:ew:h:d:")) != -1) {
 	switch (c) {
 	    case '2':
 		/* XXX this is temporary */
@@ -168,9 +142,6 @@ int main (int argc, char *argv[])
 		break;
 	    case 's':
 		run_server = 1;
-		break;
-	    case 'p':
-		run_parallel = 1;
 		break;
 	    case 'a':
 		addr = optarg;
@@ -205,7 +176,7 @@ int main (int argc, char *argv[])
 	}
     }
 
-    if ((run_server + run_parallel + run_editor) > 1) {
+    if ((run_server + run_editor) > 1) {
 	fprintf (stderr, "Incompatible operation modes.\n");
 	return 1;
     }
@@ -221,9 +192,6 @@ int main (int argc, char *argv[])
 
     if (run_server) {
 	do_run_server ();
-    }
-    else if (run_parallel) {
-	do_run_parallel (name);
     }
     else if (run_editor) {
 	if (editor_init () == 0) {
