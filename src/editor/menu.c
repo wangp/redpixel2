@@ -13,12 +13,12 @@
 #include "mapfile.h"
 
 
-static int prompt (const char *msg, const char *true, const char *false,
+static int prompt (const char *msg, const char *truetxt, const char *falsetxt,
 		   int truekey, int falsekey)
 {
     gui_fg_color = makecol (0xc0, 0xd0, 0xc0);
     gui_bg_color = makecol (0, 0, 0);
-    return (alert (msg, "", "", true, false, truekey, falsekey) == 1);
+    return (alert (msg, "", "", truetxt, falsetxt, truekey, falsekey) == 1);
 }
 
 static int prompt_filename (const char *msg, char *path, const char *ext, 
