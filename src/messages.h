@@ -9,6 +9,7 @@ int messages_init ();
 void messages_shutdown ();
 void messages_render (struct BITMAP *);
 void messages_add (const char *fmt, ...);
+void messages_poll_input ();
 
 
 #endif

@@ -81,6 +81,12 @@ enum {
     MSG_SC_LOBBY = 'l',
 
 
+    /* The server broadcasts this to clients to tell them to display a
+       text message.  */
+
+    MSG_SC_TEXT = 't',
+
+
     /* The client sends this to the server to initiate the ping
        sequence.  We use it to calculate the amount of lag between
        server and client.  */

@@ -155,6 +155,8 @@ the centre and loop.
 ** frags per minute
 
 ** handicaps
+damage multipliers.  e.g. newbie vs. veteran does 125% damage; veteran
+vs. newbie does 75% damage
 
 ** spectators
 

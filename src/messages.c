@@ -17,6 +17,11 @@ static char *lines[MAX_LINES];
 static int num_lines;
 static int top_line;
 
+static char input_line[512];
+static int input_pos;
+static int input_enabled;
+static int input_blink;
+
 static FONT *fnt;
 
 
@@ -25,6 +30,7 @@ int messages_init ()
     if (!(fnt = store_dat ("/basic/font/mini")))
 	return -1;
     top_line = 0;
+    input_enabled = 0;
     return 0;
 }
 
@@ -51,10 +57,18 @@ void messages_render (BITMAP *bmp)
     
     for (i = top_line; i < num_lines; i++, y += h)
 	textout_right (bmp, fnt, lines[i], bmp->w - XMARGIN, y, -1);
+
+    if (input_enabled) {
+	textout_right (bmp, fnt, input_line, bmp->w - XMARGIN - 
+		       text_length (fnt, "_"), y, -1);
+	if ((input_blink & 0x8))
+	    textout_right (bmp, fnt, "_", bmp->w - XMARGIN, y, -1);
+	input_blink = (input_blink+1) & 0xf;
+    }
 }
 
 
-static void push (const char *msg)
+static void push_line (const char *msg)
 {
     if (num_lines == MAX_LINES) {
 	free (lines[0]);
@@ -79,5 +93,29 @@ void messages_add (const char *fmt, ...)
     uvszprintf (buf, sizeof buf, fmt, ap);
     va_end (ap);
     
-    push (buf);
+    push_line (buf);
+}
+
+
+void messages_poll_input ()
+{
+    int c;
+
+    while (keypressed ()) {
+	c = readkey ();
+
+	if ((c >> 8) == KEY_ENTER) {
+	    if (input_enabled) 
+		input_enabled = 0;
+	    else {
+		usetat (input_line, 0, 0);
+		input_pos = 0;
+		input_enabled = 1;
+	    }
+	}
+	else if (input_enabled) {
+	    usetat (input_line, input_pos++, c & 0xff);
+	    usetat (input_line, input_pos, 0);
+	}
+    }
 }

@@ -959,8 +959,8 @@ void object_do_physics (object_t *obj, map_t *map)
 	object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
 
 /* XXX temp */
-    if (obj->xv || obj->yv)
-	object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE);
+/*      if (obj->xv || obj->yv) */
+/*  	object_set_replication_flag (obj, OBJECT_REPLICATE_UPDATE); */
 }
 
 
@@ -1006,8 +1006,8 @@ void object_do_simulation (object_t *obj, unsigned long curr_time)
 	obj->target.y += obj->target.yv;
     }
 
-    obj->x += ((obj->target.x - obj->x) * 0.5);
-    obj->y += ((obj->target.y - obj->y) * 0.5);
+    obj->x += ((obj->target.x - obj->x) * 0.8);
+    obj->y += ((obj->target.y - obj->y) * 0.8);
 }
 
 

@@ -559,6 +559,16 @@ static void poll_interface_command_kick (char **last)
 	object_set_stale (c->client_object);
 }
 
+static void poll_interface_command_msg (char **last)
+{
+    if (!*last)
+	server_log ("MSG requires an argument");
+    else {
+	clients_broadcast_rdm_encode ("cs", MSG_SC_TEXT, *last);
+	server_log (*last);
+    }
+}
+
 static void server_poll_interface ()
 {
 #define wordis(test)	(0 == ustricmp (word, test))
@@ -616,6 +626,10 @@ static void server_poll_interface ()
 
 	else if (wordis ("kick")) {
 	    poll_interface_command_kick (&last);
+	}
+
+	else if (wordis ("msg")) {
+	    poll_interface_command_msg (&last);
 	}
 
 	else if (wordis ("context")) {

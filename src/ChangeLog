@@ -1,3 +1,7 @@
+2001-07-22  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* gamesrv.c, gameclt.c, netmsg.h: Text message command.
+
 2001-07-21  Peter Wang  <tjaden@users.sourceforge.net>
 
 	* messages.c: New module.

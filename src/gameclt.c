@@ -217,8 +217,6 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		}
 		object_run_init_func (obj);
 		map_link_object (map, obj);
-
-		messages_add ("new object #%d", id);
 		break;
 	    }
 
@@ -562,7 +560,7 @@ void game_client_run ()
 		int pause_later = 0;
 		int lobby_later = 0;
 		int end_later = 0;
-      
+
 		while ((size = net_receive_rdm (conn, buf, sizeof buf)) > 0) {
 		    switch (buf[0]) {
 			case MSG_SC_GAMESTATEFEED_REQ:
@@ -584,6 +582,15 @@ void game_client_run ()
 			case MSG_SC_LOBBY:
 			    lobby_later = 1;
 			    break;
+
+			case MSG_SC_TEXT: {
+			    char string[NET_MAX_PACKET_SIZE];
+			    long len;
+			    
+			    packet_decode (buf+1, "s", &len, string);
+			    messages_add ("%s", string);
+			    break;
+			}
 
 			case MSG_SC_PONG:
 			    pinging = 0;
@@ -613,6 +620,8 @@ void game_client_run ()
 		object_call (local_object, "_client_update_hook");
 
 	    map_destroy_stale_objects (map);
+
+	    messages_poll_input ();
 
 	    dbg ("update screen");
 	    update_camera ();
