@@ -14,9 +14,10 @@
 #include "client.h"
 #include "clsvface.h"
 #include "error.h"
+#include "fe-lobby.h"
+#include "fe-main.h"
 #include "fps.h"
 #include "list.h"
-#include "lobby.h"
 #include "magic4x4.h"
 #include "map.h"
 #include "mapfile.h"
@@ -172,16 +173,6 @@ static void ticks_shutdown (void)
  */
 
 
-typedef struct client_info {
-    struct client_info *next;
-    struct client_info *prev;
-    client_id_t id;
-    char *name;
-    char *face_icon;
-    char *score;
-} client_info_t;
-
-
 static list_head_t client_info_list;
 
 
@@ -205,12 +196,36 @@ static void client_info_list_add (client_id_t id, const char *name,
 }
 
 
+int client_num_clients (void)
+{
+    int n = 0;
+    client_info_t *c;
+
+    list_for_each (c, &client_info_list)
+        n++;
+
+    return n;
+}
+
+
 static client_info_t *get_client_info (client_id_t id)
 {
     client_info_t *c;
 
     list_for_each (c, &client_info_list)
 	if (c->id == id)
+	    return c;
+
+    return NULL;
+}
+
+
+client_info_t *client_get_nth_client_info (int n)
+{
+    client_info_t *c;
+
+    list_for_each (c, &client_info_list)
+	if (n-- == 0)
 	    return c;
 
     return NULL;
@@ -1154,30 +1169,38 @@ void client_run (int client_server)
     {
 	int status;
 
-	sync_client_lock ();
-	begin_client_connecting_dialog ();
-	force_redraw_client_connecting_dialog ();
-	sync_client_unlock ();
+	if (!client_server) {
+	    sync_client_lock ();
+	    begin_connecting_dialog ();
+	    sync_client_unlock ();
+	}
 
 	do {
 	    sync_client_lock ();
-	    if (poll_client_connecting_dialog () < 0) {
-		end_client_connecting_dialog ();
-		sync_client_unlock ();
-		return;
+
+	    if (!client_server) {
+		if (poll_connecting_dialog () < 0) {
+		    end_connecting_dialog ();
+		    sync_client_unlock ();
+		    return;
+		}
 	    }
+
 	    status = net_poll_connect (conn);
+
 	    sync_client_unlock ();
 	} while (!status);
 
-	if (status < 1) {
-	    end_client_connecting_dialog ();
-	    return;
-	}
+	if (!client_server) {
+	    if (status < 1) {
+		end_connecting_dialog ();
+		return;
+	    }
 
-	sync_client_lock ();
-	end_client_connecting_dialog ();
-	sync_client_unlock ();
+	    sync_client_lock ();
+	    end_connecting_dialog ();
+	    sync_client_unlock ();
+	}
     }
     
     dbg ("connecting (stage 2)");
@@ -1217,21 +1240,24 @@ void client_run (int client_server)
     {
 	uchar_t buf[NETWORK_MAX_PACKET_SIZE];
 
+	void (*begin_proc)(void) = client_server ? begin_client_server_lobby_dialog : begin_client_lobby_dialog;
+	int (*poll_proc)(void) = client_server ? poll_client_server_lobby_dialog : poll_client_lobby_dialog;
+	void (*end_proc)(void) = client_server ? end_client_server_lobby_dialog : end_client_lobby_dialog;
+
 	sync_client_lock ();
-	begin_client_lobby_dialog ();
-	force_redraw_client_lobby_dialog ();
+	begin_proc ();
 	show_mouse (screen);
 	sync_client_unlock ();
+
 
 	while (1) {
 	    sync_client_lock ();
 
-	    if (poll_client_lobby_dialog () < 0) {
-		show_mouse (NULL); /* XXX */
-		end_client_lobby_dialog ();
+	    if (poll_proc () < 0) {
+		end_proc ();
 		sync_client_unlock ();
 		goto disconnect;
-	    }
+	    }	    
 	    else {
 		const char *s = get_client_lobby_dialog_input ();
 
@@ -1250,8 +1276,7 @@ void client_run (int client_server)
 
 	    switch (buf[0]) {
 		case MSG_SC_GAMESTATEFEED_REQ:
-		    show_mouse (NULL); /* XXX */
-		    end_client_lobby_dialog ();
+		    end_proc ();
 		    sync_client_unlock ();
 		    goto receive_game_state;
 
@@ -1269,13 +1294,12 @@ void client_run (int client_server)
 
 		    packet_decode (buf+1, "s", &len, string);
 		    messages_add ("%s", string);
-		    force_redraw_client_lobby_dialog ();
 		    break;
 		}
 
 		case MSG_SC_DISCONNECTED:
-		    show_mouse (NULL); /* XXX */
-		    end_client_lobby_dialog ();
+		    client_was_kicked = 1;
+		    end_proc ();
 		    sync_client_unlock ();
 		    goto end;
 	    }
@@ -1284,7 +1308,7 @@ void client_run (int client_server)
 	}
 
 	sync_client_lock ();
-	end_client_lobby_dialog ();
+	end_proc ();
 	sync_client_unlock ();
     }
 
@@ -1304,7 +1328,7 @@ void client_run (int client_server)
 
 	    if (key[KEY_ESC]) {
 		sync_client_unlock ();
-		goto disconnect;
+		goto lobby;
 	    }
 
 	    size = net_receive_rdm (conn, buf, sizeof buf);
@@ -1393,6 +1417,14 @@ void client_run (int client_server)
 
   game:
 
+    /* XXX */
+    if ((desired_game_screen_w != SCREEN_W) ||
+	(desired_game_screen_h != SCREEN_H))
+	set_gfx_mode (GFX_AUTODETECT, desired_game_screen_w, desired_game_screen_h, 0, 0);
+
+    show_mouse(NULL);
+    set_mouse_range(0, 0, screen_width-1, screen_height-1);
+
     dbg ("game");
     {
 	ulong_t last_ticks, t;
@@ -1410,8 +1442,8 @@ void client_run (int client_server)
 	    sync_client_lock ();
 
 	    if (key[KEY_ESC]) {
-		sync_client_unlock ();
-		goto disconnect;
+		if (client_server)
+		    client_server_interface_add_input ("stop");
 	    }
 
 	    dbg ("process network input");
@@ -1469,7 +1501,10 @@ void client_run (int client_server)
 			    break;
 
 			case MSG_SC_DISCONNECTED:
+			    /* XXX: when forcefully disconnected,
+			       mouse range is not reset. */
 			    end_later = 1;
+			    client_was_kicked = 1;
 			    break;
 		    }
 		}

@@ -11,8 +11,8 @@
 #include "clsvface.h"
 #include "editor.h"
 #include "error.h"
+#include "fe-main.h"
 #include "gameinit.h"
-#include "gamemenu.h"
 #include "getoptc.h"
 #include "messages.h"
 #include "music.h"
@@ -121,7 +121,7 @@ static void do_run_server (void)
 
 int main (int argc, char *argv[])
 {
-    int w = 320, h = 200, d = -1;
+    int w = 640, h = 400, d = -1;
     int stretch_method = STRETCH_METHOD_NONE;
     int run_server = 0;
     int run_editor = 0;
@@ -129,15 +129,8 @@ int main (int argc, char *argv[])
     
     opterr = 0;
     
-    while ((c = getopt (argc, argv, ":2sew:h:d:")) != -1) {
+    while ((c = getopt (argc, argv, ":sew:h:d:")) != -1) {
 	switch (c) {
-	    case '2':
-		/* XXX this is temporary */
-		w = 640;
-		h = 400;
-		d = 16;
-		stretch_method = STRETCH_METHOD_PLAIN;
-		break;
 	    case 's':
 		run_server = 1;
 		break;
@@ -175,8 +168,14 @@ int main (int argc, char *argv[])
 
     if (run_server)
 	setup_minimal_allegro ();
-    else
+    else {
+	/* XXX this is temporary */
+	desired_game_screen_w = 320;
+	desired_game_screen_h = 200;
+	desired_menu_screen_w = w;
+	desired_menu_screen_h = h;
 	setup_allegro (w, h, d, stretch_method);
+    }
 
     music_init();
 

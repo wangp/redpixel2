@@ -111,12 +111,15 @@ MODULES_GAME :=					\
 	error					\
 	explo					\
 	extdata					\
+	fe-credits				\
+	fe-lobby				\
+	fe-main					\
+	fe-options				\
+	fe-widgets				\
 	fps					\
 	gameinit				\
-	gamemenu				\
 	getoptc					\
 	loaddata				\
-	lobby					\
 	main					\
 	map					\
 	mapfile					\

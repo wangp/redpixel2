@@ -20,6 +20,7 @@
 
 
 static char *lines[MAX_LINES];
+static int total_lines_ever;
 static int num_lines;
 static int top_line;
 
@@ -34,6 +35,7 @@ int messages_init (void)
 {
     if (ingame_messages_init () < 0)
 	return -1;
+    total_lines_ever = 0;
     top_line = 0;
     return 0;
 }
@@ -75,6 +77,8 @@ static void push_line (const char *msg)
 
     if (num_lines == 1)
 	timeout_set (&next_scroll, SCROLL_SPEED);
+
+    total_lines_ever++;
 }
 
 
@@ -88,6 +92,15 @@ void messages_add (const char *fmt, ...)
     va_end (ap);
     
     push_line (buf);
+}
+
+
+/* XXX: total_lines_ever is stupid.  Maybe use a hashing method or
+ * something, or just rename this to messages_change_index.
+ */
+int messages_total_lines_ever (void)
+{
+    return total_lines_ever;
 }
 
 

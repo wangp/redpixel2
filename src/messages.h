@@ -8,6 +8,7 @@ struct BITMAP;
 int messages_init (void);
 void messages_shutdown (void);
 void messages_add (const char *fmt, ...);
+int messages_total_lines_ever (void);
 int messages_num_lines (void);
 const char *messages_get_line (int i);
 
