@@ -36,14 +36,21 @@ local player_nonproxy_init = function (self)
 
     -- weapon stuff
     self.have_weapon = {}
+
     function self:receive_weapon (weapon_name)
 	if weapons[weapon_name] then
 	    self.have_weapon[weapon_name] = 1
---	    if not self.current_weapon then
-		self.current_weapon = weapons[weapon_name]
---	    end
+	    self:switch_weapon (weapon_name)
 	end
     end
+
+    function self:switch_weapon (weapon_name)
+	if weapons[weapon_name] then
+	    self.current_weapon = weapons[weapon_name]
+	    call_method_on_clients (self, "switch_weapon", weapon_name)
+	end
+    end
+
     self:receive_weapon ("basic-blaster")
 
     -- firing stuff
@@ -144,6 +151,15 @@ local player_proxy_init = function (self)
 	    rotate_and_flip_player_proxy_based_on_aim_angle (self)
 	end
     )
+
+    -- switch weapon (called by nonproxy switch_weapon)
+    function self:switch_weapon (weapon_name)
+	local w = weapons[weapon_name]
+	if w then
+	    self:replace_layer (self.arm_layer, w.arm_anim[1],
+				w.arm_anim.cx, w.arm_anim.cy)
+	end
+    end
 end
 
 
