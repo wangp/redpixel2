@@ -831,13 +831,13 @@ void svgame_call_method_on_clients (object_t *obj, const char *method,
 }
 
 
-/* Check if an object would collide with other objects, if it were to
- * be unhidden.  */
-int svgame_object_would_collide_with_objects (object_t *obj)
+/* Check if an object would collide with a player object, if it were
+ * to be unhidden.  */
+int svgame_object_would_collide_with_player_if_unhidden (object_t *obj)
 {
     return (!object_stale (obj) &&
-	    object_collide_with_objects_raw (obj, OBJECT_MASK_MAIN, map,
-					     object_x (obj), object_y (obj)));
+	    object_would_collide_with_player_if_unhidden (
+		obj, map, object_x (obj), object_y (obj)));
 }
 
 

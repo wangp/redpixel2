@@ -547,8 +547,8 @@ generate_server {
 }
 
 generate_server {
-    cname	= "svgame_object_would_collide_with_objects",
-    lname	= "_internal_would_collide_with_objects",
+    cname	= "svgame_object_would_collide_with_player_if_unhidden",
+    lname	= "_internal_would_collide_with_player_if_unhidden",
     args	= {{ Object, "obj" }},
     ret		= { Int, "ret", "!$" }
 }
