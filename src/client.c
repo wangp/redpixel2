@@ -605,7 +605,7 @@ void game_client_run ()
     
     dbg ("game");
     {
-	ulong_t last_ticks;
+	ulong_t last_ticks, t;
 
 	ticks_init ();
 	last_ticks = ticks;
@@ -679,7 +679,8 @@ void game_client_run ()
 		if (end_later) { sync_client_unlock (); goto end; }
 	    }
 	    
-	    if (last_ticks != ticks) {
+	    t = ticks;
+	    if (last_ticks != t) {
 		dbg ("send gameinfo");
 		send_gameinfo_controls ();
 
@@ -687,7 +688,7 @@ void game_client_run ()
 		perform_simple_physics ();
 
 		dbg ("poll update hooks");
-		poll_update_hooks ((ticks - last_ticks) * MSECS_PER_TICK);
+		poll_update_hooks ((t - last_ticks) * MSECS_PER_TICK);
 
 		map_destroy_stale_objects (map);
 
@@ -697,7 +698,7 @@ void game_client_run ()
 		update_camera ();
 		update_screen ();
 
-		last_ticks = ticks;
+		last_ticks = t;
 	    }
 	    
 	    dbg ("handling pinging");
