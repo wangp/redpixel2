@@ -187,7 +187,7 @@ static void send_gameinfo_controls ()
 	if (!update)
 	    update = ((controls & CONTROL_FIRE)
 		      ? (ABS (aim_angle - last_aim_angle) > (M_PI/256))
-		      : (ABS (aim_angle - last_aim_angle) > (M_PI/8)));
+		      : (ABS (aim_angle - last_aim_angle) > (M_PI/16)));
 	if (local_object)
 	    object_set_number (local_object, "aim_angle", aim_angle);
     }
@@ -298,6 +298,18 @@ static void process_sc_gameinfo_packet (const uchar_t *buf, int size)
 		buf += packet_decode (buf, "lffffff", &id, &x, &y, &xv, &yv, &xa, &ya);
 		if ((obj = map_find_object (map, id)))
 		    object_set_auth_info (obj, ticks - lag, x, y, xv, yv, xa, ya);
+		break;
+	    }
+
+	    case MSG_SC_GAMEINFO_CLIENT_AIM_ANGLE:
+	    {
+		long id;
+		float angle;
+		object_t *obj;
+
+		buf += packet_decode (buf, "lf", &id, &angle);
+		if ((id != client_id) && (obj = map_find_object (map, id)))
+		    object_set_number (obj, "aim_angle", angle);
 		break;
 	    }
 
@@ -694,8 +706,13 @@ void game_client_run ()
 
 		messages_poll_input ();
 
+		dbg ("update camera");
+		{
+		    int n = t - last_ticks;
+		    while ((n--) && update_camera ());
+		}
+
 		dbg ("update screen");
-		update_camera ();
 		update_screen ();
 
 		last_ticks = t;
