@@ -423,16 +423,20 @@ static void perform_single_game_state_feed (svclient_t *c)
 	if (svclient_timed_out (c)) {
 	    svclient_set_state (c, SVCLIENT_STATE_STALE);
 	    server_log ("Client %s timed out during game state feed", c->name);
+	    sync_server_unlock ();
 	    break;
 	}
 
-	if (svclient_receive_rdm (c, &byte, 1) <= 0)
+	if (svclient_receive_rdm (c, &byte, 1) <= 0) {
+	    sync_server_unlock ();
 	    continue;
+	}
 
 	if (byte == MSG_CS_GAMESTATEFEED_ACK) {
 	    feed_game_state_to (c);
 	    svclient_set_ready (c);
 	    svclient_clear_cantimeout (c);
+	    sync_server_unlock ();
 	    break;
 	}
 
