@@ -98,6 +98,25 @@ function animate_player_proxy (self)
     end
 end
 
+function rotate_and_flip_player_proxy_based_on_aim_angle (self)
+    if self.last_aim_angle == self.aim_angle then
+	return
+    end
+
+    self.last_aim_angle = self.aim_angle
+
+    local a = radian_to_bangle (self.aim_angle)
+    local hflipped = (a < -63 or a > 63) or 0
+    
+    self:hflip_layer (0, hflipped)
+    self:hflip_layer (self.arm_layer, hflipped)
+    
+    if hflipped ~= 0
+    then self:rotate_layer (self.arm_layer, a-128)
+    else self:rotate_layer (self.arm_layer, a)
+    end
+end
+
 function player_proxy_init (self)
     self.xv_decay = %xv_decay
     self.yv_decay = %yv_decay
@@ -110,31 +129,17 @@ function player_proxy_init (self)
     
     if not self.is_local then
 	self:add_light ("/basic/light/white-32", 0, 0)
-	self:set_update_hook (1000/50, animate_player_proxy)
     else
 	self:add_light ("/basic/light/white-64", 0, 0)
-	self:set_update_hook (
-	    1000/50,
-	    function (self)
-		animate_player_proxy (self)
-		-- aiming and rotating the arm
-		if self.last_aim_angle ~= self.aim_angle then
-		    local a = radian_to_bangle (self.aim_angle)
-		    local hflipped = (a < -63 or a > 63) or 0
-		    
-		    self:hflip_layer (0, hflipped)
-		    self:hflip_layer (self.arm_layer, hflipped)
-		    
-		    if hflipped ~= 0
-		    then self:rotate_layer (self.arm_layer, a-128)
-		    else self:rotate_layer (self.arm_layer, a)
-		    end
-
-		    self.last_aim_angle = self.aim_angle
-		end
-	    end
-	)
     end
+
+    self:set_update_hook (
+	1000/50,
+	function (self)
+	    animate_player_proxy (self)
+	    rotate_and_flip_player_proxy_based_on_aim_angle (self)
+	end
+    )
 end
 
 
