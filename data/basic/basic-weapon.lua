@@ -677,8 +677,8 @@ Standard_Projectile {
 -- This is the order that weapons will be numbered for selection.
 weapon_order = {
     "basic-blaster",
-    "basic-shotgun",
     "basic-ak",
+    "basic-shotgun",
     "basic-vulcan",
     "basic-minigun",
     "basic-bow",
