@@ -233,6 +233,13 @@ cleaner: clean
 
 #----------------------------------------------------------------------
 
+.PHONY: ChangeLog
+ChangeLog:
+	( echo '	This ChangeLog is automatically produced from RCS logs.'; \
+	  echo '	See the Makefile for details.'; echo; \
+	  find -path '*/RCS*/*,v' -exec rlog {} \; | \
+		tools/cvs2cl.pl --stdin --stdout ) > ChangeLog
+
 EXCLUDE_LIST := *.o $(PROGRAM) TAGS tags depend
 EXCLUDE := $(addprefix --exclude , $(EXCLUDE_LIST))
 
