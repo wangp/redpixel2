@@ -426,10 +426,10 @@ void map_explosions_draw_lights (map_t *map, BITMAP *dest,
 
 
 void map_blast_create (map_t *map, float x, float y, float radius,
-		       int damage, int visual_only)
+		       int damage, int owner, int visual_only)
 {
     blast_t *b;
-    b = blast_create (x, y, radius, damage, visual_only);
+    b = blast_create (x, y, radius, damage, owner, visual_only);
     list_add (map->blasts, b);
 }
 

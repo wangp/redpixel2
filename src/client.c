@@ -709,7 +709,10 @@ SC_GAMEINFO_HANDLER (sc_blast_create)
     long damage;
 
     buf += packet_decode (buf, "fffl", &x, &y, &rad, &damage);
-    map_blast_create (map, x, y, rad, damage, 1);
+    map_blast_create (map, x, y, rad, damage,
+		      -1,  /* dummy owner */
+		      TRUE /* this blast is for looks only */
+		      );
 
     return buf;
 }

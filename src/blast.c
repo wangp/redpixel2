@@ -36,13 +36,14 @@ struct blast {
     float max_radius;
     int max_damage;
     float r;
+    int owner;
     int visual_only;
     vector_t *already_hit;
 };
 
 
 blast_t *blast_create (float x, float y, float radius, int damage,
-		       int visual_only)
+		       int owner, int visual_only)
 {
     blast_t *b = alloc (sizeof *b);
 
@@ -50,6 +51,7 @@ blast_t *blast_create (float x, float y, float radius, int damage,
     b->y = y;
     b->max_radius = radius;
     b->max_damage = damage;
+    b->owner = owner;
     b->visual_only = visual_only;
     if (!visual_only)
 	b->already_hit = create_vector (10);
@@ -89,7 +91,8 @@ static inline void do_blast_check (blast_t *blast, list_head_t *object_list)
 	    dmg = MIN (dmg, blast->max_damage);
 	    if (dmg > 0) {
 		lua_pushnumber (lua_state, dmg);
-		object_call (obj, "receive_damage", 1);
+		lua_pushnumber (lua_state, blast->owner);
+		object_call (obj, "receive_damage", 2);
 	    }
 
 	    add_to_vector (blast->already_hit, obj);

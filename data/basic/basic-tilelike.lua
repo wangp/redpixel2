@@ -65,12 +65,12 @@ local Barrel = function (t)
 	category = "objtile",
 	nonproxy_init = function (self)
 	    self.health = t.health
-	    function self:receive_damage (amount)
+	    function self:receive_damage (amount, killer_id)
 		self.health = self.health - amount
 		if self.health <= 0 then
 		    spawn_explosion ("basic-explo42", self.x, self.y)
 		    spawn_sparks (self.x, self.y, 30, 3)
-		    spawn_blast (self.x, self.y, 45, 50)
+		    spawn_blast (self.x, self.y, 45, 50, killer_id)
 
 		    if t.chunks then
 			for i = 1, random (10) do

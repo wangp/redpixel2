@@ -74,7 +74,7 @@ local Explosive_Projectile = function (t)
 		if t.sparks then
 		    spawn_sparks (self.x, self.y, t.sparks, 2)
 		end
-		spawn_blast (self.x, self.y, t.radius, t.damage)
+		spawn_blast (self.x, self.y, t.radius, t.damage, self.owner)
 		self:destroy ()
 	    end
 	    self.collide_hook = hook

@@ -308,7 +308,7 @@ enum {
     MSG_SC_GAMEINFO_EXPLOSION_CREATE = 'e',
 
 
-    /* Tell clients to create a blast.
+    /* Tell clients to create a (visual-only) blast.
 
        Args: float x, float y, float max_radius, long damage.
      */

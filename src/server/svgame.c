@@ -772,7 +772,7 @@ void svgame_spawn_explosion (const char *name, float x, float y)
 }
 
 
-void svgame_spawn_blast (float x, float y, float radius, int damage)
+void svgame_spawn_blast (float x, float y, float radius, int damage, int owner)
 {
     char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
@@ -781,7 +781,7 @@ void svgame_spawn_blast (float x, float y, float radius, int damage)
 			  x, y, radius, damage);
     add_to_gameinfo_packet_queue (buf, size);
 
-    map_blast_create (map, x, y, radius, damage, 0);
+    map_blast_create (map, x, y, radius, damage, owner, FALSE);
 }
 
 

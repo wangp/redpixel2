@@ -458,7 +458,8 @@ generate {
     args	= {{ Float, "x" },
 		   { Float, "y" },
 	           { Float, "radius" },
-	       	   { Int, "damage" }}
+	       	   { Int, "damage" },
+	           { Int, "owner" }}
 }
 
 generate {
