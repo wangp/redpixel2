@@ -1,7 +1,8 @@
 \documentclass[a4paper,titlepage]{article}
 \usepackage{vmargin}
 \usepackage{url}
-\usepackage[colorlinks=false]{hyperref}
+%% PDF options from Chicken Scheme compiler's manual
+\usepackage[bookmarks=true,bookmarksnumbered=true,bookmarksopen=false,colorlinks=true,pdfpagemode=none,plainpages=false]{hyperref}
 \begin{document}
 
 
@@ -41,8 +42,8 @@ is based on the number of kills made.
 \end{itemize}
 
 Windows XP doesn't work (well?), and I presume neither would Windows
-NT.  I don't have access to those operating systems, so I don't know
-when that will be fixed.
+NT nor Windows 2000.  I don't have access to those operating systems,
+so I don't know when that will be fixed.
 
 
 
@@ -56,13 +57,6 @@ A Red Pixel 2 game setup consists of a single server and two or more
 clients connected to it.  The server hosts the game and handles most
 of the simulation work.  Clients connect to the server to interact
 with the simulation.
-
-\begin{verbatim}
-        server
-       /  |  \
-     cl  cl  cl
-     pl  pl  pl
-\end{verbatim}
 
 To start a game, a server must be started first.  In this manual we
 will assume the machine running the server will also run a client
@@ -223,8 +217,7 @@ Excessive use of the scope also leaves you prone to ambush.
 Unlike other weapons, mines cannot be selected.  They are dropped by
 pressing the right mouse button.  After a short time, they will be
 automatically armed and then will detonate as soon as a player comes
-close to it.  They will also detonate if they are shot or damaged by
-an explosion.
+close to it.  They will also detonate if they are damaged.
 
 
 \subsection{Other items}
