@@ -18,7 +18,12 @@ local Item = function (t, u)
     })
 end
 
--- enhancements
+
+----------------------------------------------------------------------
+-- Enhancements
+----------------------------------------------------------------------
+
+
 Item {
     name = "basic-armour-brown", 
     icon = "/basic/powerup/armour/brown",
@@ -53,6 +58,10 @@ Item {
     name = "basic-lightamp", 
     icon = "/basic/powerup/lightamp/000", 
     respawn_secs = 10,
+    action = function (self, player)
+	call_method_on_clients (player, "start_alt_light",
+	    "return '/basic/powerup/lightamp/light', 3000, 20")
+    end,
     proxy_init = function (self)
 	self:add_light ("/basic/light/blue-16", 0, 0)
     end

@@ -103,7 +103,8 @@ local player_nonproxy_init = function (self)
 	    end
 	    self:destroy ()
 	else
-	    call_method_on_clients (self, "start_hurt_light")
+	    call_method_on_clients (self, "start_alt_light",
+		"return '/basic/light/red-64', 38, 10")
 	end
     end
 
@@ -142,8 +143,7 @@ for i = 0,7 do
     tinsert (walk_anim, format ("/basic/player/walk/%03d", i))
 end
 
-local animate_player_proxy = function (self)
-    -- firing
+local animate_player_proxy_firing = function (self)
     if self.animate_arm then
 	if self.arm_tics > 0 then
 	    self.arm_tics = self.arm_tics - 1
@@ -158,16 +158,9 @@ local animate_player_proxy = function (self)
 	    self:replace_layer (self.arm_layer, anim[self.arm_frame], anim.cx, anim.cy)
 	end
     end
+end
 
-    -- hurt light
-    if self.hurt_light_tics > 0 then
-	self.hurt_light_tics = self.hurt_light_tics - 1
-	if self.hurt_light_tics == 0 then
-	    self:reset_default_light ()
-	end
-    end
-
-    -- walking
+local animate_player_proxy_walking = function (self)
     if not _internal_object_moving_horizontally (self) then
 	return
     end
@@ -182,6 +175,16 @@ local animate_player_proxy = function (self)
 	    self.walk_frame = 1
 	end
 	self:replace_layer (0, walk_anim[self.walk_frame], cx, cy)
+    end
+end
+
+local animate_player_proxy_alt_lighting = function (self)
+    if self.alt_light_tics > 0 then
+	self.alt_light_tics = self.alt_light_tics - 1
+	if self.alt_light_tics == 0 then
+	    self:replace_light (0, "/basic/light/white-64", 0, 0)
+	    self.alt_light_priority = 0
+	end
     end
 end
 
@@ -210,19 +213,16 @@ local player_proxy_init = function (self)
     -- light
     self:add_light (self.is_local and "/basic/light/white-64" or "/basic/light/white-32", 0, 0)
 
-    self.hurt_light_tics = 0
+    self.alt_light_tics = 0
+    self.alt_light_priority = 0
 
-    -- (called by nonproxy receive_damage)
-    function self:start_hurt_light ()
-	if self.is_local then
-	    self:replace_light (0, "/basic/light/red-64", 0, 0)
-	    self.hurt_light_tics = 38
+    function self:start_alt_light (this_is_dodgy)
+	local the_light, timeout, priority = dostring (this_is_dodgy) -- XXX not good for security
+	if (priority > self.alt_light_priority) and self.is_local then
+	    self:replace_light (0, the_light, 0, 0)
+	    self.alt_light_tics = timeout
+	    self.alt_light_priority = priority
 	end
-    end
-
-    -- (called by update hook)
-    function self:reset_default_light ()
-	self:replace_light (0, "/basic/light/white-64", 0, 0)
     end
 
     -- arm stuff
@@ -244,7 +244,9 @@ local player_proxy_init = function (self)
     self:set_update_hook (
 	1000/50,
 	function (self)
-	    animate_player_proxy (self)
+	    animate_player_proxy_firing (self)
+	    animate_player_proxy_walking (self)
+	    animate_player_proxy_alt_lighting (self)
 	    rotate_and_flip_player_proxy_based_on_aim_angle (self)
 	end
     )
