@@ -17,6 +17,9 @@ ctypes = {
     -- custom and readability types
     Method   	= { "f", "lua_ref_t", "lua_ref" },
     Object	= { "u", "object_t *", "lua_toobject", "!$" },
+    ObjId	= { "n", "objid_t", "lua_tonumber" },
+    ObjTag	= { "n", "objtag_t", "lua_tonumber" },
+    ClientId	= { "n", "int", "lua_tonumber" },
     StoreKey	= { "s", "const char *", "lua_tostring" }
 }
 
@@ -28,6 +31,9 @@ Bool = "Bool"
 String = "String"
 Method = "Method"
 Object = "Object"
+ObjId = "ObjId"
+ObjTag = "ObjTag"
+ClientId = "ClientId"
 StoreKey = "StoreKey"
 
 
@@ -249,7 +255,7 @@ generate_init {
 generate_init {
     cname	= "new_object_collision_tag",
     args	= {},
-    ret		= { Int, "ret" },
+    ret		= { ObjTag, "ret" },
     success	= "lua_pushnumber(L, ret); return 1;"
 }
 
@@ -279,7 +285,7 @@ generate_client {
     cname	= "object_moving_horizontally",
     lname	= "_internal_object_moving_horizontally",
     args	= {{ Object, "obj" }},
-    ret		= { Int, "ret", "!$" }
+    ret		= { Bool, "ret", "!$" }
 }
 
 generate_server {
@@ -307,7 +313,7 @@ generate_server {
 generate_server {
     cname	= "object_set_collision_tag",
     args	= {{ Object, "obj" },
-		   { Int, "tag" }}
+		   { ObjTag, "tag" }}
 }
 
 generate_server {
@@ -487,7 +493,7 @@ generate_server {
     cname	= "svgame_spawn_projectile_raw",
     lname	= "spawn_projectile_raw",
     args	= {{ String, "typename" },
-		   { Int, "owner" },
+		   { ObjId, "ownerid" },
 		   { Float, "x" },
 		   { Float, "y" },
 		   { Float, "angle" },
@@ -546,7 +552,7 @@ generate_server {
 		   { Float, "y" },
 	           { Float, "radius" },
 	       	   { Int, "damage" },
-	           { Int, "owner" }}
+	           { ClientId, "ownerid" }}
 }
 
 generate_server {
@@ -590,7 +596,7 @@ generate_server {
 generate_server {
     cname	= "svgame_set_score",
     lname	= "set_score",
-    args	= {{ Int, "clientid" },
+    args	= {{ ClientId, "clientid" },
 		   { String, "score" }}
 }
 
@@ -604,7 +610,7 @@ generate_server {
 generate_server {
     cname	= "svgame_get_client_name",
     lname	= "get_client_name",
-    args	= {{ Int, "clientid" }},
+    args	= {{ ClientId, "clientid" }},
     ret		= { String, "ret", "!$" },
     success	= "lua_pushstring(L, ret); return 1;"
 }
@@ -618,7 +624,7 @@ generate_server {
 generate_server {
     cname	= "svgame_send_text_message",
     lname	= "send_text_message",
-    args	= {{ Int, "clientid" },
+    args	= {{ ClientId, "clientid" },
 		   { String, "message" }}
 }
 
