@@ -359,7 +359,7 @@ void load_config (int *desired_stretch_method)
     int stretch_method;
 
     push_config_state ();
-    set_config_file (CONFIG_FILENAME);
+    override_config_file (CONFIG_FILENAME);
 
     /* Screen resolution & stretching method. */
     desired_game_screen_w = get_config_int (CONFIG_SECTION, "screen_width", 320);
