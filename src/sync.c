@@ -37,6 +37,7 @@ void sync_init (void *(*server_thread)(void *))
 void sync_shutdown (void)
 {
     if (threaded) {
+	sync_client_unlock ();	/* force server to wake */
 	pthread_join (thread, NULL);
 	pthread_cond_destroy (&cond);
 	pthread_mutex_destroy (&mutex);

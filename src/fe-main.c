@@ -195,7 +195,6 @@ static int create_server_pressed (void)
 
     client_run (1);
 
-    sync_server_stop_requested ();
     sync_shutdown ();
 
     client_shutdown ();
