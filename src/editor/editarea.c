@@ -223,6 +223,7 @@ static void free_layer (struct layer *p)
 
 void editarea_uninstall (void)
 {
+    active = 0;
     list_free (layers, free_layer);
     destroy_bitmap (magic);
     gui_window_destroy (window);
