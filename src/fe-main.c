@@ -506,6 +506,7 @@ void gamemenu_run (void)
     select_frontend_music ();
     set_menu_mouse_sprite ();
     fancy_do_dialog (main_menu, MAIN_MENU_DEFAULT_FOCUS);
+    set_mouse_sprite (NULL);
 }
 
 
