@@ -179,10 +179,8 @@ void sync_client_unlock (void)
 
 
 
-/* Win32 code based on fibres. 
-   Doesn't exit properly yet, and I'm not sure it's any better than critical sections.
- */
-#if 0
+/* Win32 code based on fibres.  This works on Windows XP. */
+#ifdef THREADS_WIN32
 
 
 #include <winalleg.h>
@@ -191,8 +189,8 @@ void sync_client_unlock (void)
 
 static int threaded;
 static int stop_requested;
-static void *server_fiber;
-static void *client_fiber;
+static LPVOID server_fiber;
+static LPVOID client_fiber;
 
 
 void sync_init (void *(*server_thread)(void *))
@@ -212,7 +210,9 @@ void sync_shutdown (void)
     if (threaded) {
 	stop_requested = 1;
 	WaitForSingleObject (server_fiber, INFINITE);
-// XXX non-proper cleanup
+	DeleteFiber (server_fiber);
+	server_fiber = 0;
+	client_fiber = 0;
 	allegro_errno = &errno;	/* errno is thread-specific */
 	threaded = 0;
     }
@@ -264,7 +264,7 @@ void sync_client_unlock (void)
 
 
 /* Win32 code based on critical sections. */
-#ifdef THREADS_WIN32
+#if 0
 
 
 #include <winalleg.h>
