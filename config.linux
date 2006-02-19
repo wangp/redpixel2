@@ -11,8 +11,6 @@ PLAT_LUABIN := lua/bin/lua
 PLAT_LIBLUA := lua/lib/liblua.a lua/lib/liblualib.a
 PLAT_LIBDUMB := dumb/lib/unix/libdumb.a
 PLAT_LIBALDUMB := dumb/lib/unix/libaldmb.a
-PLAT_LIBJPGALLEG := jpgalleg/lib/unix/libjpgal.a
 PLAT_LIBS := $(PLAT_LIBALDUMB) `allegro-config --libs debug`	\
 	     $(PLAT_LIBNET) $(PLAT_LIBLUA)		\
-	     $(PLAT_LIBDUMB) $(PLAT_LIBJPGALLEG)	\
-	     -lpth -lcurses
+	     $(PLAT_LIBDUMB) -lpth -lcurses

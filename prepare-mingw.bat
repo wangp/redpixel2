@@ -14,11 +14,5 @@ call fix.bat mingw
 cd ..
 echo.
 
-echo Preparing JPGalleg...
-cd jpgalleg
-call fix.bat mingw --quick
-cd ..
-echo.
-
 echo Done.  Use Mingw make to compile.
 echo.

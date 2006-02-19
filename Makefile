@@ -8,14 +8,13 @@ else
 	include config.linux
 endif
 
-SRCDIRS := src src/store src/magic src/fastsqrt \
+SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
 	   src/loadaud src/2xsai src/gui src/ug src/editor src/server
 
 CC := gcc
 CFLAGS := $(PLAT_TARGET) $(PLAT_CFLAGS) -D_REENTRANT \
 	  -W -Wall -Wno-unused-parameter -Wno-deprecated-declarations \
 	  -I libnet/include -I lua/include -I dumb/include \
-	  -I jpgalleg/include \
 	  $(addprefix -I,$(SRCDIRS)) -Wstrict-prototypes -pipe
 LDLIBS := $(PLAT_LIBS)
 LDFLAGS := $(PLAT_LDFLAGS)
@@ -46,6 +45,9 @@ MODULES_MAGIC :=				\
 
 MODULES_FASTSQRT :=				\
 	fastsqrt
+
+MODULES_JPGALLEG :=				\
+	jpeg
 
 MODULES_LOADAUD :=				\
 	loadaud
@@ -149,6 +151,7 @@ MODULES := 					\
 	$(MODULES_STORE) 			\
 	$(MODULES_MAGIC)			\
 	$(MODULES_FASTSQRT)			\
+	$(MODULES_JPGALLEG)			\
 	$(MODULES_LOADAUD)			\
 	$(MODULES_2XSAI)			\
 	$(MODULES_GUI)				\
@@ -199,10 +202,6 @@ $(PLAT_LIBALDUMB):
 	cd dumb ; ./fix.sh unix
 	$(MAKE) -C dumb lib/unix/libaldmb.a
 
-$(PLAT_LIBJPGALLEG):
-	cd jpgalleg ; ./fix.sh unix --quick
-	$(MAKE) -C jpgalleg lib STATIC=1
-
 endif
 
 ifeq "$(PLATFORM)" "MINGW"
@@ -220,9 +219,6 @@ $(PLAT_LIBDUMB):
 
 $(PLAT_LIBALDUMB):
 	$(MAKE) -C dumb lib/mingw/libaldmb.a
-
-$(PLAT_LIBJPGALLEG):
-	$(MAKE) -C jpgalleg lib STATIC=1
 
 endif
 
