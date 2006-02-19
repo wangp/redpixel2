@@ -142,6 +142,7 @@ void gui_main (void)
 	    gui_quit ();
 
 	/* Free up CPU cycles for other processes.  */
+	maybe_pth_yield ();
 	yield ();
     }
     

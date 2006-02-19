@@ -18,6 +18,36 @@
 
 
 
+#ifdef THREADS_PTH
+
+#include <pth.h>
+
+static pth_t the_thread;
+static int thread_started;
+
+static void *thread_stub_pthread (void *proc_)
+{
+    void (*proc)(void) = proc_;
+    proc ();
+    return NULL;
+}
+
+static void start_the_thread (void (*proc)(void))
+{
+    thread_started = 1;
+    the_thread = pth_spawn (PTH_ATTR_DEFAULT, thread_stub_pthread, proc);
+}
+
+static void stop_the_thread (void)
+{
+    thread_started = 0;
+    pth_join (the_thread, NULL);
+}
+
+#endif
+
+
+
 #ifdef THREADS_PTHREAD
 
 #include <pthread.h>
@@ -114,6 +144,8 @@ static void strip_leading_trailing_whitespace (char *s)
 }
 
 
+#ifndef THREADS_PTH
+
 static void my_rest (int msecs)
 {
 #ifdef ALLEGRO_UNIX
@@ -138,6 +170,8 @@ static void my_rest (int msecs)
 #endif
 #endif
 }
+
+#endif /* !THREADS_PTH */
 
 
 /* Returns non-zero if S1 is a suffix of S2.  The comparison is
@@ -299,7 +333,16 @@ static void player_thread_func (void)
 	    }
 	}
 
+#ifdef THREADS_PTH
+	pth_yield (NULL);
+	/* Don't rest: since all Pth threads are sharing the same
+	 * process's CPU time, that would just give the time to some
+	 * other process.
+	 */
+	(void) ms;
+#else
 	my_rest (ms);
+#endif
     }
 
     al_stop_duh (dp);

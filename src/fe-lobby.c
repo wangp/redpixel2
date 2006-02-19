@@ -295,7 +295,7 @@ static DIALOG server_lobby[] =
     { fancy_button_proc, 530, -100, 80, 30, 0, -1, 0, D_DISABLED | D_HIDDEN, 0, 0x80, "Cancel", NULL, browse_maps_button_pressed }, /* 11 */
     { fancy_button_proc, 360, -60, 100, 40, 0, -1, 0, 0, 0, 0x80, "GO!", NULL, start_game_pressed }, /* 12 */
     { fancy_button_proc, 480, -60, 110, 40, 0, -1, 0, D_EXIT, 0, 0x80, "Disconnect", NULL, NULL }, /* 13 */
-    { d_yield_proc, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, NULL, NULL, NULL },
+    { fancy_yield_proc, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, NULL, NULL, NULL },
     { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
@@ -377,7 +377,7 @@ static DIALOG client_lobby[] =
     { player_list_proc, 320, 60, 50, -70, 0, -1, 0, 0, 0, 0, NULL, NULL, NULL }, /* 5 */
     { fancy_list_proc_with_big_font, 380, 60, 240, -70, 0, -1, 0, D_DISABLED, 0, 0, get_player_stats, NULL, NULL }, /* 6 */
     { fancy_button_proc, 480, -60, 110, 40, 0, -1, 0, D_EXIT, 0, 0x80, "Disconnect", NULL, NULL }, /* 7 */
-    { d_yield_proc, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, NULL, NULL, NULL },
+    { fancy_yield_proc, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, NULL, NULL, NULL },
     { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 

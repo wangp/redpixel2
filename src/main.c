@@ -23,6 +23,10 @@
 #include "textface.h"
 #include "timeval.h"
 
+#ifdef THREADS_PTH
+#include <pth.h>
+#endif
+
 
 /* XXX */
 #ifdef TARGET_WINDOWS
@@ -134,6 +138,10 @@ int main (int argc, char *argv[])
 	fprintf (stderr, "Incompatible operation modes.\n");
 	return 1;
     }
+
+#ifdef THREADS_PTH
+    pth_init();
+#endif
 
     if (run_server)
 	setup_minimal_allegro ();

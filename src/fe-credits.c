@@ -6,6 +6,7 @@
 #include "music.h"
 #include "store.h"
 #include "timeval.h"
+#include "yield.h"
 
 
 #define rectfill_wh(b, x, y, w, h, c)   (rectfill (b, x, y, x + w - 1, y + h - 1, c))
@@ -178,6 +179,7 @@ void do_credits (void)
 	/* Blit the double buffer to the right part of the screen. */
 	blit (dbuf, screen, 0, 0, SCREEN_W - dbuf->w, 0, dbuf->w, dbuf->h);
 
+	maybe_pth_yield ();
 	rest (10);
 
     } while (!keypressed () && (offy + total_height >= 0));

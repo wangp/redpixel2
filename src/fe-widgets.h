@@ -21,6 +21,7 @@ int fancy_edit_proc (int msg, DIALOG *d, int c);
 int _fancy_list_proc (int msg, DIALOG *d, int c, FONT *font);
 int fancy_textbox_proc (int msg, DIALOG *d, int c);
 int fancy_slider_proc (int msg, DIALOG *d, int c);
+int fancy_yield_proc (int msg, DIALOG *d, int c);
 
 void make_button_background (DIALOG *d, BITMAP *bmp, BITMAP *backdrop, int bg);
 void set_fancy_label (DIALOG *d, int fg, FONT *font);

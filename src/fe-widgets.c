@@ -594,6 +594,15 @@ int fancy_slider_proc (int msg, DIALOG *d, int c)
 }
 
 
+int fancy_yield_proc (int msg, DIALOG *d, int c)
+{
+    if (msg == MSG_IDLE) {
+	maybe_pth_yield ();
+    }
+
+    return d_yield_proc (msg, d, c);
+}
+
 /*------------------------------------------------------------*/
 
 static void draw_trans_text (BITMAP *bmp, const char *str, int align, int x, int fg, int bg, int alpha)

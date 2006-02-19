@@ -9,6 +9,87 @@
 #include "yield.h"
 
 
+
+#ifdef THREADS_PTH
+
+
+#include <pth.h>
+
+
+static int threaded = 0;
+static pth_t server_thread;
+
+
+void sync_init (void *(*server_thread_proc)(void *))
+{
+    if (server_thread_proc != NULL) {
+	threaded = 1;
+	server_thread = pth_spawn(PTH_ATTR_DEFAULT, server_thread_proc, NULL);
+    }
+}
+
+
+void sync_shutdown (void)
+{
+    if (threaded) {
+	pth_join (server_thread, NULL);
+	server_thread = 0;
+	threaded = 0;
+    }
+}
+
+
+void sync_server_lock (void)
+{
+    /* Since the calling thread already has the CPU there is nothing
+     * to do.
+     */
+}
+
+
+int sync_server_stop_requested (void)
+{
+    return 0;
+}
+
+
+void sync_server_unlock (void)
+{
+    if (!threaded) {
+	/* standalone server */
+	yield ();
+    }
+    else {
+	pth_yield (NULL);
+    }
+}
+
+
+void sync_client_lock (void)
+{
+    /* Since the calling thread already has the CPU there is nothing
+     * to do.
+     */
+}
+
+
+void sync_client_unlock (void)
+{
+    if (!threaded) {
+	/* standalone client: poll the music */
+	maybe_pth_yield ();
+	yield ();
+    }
+    else {
+	pth_yield (NULL);
+    }
+}
+
+
+#endif
+
+
+
 #ifdef THREADS_PTHREAD
 
 
@@ -94,6 +175,7 @@ void sync_client_unlock (void)
 
 
 #endif
+
 
 
 

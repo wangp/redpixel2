@@ -8,6 +8,18 @@
 #include <allegro.h>
 #include "yield.h"
 
+#ifdef THREADS_PTH
+#include <pth.h>
+#endif
+
+
+void maybe_pth_yield (void)
+{
+#ifdef THREADS_PTH
+    pth_yield (NULL);
+#endif
+}
+
 
 void yield (void)
 {
