@@ -8,7 +8,7 @@ else
 	include config.linux
 endif
 
-SRCDIRS := src src/store src/magic src/fastsqrt src/jpgalleg \
+SRCDIRS := src src/store src/magic src/fastsqrt \
 	   src/loadaud src/2xsai src/gui src/ug src/editor src/server
 
 CC := gcc
