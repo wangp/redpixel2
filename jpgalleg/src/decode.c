@@ -32,8 +32,8 @@ static int spectrum_start, spectrum_end, successive_high, successive_low;
 static int scan_components, component[3];
 static int progress_counter, progress_total;
 static void (*idct)(short *block, short *dequant, short *output, short *workspace);
-static void (*ycbcr2rgb)(int address, int y1, int cb1, int cr1, int y2, int cb2, int cr2, int y3, int cb3, int cr3, int y4, int cb4, int cr4);
-static void (*plot)(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr);
+static void (*ycbcr2rgb)(intptr_t address, int y1, int cb1, int cr1, int y2, int cb2, int cr2, int y3, int cb3, int cr3, int y4, int cb4, int cr4);
+static void (*plot)(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr);
 static void (*progress_cb)(int percentage);
 
 
@@ -610,7 +610,7 @@ decode_baseline_block(short *block, int type, int *old_dc)
  *  progressive mode decoding.
  */
 static int
-decode_progressive_block(int addr, int type, int *old_dc)
+decode_progressive_block(intptr_t addr, int type, int *old_dc)
 {
 	HUFFMAN_TABLE *dc_table, *ac_table;
 	short *block = (short *)addr;
@@ -800,7 +800,7 @@ decode_progressive_block(int addr, int type, int *old_dc)
  *  at a time.
  */
 static void
-_jpeg_c_ycbcr2rgb(int addr, int y1, int cb1, int cr1, int y2, int cb2, int cr2, int y3, int cb3, int cr3, int y4, int cb4, int cr4)
+_jpeg_c_ycbcr2rgb(intptr_t addr, int y1, int cb1, int cr1, int y2, int cb2, int cr2, int y3, int cb3, int cr3, int y4, int cb4, int cr4)
 {
 	int r, g, b;
 	unsigned int *ptr = (unsigned int *)addr, temp, p0, p1, p2;
@@ -858,7 +858,7 @@ _jpeg_c_ycbcr2rgb(int addr, int y1, int cb1, int cr1, int y2, int cb2, int cr2, 
  *  Plots an 8x8 MCU block for 444 mode. Also used to plot greyscale MCUs.
  */
 static void
-plot_444(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
+plot_444(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
 {
 	int x, y;
 	short *y1_ptr = y1, *cb_ptr = cb, *cr_ptr = cr, v;
@@ -896,7 +896,7 @@ plot_444(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, short 
  *  Plots a 16x8 MCU block for 422 mode.
  */
 static void
-plot_422_h(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
+plot_422_h(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
 {
 	int x, y;
 	short *y1_ptr = y1, *y2_ptr = y2, *cb_ptr = cb, *cr_ptr = cr;
@@ -925,7 +925,7 @@ plot_422_h(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, shor
  *  Plots a 8x16 MCU block for 422 mode.
  */
 static void
-plot_422_v(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
+plot_422_v(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
 {
 	int x, y, d;
 	short *y1_ptr = y1, *y2_ptr = y2, *cb_ptr = cb, *cr_ptr = cr;
@@ -955,7 +955,7 @@ plot_422_v(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, shor
  *  Plots a 16x16 MCU block for 411 mode.
  */
 static void
-plot_411(int addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
+plot_411(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, short *cb, short *cr)
 {
 	int x, y, d;
 	short *y1_ptr = y1, *y2_ptr = y2, *y3_ptr = y3, *y4_ptr = y4, *cb_ptr = cb, *cr_ptr = cr;
@@ -1008,7 +1008,8 @@ _jpeg_decode(RGB *pal, void (*callback)(int))
 	short coefs_buffer[384], coefs[64], *coefs_ptr, *temp_ptr;
 	short *y1, *y2, *y3, *y4, *cb, *cr;
 	short workspace[130];
-	int addr, pitch, i, j;
+	intptr_t addr;
+	int pitch, i, j;
 	int block_x, block_y, block_max_x, block_max_y;
 	int blocks_per_row[3];
 	int blocks_in_mcu, block_component[6];
@@ -1254,7 +1255,7 @@ _jpeg_decode(RGB *pal, void (*callback)(int))
 				if (decode_baseline_block(block_ptr[i], (block_component[i] == 0) ? LUMINANCE : CHROMINANCE, &old_dc[block_component[i]]))
 					goto exit_error;
 			}
-			addr = (int)bmp->line[block_y] + (block_x * (jpeg_components == 1 ? 1 : 3));
+			addr = (intptr_t)bmp->line[block_y] + (block_x * (jpeg_components == 1 ? 1 : 3));
 			plot(addr, pitch, y1, y2, y3, y4, cb, cr);
 			block_x += mcu_w;
 			if (block_x >= jpeg_w) {
@@ -1373,7 +1374,7 @@ _jpeg_decode(RGB *pal, void (*callback)(int))
 				}
 				for (i = 0; i < blocks_in_mcu; i++) {
 					c = block_component[i];
-					addr = (int)(data_buffer[c][((block_y * component_h[c]) * blocks_per_row[c]) + (block_y_ofs[i] * blocks_per_row[c]) + (block_x * component_w[c]) + block_x_ofs[i]].data);
+					addr = (intptr_t)(data_buffer[c][((block_y * component_h[c]) * blocks_per_row[c]) + (block_y_ofs[i] * blocks_per_row[c]) + (block_x * component_w[c]) + block_x_ofs[i]].data);
 					if (decode_progressive_block(addr, (c == 0) ? LUMINANCE : CHROMINANCE, &old_dc[c]))
 						goto exit_error;
 				}
@@ -1465,7 +1466,7 @@ eoi_found:
 					idct(coefs, coefs_ptr, (c == 0) ? luminance_quantization_table : chrominance_quantization_table, workspace);
 					coefs_ptr += 64;
 				}
-				addr = (int)bmp->line[block_y * mcu_h] + (block_x * mcu_w * (jpeg_components == 1 ? 1 : 3));
+				addr = (intptr_t)bmp->line[block_y * mcu_h] + (block_x * mcu_w * (jpeg_components == 1 ? 1 : 3));
 				plot(addr, pitch, y1, y2, y3, y4, cb, cr);
 			}
 		}

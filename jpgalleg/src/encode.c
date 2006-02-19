@@ -122,7 +122,7 @@ static int chrominance_quant_table[64];
 static int current_pass, progress_counter, progress_total;
 static int sampling, greyscale, mcu_w, mcu_h, pitch;
 static BITMAP *fixed_bmp;
-static void (*rgb2ycbcr)(int address, short *y1, short *cb1, short *cr1, short *y2, short *cb2, short *cr2);
+static void (*rgb2ycbcr)(intptr_t address, short *y1, short *cb1, short *cr1, short *y2, short *cb2, short *cr2);
 static void (*progress_cb)(int percentage);
 
 
@@ -746,7 +746,7 @@ encode_block(short *block, int type, int *old_dc)
  *  at a time.
  */
 static void
-_jpeg_c_rgb2ycbcr(int addr, short *y1, short *cb1, short *cr1, short *y2, short *cb2, short *cr2)
+_jpeg_c_rgb2ycbcr(intptr_t addr, short *y1, short *cb1, short *cr1, short *y2, short *cb2, short *cr2)
 {
 	int r, g, b;
 	unsigned int *ptr = (unsigned int *)addr;
@@ -779,7 +779,8 @@ encode_pass(BITMAP *bmp, int quality)
 	short y4[256], cb[64], cr[64], y_blocks_per_mcu;
 	short *y_ptr, *cb_ptr, *cr_ptr;
 	int dc_y, dc_cb, dc_cr;
-	int block_x, block_y, x, y, i, addr;
+	int block_x, block_y, x, y, i;
+	intptr_t addr;
 	
 	_jpeg_io.buffer = _jpeg_io.buffer_start;
 	
@@ -790,7 +791,7 @@ encode_pass(BITMAP *bmp, int quality)
 	
 	for (block_y = 0; block_y < bmp->h; block_y += mcu_h) {
 		for (block_x = 0; block_x < bmp->w; block_x += mcu_w) {
-			addr = (int)fixed_bmp->line[block_y] + (block_x * 4);
+			addr = (intptr_t)fixed_bmp->line[block_y] + (block_x * 4);
 			y_ptr = y_buf;
 			cb_ptr = cb_buf;
 			cr_ptr = cr_buf;
