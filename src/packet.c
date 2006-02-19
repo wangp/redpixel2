@@ -9,6 +9,8 @@
 #ifndef TARGET_WINDOWS
 # include <netinet/in.h>
 #else
+# include <allegro.h>	/* will define uint32_t if necessary */
+# include <winalleg.h>
 # include <winsock.h>
 #endif
 
