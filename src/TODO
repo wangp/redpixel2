@@ -2,6 +2,9 @@ maybe delete pthread/win32 code in favour of Pth-only
 
 when using Pth the music thread can cause a jerk while loading the next song
 
+could try to use hardware mouse cursors
+
+
 code consistency, (e.g. between map, object, particles, explosions, render)
 	the code has a stop-start-stop-start feel to it (but at least
 		it works :-)
