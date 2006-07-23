@@ -894,12 +894,12 @@ BITMAP *load_jpg(AL_CONST char *filename, RGB *pal)
    /*
     *  Loads the whole file in memory.
     */
-   data = (unsigned char *)_al_malloc(size);
+   data = (unsigned char *)malloc(size);
    if (!data)
       return NULL;
 
    if (!(f = pack_fopen(filename, F_READ))) {
-      _al_free(data);
+      free(data);
       return NULL;
    }
 
@@ -911,7 +911,7 @@ BITMAP *load_jpg(AL_CONST char *filename, RGB *pal)
     */
    bmp = load_memory_jpg(data, pal);
 
-   _al_free(data);
+   free(data);
 
    return bmp;
 }
