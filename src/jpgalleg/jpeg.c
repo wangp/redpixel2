@@ -525,7 +525,7 @@ static int read_app0(DECODER_DATA *dec)
       return 1;
    dec->data += 2;
 
-   if (strcmp(dec->data, "JFIF"))
+   if (strcmp((const char *) dec->data, "JFIF"))
       /* Invalid JFIF id */
       return 1;
    dec->data += 5;

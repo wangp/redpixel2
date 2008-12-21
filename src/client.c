@@ -275,7 +275,7 @@ static void client_info_list_free (void)
  */
 
 
-static void process_sc_client_add (const char *buf)
+static void process_sc_client_add (const unsigned char *buf)
 {
     client_id_t id;
     short nlen;
@@ -290,7 +290,7 @@ static void process_sc_client_add (const char *buf)
 }
 
 
-static void process_sc_client_remove (const char *buf)
+static void process_sc_client_remove (const unsigned char *buf)
 {
     client_id_t id;
     packet_decode (buf, "l", &id);

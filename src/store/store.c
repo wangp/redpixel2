@@ -215,7 +215,11 @@ free_lookup_table (void)
     }
 }
 
-#define hash_string(s)	(hash(s, strlen(s), 1))
+static inline unsigned int
+hash_string (AL_CONST char *s)
+{
+    return hash((AL_CONST unsigned char *) s, strlen(s), 1);
+}
 
 static void
 really_add_to_lookup_table (AL_CONST char *key, store_index_t value)

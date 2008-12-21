@@ -91,7 +91,7 @@ void server_log (int broadcast_to_clients, const char *fmt, ...)
 
 static void poll_client_joining (svclient_t *c)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     char name[NETWORK_MAX_PACKET_SIZE];
     short len;
     char version;
@@ -166,7 +166,7 @@ static void poll_client_joining (svclient_t *c)
 
 static void poll_client_joined (svclient_t *c)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     size = svclient_receive_rdm (c, buf, sizeof buf);

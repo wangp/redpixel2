@@ -115,7 +115,7 @@ int svclient_send_rdm_byte (svclient_t *c, char byte)
 int svclient_send_rdm_encode (svclient_t *c, const char *fmt, ...)
 {
     va_list ap;
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     va_start (ap, fmt);
@@ -164,7 +164,7 @@ void svclients_broadcast_rdm_byte (char c)
 void svclients_broadcast_rdm_encode (const char *fmt, ...)
 {
     va_list ap;
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     va_start (ap, fmt);

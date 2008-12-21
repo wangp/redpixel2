@@ -433,9 +433,8 @@ int _fancy_list_proc (int msg, DIALOG *d, int c, FONT *fnt)
 
 	    for (i = 0; (i < height) && (i + d->d2 < listsize); i++) {
 		ustrzcpy (str, sizeof str, proc (i + d->d2, NULL));
-		if (str)
-		    textout (fancy_screen, font, str, d->x + 5,
-			     d->y + 2 + i * text_height (font), d->fg);
+		textout (fancy_screen, font, str, d->x + 5,
+			 d->y + 2 + i * text_height (font), d->fg);
 	    }
 
 	    restore_clip (fancy_screen, &old_clip);

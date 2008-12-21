@@ -8,7 +8,7 @@ struct svclient;
 struct object;
 
 
-void svgame_process_cs_gameinfo_packet (struct svclient *c, const char *buf, size_t size);
+void svgame_process_cs_gameinfo_packet (struct svclient *c, const unsigned char *buf, size_t size);
 void svgame_process_cs_ping (struct svclient *c);
 void svgame_process_cs_boing (struct svclient *c);
 

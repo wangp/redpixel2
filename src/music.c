@@ -229,7 +229,7 @@ static void force_no_loop (AL_DUH_PLAYER *dp)
 static void load_playlist (const char *filename)
 {
     FILE *fp;
-    unsigned char *line;
+    char *line;
     struct playlist_entry *pe;
 
     fp = fopen (filename, "r");
@@ -239,7 +239,7 @@ static void load_playlist (const char *filename)
     playlist_length = 0;
     playlist = NULL;
 
-    while ((line = read_a_line (fp, RAL_TRIM, NULL, NULL))) {
+    while ((line = (char *) read_a_line (fp, RAL_TRIM, NULL, NULL))) {
 
 	strip_leading_trailing_whitespace (line);
 	if (!*line) {

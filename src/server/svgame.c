@@ -101,7 +101,7 @@ static object_t *spawn_player (objid_t id)
  */
 
 
-void svgame_process_cs_gameinfo_packet (svclient_t *c, const char *buf,
+void svgame_process_cs_gameinfo_packet (svclient_t *c, const unsigned char *buf,
 					 size_t size)
 {
     const void *end = buf + size;
@@ -188,7 +188,7 @@ static void add_to_gameinfo_packet_raw (void *buf, size_t size)
 static void add_to_gameinfo_packet (const char *fmt, ...)
 {
     va_list ap;
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
     va_start (ap, fmt);
@@ -281,13 +281,13 @@ static void gameinfo_packet_queue_flush (void)
 
 
 /* XXX lots of potention buffer overflows */
-static size_t make_object_creation_packet (object_t *obj, char *buf)
+static size_t make_object_creation_packet (object_t *obj, unsigned char *buf)
 {
     int top = lua_gettop (Lsrv);
     const char *type;
     list_head_t *list;
     creation_field_t *f;
-    char *p;
+    unsigned char *p;
 
     /* look up object type alias */
     type = objtype_name (object_type (obj));
@@ -352,7 +352,7 @@ static void feed_game_state_to (svclient_t *c)
     {
 	list_head_t *list;
 	object_t *obj;
-	char buf[NETWORK_MAX_PACKET_SIZE];
+	unsigned char buf[NETWORK_MAX_PACKET_SIZE];
 	size_t size;
 
 	list = map_object_list (map);
@@ -495,7 +495,7 @@ static void send_object_updates (void)
 {
     list_head_t *object_list;
     object_t *obj;
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
     object_list = map_object_list (map);
@@ -750,7 +750,7 @@ object_t *svgame_spawn_projectile_raw (const char *typename, int owner,
 static void queue_particle_packet (char type, float x, float y,
 				   long nparticles, float spread)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     if (!map)	/* may be called while in editor */
@@ -780,7 +780,7 @@ void svgame_spawn_respawn_particles (float x, float y, long nparticles,
 
 void svgame_spawn_blod (float x, float y, long nparticles)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
     
     size = packet_encode (buf, "cffl", MSG_SC_GAMEINFO_BLOD_CREATE,
@@ -791,7 +791,7 @@ void svgame_spawn_blod (float x, float y, long nparticles)
 
 void svgame_spawn_explosion (const char *name, float x, float y)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     size = packet_encode (buf, "csff", MSG_SC_GAMEINFO_EXPLOSION_CREATE,
@@ -802,7 +802,7 @@ void svgame_spawn_explosion (const char *name, float x, float y)
 
 void svgame_spawn_blast (float x, float y, float radius, int damage, int owner)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     size = packet_encode (buf, "cfffl", MSG_SC_GAMEINFO_BLAST_CREATE,
@@ -818,7 +818,7 @@ void svgame_spawn_blast (float x, float y, float radius, int damage, int owner)
 void svgame_call_method_on_clients (object_t *obj, const char *method,
 				    const char *arg)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     if (!map)	/* may be called while in editor */
@@ -842,7 +842,7 @@ int svgame_object_would_collide_with_player_if_unhidden (object_t *obj)
 
 void svgame_tell_health (object_t *obj, int health)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     if (!object_is_client (obj))
@@ -856,7 +856,7 @@ void svgame_tell_health (object_t *obj, int health)
 
 void svgame_tell_armour (object_t *obj, int armour)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     if (!object_is_client (obj))
@@ -870,7 +870,7 @@ void svgame_tell_armour (object_t *obj, int armour)
 
 void svgame_tell_ammo (object_t *obj, int ammo)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     if (!object_is_client (obj))
@@ -885,7 +885,7 @@ void svgame_tell_ammo (object_t *obj, int ammo)
 void svgame_set_score (client_id_t client_id, const char *score)
 {
     svclient_t *c;
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     if (!(c = svclients_find_by_id (client_id)))
@@ -901,7 +901,7 @@ void svgame_set_score (client_id_t client_id, const char *score)
 
 void svgame_play_sound_on_clients (object_t *obj, const char *sound)
 {
-    char buf[NETWORK_MAX_PACKET_SIZE];
+    unsigned char buf[NETWORK_MAX_PACKET_SIZE];
     size_t size;
 
     size = packet_encode (buf, "cffs", MSG_SC_GAMEINFO_SOUND_PLAY,
@@ -967,7 +967,8 @@ static void handle_new_svclient_feeds (void)
 	    c->client_object = obj;
 
 	    {
-		char buf[NETWORK_MAX_PACKET_SIZE+1] = { MSG_SC_GAMEINFO };
+		unsigned char buf[NETWORK_MAX_PACKET_SIZE+1] = {
+		    MSG_SC_GAMEINFO };
 		size_t size = make_object_creation_packet (obj, buf+1);
 		svclients_broadcast_rdm (buf, size+1);
 	    }
