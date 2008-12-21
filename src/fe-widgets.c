@@ -416,7 +416,6 @@ int _fancy_list_proc (int msg, DIALOG *d, int c, FONT *fnt)
 
     switch (msg) {
 	case MSG_DRAW: {
-	    char str[1024];
 	    int i;
 	    int rtm = text_mode (d->bg);
 	    clip_t old_clip;
@@ -432,8 +431,8 @@ int _fancy_list_proc (int msg, DIALOG *d, int c, FONT *fnt)
 	    set_clip_wh (fancy_screen, d->x + 5, d->y, d->w - 11, d->h);
 
 	    for (i = 0; (i < height) && (i + d->d2 < listsize); i++) {
-		ustrzcpy (str, sizeof str, proc (i + d->d2, NULL));
-		textout (fancy_screen, font, str, d->x + 5,
+		const char *line = proc (i + d->d2, NULL);
+		textout (fancy_screen, font, line, d->x + 5,
 			 d->y + 2 + i * text_height (font), d->fg);
 	    }
 
@@ -468,7 +467,10 @@ int _fancy_list_proc (int msg, DIALOG *d, int c, FONT *fnt)
 		break;
 	    }
 
-	    d->d2 = MID (0, d->d2, listsize - height);
+	    if (d->d2 < 0)
+		d->d2 = 0;
+	    else if (d->d2 > listsize - height)
+		d->d2 = listsize - height;
 
 	    if (d->d2 != old_d2)
 		d->flags |= D_DIRTY;
