@@ -555,7 +555,7 @@ SC_GAMEINFO_HANDLER (sc_client_status)
 {
     client_id_t id;
     char type;
-    long val;
+    int32_t val;
 
     buf += packet_decode (buf, "lcl", &id, &type, &val);
     if (id == client_id) {	/* XXX a waste to broadcast this */
@@ -757,7 +757,7 @@ SC_GAMEINFO_HANDLER (sc_particles_create)
     char type;
     float x;
     float y;
-    long nparticles;
+    int32_t nparticles;
     float spread;
     void (*spawner)(particles_t *, float, float, long, float) = NULL;
 
@@ -781,7 +781,7 @@ SC_GAMEINFO_HANDLER (sc_blod_create)
 {
     float x;
     float y;
-    long nparticles;
+    int32_t nparticles;
 
     buf += packet_decode (buf, "ffl", &x, &y, &nparticles);
     blod_spawn (map, x, y, nparticles);
@@ -809,7 +809,7 @@ SC_GAMEINFO_HANDLER (sc_blast_create)
     float x;
     float y;
     float rad;
-    long damage;
+    int32_t damage;
 
     buf += packet_decode (buf, "fffl", &x, &y, &rad, &damage);
     map_blast_create (map, x, y, rad, damage, OBJID_CLIENT_PROCESSED);

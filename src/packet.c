@@ -166,7 +166,7 @@ int packet_decode (const unsigned char *buf, const char *fmt, ...)
 int main ()
 {
     char buf[512];
-    long a, b, c;
+    int32_t a, b, c;
     float f;
     short len;
     char s[80];
